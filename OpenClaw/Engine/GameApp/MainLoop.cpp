@@ -92,6 +92,9 @@ static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int arg
         candidates.push_back(dir + "CLAW.REZ");
     }
     candidates.push_back(std::string(kSwitchDataDir) + "CLAW.REZ");
+    // Common layout for emulators (e.g. Ryujinx), which do not pass the NRO's
+    // path in argv: sdcard/Games/claw/ next to openclaw.nro.
+    candidates.push_back("/Games/claw/CLAW.REZ");
 
     for (size_t i = 0; i < candidates.size(); ++i)
     {
@@ -258,7 +261,7 @@ int RunGameEngine(int argc, char** argv)
             "This port needs the data file from your own copy of",
             "Captain Claw (1997). Copy CLAW.REZ to the SD card:",
             "    /switch/claw/CLAW.REZ",
-            "(or into the same folder as openclaw.nro)",
+            "(or next to openclaw.nro, or /Games/claw/CLAW.REZ)",
             "",
             "Searched:"};
         for (const std::string& path : rezSearched)
