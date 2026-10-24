@@ -28,7 +28,7 @@ public:
     virtual void VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame) override;
 
 private:
-    void UpdateAttachedActorPosition(const Point& newPosition);
+    void UpdateAttachedActorPosition(const Point& newPosition, bool immediate);
     void DetachActor();
 
     // Internal state

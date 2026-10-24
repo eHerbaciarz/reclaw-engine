@@ -37,6 +37,8 @@ public:
     virtual bool VIsVisible(Scene* pScene) const = 0;
 
     virtual void VSetPosition(const Point& position) = 0;
+    // Move without render interpolation (teleports).
+    virtual void VSnapPosition(const Point& position) { VSetPosition(position); }
     
     virtual bool VAddChild(shared_ptr<ISceneNode> kid) = 0;
     virtual bool VRemoveChild(uint32 actorId) = 0;
@@ -110,6 +112,7 @@ public:
     virtual bool VOnLostDevice(Scene* pScene);
 
     void VSetPosition(const Point& position) override;
+    void VSnapPosition(const Point& position) override;
     Point GetPosition() { return m_Properties.m_Position; }
 
     void SetParent(SceneNode *node) { m_pParent = node; }

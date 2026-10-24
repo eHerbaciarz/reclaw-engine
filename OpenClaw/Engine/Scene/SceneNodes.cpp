@@ -158,6 +158,11 @@ void SceneNode::VSetPosition(const Point &position) {
     }
 }
 
+void SceneNode::VSnapPosition(const Point &position) {
+    VSetPosition(position);
+    m_Properties.m_PrevPosition = m_Properties.m_Position;
+}
+
 //=================================================================================================
 // RootNode Implementation
 //

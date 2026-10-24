@@ -186,11 +186,15 @@ public:
         m_Id = INVALID_ACTOR_ID;
     }
 
-    EventData_Move_Actor(uint32_t id, const Point& move)
-        : m_Id(id), m_Move(move)
+    // snap: the actor jumped (teleport) instead of moving continuously, so the
+    // renderer must not interpolate from the old position.
+    EventData_Move_Actor(uint32_t id, const Point& move, bool snap = false)
+        : m_Id(id), m_Move(move), m_Snap(snap)
     {
         //
     }
+
+    bool IsSnap() const { return m_Snap; }
 
     virtual void VSerialize(std::ostringstream &out) const
     {
@@ -208,7 +212,7 @@ public:
 
     virtual IEventDataPtr VCopy() const
     {
-        return IEventDataPtr(new EventData_Move_Actor(m_Id, m_Move));
+        return IEventDataPtr(new EventData_Move_Actor(m_Id, m_Move, m_Snap));
     }
 
     virtual const char* GetName(void) const
@@ -229,6 +233,7 @@ public:
 private:
     uint32_t m_Id;
     Point m_Move;
+    bool m_Snap = false;
 };
 
 

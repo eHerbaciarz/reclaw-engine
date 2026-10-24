@@ -235,7 +235,7 @@ void RopeComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFra
             return;
         }
 
-        UpdateAttachedActorPosition(newPosition);
+        UpdateAttachedActorPosition(newPosition, true);
 
         shared_ptr<PhysicsComponent> pRopeActorPhysicsComponent = m_pAttachedActor->GetPhysicsComponent();
         assert(pRopeActorPhysicsComponent != nullptr);
@@ -282,7 +282,7 @@ void RopeComponent::VOnActorEnteredTrigger(Actor* pActorWhoEntered, FixtureType 
 
     pClawComponent->VOnAttachedToRope();
 
-    UpdateAttachedActorPosition(m_pRopeEndTriggerActor->GetPositionComponent()->GetPosition());
+    UpdateAttachedActorPosition(m_pRopeEndTriggerActor->GetPositionComponent()->GetPosition(), false);
 }
 
 void RopeComponent::VOnActorLeftTrigger(Actor* pActorWhoLeft, FixtureType triggerType)
@@ -302,13 +302,22 @@ void RopeComponent::VOnActorLeftTrigger(Actor* pActorWhoLeft, FixtureType trigge
     pClawComponent->VDetachFromRope();
 }
 
-void RopeComponent::UpdateAttachedActorPosition(const Point& newPosition)
+void RopeComponent::UpdateAttachedActorPosition(const Point& newPosition, bool immediate)
 {
     assert(m_pAttachedActor != NULL);
 
-    IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Teleport_Actor(
-        m_pAttachedActor->GetGUID(),
-        newPosition)));
+    IEventDataPtr pEvent(new EventData_Teleport_Actor(m_pAttachedActor->GetGUID(), newPosition));
+    if (immediate)
+    {
+        // Same tick as the rope's animation frame; a queued event would leave
+        // the actor one tick behind the rope end, which shows as jitter.
+        IEventMgr::Get()->VTriggerEvent(pEvent);
+    }
+    else
+    {
+        // Called from a physics contact callback: bodies cannot move mid-step.
+        IEventMgr::Get()->VQueueEvent(pEvent);
+    }
 }
 
 void RopeComponent::DetachActor()

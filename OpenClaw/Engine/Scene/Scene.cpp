@@ -128,6 +128,13 @@ void Scene::MoveActorDelegate(IEventDataPtr pEventData)
     if (pNode)
     {
         Point moveDestination = pCastEventData->GetMove();
-        pNode->VSetPosition(moveDestination);
+        if (pCastEventData->IsSnap())
+        {
+            pNode->VSnapPosition(moveDestination);
+        }
+        else
+        {
+            pNode->VSetPosition(moveDestination);
+        }
     }
 }

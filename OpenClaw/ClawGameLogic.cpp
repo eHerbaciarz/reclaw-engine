@@ -234,7 +234,7 @@ void ClawGameLogic::TeleportActorDelegate(IEventDataPtr pEventData)
 
     m_pPhysics->VSetPosition(pCastEventData->GetActorId(), pCastEventData->GetDestination());
     IEventMgr::Get()->VTriggerEvent(IEventDataPtr(
-        new EventData_Move_Actor(pCastEventData->GetActorId(), pCastEventData->GetDestination())));
+        new EventData_Move_Actor(pCastEventData->GetActorId(), pCastEventData->GetDestination(), true)));
     pActor->GetPositionComponent()->SetPosition(pCastEventData->GetDestination());
 }
 
