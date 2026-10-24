@@ -92,12 +92,20 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
             {
                 int32_t x = col * tilePixelWidth - parallaxCameraPosX;
                 int32_t y = row * tilePixelHeight - parallaxCameraPosY;
-                SDL_Rect tileRect = { x,
-                    y,
-                    tilePixelWidth,
-                    tilePixelHeight };
 
-                SDL_RenderCopy(renderer, image->GetTexture(), NULL, &tileRect);
+                // Draw the tile at its native size, clipped to its grid cell,
+                // like the original engine. Some tile images are not exactly
+                // cell-sized (e.g. one pixel wider with a stray edge column);
+                // stretching them into the cell made that column visible as
+                // thin vertical lines (level 13 vines).
+                int texW = tilePixelWidth, texH = tilePixelHeight;
+                SDL_QueryTexture(image->GetTexture(), NULL, NULL, &texW, &texH);
+                SDL_Rect srcRect = { 0, 0,
+                    std::min<int32_t>(texW, tilePixelWidth),
+                    std::min<int32_t>(texH, tilePixelHeight) };
+                SDL_Rect tileRect = { x, y, srcRect.w, srcRect.h };
+
+                SDL_RenderCopy(renderer, image->GetTexture(), &srcRect, &tileRect);
             }
         }
     }
