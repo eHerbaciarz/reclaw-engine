@@ -6,6 +6,7 @@
 #include "../Graphics2D/Image.h"
 #include "../Resource/ResourceCache.h"
 #include "../Resource/ResourceDirectory.h"
+#include "StartupSplash.h"
 #include "../Resource/ResourceMgr.h"
 #include "../UserInterface/HumanView.h"
 #include "BaseGameLogic.h"
@@ -205,6 +206,10 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     return false;
   }
 
+  // Dedication screen (only in builds made with a splash text); stays up
+  // while the rest of the game loads.
+  StartupSplash::Show(m_pRenderer);
+
   STARTUP_TRACE("begin InitializeAudio");
   if (!InitializeAudio(m_GameOptions)) {
     STARTUP_TRACE("FAILED InitializeAudio");
@@ -300,6 +305,8 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
 
   STARTUP_TRACE("Initialize done");
   m_IsRunning = true;
+
+  StartupSplash::Finish(m_pRenderer);
 
   return true;
 }

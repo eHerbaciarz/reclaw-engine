@@ -83,7 +83,7 @@ LIBS     := $(shell $(PKGCONFIG) --libs SDL2_mixer SDL2_image SDL2_ttf SDL2_gfx 
 # own file to /switch/claw/CLAW.REZ on the SD card.
 #---------------------------------------------------------------------------------
 ROMFS_FILES := $(ROMFS)/config.xml $(ROMFS)/ASSETS.ZIP $(ROMFS)/clacon.ttf \
-               $(ROMFS)/console02.tga $(ROMFS)/music/soundfont.sf3
+               $(ROMFS)/console02.tga $(ROMFS)/music/soundfont.sf3 $(ROMFS)/splash.ttf
 
 ASSETS_SRC := $(shell cd $(REPO)/Build_Release && find ASSETS -type f 2>/dev/null)
 
@@ -100,6 +100,24 @@ $(BUILD)/$(TARGET).elf: $(OBJECTS)
 	@$(CXX) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $@
 
 romfs: $(ROMFS_FILES)
+
+# Optional dedication screen while loading: make SPLASH="Text-Title"
+# Only StartupSplash.cpp sees the text; a stamp file rebuilds it when it changes.
+SPLASH_OBJ   := $(BUILD)/obj/OpenClaw/Engine/GameApp/StartupSplash.o
+SPLASH_STAMP := $(BUILD)/splash.stamp
+ifneq ($(strip $(SPLASH)),)
+$(SPLASH_OBJ): CXXFLAGS += -DOPENCLAW_SPLASH_TEXT='"$(SPLASH)"'
+endif
+$(SPLASH_OBJ): $(SPLASH_STAMP)
+$(SPLASH_STAMP): FORCE
+	@mkdir -p $(dir $@)
+	@echo '$(SPLASH)' | cmp -s - $@ || echo '$(SPLASH)' > $@
+.PHONY: FORCE
+FORCE:
+
+$(ROMFS)/splash.ttf: $(REPO)/ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf
+	@mkdir -p $(dir $@)
+	@cp $< $@
 
 $(ROMFS)/config.xml: config.xml
 	@mkdir -p $(dir $@)
