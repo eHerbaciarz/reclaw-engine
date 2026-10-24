@@ -58,9 +58,12 @@ DEPENDS := $(OBJECTS:.o=.d)
 #---------------------------------------------------------------------------------
 ARCH     := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-INCLUDES := -I$(REPO)/OpenClaw -I$(REPO)/Box2D -I$(REPO)/libwap \
-            -I$(REPO)/ThirdParty -I$(REPO)/ThirdParty/Tinyxml \
-            -I$(PORTLIBS)/include -I$(PORTLIBS)/include/SDL2 -I$(LIBNX)/include
+# ThirdParty/ also bundles SDL 2.0.4 headers for the old Windows build. It is
+# searched last (-idirafter) so <SDL2/...> always resolves to the SDL that is
+# actually linked (portlibs), while FastDelegate/Tinyxml are still found.
+INCLUDES := -I$(PORTLIBS)/include -I$(PORTLIBS)/include/SDL2 -I$(LIBNX)/include \
+            -I$(REPO)/OpenClaw -I$(REPO)/Box2D -I$(REPO)/libwap \
+            -I$(REPO)/ThirdParty/Tinyxml -idirafter $(REPO)/ThirdParty
 
 DEFINES  := -D__SWITCH__ -DOPENCLAW_NATIVE=1
 ifeq ($(TRACE),1)

@@ -47,8 +47,10 @@ target_include_directories(openclaw PRIVATE
     "${REPO_ROOT}/OpenClaw"
     "${REPO_ROOT}/Box2D"
     "${REPO_ROOT}/libwap"
-    "${REPO_ROOT}/ThirdParty"
     "${REPO_ROOT}/ThirdParty/Tinyxml")
+# ThirdParty/ also bundles SDL 2.0.4 headers for the old Windows build; search
+# it after the system directories so <SDL2/...> matches the linked SDL.
+target_compile_options(openclaw PRIVATE "-idirafter" "${REPO_ROOT}/ThirdParty")
 
 target_compile_definitions(openclaw PRIVATE OPENCLAW_NATIVE=1)
 target_compile_options(openclaw PRIVATE -fpermissive -Wno-narrowing)

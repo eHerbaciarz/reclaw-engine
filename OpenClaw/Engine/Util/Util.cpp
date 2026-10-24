@@ -426,8 +426,7 @@ namespace Util
     int GetSoundDurationMs(const std::string& soundPath)
     {
         shared_ptr<Mix_Chunk> pSound = WavResourceLoader::LoadAndReturnSound(soundPath.c_str());
-        assert(pSound != nullptr);
-        return GetSoundDurationMs(pSound.get());
+        return pSound ? GetSoundDurationMs(pSound.get()) : 0;
     }
 
     int GetSoundDurationMs(Mix_Chunk* pSound)
@@ -436,9 +435,9 @@ namespace Util
         uint16 format = 0;
         int channels = 0;
 
-        if (Mix_QuerySpec(&frequency, &format, &channels) == 0)
+        if (pSound == nullptr || Mix_QuerySpec(&frequency, &format, &channels) == 0)
         {
-            return -1;
+            return pSound == nullptr ? 0 : -1;
         }
 
         uint32 points = (pSound->alen / ((format & 0xFF) / 8));

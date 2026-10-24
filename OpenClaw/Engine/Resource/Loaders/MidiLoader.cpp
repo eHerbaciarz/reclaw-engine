@@ -70,6 +70,11 @@ shared_ptr<MidiFile> MidiResourceLoader::LoadAndReturnMidiFile(const char* resou
     Resource resource(resourceString);
 
     shared_ptr<ResourceHandle> handle = g_pApp->GetResourceCache()->GetHandle(&resource);
+    if (!handle)
+    {
+        LOG_WARNING("Music not found, skipping: " + std::string(resourceString));
+        return nullptr;
+    }
     shared_ptr<MidiResourceExtraData> extraData = std::static_pointer_cast<MidiResourceExtraData>(handle->GetExtraData());
 
     if (!extraData)

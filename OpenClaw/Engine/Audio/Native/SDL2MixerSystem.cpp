@@ -102,7 +102,10 @@ bool SDL2MixerSystem::Initialize()
     // Decoding the SF3 soundfont (Ogg samples) takes a while on handheld CPUs,
     // so it happens in the background; music requested earlier starts as soon
     // as the synth is ready.
-    m_pLoaderThread = SDL_CreateThread(&SDL2MixerSystem::SoundFontLoaderThread, "SoundFontLoader", this);
+    // stb_vorbis allocates its decode scratch buffers with alloca(); the
+    // default pthread stack on the Switch is far too small for that.
+    m_pLoaderThread = SDL_CreateThreadWithStackSize(&SDL2MixerSystem::SoundFontLoaderThread, "SoundFontLoader",
+                                                    4 * 1024 * 1024, this);
     if (!m_pLoaderThread)
     {
         LOG_WARNING("Could not start soundfont loader thread, loading synchronously");

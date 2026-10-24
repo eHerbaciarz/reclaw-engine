@@ -58,7 +58,13 @@ bool GlobalAmbientSoundComponent::VInit(TiXmlElement* pData)
 
     shared_ptr<Mix_Chunk> pSound = WavResourceLoader::LoadAndReturnSound(m_Sound.c_str());
     m_SoundDurationMs = Util::GetSoundDurationMs(pSound.get());
-    assert(m_SoundDurationMs > 0);
+    if (m_SoundDurationMs <= 0)
+    {
+        // Sound missing from this CLAW.REZ: keep the timing sane, playback
+        // requests for it are skipped.
+        LOG_WARNING("Ambient sound unavailable: " + m_Sound);
+        m_SoundDurationMs = 1000;
+    }
 
     m_TimeOff = Util::GetRandomNumber(m_MinTimeOff, m_MaxTimeOff);
 
