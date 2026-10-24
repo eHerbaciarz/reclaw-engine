@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "../Actor/ActorFactory.h"
 #include "../UserInterface/HumanView.h"
 #include "../Events/Events.h"
@@ -133,16 +134,44 @@ bool BaseGameLogic::Initialize()
 
     TiXmlDocument gameSaves(savesFilePath.c_str());
     gameSaves.LoadFile();
+    bool startFresh = false;
     if (gameSaves.Error())
     {
-        LOG_ERROR("Error while loading " + savesFilePath
-             + ": " + std::string(gameSaves.ErrorDesc()));
-        return false;
+        if (gameSaves.ErrorId() == TiXmlBase::TIXML_ERROR_OPENING_FILE)
+        {
+            // First launch: no saves yet (the web build starts the same way).
+            LOG_WARNING("No saves file at " + savesFilePath + ", starting a new game");
+        }
+        else
+        {
+            // A damaged saves file must not keep the game from starting; keep
+            // it next to the new one so progress can be recovered by hand.
+            LOG_ERROR("Error while loading " + savesFilePath + ": " + std::string(gameSaves.ErrorDesc())
+                      + " - moved to " + savesFilePath + ".bak, starting a new game");
+            std::remove((savesFilePath + ".bak").c_str());
+            std::rename(savesFilePath.c_str(), (savesFilePath + ".bak").c_str());
+        }
+        startFresh = true;
+    }
+    else if (!m_pGameSaveMgr->Initialize(gameSaves.RootElement()))
+    {
+        LOG_ERROR("Saves file " + savesFilePath + " contains no usable saves, starting a new game");
+        startFresh = true;
     }
 
-    if (!m_pGameSaveMgr->Initialize(gameSaves.RootElement()))
+    if (startFresh)
     {
-        return false;
+        if (!m_pGameSaveMgr->IsSaveSupported() || g_pApp->GetGlobalOptions()->loadAllLevelSaves)
+        {
+            return m_pGameSaveMgr->Initialize(nullptr);
+        }
+        m_pGameSaveMgr->ResetToNewGame();
+        TiXmlDocument newSaves;
+        newSaves.LinkEndChild(m_pGameSaveMgr->ToXml());
+        if (!newSaves.SaveFile(savesFilePath.c_str()))
+        {
+            LOG_WARNING("Could not create " + savesFilePath + " - progress will not be saved");
+        }
     }
 
     return true;
