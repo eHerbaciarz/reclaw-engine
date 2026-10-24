@@ -4,6 +4,9 @@
 
 #ifdef __EMSCRIPTEN__
 #include "../../Audio/WebAudioAPI.h"
+#else
+#include "../LooseSoundFiles.h"
+#include <map>
 #endif
 
 //=================================================================================================
@@ -104,6 +107,33 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
 
 shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resourceString)
 {
+#ifndef __EMSCRIPTEN__
+    // Releases that keep the sounds in a "Sounds" folder next to CLAW.REZ.
+    // Decoded chunks are kept for the rest of the session: SDL_mixer may still
+    // be playing one, so they must never be freed while channels reference them.
+    {
+        static std::map<std::string, shared_ptr<Mix_Chunk>> s_LooseCache;
+        std::string key(resourceString);
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+        auto cached = s_LooseCache.find(key);
+        if (cached != s_LooseCache.end())
+        {
+            return cached->second;
+        }
+        std::string filePath;
+        if (LooseSoundFiles::Find(resourceString, filePath))
+        {
+            Mix_Chunk* pChunk = Mix_LoadWAV(filePath.c_str());
+            if (pChunk)
+            {
+                shared_ptr<Mix_Chunk> pSound(pChunk, DeleteMixChunk);
+                s_LooseCache[key] = pSound;
+                return pSound;
+            }
+            LOG_WARNING("Could not decode " + filePath + ": " + std::string(Mix_GetError()));
+        }
+    }
+#endif
     Resource resource(resourceString);
 
     shared_ptr<ResourceHandle> handle = g_pApp->GetResourceCache()->GetHandle(&resource);

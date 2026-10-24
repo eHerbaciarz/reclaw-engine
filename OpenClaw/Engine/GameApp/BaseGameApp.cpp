@@ -37,6 +37,7 @@
 #else
 #include "../Platform/Video/Null/NullVideoPlatform.h"
 #include "../Platform/Input/SdlGamepadInput.h"
+#include "../Resource/LooseSoundFiles.h"
 #endif
 
 #include <cctype>
@@ -1190,6 +1191,20 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
   pCustomCache->RegisterLoader(WavResourceLoader::Create());
   pCustomCache->RegisterLoader(PcxResourceLoader::Create());
   pCustomCache->RegisterLoader(PngResourceLoader::Create());
+
+#ifndef __EMSCRIPTEN__
+  {
+    // Digital releases keep the sounds in a "Sounds" folder next to CLAW.REZ.
+    std::string rezDir = rezArchivePath;
+    size_t slash = rezDir.find_last_of('/');
+    rezDir = (slash == std::string::npos) ? std::string(".") : rezDir.substr(0, slash);
+    std::vector<std::string> roots = {rezDir + "/Sounds", rezDir + "/SOUNDS", rezDir + "/sounds"};
+#ifdef __SWITCH__
+    roots.push_back("/switch/claw/Sounds");
+#endif
+    LooseSoundFiles::SetSearchRoots(roots);
+  }
+#endif
 
   m_pResourceMgr = new ResourceMgrImpl();
   // Custom cache first so ASSETS.ZIP can override CLAW.REZ assets
