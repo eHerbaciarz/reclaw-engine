@@ -154,7 +154,7 @@ void HumanView::VOnRender(uint32 msDiff)
 
         if (!m_bPostponeRenderPresent)
         {
-            SDL_RenderPresent(renderer);
+            g_pApp->PresentFrame();
         }
     }
 }

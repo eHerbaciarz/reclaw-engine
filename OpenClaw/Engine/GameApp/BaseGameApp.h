@@ -33,6 +33,13 @@ struct GameOptions {
   void SetDefaults() {
     windowWidth = 1280;
     windowHeight = 780;
+#ifdef __SWITCH__
+    renderWidth = 854;  // same 480-line widescreen view as the web build
+    renderHeight = 480;
+#else
+    renderWidth = 0;
+    renderHeight = 0;
+#endif
     scale = 1.0f;
     useVerticalSync = true;
     isFullscreen = false;
@@ -69,6 +76,12 @@ struct GameOptions {
   // Display options
   int windowWidth;
   int windowHeight;
+  // Optional fixed internal resolution (Display/RenderSize). When set, the
+  // game is drawn at scale 1 into a texture of this size - like the browser
+  // build's canvas - and the finished frame is scaled to the window once.
+  // Avoids seams between tiles at fractional render scales (e.g. 1.5x).
+  int renderWidth;
+  int renderHeight;
   double scale;
   bool useVerticalSync;
   bool isFullscreen;
@@ -293,6 +306,8 @@ public:
 
   SDL_Window *GetWindow() const { return m_pWindow; }
   Point GetWindowSize() { return m_WindowSize; }
+  // Presents the frame; with a RenderSize target it is first scaled to the window.
+  void PresentFrame();
   void SetWindowSize(int width, int height, double scale);
 
   // Engine-owned cursor position, in window (device-pixel canvas) space.
@@ -406,6 +421,7 @@ private:
 
   SDL_Window *m_pWindow;
   SDL_Renderer *m_pRenderer;
+  SDL_Texture *m_pRenderTarget = nullptr;
   WapPal *m_pPalette;
 
   bool m_IsRunning;

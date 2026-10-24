@@ -494,7 +494,7 @@ namespace Util
     }
 
     void RenderForcePresent(SDL_Renderer* pRenderer) {
-        SDL_RenderPresent(pRenderer);
+        g_pApp->PresentFrame();
 #ifdef __EMSCRIPTEN__
         // Update screen manually. SDL_RenderPresent does nothing.
         emscripten_sleep(0);

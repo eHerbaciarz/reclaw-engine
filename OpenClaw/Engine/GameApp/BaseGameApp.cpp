@@ -596,7 +596,9 @@ void BaseGameApp::OnEvent(SDL_Event &event) {
     if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED /*||
                 event.window.event == SDL_WINDOWEVENT_RESIZED*/)
             {
-      OnDisplayChange(event.window.data1, event.window.data2);
+      // With a fixed RenderSize the game's resolution does not follow the window.
+      if (!m_pRenderTarget)
+        OnDisplayChange(event.window.data1, event.window.data2);
     } else if (event.window.event == SDL_WINDOWEVENT_RESTORED) {
       VOnRestore();
     } else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
@@ -743,6 +745,10 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
 
     ParseValueFromXmlElem(&m_GameOptions.scale,
                           displayElem->FirstChildElement("Scale"));
+    if (TiXmlElement *renderSizeElem = displayElem->FirstChildElement("RenderSize")) {
+      renderSizeElem->Attribute("width", &m_GameOptions.renderWidth);
+      renderSizeElem->Attribute("height", &m_GameOptions.renderHeight);
+    }
     ParseValueFromXmlElem(&m_GameOptions.useVerticalSync,
                           displayElem->FirstChildElement("UseVerticalSync"));
     ParseValueFromXmlElem(&m_GameOptions.isFullscreen,
@@ -994,6 +1000,35 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
   return true;
 }
 
+void BaseGameApp::PresentFrame() {
+  if (!m_pRenderTarget) {
+    SDL_RenderPresent(m_pRenderer);
+    return;
+  }
+  float scaleX = 1.0f, scaleY = 1.0f;
+  SDL_RenderGetScale(m_pRenderer, &scaleX, &scaleY);
+
+  SDL_SetRenderTarget(m_pRenderer, NULL);
+  SDL_RenderSetScale(m_pRenderer, 1.0f, 1.0f);
+  int outW = 0, outH = 0;
+  SDL_GetRendererOutputSize(m_pRenderer, &outW, &outH);
+  // Keep the aspect ratio; letterbox if the screen differs.
+  double fit = std::min((double)outW / m_GameOptions.renderWidth,
+                        (double)outH / m_GameOptions.renderHeight);
+  SDL_Rect dst;
+  dst.w = (int)(m_GameOptions.renderWidth * fit + 0.5);
+  dst.h = (int)(m_GameOptions.renderHeight * fit + 0.5);
+  dst.x = (outW - dst.w) / 2;
+  dst.y = (outH - dst.h) / 2;
+  SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+  SDL_RenderClear(m_pRenderer);
+  SDL_RenderCopy(m_pRenderer, m_pRenderTarget, NULL, &dst);
+  SDL_RenderPresent(m_pRenderer);
+
+  SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
+  SDL_RenderSetScale(m_pRenderer, scaleX, scaleY);
+}
+
 void BaseGameApp::SaveGameOptions(const char *outConfigFile) {
   LOG_ERROR("Not implemented yet!");
   return;
@@ -1096,6 +1131,35 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   }
 
   STARTUP_TRACE("renderer created");
+
+#ifndef __EMSCRIPTEN__
+  if (gameOptions.renderWidth > 0 && gameOptions.renderHeight > 0) {
+    m_pRenderTarget = SDL_CreateTexture(m_pRenderer, SDL_PIXELFORMAT_RGBA8888,
+                                        SDL_TEXTUREACCESS_TARGET,
+                                        gameOptions.renderWidth, gameOptions.renderHeight);
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+    if (m_pRenderTarget) {
+      // Smooth final upscale (like the browser scaling its canvas); the game's
+      // own sprites keep nearest-neighbour sampling inside the target.
+      SDL_SetTextureScaleMode(m_pRenderTarget, SDL_ScaleModeLinear);
+    }
+#endif
+    if (m_pRenderTarget && SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget) == 0) {
+      // From now on the engine sees a window of RenderSize at scale 1.
+      gameOptions.scale = 1.0;
+      m_WindowSize.Set(gameOptions.renderWidth, gameOptions.renderHeight);
+      LOG_WARNING("Rendering at " + ToStr(gameOptions.renderWidth) + "x" +
+                  ToStr(gameOptions.renderHeight) + ", scaled to the window");
+    } else {
+      LOG_WARNING("Render target unavailable (" + std::string(SDL_GetError()) +
+                  "), rendering directly");
+      if (m_pRenderTarget) {
+        SDL_DestroyTexture(m_pRenderTarget);
+        m_pRenderTarget = nullptr;
+      }
+    }
+  }
+#endif
   SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale,
                      (float)gameOptions.scale);
 

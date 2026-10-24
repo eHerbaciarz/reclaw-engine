@@ -158,6 +158,7 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
             return;
         }
     }
+    SDL_SetRenderTarget(pRenderer, NULL); // draw straight to the screen
     SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
 
     if (!TTF_WasInit())
