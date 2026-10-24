@@ -1269,10 +1269,15 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
     std::string rezDir = rezArchivePath;
     size_t slash = rezDir.find_last_of('/');
     rezDir = (slash == std::string::npos) ? std::string(".") : rezDir.substr(0, slash);
-    std::vector<std::string> roots = {rezDir + "/Sounds", rezDir + "/SOUNDS", rezDir + "/sounds"};
+    std::vector<std::string> roots = {rezDir + "/Sounds", rezDir + "/SOUNDS", rezDir + "/sounds",
+                                      rezDir + "/Assets", rezDir + "/ASSETS"};
 #ifdef __SWITCH__
     roots.push_back("/switch/claw/Sounds");
+    roots.push_back("/switch/claw/Assets");
+    roots.push_back("/Games/claw/Assets");
 #endif
+    // Data already comes from an unpacked folder: its sounds are served directly.
+    if (ResourceDirectory::LooksLikeAssetsFolder(rezArchivePath)) roots.clear();
     LooseSoundFiles::SetSearchRoots(roots);
   }
 #endif

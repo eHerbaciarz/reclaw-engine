@@ -116,13 +116,27 @@ static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int arg
     // path in argv: sdcard/Games/claw/ next to openclaw.nro.
     folders.push_back("/Games/claw/");
 
+    // An unpacked Assets folder wins over CLAW.REZ: some REZ files come
+    // without sounds (they ship separately), while Assets has everything.
     std::vector<std::string> candidates;
     candidates.push_back(pOptions->assetsFolder + pOptions->rezArchive);
-    for (const std::string& folder : folders) candidates.push_back(folder + "CLAW.REZ");
     for (const std::string& folder : folders)
     {
         candidates.push_back(folder + "Assets");
         candidates.push_back(folder + "ASSETS");
+    }
+    for (const std::string& folder : folders) candidates.push_back(folder + "CLAW.REZ");
+    // The configured CLAW.REZ only wins if no Assets folder exists.
+    if (FileExists(candidates[0]))
+    {
+        for (size_t i = 1; i < candidates.size(); ++i)
+        {
+            if (ResourceDirectory::LooksLikeAssetsFolder(candidates[i]))
+            {
+                std::swap(candidates[0], candidates[i]);
+                break;
+            }
+        }
     }
 
     for (size_t i = 0; i < candidates.size(); ++i)
@@ -130,9 +144,9 @@ static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int arg
         bool isFolder = ResourceDirectory::LooksLikeAssetsFolder(candidates[i]);
         if (FileExists(candidates[i]) || isFolder)
         {
-            if (i != 0)
+            if (candidates[i] != pOptions->assetsFolder + pOptions->rezArchive)
             {
-                LOG_WARNING("CLAW.REZ not at the configured path, using: " + candidates[i]);
+                LOG_WARNING("Game data not at the configured path, using: " + candidates[i]);
                 pOptions->assetsFolder = "";
                 pOptions->rezArchive = candidates[i];
             }
