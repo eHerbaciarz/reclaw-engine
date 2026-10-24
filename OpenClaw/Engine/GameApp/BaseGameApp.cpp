@@ -27,6 +27,10 @@
 
 #include "../Platform/Events/AppEvent.h"
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 #ifdef __EMSCRIPTEN__
 #include "../Platform/Video/WASM/WasmVideoPlatform.h"
 #else
@@ -508,6 +512,12 @@ int32 BaseGameApp::Run() {
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(Loop, this, 0, 1);
   // Loop must call emscripten_cancel_main_loop() to exit
+#elif defined(__SWITCH__)
+  // appletMainLoop() returns false when the system asks the app to exit
+  // (e.g. closing it from the HOME menu).
+  while (m_IsRunning && appletMainLoop()) {
+    Loop(this);
+  }
 #else
   while (m_IsRunning) {
     Loop(this);
