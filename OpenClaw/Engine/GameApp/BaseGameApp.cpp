@@ -24,6 +24,7 @@
 
 
 #include "BaseGameApp.h"
+#include "../Util/StartupTrace.h"
 
 #include "../Platform/Events/AppEvent.h"
 
@@ -190,35 +191,74 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   VRegisterGameEvents();
 
   // Initialization sequence
-  if (!InitializeEventMgr())
+  STARTUP_TRACE("begin InitializeEventMgr");
+  if (!InitializeEventMgr()) {
+    STARTUP_TRACE("FAILED InitializeEventMgr");
     return false;
-  if (!InitializeDisplay(m_GameOptions))
-    return false;
-  if (!InitializeAudio(m_GameOptions))
-    return false;
-  if (!InitializeFont(m_GameOptions))
-    return false;
-  if (!InitializeResources(m_GameOptions))
-    return false;
-  if (!InitializeLocalization(m_GameOptions))
-    return false;
-  if (!InitializeTouchManager(m_GameOptions))
-    return false;
-  if (!InitializeGraphicsSystem())
-    return false;
+  }
 
+  STARTUP_TRACE("begin InitializeDisplay");
+  if (!InitializeDisplay(m_GameOptions)) {
+    STARTUP_TRACE("FAILED InitializeDisplay");
+    return false;
+  }
+
+  STARTUP_TRACE("begin InitializeAudio");
+  if (!InitializeAudio(m_GameOptions)) {
+    STARTUP_TRACE("FAILED InitializeAudio");
+    return false;
+  }
+
+  STARTUP_TRACE("begin InitializeFont");
+  if (!InitializeFont(m_GameOptions)) {
+    STARTUP_TRACE("FAILED InitializeFont");
+    return false;
+  }
+
+  STARTUP_TRACE("begin InitializeResources");
+  if (!InitializeResources(m_GameOptions)) {
+    STARTUP_TRACE("FAILED InitializeResources");
+    return false;
+  }
+
+  STARTUP_TRACE("begin InitializeLocalization");
+  if (!InitializeLocalization(m_GameOptions)) {
+    STARTUP_TRACE("FAILED InitializeLocalization");
+    return false;
+  }
+
+  STARTUP_TRACE("begin InitializeTouchManager");
+  if (!InitializeTouchManager(m_GameOptions)) {
+    STARTUP_TRACE("FAILED InitializeTouchManager");
+    return false;
+  }
+
+  STARTUP_TRACE("begin InitializeGraphicsSystem");
+  if (!InitializeGraphicsSystem()) {
+    STARTUP_TRACE("FAILED InitializeGraphicsSystem");
+    return false;
+  }
+
+
+  STARTUP_TRACE("begin GenericVideoModule");
   m_videoModule.reset(new GenericVideoModule());
   if (!m_videoModule->Initialize())
     return false;
 
-  if (!ReadActorXmlPrototypes(m_GameOptions))
+  STARTUP_TRACE("begin ReadActorXmlPrototypes");
+  if (!ReadActorXmlPrototypes(m_GameOptions)) {
+    STARTUP_TRACE("FAILED ReadActorXmlPrototypes");
     return false;
+  }
+
 
   // Level metadata is now lazy-loaded on-demand when levels are loaded
   // This improves WASM startup performance by avoiding parsing 13 XML files
   // The "reload levelmetadata" command still works for development
 
+  STARTUP_TRACE("begin RegisterAllDelegates");
   RegisterAllDelegates();
+  STARTUP_TRACE("begin VCreateGameAndView");
 
   m_pGame = VCreateGameAndView();
   if (!m_pGame) {
@@ -229,15 +269,20 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // Lazy loading architecture: Only load critical assets initially
   // Menu and UI assets load first, level assets load on-demand
   LOG("Loading critical assets (menu/UI)...");
+  STARTUP_TRACE("preload " "/STATES/MENU/*");
   m_pResourceMgr->VPreload("/STATES/MENU/*", NULL, ORIGINAL_RESOURCE);
+  STARTUP_TRACE("preload " "/GAME/FONTS/*");
   m_pResourceMgr->VPreload("/GAME/FONTS/*", NULL, ORIGINAL_RESOURCE);
+  STARTUP_TRACE("preload " "/GAME/IMAGES/MENU/*");
   m_pResourceMgr->VPreload("/GAME/IMAGES/MENU/*", NULL, ORIGINAL_RESOURCE);
 
   // Load custom assets
+  STARTUP_TRACE("preload " "*");
   m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
 
   LOG("Critical assets loaded. Level assets will load on-demand.");
 
+  STARTUP_TRACE("begin VPerformStartupTests");
   if (!VPerformStartupTests()) {
     LOG_ERROR("Failed to pass certain startup tests.");
     return false;
@@ -251,12 +296,14 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     m_fixedTimestep = 1.0 / 60.0;
   }
 
+  STARTUP_TRACE("Initialize done");
   m_IsRunning = true;
 
   return true;
 }
 
 void BaseGameApp::Terminate() {
+  STARTUP_TRACE("Terminate");
   LOG("Terminating...");
 
   RemoveAllDelegates();
@@ -481,6 +528,15 @@ void BaseGameApp::StepLoop() {
         // PROFILE_CPU("ONLY RENDER");
         pGameView->VOnRender(fixedDeltaMs);
       }
+#ifdef OPENCLAW_STARTUP_TRACE
+      {
+        static int s_tracedFrames = 0;
+        if (s_tracedFrames < 3) {
+          ++s_tracedFrames;
+          STARTUP_TRACE(s_tracedFrames == 1 ? "frame 1 rendered" : (s_tracedFrames == 2 ? "frame 2 rendered" : "frame 3 rendered"));
+        }
+      }
+#endif
 
       // m_pGame->VRenderDiagnostics();
     }
@@ -980,12 +1036,14 @@ void BaseGameApp::RegisterEngineEvents() {
 bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   LOG(">>>>> Initializing display...");
 
+  STARTUP_TRACE("SDL_Init");
   if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO) != 0) {
     LOG_ERROR("Failed to initialize SDL2 library. Error: %s" +
               std::string(SDL_GetError()));
     return false;
   }
 
+  STARTUP_TRACE("SDL_CreateWindow");
   m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED, gameOptions.windowWidth,
                                gameOptions.windowHeight, SDL_WINDOW_SHOWN);
@@ -1028,6 +1086,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
   }
 
+  STARTUP_TRACE("SDL_CreateRenderer");
   m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, rendererFlags);
   if (m_pRenderer == NULL) {
     LOG_ERROR("Failed to create SDL2 Renderer. Error: %s" +
@@ -1035,6 +1094,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     return false;
   }
 
+  STARTUP_TRACE("renderer created");
   SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale,
                      (float)gameOptions.scale);
 

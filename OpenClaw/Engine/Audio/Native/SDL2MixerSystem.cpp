@@ -3,6 +3,7 @@
 #include "SDL2MixerSystem.h"
 
 #include "../../Logger/Logger.h"
+#include "../../Util/StartupTrace.h"
 
 #include <algorithm>
 #include <cstring>
@@ -75,6 +76,7 @@ bool SDL2MixerSystem::Initialize()
         return false;
     }
 
+    STARTUP_TRACE("Mix_OpenAudio");
     if (Mix_OpenAudio(m_Config.frequency, AUDIO_S16SYS, m_Config.outputChannels, m_Config.chunkSize) != 0)
     {
         LOG_ERROR("Mix_OpenAudio failed: " + std::string(Mix_GetError()));
@@ -116,6 +118,7 @@ bool SDL2MixerSystem::Initialize()
 int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
 {
     SDL2MixerSystem *self = static_cast<SDL2MixerSystem *>(userData);
+    STARTUP_TRACE("soundfont loader started");
 
     tsf *pFont = nullptr;
     std::string usedPath;
@@ -158,6 +161,7 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
         }
         self->m_SoundFontReady = true;
     }
+    STARTUP_TRACE(pFont ? "soundfont loaded" : "soundfont NOT found");
 
     if (pFont)
     {

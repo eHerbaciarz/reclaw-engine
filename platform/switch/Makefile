@@ -63,6 +63,10 @@ INCLUDES := -I$(REPO)/OpenClaw -I$(REPO)/Box2D -I$(REPO)/libwap \
             -I$(PORTLIBS)/include -I$(PORTLIBS)/include/SDL2 -I$(LIBNX)/include
 
 DEFINES  := -D__SWITCH__ -DOPENCLAW_NATIVE=1
+ifeq ($(TRACE),1)
+# Diagnostic build: timestamped startup trace in /switch/claw/openclaw.log
+DEFINES  += -DOPENCLAW_STARTUP_TRACE
+endif
 
 CXXFLAGS := -g -O2 -ffunction-sections -fdata-sections $(ARCH) $(DEFINES) $(INCLUDES) \
             -std=gnu++17 -fpermissive -fexceptions -Wno-narrowing -w -MMD -MP
