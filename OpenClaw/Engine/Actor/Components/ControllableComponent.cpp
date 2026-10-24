@@ -1081,7 +1081,10 @@ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int so
         m_pPhysicsComponent->SetGravityScale(0.0f);
         m_State = ClawState_Dying;
 
-        std::string deathSound = SOUND_CLAW_DEATH_SPIKES;
+        // Regular deaths use Claw's own death cry. (Upstream played the level 1
+        // spike sound for every death; FALLDEATH.WAV was defined but unused.)
+        std::string deathSound = (damageType == DamageType_DeathTile) ? SOUND_CLAW_DEATH_SPIKES
+                                                                      : SOUND_CLAW_DEATH_CONVENTIONAL;
 
         // TODO: When claw dies, in the original game he falls off the screen and respawns
         if (damageType == DamageType_DeathTile)

@@ -90,7 +90,8 @@ bool SDL2MixerSystem::Initialize()
         m_OutputChannels = m_Config.outputChannels;
     }
 
-    Mix_AllocateChannels(std::max(m_Config.mixingChannels, kMusicChannel + 1 + 8));
+    // At least 64: 17 are reserved (ambient group + music), effects need the rest.
+    Mix_AllocateChannels(std::max(m_Config.mixingChannels, 64));
     if (Mix_ReserveChannels(kMusicChannel + 1) != kMusicChannel + 1)
     {
         LOG_WARNING("Could not reserve ambient sound channels: " + std::string(Mix_GetError()));
