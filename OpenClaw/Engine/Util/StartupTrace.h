@@ -5,13 +5,12 @@
 // `make TRACE=1`). Each line is flushed immediately so the log survives a hang
 // or a crash.
 #ifdef OPENCLAW_STARTUP_TRACE
+#include <SDL2/SDL_log.h>
 #include <SDL2/SDL_timer.h>
-#include <cstdio>
+// Goes through SDL_Log so it lands in the same sink as engine errors
+// (on Switch: openclaw.log + debug output; elsewhere: stderr).
 #define STARTUP_TRACE(msg)                                                     \
-  do {                                                                         \
-    fprintf(stderr, "[trace %7u ms] %s\n", (unsigned)SDL_GetTicks(), (msg));   \
-    fflush(stderr);                                                            \
-  } while (0)
+  SDL_Log("[trace %7u ms] %s", (unsigned)SDL_GetTicks(), (msg))
 #else
 #define STARTUP_TRACE(msg) do {} while (0)
 #endif

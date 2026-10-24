@@ -26,6 +26,26 @@
 // default config) are bundled in the NRO's romfs.
 static const char* kSwitchDataDir = "/switch/claw/";
 
+static FILE* g_pLogFile = nullptr;
+
+// Single sink for every SDL_Log* message (engine errors/warnings, startup
+// trace): appended to /switch/claw/openclaw.log and mirrored to the debug
+// output (shown as "Guest" lines in emulator logs such as Ryujinx's).
+// Opening the log twice for writing (e.g. freopen of stdout and stderr) fails
+// on the Switch filesystem, so there is exactly one handle.
+static void SwitchLogOutput(void* /*userdata*/, int /*category*/, SDL_LogPriority priority, const char* message)
+{
+    static const char* kPrefix[] = {"", "VERBOSE: ", "DEBUG: ", "INFO: ", "WARN: ", "ERROR: ", "CRITICAL: "};
+    const char* prefix = (priority > 0 && priority < SDL_NUM_LOG_PRIORITIES) ? kPrefix[priority] : "";
+    if (g_pLogFile)
+    {
+        fprintf(g_pLogFile, "%s%s\n", prefix, message);
+        fflush(g_pLogFile);
+    }
+    std::string line = std::string(prefix) + message;
+    svcOutputDebugString(line.c_str(), line.size());
+}
+
 static bool CopyFile(const std::string& from, const std::string& to)
 {
     std::ifstream in(from, std::ios::binary);
@@ -46,9 +66,10 @@ static void SwitchPlatformInit()
 
     // No console on the Switch: keep warnings/errors in a log next to the saves.
     std::string logPath = std::string(kSwitchDataDir) + "openclaw.log";
-    freopen(logPath.c_str(), "w", stdout);
-    freopen(logPath.c_str(), "a", stderr);
-    setvbuf(stdout, NULL, _IOLBF, 0);
+    g_pLogFile = fopen(logPath.c_str(), "w");
+    SDL_LogSetOutputFunction(&SwitchLogOutput, NULL);
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
+    SDL_Log("Captain Claw (OpenClaw) for Nintendo Switch - log started");
 
     // First launch: seed the editable config from the bundled default.
     std::string configPath = std::string(kSwitchDataDir) + "config.xml";
@@ -119,9 +140,8 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
 {
     for (const std::string& line : lines)
     {
-        fprintf(stderr, "FATAL: %s\n", line.c_str());
+        if (!line.empty()) SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "%s", line.c_str());
     }
-    fflush(stderr);
 
     SDL_Renderer* pRenderer = g_pApp ? g_pApp->GetRenderer() : nullptr;
     SDL_Window* pOwnWindow = nullptr;
