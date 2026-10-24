@@ -1,0 +1,64 @@
+name: Native builds (Switch + Linux)
+
+on:
+  push:
+    paths:
+      - 'OpenClaw/**'
+      - 'libwap/**'
+      - 'Box2D/**'
+      - 'ThirdParty/**'
+      - 'Build_Release/ASSETS/**'
+      - 'Build_Release/music/**'
+      - 'platform/**'
+      - '.github/workflows/switch.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  switch:
+    name: Nintendo Switch (.nro)
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Switch libraries
+        run: |
+          dkp-pacman -Sy --noconfirm --needed \
+            switch-sdl2 switch-sdl2_mixer switch-sdl2_image \
+            switch-sdl2_ttf switch-sdl2_gfx switch-zlib
+          (apt-get update && apt-get install -y --no-install-recommends zip) || true
+
+      - name: Build
+        run: make -C platform/switch -j"$(nproc)"
+
+      - name: Package
+        run: |
+          mkdir -p dist/switch/claw
+          cp platform/switch/openclaw.nro dist/switch/claw/
+          cat > dist/switch/claw/PUT_CLAW.REZ_HERE.txt <<'EOF'
+          Copy CLAW.REZ from your own copy of Captain Claw (1997) into this folder.
+          Saves, config.xml and openclaw.log are created here on first launch.
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openclaw-switch
+          path: dist/
+
+  linux:
+    name: Linux (native SDL2)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SDL2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev \
+            libsdl2-ttf-dev libsdl2-gfx-dev zlib1g-dev
+
+      - name: Build
+        run: |
+          cmake -S platform/linux -B build-linux -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-linux -j"$(nproc)"

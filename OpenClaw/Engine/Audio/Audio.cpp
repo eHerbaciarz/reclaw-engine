@@ -224,6 +224,8 @@ void Audio::PauseMusic()
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Audio::PauseMusic: Failed due to RPC exception");
     }
     RpcEndExcept
+#elif defined(__EMSCRIPTEN__)
+    Mix_PauseMusic();
 #else
     if (m_audioSystem) {
         m_audioSystem->PauseMusic();
@@ -244,6 +246,8 @@ void Audio::ResumeMusic()
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Audio::ResumeMusic: Failed due to RPC exception");
     }
     RpcEndExcept
+#elif defined(__EMSCRIPTEN__)
+    Mix_ResumeMusic();
 #else
     if (m_audioSystem) {
         m_audioSystem->ResumeMusic();
@@ -299,8 +303,8 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
 
     bool played = PlaySound(soundChunk, soundProperties);
 #if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
-    // This one-shot chunk is not owned by the resource cache. Free it once its
-    // channel is done instead of leaking it.
+    // This one-shot chunk is not owned by the resource cache; at least free it
+    // when it could not be played. (Nothing in the game uses this overload.)
     if (soundChunk && !played) {
         Mix_FreeChunk(soundChunk);
     }
