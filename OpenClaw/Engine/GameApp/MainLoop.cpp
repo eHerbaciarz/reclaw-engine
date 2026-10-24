@@ -1,6 +1,7 @@
 #include "BaseGameApp.h"
 #include "MainLoop.h"
 #include "../Util/StartupTrace.h"
+#include "../Resource/ResourceDirectory.h"
 #include <fstream>
 
 #if !(defined(__ANDROID__) || defined(__WINDOWS__))
@@ -92,34 +93,42 @@ static std::string DirectoryOf(const std::string& path)
 }
 
 // Players often copy CLAW.REZ next to the NRO instead of into /switch/claw/.
-// Accept it there too; returns the paths that were checked for error reporting.
+// Accept it there too, and accept an "Assets" folder with the unpacked
+// contents of CLAW.REZ (Polish "Kapitan Pazur" release) in the same places.
+// Returns the paths that were checked, for error reporting.
 static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int argc, char** argv)
 {
-    std::vector<std::string> candidates;
-    candidates.push_back(pOptions->assetsFolder + pOptions->rezArchive);
+    std::vector<std::string> folders;
     if (argc > 0 && argv && argv[0])
     {
         std::string nroDir = DirectoryOf(argv[0]);
-        if (!nroDir.empty())
-        {
-            candidates.push_back(nroDir + "CLAW.REZ");
-        }
+        if (!nroDir.empty()) folders.push_back(nroDir);
     }
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)))
     {
         std::string dir(cwd);
         if (!dir.empty() && dir.back() != '/') dir += '/';
-        candidates.push_back(dir + "CLAW.REZ");
+        folders.push_back(dir);
     }
-    candidates.push_back(std::string(kSwitchDataDir) + "CLAW.REZ");
+    folders.push_back(kSwitchDataDir);
     // Common layout for emulators (e.g. Ryujinx), which do not pass the NRO's
     // path in argv: sdcard/Games/claw/ next to openclaw.nro.
-    candidates.push_back("/Games/claw/CLAW.REZ");
+    folders.push_back("/Games/claw/");
+
+    std::vector<std::string> candidates;
+    candidates.push_back(pOptions->assetsFolder + pOptions->rezArchive);
+    for (const std::string& folder : folders) candidates.push_back(folder + "CLAW.REZ");
+    for (const std::string& folder : folders)
+    {
+        candidates.push_back(folder + "Assets");
+        candidates.push_back(folder + "ASSETS");
+    }
 
     for (size_t i = 0; i < candidates.size(); ++i)
     {
-        if (FileExists(candidates[i]))
+        bool isFolder = ResourceDirectory::LooksLikeAssetsFolder(candidates[i]);
+        if (FileExists(candidates[i]) || isFolder)
         {
             if (i != 0)
             {
@@ -127,7 +136,7 @@ static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int arg
                 pOptions->assetsFolder = "";
                 pOptions->rezArchive = candidates[i];
             }
-            STARTUP_TRACE(("CLAW.REZ found: " + candidates[i]).c_str());
+            STARTUP_TRACE(("Game data found: " + candidates[i]).c_str());
             return std::vector<std::string>();
         }
     }
@@ -282,12 +291,13 @@ int RunGameEngine(int argc, char** argv)
             "This port needs the data file from your own copy of",
             "Captain Claw (1997). Copy CLAW.REZ to the SD card:",
             "    /switch/claw/CLAW.REZ",
-            "(or next to openclaw.nro, or /Games/claw/CLAW.REZ)",
+            "(or next to openclaw.nro, or /Games/claw/CLAW.REZ).",
+            "An unpacked \"Assets\" folder works too.",
             "",
             "Searched:"};
-        for (const std::string& path : rezSearched)
+        for (size_t i = 0; i < rezSearched.size() && i < 7; ++i)
         {
-            lines.push_back("    " + path);
+            lines.push_back("    " + rezSearched[i]);
         }
         lines.push_back("");
         lines.push_back("Press + to exit.");

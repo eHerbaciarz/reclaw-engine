@@ -5,6 +5,7 @@
 #include "../Graphics/GraphicsAdapter.h"
 #include "../Graphics2D/Image.h"
 #include "../Resource/ResourceCache.h"
+#include "../Resource/ResourceDirectory.h"
 #include "../Resource/ResourceMgr.h"
 #include "../UserInterface/HumanView.h"
 #include "BaseGameLogic.h"
@@ -1219,7 +1220,13 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
   std::string rezArchivePath =
       gameOptions.assetsFolder + gameOptions.rezArchive;
 
-  IResourceFile *rezArchive = new ResourceRezArchive(rezArchivePath);
+  // Either CLAW.REZ or a folder with its unpacked contents (e.g. "Assets").
+  IResourceFile *rezArchive = nullptr;
+  if (ResourceDirectory::LooksLikeAssetsFolder(rezArchivePath)) {
+    rezArchive = new ResourceDirectory(rezArchivePath);
+  } else {
+    rezArchive = new ResourceRezArchive(rezArchivePath);
+  }
   std::shared_ptr<ResourceCache> m_pResourceCache{new ResourceCache(
       gameOptions.resourceCacheSize, rezArchive, ORIGINAL_RESOURCE)};
   if (!m_pResourceCache->Init()) {
