@@ -14,6 +14,10 @@ public:
 
     static SDL_Texture* GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer);
     static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer);
+    // Pass as colorKey: use the image's top-left pixel as the transparent colour.
+    // Menu texts are drawn on a solid background that differs between releases
+    // (black in the English CLAW.REZ, magenta in the Polish one).
+    static SDL_Color ColorKeyFromTopLeft() { return SDL_Color{ 0, 0, 0, 1 }; }
     static Image* CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* renderer, bool useColorKey = false, SDL_Color colorKey = { 0, 0, 0, 0 });
     static Image* CreatePngImage(char* rawBuffer, uint32_t size, SDL_Renderer* renderer);
     static Image* CreateImageFromColor(SDL_Color color, int w, int h, SDL_Renderer* pRenderer);

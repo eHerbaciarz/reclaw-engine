@@ -130,7 +130,27 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
         return NULL;
     }
 
-    if (useColorKey)
+    if (useColorKey && colorKey.a == 1 && colorKey.r == 0 && colorKey.g == 0 && colorKey.b == 0
+        && pSurface->w > 0 && pSurface->h > 0)
+    {
+        // Key on the raw value of the top-left pixel (palette index for 8-bit PCX).
+        Uint32 key = 0;
+        if (SDL_LockSurface(pSurface) == 0)
+        {
+            const Uint8* p = (const Uint8*)pSurface->pixels;
+            switch (pSurface->format->BytesPerPixel)
+            {
+                case 1: key = p[0]; break;
+                case 2: key = *(const Uint16*)p; break;
+                case 3: key = SDL_BYTEORDER == SDL_BIG_ENDIAN ? (p[0] << 16 | p[1] << 8 | p[2])
+                                                               : (p[0] | p[1] << 8 | p[2] << 16); break;
+                default: key = *(const Uint32*)p; break;
+            }
+            SDL_UnlockSurface(pSurface);
+        }
+        SDL_SetColorKey(pSurface, SDL_TRUE, key);
+    }
+    else if (useColorKey)
     {
         SDL_SetColorKey(pSurface, SDL_TRUE, SDL_MapRGB(pSurface->format, colorKey.r, colorKey.g, colorKey.b));
     }

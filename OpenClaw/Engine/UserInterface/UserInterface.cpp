@@ -136,7 +136,7 @@ static shared_ptr<Image> TryLoadPcxImageFromXmlElement(TiXmlElement* pElem)
     // This should not happen
     assert(!imagePath.empty());
 
-    return PcxResourceLoader::LoadAndReturnImage(imagePath.c_str(), true, { 0, 0, 0, 0 });
+    return PcxResourceLoader::LoadAndReturnImage(imagePath.c_str(), true, Image::ColorKeyFromTopLeft());
 }
 
 static shared_ptr<Image> LoadImageFromXmlElement(TiXmlElement* pElem)
@@ -162,7 +162,7 @@ static shared_ptr<Image> LoadImageFromXmlElement(TiXmlElement* pElem)
     shared_ptr<Image> pImage;
     if (extension == ".pcx")
     {
-        pImage = PcxResourceLoader::LoadAndReturnImage(imagePath.c_str(), true, { 0, 0, 0, 0 });
+        pImage = PcxResourceLoader::LoadAndReturnImage(imagePath.c_str(), true, Image::ColorKeyFromTopLeft());
     }
     else if (extension == ".png")
     {
