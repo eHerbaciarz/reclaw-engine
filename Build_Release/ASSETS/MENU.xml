@@ -228,6 +228,9 @@
             <Name>SAVE_TO_FILE_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
+            <VisibilityCondition>
+                <ConditionType>WebOnly</ConditionType>
+            </VisibilityCondition>
             <StateCondition>
                 <ConditionForState>Active</ConditionForState>
                 <ConditionType>SaveDataExists</ConditionType>
@@ -244,6 +247,9 @@
             <Name>IMPORT_FROM_FILE_BUTTON</Name>
             <Type>Button</Type>
             <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>WebOnly</ConditionType>
+            </VisibilityCondition>
             <InactiveImage>/SAVE_DATA/import_from_file_inactive.png</InactiveImage>
             <DisabledImage>/SAVE_DATA/import_from_file_disabled.png</DisabledImage>
             <ActiveImage>/SAVE_DATA/import_from_file_active.png</ActiveImage>
@@ -2331,6 +2337,9 @@
             <Name>DISPLAY_BUTTON</Name>
             <Type>Button</Type>
             <State>Active</State>
+            <VisibilityCondition>
+                <ConditionType>WebOnly</ConditionType>
+            </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/010_DISPLAY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/011_DISPLAY.PCX</ActiveImage>
             <Position x="240" y="365" />

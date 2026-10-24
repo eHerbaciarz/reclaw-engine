@@ -1810,6 +1810,14 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             m_bVisible = false;
         }
+        else if (conditionTypeStr == "WebOnly")
+        {
+            // Browser-only features (file export/import, fullscreen/aspect
+            // toggles driven by JavaScript). Hidden in native builds.
+#ifdef __EMSCRIPTEN__
+            m_bVisible = true;
+#endif
+        }
         else if (conditionTypeStr == "FullscreenOn")
         {
 #ifdef __EMSCRIPTEN__
@@ -2115,6 +2123,12 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = g_pApp->GetAudio()->IsMusicActive();
     else if (m_VisibilityConditionType == "MusicOff")
         m_bVisible = !g_pApp->GetAudio()->IsMusicActive();
+    else if (m_VisibilityConditionType == "WebOnly")
+    {
+#ifdef __EMSCRIPTEN__
+        m_bVisible = true;
+#endif
+    }
     else if (m_VisibilityConditionType == "FullscreenOn")
     {
 #ifdef __EMSCRIPTEN__

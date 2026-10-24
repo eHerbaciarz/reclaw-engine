@@ -913,11 +913,37 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
             // On WASM, WAV music (like MENUBED.WAV) is handled by the AudioWorklet;
             // fall through to the WAV path which routes it to window.musicSource.
 #else
-            // Desktop: load MIDI files for music
-            shared_ptr<MidiFile> pMidiFile = MidiResourceLoader::LoadAndReturnMidiFile(pSoundInfo->soundToPlay.c_str());
-            assert(pMidiFile != nullptr);
-
-            g_pApp->GetAudio()->PlayMusic(pMidiFile->data, pMidiFile->size, pSoundInfo->loops != 0);
+            // Native: XMI level/boss/powerup music is converted to MIDI by libwap
+            // and synthesized by the audio system; anything else (the menu's
+            // MENUBED.WAV) is a regular sample played on the music channel.
+            const std::string& path = pSoundInfo->soundToPlay;
+            bool isXmi = path.size() >= 4 &&
+                (path.compare(path.size() - 4, 4, ".XMI") == 0 ||
+                 path.compare(path.size() - 4, 4, ".xmi") == 0);
+            if (isXmi)
+            {
+                shared_ptr<MidiFile> pMidiFile = MidiResourceLoader::LoadAndReturnMidiFile(path.c_str());
+                if (pMidiFile && pMidiFile->data && pMidiFile->size > 0)
+                {
+                    g_pApp->GetAudio()->PlayMusic(pMidiFile->data, pMidiFile->size, pSoundInfo->loops != 0);
+                }
+                else
+                {
+                    LOG_ERROR("Failed to convert XMI to MIDI: " + path);
+                }
+            }
+            else
+            {
+                shared_ptr<Mix_Chunk> pChunk = WavResourceLoader::LoadAndReturnSound(path.c_str());
+                if (pChunk)
+                {
+                    g_pApp->GetAudio()->PlayMusicChunk(pChunk, pSoundInfo->loops != 0);
+                }
+                else
+                {
+                    LOG_ERROR("Failed to load music: " + path);
+                }
+            }
             return;
 #endif
         }
@@ -1259,6 +1285,26 @@ void HumanView::IngameMenuEndGameDelegate(IEventDataPtr pEventData)
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Enter_Menu()));
 }
 
+#ifndef __EMSCRIPTEN__
+// Native builds keep saves in an XML file (see BaseGameLogic); after a progress
+// reset that file must be rewritten, otherwise the old saves return on restart.
+void HumanView::PersistSavesToFile()
+{
+    shared_ptr<GameSaveMgr> pSaveMgr = g_pApp->GetGameLogic()->GetGameSaveMgr();
+    if (!pSaveMgr->IsSaveSupported())
+    {
+        return;
+    }
+    TiXmlDocument saveGamesDoc;
+    saveGamesDoc.LinkEndChild(pSaveMgr->ToXml());
+    std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
+    if (!saveGamesDoc.SaveFile(savesFilePath.c_str()))
+    {
+        LOG_ERROR("Failed to write saves file: " + savesFilePath);
+    }
+}
+#endif
+
 void HumanView::ResetSaveProgressDelegate(IEventDataPtr pEventData)
 {
 #ifdef __EMSCRIPTEN__
@@ -1266,6 +1312,9 @@ void HumanView::ResetSaveProgressDelegate(IEventDataPtr pEventData)
 #endif
 
     g_pApp->GetGameLogic()->GetGameSaveMgr()->ResetToNewGame();
+#ifndef __EMSCRIPTEN__
+    PersistSavesToFile();
+#endif
 
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(
         new EventData_Menu_SwitchPage("MenuPage_SinglePlayer_NewGame")));
@@ -1292,6 +1341,9 @@ void HumanView::ResetSaveProgressFromManageSavesDelegate(IEventDataPtr pEventDat
 #endif
 
     g_pApp->GetGameLogic()->GetGameSaveMgr()->ResetToNewGame();
+#ifndef __EMSCRIPTEN__
+    PersistSavesToFile();
+#endif
 
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(
         new EventData_Menu_SwitchPage("MenuPage_SinglePlayer_SaveData")));

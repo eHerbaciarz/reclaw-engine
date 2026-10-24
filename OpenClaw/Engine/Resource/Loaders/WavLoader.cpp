@@ -25,6 +25,22 @@ WavResourceExtraData::~WavResourceExtraData()
 
 void WavResourceExtraData::LoadWavSound(char* rawBuffer, uint32 size)
 {
+#ifndef __EMSCRIPTEN__
+    // Native: decode to PCM in the mixer's output format, as upstream OpenClaw
+    // does. Mix_PlayChannel, Mix_SetPosition and Util::GetSoundDurationMs all
+    // expect a real decoded chunk.
+    SDL_RWops* soundRwOps = SDL_RWFromConstMem(rawBuffer, (int)size);
+    Mix_Chunk* pChunk = Mix_LoadWAV_RW(soundRwOps, 1);
+    if (pChunk == NULL)
+    {
+        LOG_ERROR("Mix_LoadWAV_RW failed: " + std::string(Mix_GetError()));
+        _sound = nullptr;
+        return;
+    }
+    _sound = shared_ptr<Mix_Chunk>(pChunk, DeleteMixChunk);
+    return;
+#endif
+
     // Create a dummy Mix_Chunk for compatibility
     _sound = shared_ptr<Mix_Chunk>(new Mix_Chunk(), DeleteMixChunk);
 
@@ -75,8 +91,14 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
     // TODO: This is inefficent, this resource gets basically loaded twice, once just
     // to find out how much room it takes and second time to actually create it
     SDL_RWops* soundRwOps = SDL_RWFromMem((void*)rawBuffer, rawSize);
-    auto pSound = shared_ptr<Mix_Chunk>(Mix_LoadWAV_RW(soundRwOps, 1), DeleteMixChunk);
-    return pSound->alen;
+    Mix_Chunk* pChunk = Mix_LoadWAV_RW(soundRwOps, 1);
+    if (pChunk == NULL)
+    {
+        return rawSize;
+    }
+    uint32 decodedSize = pChunk->alen;
+    Mix_FreeChunk(pChunk);
+    return decodedSize;
 #endif
 }
 

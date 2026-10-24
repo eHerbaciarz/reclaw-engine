@@ -74,13 +74,10 @@ typedef int8_t int8;
 #endif
 #endif
 
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
-#ifndef max
-#define max(a, b) ((a) < (b) ? (b) : (a))
-#endif
+// Function-like min/max macros clash with modern libstdc++ (std::numeric_limits<T>::max(),
+// <chrono>, <deque>); expose the std versions instead.
+using std::min;
+using std::max;
 
 // Resource caches
 // Hardcoding this saves A LOT of headaches

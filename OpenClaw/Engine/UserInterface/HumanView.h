@@ -88,6 +88,9 @@ protected:
     void ActorEnteredBossAreaDelegate(IEventDataPtr pEventData);
     void BossFightEndedDelegate(IEventDataPtr pEventData);
     void IngameMenuEndGameDelegate(IEventDataPtr pEventData);
+    #ifndef __EMSCRIPTEN__
+    void PersistSavesToFile();
+    #endif
     void ResetSaveProgressDelegate(IEventDataPtr pEventData);
     void ExportSaveDataDelegate(IEventDataPtr pEventData);
     void ImportSaveDataDelegate(IEventDataPtr pEventData);

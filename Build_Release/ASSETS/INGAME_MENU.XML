@@ -252,6 +252,9 @@
             <Type>Button</Type>
             <Hotkey>D</Hotkey>
             <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>WebOnly</ConditionType>
+            </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/010_DISPLAY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/011_DISPLAY.PCX</ActiveImage>
             <Position x="240" y="240" />

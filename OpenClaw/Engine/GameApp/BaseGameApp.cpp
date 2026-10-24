@@ -31,6 +31,7 @@
 #include "../Platform/Video/WASM/WasmVideoPlatform.h"
 #else
 #include "../Platform/Video/Null/NullVideoPlatform.h"
+#include "../Platform/Input/SdlGamepadInput.h"
 #endif
 
 #include <cctype>
@@ -265,6 +266,10 @@ void BaseGameApp::Terminate() {
   }
   m_appEventQueue.Clear();
 
+#ifndef __EMSCRIPTEN__
+  SdlGamepadInput::Shutdown();
+#endif
+
   if (m_videoModule) {
     m_videoModule->Shutdown();
     m_videoModule.reset();
@@ -416,6 +421,16 @@ void BaseGameApp::StepLoop() {
     }
 #else
     while (SDL_PollEvent(&event)) {
+      // Controllers go through the same AppEvent path as the browser build so
+      // HumanView/ActorController handle pads identically on every platform.
+      AppEvent padEvent;
+      bool hasPadEvent = false;
+      if (SdlGamepadInput::Translate(event, padEvent, hasPadEvent)) {
+        if (hasPadEvent) {
+          OnAppEvent(padEvent);
+        }
+        continue;
+      }
       OnEvent(event);
     }
 #endif
@@ -1023,6 +1038,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     m_videoPlatform->SetEventQueue(&m_appEventQueue);
     m_videoPlatform->Init(gameOptions.windowWidth, gameOptions.windowHeight);
   }
+
+#ifndef __EMSCRIPTEN__
+  SdlGamepadInput::Initialize();
+#endif
 
   LOG("Display successfully initialized.");
 

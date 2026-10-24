@@ -22,6 +22,9 @@ public:
     void SetSoundVolume(int volumePercentage); 
 
     void PlayMusic(const char* musicData, size_t musicSize, bool looping);
+    // Native builds: play a decoded WAV (e.g. MENUBED.WAV) as background music.
+    // Audio keeps a reference so the resource cache cannot free it mid-song.
+    void PlayMusicChunk(std::shared_ptr<Mix_Chunk> pChunk, bool looping);
     void PauseMusic();
     void ResumeMusic();
     void StopMusic();
@@ -66,6 +69,8 @@ private:
     
     // Modular audio system
     std::unique_ptr<IAudioSystem> m_audioSystem;
+
+    std::shared_ptr<Mix_Chunk> m_pMusicChunk;
 };
 
 #endif

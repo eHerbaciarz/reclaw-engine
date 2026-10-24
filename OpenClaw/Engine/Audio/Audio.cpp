@@ -6,6 +6,9 @@
 #include "../Events/EventMgr.h"
 #include "../Events/Events.h"
 #include "AudioSystemFactory.h"
+#ifndef __EMSCRIPTEN__
+#include "Native/SDL2MixerSystem.h"
+#endif
 
 #include <iostream>
 
@@ -48,9 +51,26 @@ Audio::~Audio()
 
 bool Audio::Initialize(const GameOptions& config)
 {
+#ifdef __EMSCRIPTEN__
     // Create the appropriate audio system for the current platform
     auto audioSystemType = AudioSystemFactory::GetRecommendedAudioSystemType();
     m_audioSystem = AudioSystemFactory::CreateAudioSystem(audioSystemType);
+#else
+    // Native: SDL_mixer for effects, TinySoundFont for XMI level music.
+    SDL2MixerConfig mixerConfig;
+    mixerConfig.frequency = (int)config.frequency;
+    mixerConfig.outputChannels = (int)config.soundChannels;
+    mixerConfig.chunkSize = (int)config.chunkSize;
+    mixerConfig.mixingChannels = (int)config.mixingChannels;
+    mixerConfig.soundFontPaths = {
+        config.assetsFolder + "music/soundfont.sf3",
+        "music/soundfont.sf3",
+#ifdef __SWITCH__
+        "romfs:/music/soundfont.sf3",
+#endif
+    };
+    m_audioSystem.reset(new SDL2MixerSystem(mixerConfig));
+#endif
     
     if (!m_audioSystem) {
         LOG_ERROR("Failed to create audio system");
@@ -156,6 +176,14 @@ static int SetupPlayMusicThread(void* pData)
 
 void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
 {
+#if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
+    if (m_audioSystem && m_audioSystem->LoadMusic("music", musicData, musicSize))
+    {
+        m_audioSystem->PlayMusic("music", looping);
+    }
+    return;
+#endif
+
     _MusicInfo* pMusicInfo = new _MusicInfo(musicData, musicSize, looping, m_bMusicOn ? m_MusicVolume : -1);
 
 // Playing music track takes ALOT of time for some reason so play it in another thread
@@ -164,6 +192,23 @@ void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
 #else
     SDL_Thread* pThread = SDL_CreateThread(SetupPlayMusicThread, "SetupPlayMusicThread", (void*)pMusicInfo);
     SDL_DetachThread(pThread);
+#endif
+}
+
+void Audio::PlayMusicChunk(std::shared_ptr<Mix_Chunk> pChunk, bool looping)
+{
+#if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
+    SDL2MixerSystem* pMixer = static_cast<SDL2MixerSystem*>(m_audioSystem.get());
+    if (!pMixer || !pChunk) {
+        return;
+    }
+    // Stop first so the previous chunk is no longer referenced by SDL_mixer
+    // before our reference to it is dropped.
+    pMixer->StopMusic();
+    m_pMusicChunk = pChunk;
+    pMixer->PlayMusicChunk(m_pMusicChunk.get(), looping);
+#else
+    (void)pChunk; (void)looping;
 #endif
 }
 
@@ -180,7 +225,9 @@ void Audio::PauseMusic()
     }
     RpcEndExcept
 #else
-    Mix_PauseMusic();
+    if (m_audioSystem) {
+        m_audioSystem->PauseMusic();
+    }
 #endif //_WIN32
 }
 
@@ -198,7 +245,9 @@ void Audio::ResumeMusic()
     }
     RpcEndExcept
 #else
-    Mix_ResumeMusic();
+    if (m_audioSystem) {
+        m_audioSystem->ResumeMusic();
+    }
 #endif //_WIN32
 }
 
@@ -220,7 +269,7 @@ void Audio::StopMusic()
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "AudioMgr::StopMusic: Failed due to RPC exception");
     }
     RpcEndExcept
-#else
+#elif defined(__EMSCRIPTEN__)
     Mix_HaltMusic();
 #endif //_WIN32
 }
@@ -248,7 +297,15 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
     SDL_RWops* soundRwOps = SDL_RWFromMem((void*)soundData, soundSize);
     Mix_Chunk* soundChunk = Mix_LoadWAV_RW(soundRwOps, 1);
 
-    return PlaySound(soundChunk, soundProperties);
+    bool played = PlaySound(soundChunk, soundProperties);
+#if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
+    // This one-shot chunk is not owned by the resource cache. Free it once its
+    // channel is done instead of leaking it.
+    if (soundChunk && !played) {
+        Mix_FreeChunk(soundChunk);
+    }
+#endif
+    return played;
 }
 bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
 {
@@ -272,6 +329,25 @@ bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
         return true;
     }
     return false;
+#elif !defined(_WIN32)
+    if (!sound) {
+        return false;
+    }
+    int chunkVolume = (int)((soundProperties.volume / 100.0f) * (m_SoundVolume / 100.0f) * MIX_MAX_VOLUME);
+    Mix_VolumeChunk(sound, chunkVolume);
+
+    int channel = Mix_PlayChannel(-1, sound, soundProperties.loops);
+    if (channel == -1) {
+        LOG_ERROR("Failed to play chunk: " + std::string(Mix_GetError()));
+        return false;
+    }
+    if (soundProperties.angle != 0 || soundProperties.distance != 0) {
+        Mix_SetPosition(channel, soundProperties.angle, soundProperties.distance);
+    } else {
+        // Channels are reused; clear positioning left over from a previous sound.
+        Mix_SetPosition(channel, 0, 0);
+    }
+    return true;
 #else
     if (!m_audioSystem) {
         return false;
