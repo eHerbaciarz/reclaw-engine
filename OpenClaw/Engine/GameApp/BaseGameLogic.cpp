@@ -268,6 +268,13 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
 
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
 
+    // The layout below is computed in window pixels (as in the browser build,
+    // which always renders at scale 1). Native configs may use a render scale
+    // (Switch: 1.5), so draw unscaled and restore the scale afterwards.
+    float savedScaleX = 1.0f, savedScaleY = 1.0f;
+    SDL_RenderGetScale(pRenderer, &savedScaleX, &savedScaleY);
+    SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
+
     // Clear screen with black (for widescreen letterboxing)
     SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
     SDL_RenderClear(pRenderer);
@@ -334,6 +341,8 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
 
     SDL_DestroyTexture(pTotalProgressBar);
     SDL_DestroyTexture(pRemainingProgressBar);
+
+    SDL_RenderSetScale(pRenderer, savedScaleX, savedScaleY);
 }
 
 bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
