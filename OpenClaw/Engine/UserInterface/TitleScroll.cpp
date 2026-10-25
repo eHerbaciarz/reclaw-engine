@@ -32,7 +32,9 @@ namespace
 
     // Timing (ms).
     const Uint32 kUnrollMs = 1100;
-    const Uint32 kHoldMs = 2300;
+    const Uint32 kHoldMs = 2300;           // without the title melody
+    const Uint32 kMinHoldMs = 800;
+    const Uint32 kRollUpBeforeEndMs = 250; // start rolling up just before the melody ends
     const Uint32 kRollUpMs = 800;
 
     const char* kTitlePath = "/STATES/ATTRACT/SCREENS/TITLE.PCX";
@@ -61,14 +63,20 @@ namespace
         return argb;
     }
 
-    void PlaySound(const char* path)
+    // Plays a sound; returns its length in ms (0 if it does not play).
+    Uint32 PlaySound(const char* path)
     {
-        if (!g_pApp->GetAudio() || !g_pApp->GetAudio()->IsSoundActive() || !HasResource(path)) return;
+        if (!g_pApp->GetAudio() || !g_pApp->GetAudio()->IsSoundActive() || !HasResource(path)) return 0;
         static std::vector<shared_ptr<Mix_Chunk>> s_Keep;   // chunks must outlive playback
         shared_ptr<Mix_Chunk> chunk = WavResourceLoader::LoadAndReturnSound(path);
-        if (!chunk) return;
+        if (!chunk) return 0;
         s_Keep.push_back(chunk);
-        Mix_PlayChannel(-1, chunk.get(), 0);
+        if (Mix_PlayChannel(-1, chunk.get(), 0) == -1) return 0;
+        int freq = 0, channels = 0;
+        Uint16 format = 0;
+        if (!Mix_QuerySpec(&freq, &format, &channels) || freq <= 0 || channels <= 0) return 0;
+        int bytesPerSample = SDL_AUDIO_BITSIZE(format) / 8;
+        return (Uint32)(chunk->alen * 1000.0 / ((double)freq * channels * bytesPerSample));
     }
 
     double EaseOut(double t) { return 1.0 - (1.0 - t) * (1.0 - t); }
@@ -136,33 +144,42 @@ namespace
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);
 
-        const double cx = kScreenW / 2.0;
-        if (half > 0.5)
+        // One integer edge for everything (map, shadows, rolls), symmetric
+        // around the centre, so nothing shifts by a pixel between frames.
+        int edge = (int)std::lround(kScreenW / 2.0 - half);   // left edge of the open map
+        edge = std::max(0, std::min(kScreenW / 2, edge));
+        int openW = kScreenW - 2 * edge;
+        auto mapX = [&v](int x) { return v.offX + (int)std::lround(x * v.scale); };
+        auto mapY = [&v](int y) { return v.offY + (int)std::lround(y * v.scale); };
+
+        if (openW > 0)
         {
-            // Visible part of the map between the rolls.
-            int sx = (int)std::floor(cx - half);
-            int sw = (int)std::ceil(2 * half);
-            SDL_Rect src = { std::max(0, sx), 0, std::min(kScreenW, sx + sw) - std::max(0, sx), kScreenH };
-            SDL_Rect dst = v.Map(src.x, 0, src.w, kScreenH);
+            // `title` is already scaled to screen size: copy the open part 1:1,
+            // so it is never resampled differently from frame to frame.
+            SDL_Rect full = { mapX(0), mapY(0), mapX(kScreenW) - mapX(0), mapY(kScreenH) - mapY(0) };
+            SDL_Rect dst = { mapX(edge), full.y, mapX(edge + openW) - mapX(edge), full.h };
+            SDL_Rect src = { dst.x - full.x, 0, dst.w, dst.h };
             SDL_RenderCopy(r, title, &src, &dst);
 
             // Soft shadow on the paper next to each roll.
             SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
-            for (int i = 0; i < 10; ++i)
+            for (int i = 0; i < 10 && i < openW / 2; ++i)
             {
                 SDL_SetRenderDrawColor(r, 0, 0, 0, (Uint8)(90 - i * 9));
-                SDL_Rect l = v.Map(cx - half + i, 0, 1, kScreenH);
-                SDL_Rect rr = v.Map(cx + half - 1 - i, 0, 1, kScreenH);
+                SDL_Rect l = { mapX(edge + i), mapY(0), mapX(edge + i + 1) - mapX(edge + i), dst.h };
+                SDL_Rect rr = { mapX(kScreenW - edge - i - 1), mapY(0), mapX(kScreenW - edge - i) - mapX(kScreenW - edge - i - 1), dst.h };
                 SDL_RenderFillRect(r, &l);
                 SDL_RenderFillRect(r, &rr);
             }
         }
 
         // The rolls turn as paper comes off them (opposite directions).
-        UpdateRoll(left, paper, half);
-        UpdateRoll(right, paper, -half);
-        SDL_Rect l = v.Map(cx - half - kRollD / 2.0, -kRollOverhang, kRollD, left.h);
-        SDL_Rect rr = v.Map(cx + half - kRollD / 2.0, -kRollOverhang, kRollD, right.h);
+        double turn = kScreenW / 2.0 - edge;
+        UpdateRoll(left, paper, turn);
+        UpdateRoll(right, paper, -turn);
+        int lx = edge - kRollD / 2, rx = kScreenW - edge - kRollD / 2;
+        SDL_Rect l = { mapX(lx), mapY(-kRollOverhang), mapX(lx + kRollD) - mapX(lx), mapY(kScreenH + kRollOverhang) - mapY(-kRollOverhang) };
+        SDL_Rect rr = { mapX(rx), l.y, mapX(rx + kRollD) - mapX(rx), l.h };
         SDL_RenderCopy(r, left.tex, NULL, &l);
         SDL_RenderCopyEx(r, right.tex, NULL, &rr, 0.0, NULL, SDL_FLIP_HORIZONTAL);
         SDL_RenderPresent(r);
@@ -202,9 +219,33 @@ namespace TitleScroll
         v.offX = (int)((outW - kScreenW * v.scale) / 2);
         v.offY = (int)((outH - kScreenH * v.scale) / 2);
 
+        // Scale the map once to its on-screen size.
+        int fullW = v.offX + (int)std::lround(kScreenW * v.scale) - v.offX;
+        int fullH = v.offY + (int)std::lround(kScreenH * v.scale) - v.offY;
+        SDL_Texture* scaledTitle = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, fullW, fullH);
+        if (scaledTitle && SDL_SetRenderTarget(r, scaledTitle) == 0)
+        {
+            SDL_RenderCopy(r, pTitle->GetTexture(), NULL, NULL);
+            SDL_SetRenderTarget(r, NULL);
+        }
+        else if (scaledTitle)
+        {
+            SDL_DestroyTexture(scaledTitle);
+            scaledTitle = nullptr;
+        }
+        if (!scaledTitle)
+        {
+            if (left.tex) SDL_DestroyTexture(left.tex);
+            if (right.tex) SDL_DestroyTexture(right.tex);
+            SDL_SetRenderTarget(r, pPrevTarget);
+            SDL_FreeSurface(paper);
+            return;
+        }
+
         enum Phase { Unroll, Hold, RollUp, Done } phase = Unroll;
         Uint32 phaseStart = SDL_GetTicks();
         double half = 0;
+        Uint32 holdMs = kHoldMs;
         PlaySound(kUnrollSound);
 
         while (phase != Done && left.tex && right.tex)
@@ -226,11 +267,21 @@ namespace TitleScroll
                         half = kScreenW / 2.0;
                         phase = (input == 1) ? RollUp : Hold;
                         phaseStart = now;
-                        PlaySound(phase == Hold ? kTitleSound : kRollUpSound);
+                        if (phase == Hold)
+                        {
+                            // Stay open for the title melody, roll up as it ends.
+                            Uint32 melodyMs = PlaySound(kTitleSound);
+                            if (melodyMs > 0)
+                                holdMs = std::max(kMinHoldMs, melodyMs > kRollUpBeforeEndMs ? melodyMs - kRollUpBeforeEndMs : 0);
+                        }
+                        else
+                        {
+                            PlaySound(kRollUpSound);
+                        }
                     }
                     break;
                 case Hold:
-                    if (now - phaseStart >= kHoldMs || input == 1)
+                    if (now - phaseStart >= holdMs || input == 1)
                     {
                         phase = RollUp;
                         phaseStart = now;
@@ -246,7 +297,7 @@ namespace TitleScroll
                     break;
             }
             Uint32 frameStart = SDL_GetTicks();
-            DrawFrame(r, v, pTitle->GetTexture(), left, right, paper, half);
+            DrawFrame(r, v, scaledTitle, left, right, paper, half);
             Uint32 spent = SDL_GetTicks() - frameStart;
             if (spent < 15) SDL_Delay(15 - spent);   // ~60 fps without vsync
         }
@@ -254,6 +305,7 @@ namespace TitleScroll
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);
         SDL_RenderPresent(r);
+        SDL_DestroyTexture(scaledTitle);
         if (left.tex) SDL_DestroyTexture(left.tex);
         if (right.tex) SDL_DestroyTexture(right.tex);
         SDL_FreeSurface(paper);
