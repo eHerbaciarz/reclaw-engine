@@ -404,7 +404,11 @@ namespace
             }
             int outW = 0, outH = 0;
             SDL_GetRendererOutputSize(r, &outW, &outH);
-            double dispW = (double)w, dispH = (double)h * (yScale != SMK_FLAG_Y_NONE ? 2.0 : 1.0);
+            // The original game showed every movie full screen at 640x480,
+            // so always display 4:3 (640x240 files are line-doubled even when
+            // their header carries no Y-scale flag).
+            (void)yScale;
+            double dispW = 4.0, dispH = 3.0;
             double scale = std::min(outW / dispW, outH / dispH);
             SDL_Rect dst = { (int)((outW - dispW * scale) / 2), (int)((outH - dispH * scale) / 2),
                              (int)(dispW * scale), (int)(dispH * scale) };
