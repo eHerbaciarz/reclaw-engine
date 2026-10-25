@@ -121,6 +121,12 @@ public:
     virtual void VSerializeState(StateArchive& ar) override;
     bool IsInBossFight() const { return m_bIsInBossFight; }
 
+    // Lifting and throwing powder kegs: press to lift a keg in front of
+    // Claw, press again and release to throw it (hold longer = farther).
+    void OnLiftPressed();
+    void OnLiftReleased();
+    bool IsCarrying();
+
     ClawControllableComponent();
     virtual ~ClawControllableComponent();
 
@@ -179,6 +185,26 @@ private:
 
     void SetCurrentPhysicsState();
     bool IsAttackingOrShooting();
+
+    // Sets Claw's animation; while he carries a keg, regular animations are
+    // swapped for their carrying variants.
+    bool SetClawAnimation(const std::string& animName);
+    std::string FindAnimation(std::initializer_list<const char*> candidates);
+    bool PlayOneShotAnimation(const std::string& animName);
+    class PowderKegComponent* GetCarriedKeg();
+    void DropKeg();
+    void ThrowKeg();
+
+    uint32 m_CarriedKegId;
+    bool m_bLiftHeld;
+    int m_LiftChargeMs;
+    int m_OneShotAnimLeftMs;
+    std::string m_AnimLift;
+    std::string m_AnimThrow;
+    std::string m_AnimCarryStand;
+    std::string m_AnimCarryWalk;
+    std::string m_AnimCarryJump;
+    std::string m_AnimCarryFall;
 
     bool m_bIsInBossFight;
 

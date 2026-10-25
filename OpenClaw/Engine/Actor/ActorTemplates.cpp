@@ -1594,6 +1594,8 @@ namespace ActorTemplates
         pActor->LinkEndChild(CreateDestroyableComponent(true, "explode", { SOUND_LEVEL1_KEG_EXPLODE }));
         pActor->LinkEndChild(CreateHealthComponent(1, 1));
         pActor->LinkEndChild(CreateExplodeableComponent(Point(140, 140), damage));
+        // Claw can lift and throw it
+        pActor->LinkEndChild(new TiXmlElement("PowderKegComponent"));
 
         return pActor;
     }

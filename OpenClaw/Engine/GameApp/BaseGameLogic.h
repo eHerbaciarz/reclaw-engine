@@ -92,6 +92,7 @@ public:
     bool IsRunning() { return m_bRunning; }
 
     StrongActorPtr GetClawActor();
+    const ActorMap& GetActorMap() const { return m_ActorMap; }
 
     StrongActorPtr FindActorByName(const std::string& name, bool bIsUnique);
     ActorList FindActorByName(const std::string& name);

@@ -16,6 +16,7 @@ typedef std::map<std::string, BaseEnemyAIStateComponent*> EnemyStateMap;
 class EnemyAIComponent : public ActorComponent, public HealthObserver
 {
 public:
+    bool IsDead() const { return m_bDead; }
     // Save states (SaveState/ComponentStates.cpp)
     virtual void VSerializeState(StateArchive& ar) override;
 

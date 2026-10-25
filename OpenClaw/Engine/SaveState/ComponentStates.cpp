@@ -43,6 +43,7 @@
 #include "../Actor/Components/GlitterComponent.h"
 #include "../Actor/Components/PredefinedMoveComponent.h"
 #include "../Actor/Components/AreaDamageComponent.h"
+#include "../Actor/Components/PowderKegComponent.h"
 #include "../Actor/Components/EnemyAI/EnemyAIComponent.h"
 #include "../Actor/Components/EnemyAI/EnemyAIStateComponent.h"
 #include "../Actor/Components/EnemyAI/Gabriel/GabrielEncounter.h"
@@ -102,6 +103,10 @@ void ClawControllableComponent::VSerializeState(StateArchive& ar)
     ar(m_LastState);
     ar(m_IdleTime);
     ar(m_Direction);
+    ar(m_CarriedKegId);
+    ar(m_bLiftHeld);
+    ar(m_LiftChargeMs);
+    ar(m_OneShotAnimLeftMs);
 }
 
 void Animation::SerializeState(StateArchive& ar)
@@ -282,6 +287,15 @@ void BossStagerTriggerComponent::VSerializeState(StateArchive& ar)
     ar(m_CurrentDelay);
     ar(m_ActorWhoEnteredId);
     ar.ActorRef(m_pPopupTitleActor);
+}
+
+void PowderKegComponent::VSerializeState(StateArchive& ar)
+{
+    ar(m_State);
+    ar(m_CarrierId);
+    ar(m_FlightTime);
+    ar(m_LastVelocity);
+    ar(m_ThrowVelocity);
 }
 
 void AreaDamageComponent::VSerializeState(StateArchive& ar)

@@ -51,6 +51,7 @@
 #include "Components/RopeComponent.h"
 #include "Components/SteppingGroundComponent.h"
 #include "Components/SpringBoardComponent.h"
+#include "Components/PowderKegComponent.h"
 #include "Components/ActorSpawnerComponent.h"
 #include "Components/EnemyAI/PunkRatAIStateComponent.h"
 #include "Components/EnemyAI/Gabriel/GabrielEncounter.h"
@@ -121,6 +122,7 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<RopeComponent>(RopeComponent::GetIdFromName(RopeComponent::g_Name));
     _componentFactory.Register<SteppingGroundComponent>(SteppingGroundComponent::GetIdFromName(SteppingGroundComponent::g_Name));
     _componentFactory.Register<SpringBoardComponent>(SpringBoardComponent::GetIdFromName(SpringBoardComponent::g_Name));
+    _componentFactory.Register<PowderKegComponent>(PowderKegComponent::GetIdFromName(PowderKegComponent::g_Name));
     _componentFactory.Register<KatherineBossAIStateComponent>(KatherineBossAIStateComponent::GetIdFromName(KatherineBossAIStateComponent::g_Name));
     _componentFactory.Register<WolvingtonBossAIStateComponent>(WolvingtonBossAIStateComponent::GetIdFromName(WolvingtonBossAIStateComponent::g_Name));
     _componentFactory.Register<FallAIStateComponent>(FallAIStateComponent::GetIdFromName(FallAIStateComponent::g_Name));

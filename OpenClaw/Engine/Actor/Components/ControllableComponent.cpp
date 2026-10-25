@@ -19,6 +19,8 @@
 #include "../../Scene/SceneNodes.h"
 
 #include "../../Util/ClawLevelUtil.h"
+#include "PowderKegComponent.h"
+#include "../../GameApp/BaseGameLogic.h"
 
 const char* ControllableComponent::g_Name = "ControllableComponent";
 const char* ClawControllableComponent::g_Name = "ClawControllableComponent";
@@ -87,6 +89,10 @@ ClawControllableComponent::ClawControllableComponent()
     m_TakeDamageTimeLeftMs = 0;
     m_bIsInBossFight = false;
     m_ThrowingTime = 0;
+    m_CarriedKegId = 0;
+    m_bLiftHeld = false;
+    m_LiftChargeMs = 0;
+    m_OneShotAnimLeftMs = 0;
 
     IEventMgr::Get()->VAddListener(MakeDelegate(this, &ClawControllableComponent::BossFightStartedDelegate), EventData_Boss_Fight_Started::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(this, &ClawControllableComponent::BossFightEndedDelegate), EventData_Boss_Fight_Ended::sk_EventType);
@@ -113,6 +119,17 @@ void ClawControllableComponent::VPostInit()
     m_pAmmoComponent = MakeStrongPtr(m_pOwner->GetComponent<AmmoComponent>(AmmoComponent::g_Name)).get();
     m_pPowerupComponent = MakeStrongPtr(m_pOwner->GetComponent<PowerupComponent>(PowerupComponent::g_Name)).get();
     m_pHealthComponent = MakeStrongPtr(m_pOwner->GetComponent<HealthComponent>(HealthComponent::g_Name)).get();
+
+    // Keg animations. The names are looked up among Claw's animations from
+    // the REZ; whatever is missing falls back to the regular animation.
+    m_AnimLift = FindAnimation({ "lift", "pickup", "liftup", "lift1" });
+    m_AnimThrow = FindAnimation({ "throw", "liftthrow", "throwkeg", "throw1" });
+    m_AnimCarryStand = FindAnimation({ "liftstand", "carrystand", "lift2", "liftidle", "carry", "holdkeg" });
+    m_AnimCarryWalk = FindAnimation({ "liftwalk", "carrywalk", "walklift", "walkcarry", "carrying" });
+    m_AnimCarryJump = FindAnimation({ "liftjump", "carryjump", "jumplift" });
+    m_AnimCarryFall = FindAnimation({ "liftfall", "carryfall", "falllift" });
+    LOG("Keg animations: lift='" + m_AnimLift + "' throw='" + m_AnimThrow + "' stand='" + m_AnimCarryStand +
+        "' walk='" + m_AnimCarryWalk + "' jump='" + m_AnimCarryJump + "' fall='" + m_AnimCarryFall + "'");
     m_pExclamationMark = MakeStrongPtr(m_pOwner->GetComponent<FollowableComponent>()).get();
     assert(m_pClawAnimationComponent);
     assert(m_pRenderComponent);
@@ -247,7 +264,7 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
 
             m_pExclamationMark->Activate(2000);
 
-            m_pClawAnimationComponent->SetAnimation("idle");
+            SetClawAnimation("idle");
 
             m_State = ClawState_Idle;
             m_IdleTime = 0;
@@ -292,7 +309,7 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
             double cameraOffsetSpeed = -1.0 * (g_pApp->GetGlobalOptions()->lookUpOrDownSpeed / 1000.0);
             pCamera->AddCameraOffsetY(cameraOffsetSpeed * msDiff);
         }
-        m_pClawAnimationComponent->SetAnimation("lookup");
+        SetClawAnimation("lookup");
     }
     else
     {
@@ -333,7 +350,7 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
 
     if (m_bFrozen)
     {
-        m_pClawAnimationComponent->SetAnimation("stand");
+        SetClawAnimation("stand");
         m_IdleTime = 0;
         m_LookingUpTime = 0;
         m_DuckingTime = 0;
@@ -350,7 +367,7 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
         m_pClawAnimationComponent->GetCurrentAnimationName() == "fall" &&
         m_pPhysicsComponent->GetFallHeight() > g_pApp->GetGlobalOptions()->clawMinFallHeight)
     {
-        m_pClawAnimationComponent->SetAnimation("highfall");
+        SetClawAnimation("highfall");
     }
 
     if (m_pClawAnimationComponent->GetCurrentAnimationName().find("predynamite") != std::string::npos ||
@@ -363,11 +380,11 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
             {
                 if (IsDucking())
                 {
-                    m_pClawAnimationComponent->SetAnimation("duckpostdynamite");
+                    SetClawAnimation("duckpostdynamite");
                 }
                 else
                 {
-                    m_pClawAnimationComponent->SetAnimation("postdynamite");
+                    SetClawAnimation("postdynamite");
                 }
             }
         }
@@ -377,9 +394,250 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
         m_ThrowingTime = 0;
     }
 
+    // Powder keg
+    if (m_OneShotAnimLeftMs > 0)
+    {
+        m_OneShotAnimLeftMs -= msDiff;
+        if (m_OneShotAnimLeftMs <= 0)
+        {
+            m_OneShotAnimLeftMs = 0;
+            if (m_State == ClawState_Standing || m_State == ClawState_Idle)
+            {
+                SetClawAnimation("stand");
+            }
+        }
+    }
+    if (m_CarriedKegId != 0)
+    {
+        if (!GetCarriedKeg())
+        {
+            m_CarriedKegId = 0;
+            m_bLiftHeld = false;
+        }
+        else if (m_State == ClawState_TakingDamage ||
+            m_State == ClawState_Dying ||
+            m_State == ClawState_Frozen ||
+            m_State == ClawState_HoldingRope ||
+            m_State == ClawState_Climbing ||
+            IsClimbing())
+        {
+            DropKeg();
+        }
+        else if (m_bLiftHeld)
+        {
+            m_LiftChargeMs += msDiff;
+        }
+    }
+
     //LOG("State: " + ToStr((int)m_State));
 
     m_LastState = m_State;
+}
+
+//-----------------------------------------------------------------------------
+// Powder kegs
+//-----------------------------------------------------------------------------
+
+std::string ClawControllableComponent::FindAnimation(std::initializer_list<const char*> candidates)
+{
+    for (const char* candidate : candidates)
+    {
+        std::string name(candidate);
+        if (m_pClawAnimationComponent && m_pClawAnimationComponent->HasAnimation(name))
+        {
+            return name;
+        }
+    }
+    return std::string();
+}
+
+bool ClawControllableComponent::SetClawAnimation(const std::string& animName)
+{
+    static const char* kInterruptible[] = { "stand", "walk", "idle", "lookup", "land" };
+    if (m_OneShotAnimLeftMs > 0)
+    {
+        for (const char* name : kInterruptible)
+        {
+            if (animName == name) return true;
+        }
+    }
+
+    if (m_CarriedKegId != 0)
+    {
+        const std::string* pReplacement = nullptr;
+        if (animName == "stand" || animName == "idle" || animName == "lookup" || animName == "land") pReplacement = &m_AnimCarryStand;
+        else if (animName == "walk") pReplacement = &m_AnimCarryWalk;
+        else if (animName == "jump") pReplacement = &m_AnimCarryJump;
+        else if (animName == "fall" || animName == "highfall") pReplacement = &m_AnimCarryFall;
+        if (pReplacement && !pReplacement->empty())
+        {
+            return m_pClawAnimationComponent->SetAnimation(*pReplacement);
+        }
+    }
+
+    return m_pClawAnimationComponent->SetAnimation(animName);
+}
+
+bool ClawControllableComponent::PlayOneShotAnimation(const std::string& animName)
+{
+    if (animName.empty() || !m_pClawAnimationComponent->SetAnimation(animName))
+    {
+        return false;
+    }
+    int duration = 0;
+    for (const AnimationFrame& frame : m_pClawAnimationComponent->GetCurrentAnimation()->GetAnimFrames())
+    {
+        duration += frame.duration;
+    }
+    m_OneShotAnimLeftMs = std::max(1, duration);
+    return true;
+}
+
+PowderKegComponent* ClawControllableComponent::GetCarriedKeg()
+{
+    if (m_CarriedKegId == 0)
+    {
+        return nullptr;
+    }
+    StrongActorPtr pKeg = MakeStrongPtr(g_pApp->GetGameLogic()->VGetActor(m_CarriedKegId));
+    if (!pKeg)
+    {
+        return nullptr;
+    }
+    PowderKegComponent* pKegComponent = MakeStrongPtr(pKeg->GetComponent<PowderKegComponent>(PowderKegComponent::g_Name)).get();
+    return (pKegComponent && pKegComponent->IsCarried()) ? pKegComponent : nullptr;
+}
+
+bool ClawControllableComponent::IsCarrying()
+{
+    return GetCarriedKeg() != nullptr;
+}
+
+void ClawControllableComponent::OnLiftPressed()
+{
+    if (m_bFrozen ||
+        m_State == ClawState_Dying ||
+        m_State == ClawState_TakingDamage ||
+        m_State == ClawState_Frozen ||
+        m_State == ClawState_HoldingRope ||
+        m_State == ClawState_Climbing ||
+        IsAttackingOrShooting())
+    {
+        return;
+    }
+
+    if (IsCarrying())
+    {
+        // Second press: start winding up, the keg flies when released.
+        m_bLiftHeld = true;
+        m_LiftChargeMs = 0;
+        return;
+    }
+
+    if (m_pPhysicsComponent->IsFalling() || m_pPhysicsComponent->IsJumping())
+    {
+        return;
+    }
+
+    // The nearest keg in front of Claw, within arm's reach.
+    const Point clawPos = m_pPositionComponent->GetPosition();
+    const double facing = (m_Direction == Direction_Left) ? -1.0 : 1.0;
+    PowderKegComponent* pBest = nullptr;
+    uint32 bestId = 0;
+    double bestDistance = 1e9;
+    for (const auto& kv : g_pApp->GetGameLogic()->GetActorMap())
+    {
+        const StrongActorPtr& pActor = kv.second;
+        if (!pActor || !pActor->GetPositionComponent())
+        {
+            continue;
+        }
+        PowderKegComponent* pKeg = MakeStrongPtr(pActor->GetComponent<PowderKegComponent>(PowderKegComponent::g_Name)).get();
+        if (!pKeg || !pKeg->CanBeLifted())
+        {
+            continue;
+        }
+        Point kegPos = pActor->GetPositionComponent()->GetPosition();
+        double forward = (kegPos.x - clawPos.x) * facing;
+        double dy = kegPos.y - clawPos.y;
+        if (forward < -25 || forward > 80 || fabs(dy) > 70)
+        {
+            continue;
+        }
+        double distance = fabs(forward) + fabs(dy);
+        if (distance < bestDistance)
+        {
+            bestDistance = distance;
+            pBest = pKeg;
+            bestId = pActor->GetGUID();
+        }
+    }
+    if (!pBest)
+    {
+        return;
+    }
+
+    pBest->OnLifted(m_pOwner->GetGUID());
+    m_CarriedKegId = bestId;
+    m_bLiftHeld = false;
+    m_LiftChargeMs = 0;
+    m_IdleTime = 0;
+    m_LookingUpTime = 0;
+    m_DuckingTime = 0;
+    if (IsDucking())
+    {
+        m_State = ClawState_Standing;
+    }
+    if (!PlayOneShotAnimation(m_AnimLift))
+    {
+        SetClawAnimation(m_State == ClawState_Walking ? "walk" : "stand");
+    }
+}
+
+void ClawControllableComponent::OnLiftReleased()
+{
+    if (m_bLiftHeld && IsCarrying())
+    {
+        ThrowKeg();
+    }
+    m_bLiftHeld = false;
+    m_LiftChargeMs = 0;
+}
+
+void ClawControllableComponent::ThrowKeg()
+{
+    PowderKegComponent* pKeg = GetCarriedKeg();
+    if (!pKeg)
+    {
+        return;
+    }
+
+    // Holding the button up to ~0.8 s throws farther.
+    double power = std::min(1.0, (double)m_LiftChargeMs / 800.0);
+    double facing = (m_Direction == Direction_Left) ? -1.0 : 1.0;
+    Point velocity(facing * (4.5 + 3.5 * power), -(3.0 + 2.0 * power));
+    Point start(m_pPositionComponent->GetX() + facing * 35, m_pPositionComponent->GetY() + PowderKegComponent::GetCarryOffset().y);
+
+    m_CarriedKegId = 0;
+    pKeg->Throw(start, velocity);
+
+    if (!PlayOneShotAnimation(m_AnimThrow))
+    {
+        SetClawAnimation(m_State == ClawState_Walking ? "walk" : "stand");
+    }
+}
+
+void ClawControllableComponent::DropKeg()
+{
+    PowderKegComponent* pKeg = GetCarriedKeg();
+    m_CarriedKegId = 0;
+    m_bLiftHeld = false;
+    m_LiftChargeMs = 0;
+    if (pKeg)
+    {
+        double facing = (m_Direction == Direction_Left) ? -1.0 : 1.0;
+        pKeg->Drop(Point(m_pPositionComponent->GetX() + facing * 40, m_pPositionComponent->GetY() - 20));
+    }
 }
 
 // Interface for subclasses
@@ -391,7 +649,7 @@ void ClawControllableComponent::VOnStartFalling()
         return;
     }
 
-    m_pClawAnimationComponent->SetAnimation("fall");
+    SetClawAnimation("fall");
     m_State = ClawState_Falling;
 }
 
@@ -400,12 +658,12 @@ void ClawControllableComponent::VOnLandOnGround(float fromHeight)
     if (fromHeight > g_pApp->GetGlobalOptions()->clawMinFallHeight)
     {
         // High fall — Claw crouches on landing. Strong feedback.
-        m_pClawAnimationComponent->SetAnimation("land");
+        SetClawAnimation("land");
         HapticFeedback::Trigger(HapticPreset::Heavy);
     }
     else
     {
-        m_pClawAnimationComponent->SetAnimation("stand");
+        SetClawAnimation("stand");
 
         SoundInfo soundInfo(SOUND_CLAW_LAND_SHORT);
         soundInfo.soundVolume = 150;
@@ -428,7 +686,7 @@ void ClawControllableComponent::VOnStartJumping()
         return;
     }
 
-    m_pClawAnimationComponent->SetAnimation("jump");
+    SetClawAnimation("jump");
     m_State = ClawState_Jumping;
     // No takeoff haptic — feedback fires on landing (VOnLandOnGround), scaled
     // Light/Medium by fall height.
@@ -458,7 +716,7 @@ void ClawControllableComponent::VOnStopMoving()
 
     if (m_pClawAnimationComponent->GetCurrentAnimationName() != "land")
     {
-        m_pClawAnimationComponent->SetAnimation("stand");
+        SetClawAnimation("stand");
     }
     
     m_State = ClawState_Standing;
@@ -471,7 +729,7 @@ void ClawControllableComponent::VOnRun()
     {
         return;
     }
-    m_pClawAnimationComponent->SetAnimation("walk");
+    SetClawAnimation("walk");
     m_LookingUpTime = 0;
     m_DuckingTime = 0;
     m_State = ClawState_Walking;
@@ -485,22 +743,22 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
     {
         if (!bIsClimbingUp)
         {
-            m_pClawAnimationComponent->SetAnimation("topclimbdown");
+            SetClawAnimation("topclimbdown");
         }
         else
         {
-            m_pClawAnimationComponent->SetAnimation("topclimb");
+            SetClawAnimation("topclimb");
         }
     }
     else
     {
         if (!bIsClimbingUp)
         {
-            m_pClawAnimationComponent->SetAnimation("climbdown");
+            SetClawAnimation("climbdown");
         }
         else
         {
-            m_pClawAnimationComponent->SetAnimation("climb");
+            SetClawAnimation("climb");
         }
     }
     
@@ -515,7 +773,8 @@ void ClawControllableComponent::VOnStopClimbing()
 
 void ClawControllableComponent::OnAttack()
 {
-    if (IsAttackingOrShooting() ||
+    if (m_CarriedKegId != 0 ||
+        IsAttackingOrShooting() ||
         m_State == ClawState_Climbing ||
         m_State == ClawState_TakingDamage ||
         m_State == ClawState_Frozen ||
@@ -529,12 +788,12 @@ void ClawControllableComponent::OnAttack()
     if (m_State == ClawState_Falling ||
         m_State == ClawState_Jumping)
     {
-        m_pClawAnimationComponent->SetAnimation("jumpswipe");
+        SetClawAnimation("jumpswipe");
         m_State = ClawState_JumpAttacking;
     }
     else if (IsDucking())
     {
-        m_pClawAnimationComponent->SetAnimation("duckswipe");
+        SetClawAnimation("duckswipe");
         m_State = ClawState_DuckAttacking;
     }
     else
@@ -544,22 +803,22 @@ void ClawControllableComponent::OnAttack()
             m_pPowerupComponent->HasPowerup(PowerupType_FrostSword) ||
             m_pPowerupComponent->HasPowerup(PowerupType_LightningSword))
         {
-            m_pClawAnimationComponent->SetAnimation("swipe");
+            SetClawAnimation("swipe");
         }
         else
         {
             int attackType = rand() % 5;
             if (attackType == 0)
             {
-                m_pClawAnimationComponent->SetAnimation("kick");
+                SetClawAnimation("kick");
             }
             else if (attackType == 1)
             {
-                m_pClawAnimationComponent->SetAnimation("uppercut");
+                SetClawAnimation("uppercut");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("swipe");
+                SetClawAnimation("swipe");
             }
         }
         
@@ -590,7 +849,8 @@ void ClawControllableComponent::OnAttack()
 
 void ClawControllableComponent::OnFire(bool outOfAmmo)
 {
-    if (IsAttackingOrShooting() ||
+    if (m_CarriedKegId != 0 ||
+        IsAttackingOrShooting() ||
         m_State == ClawState_Climbing ||
         m_State == ClawState_Dying || 
         m_State == ClawState_TakingDamage ||
@@ -609,33 +869,33 @@ void ClawControllableComponent::OnFire(bool outOfAmmo)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("jumppistol");
+                SetClawAnimation("jumppistol");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("emptyjumppistol");
+                SetClawAnimation("emptyjumppistol");
             }
         }
         else if (activeAmmoType == AmmoType_Magic)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("jumpmagic");
+                SetClawAnimation("jumpmagic");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("emptyjumpmagic");
+                SetClawAnimation("emptyjumpmagic");
             }
         }
         else if (activeAmmoType == AmmoType_Dynamite)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("jumpdynamite");
+                SetClawAnimation("jumpdynamite");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("emptyjumpdynamite");
+                SetClawAnimation("emptyjumpdynamite");
             }
         }
         m_State = ClawState_JumpShooting;
@@ -646,33 +906,33 @@ void ClawControllableComponent::OnFire(bool outOfAmmo)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("duckpistol");
+                SetClawAnimation("duckpistol");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("duckemptypistol");
+                SetClawAnimation("duckemptypistol");
             }
         }
         else if (activeAmmoType == AmmoType_Magic)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("duckmagic");
+                SetClawAnimation("duckmagic");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("duckemptymagic");
+                SetClawAnimation("duckemptymagic");
             }
         }
         else if (activeAmmoType == AmmoType_Dynamite)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("duckpredynamite");
+                SetClawAnimation("duckpredynamite");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("duckemptydynamite");
+                SetClawAnimation("duckemptydynamite");
             }
         }
         m_State = ClawState_DuckAttacking;
@@ -683,33 +943,33 @@ void ClawControllableComponent::OnFire(bool outOfAmmo)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("pistol");
+                SetClawAnimation("pistol");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("emptypistol");
+                SetClawAnimation("emptypistol");
             }
         }
         else if (activeAmmoType == AmmoType_Magic)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("magic");
+                SetClawAnimation("magic");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("emptymagic");
+                SetClawAnimation("emptymagic");
             }
         }
         else if (activeAmmoType == AmmoType_Dynamite)
         {
             if (m_pAmmoComponent->CanFire())
             {
-                m_pClawAnimationComponent->SetAnimation("predynamite");
+                SetClawAnimation("predynamite");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("emptydynamite");
+                SetClawAnimation("emptydynamite");
             }
         }
         m_State = ClawState_Shooting;
@@ -722,11 +982,11 @@ void ClawControllableComponent::OnFireEnded()
     {
         if (IsDucking())
         {
-            m_pClawAnimationComponent->SetAnimation("duckpostdynamite");
+            SetClawAnimation("duckpostdynamite");
         }
         else
         {
-            m_pClawAnimationComponent->SetAnimation("postdynamite");
+            SetClawAnimation("postdynamite");
         }
     }
 }
@@ -769,33 +1029,33 @@ void ClawControllableComponent::SetCurrentPhysicsState()
 {
     if (m_pPhysicsComponent->IsFalling())
     {
-        m_pClawAnimationComponent->SetAnimation("fall");
+        SetClawAnimation("fall");
         m_State = ClawState_Falling;
     }
     else if (m_pPhysicsComponent->IsJumping())
     {
-        m_pClawAnimationComponent->SetAnimation("jump");
+        SetClawAnimation("jump");
         m_State = ClawState_Jumping;
     }
     else if (IsDucking())
     {
-        m_pClawAnimationComponent->SetAnimation("duck");
+        SetClawAnimation("duck");
         m_State = ClawState_Ducking;
     }
     else if (m_pPhysicsComponent->IsOnGround())
     {
-        m_pClawAnimationComponent->SetAnimation("stand");
+        SetClawAnimation("stand");
         m_State = ClawState_Standing;
     }
     else if (m_State == ClawState_HoldingRope)
     {
-        m_pClawAnimationComponent->SetAnimation("swing");
+        SetClawAnimation("swing");
         m_pPhysicsComponent->SetGravityScale(0.0f);
         return;
     }
     else
     {
-        m_pClawAnimationComponent->SetAnimation("fall");
+        SetClawAnimation("fall");
         m_State = ClawState_Standing;
         //LOG_ERROR("Unknown physics state. Assume falling");
     }
@@ -1046,7 +1306,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
     }
     else if (animName == "land")
     {
-        m_pClawAnimationComponent->SetAnimation("stand");
+        SetClawAnimation("stand");
     }
 }
 
@@ -1077,7 +1337,7 @@ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int so
     // TODO: Track how exactly claw died
     if (m_pClawAnimationComponent->GetCurrentAnimationName() != "spikedeath")
     {
-        m_pClawAnimationComponent->SetAnimation("spikedeath");
+        SetClawAnimation("spikedeath");
         m_pPhysicsComponent->SetGravityScale(0.0f);
         m_State = ClawState_Dying;
 
@@ -1121,7 +1381,7 @@ void ClawControllableComponent::VOnHealthChanged(int32 oldHealth, int32 newHealt
     } 
 
     if (damageType == DamageType_SirenProjectile) {
-        m_pClawAnimationComponent->SetAnimation("freeze");
+        SetClawAnimation("freeze");
         AddFrozenTime(1);
         m_State = ClawState_Frozen;
         // Since this is abit hacky, return as soon as possible into the method
@@ -1137,11 +1397,11 @@ void ClawControllableComponent::VOnHealthChanged(int32 oldHealth, int32 newHealt
         {
             if (Util::GetRandomNumber(0, 1) == 0)
             {
-                m_pClawAnimationComponent->SetAnimation("damage1");
+                SetClawAnimation("damage1");
             }
             else
             {
-                m_pClawAnimationComponent->SetAnimation("damage2");
+                SetClawAnimation("damage2");
             }
         }
 
@@ -1193,9 +1453,13 @@ bool ClawControllableComponent::IsDucking()
 
 void ClawControllableComponent::OnDuck()
 {
+    if (m_CarriedKegId != 0)
+    {
+        return;
+    }
     if (!IsDucking())
     {
-        m_pClawAnimationComponent->SetAnimation("duck");
+        SetClawAnimation("duck");
         m_State = ClawState_Ducking;
     }
 }
@@ -1214,7 +1478,7 @@ bool ClawControllableComponent::IsClimbing()
 
 void ClawControllableComponent::VOnAttachedToRope()
 {
-    m_pClawAnimationComponent->SetAnimation("swing");
+    SetClawAnimation("swing");
     m_pPhysicsComponent->SetGravityScale(0.0f);
 
     m_State = ClawState_HoldingRope;

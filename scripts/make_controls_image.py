@@ -31,6 +31,7 @@ ROWS_LEFT = [
     (["B"], "skok"),
     (["Y"], "cios mieczem"),
     (["A"], "strzał"),
+    (["X"], "podnieś / rzuć beczkę"),
 ]
 ROWS_RIGHT = [
     (["L"], "zmiana broni"),
@@ -38,6 +39,7 @@ ROWS_RIGHT = [
     (["ZR"], "szybkie wczytanie"),
     (["R"], "trzymaj: cofanie czasu"),
     (["+"], "pauza i menu"),
+    (["X"], "trzymaj: rzut dalej"),
     (["A", "B"], "menu: wybór / powrót"),
 ]
 
@@ -88,7 +90,7 @@ def column(draw, x0, y0, rows, label_w):
     word_font = font(14)
     desc_font = font(14)
     y = y0
-    step = 36 * S
+    step = 32 * S
     for labels, desc in rows:
         cy = y + step / 2
         x = x0
