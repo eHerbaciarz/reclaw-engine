@@ -1,5 +1,7 @@
 #include "EndLevelScoreScreen.h"
 #include "../../GameApp/BaseGameApp.h"
+#include "../../Video/Native/MoviePlayer.h"
+#include "../../Audio/Audio.h"
 #include "../../Resource/Loaders/PalLoader.h"
 #include "../../Resource/Loaders/PcxLoader.h"
 #include "../../Resource/Loaders/PidLoader.h"
@@ -517,6 +519,16 @@ void ScreenElementScoreScreen::LoadNextLevel()
     m_pProcessMgr->AbortAllProcesses(true);
     SAFE_DELETE(m_pProcessMgr);
     IEventMgr::Get()->VAbortAllEvents();
+
+#ifndef __EMSCRIPTEN__
+    // Story movie between chapters, as in the original game.
+    if (MoviePlayer::IsAvailable())
+    {
+        g_pApp->GetAudio()->StopMusic();
+        g_pApp->GetAudio()->StopAllSounds();
+        MoviePlayer::PlayAfterLevel(g_pApp->GetRenderer(), nextLevelNum - 1);
+    }
+#endif
 
     IEventDataPtr pEvent(new EventData_Menu_LoadGame(nextLevelNum, false, 0));
     IEventMgr::Get()->VQueueEvent(pEvent);

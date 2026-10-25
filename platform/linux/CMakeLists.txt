@@ -41,6 +41,9 @@ list(FILTER ENGINE_SOURCES EXCLUDE REGEX "/Audio/WebAudioAPI\\.cpp$")
 list(FILTER ENGINE_SOURCES EXCLUDE REGEX "/libwap/Miniz\\.cpp$")           # same miniz as Engine/Resource
 list(FILTER ENGINE_SOURCES EXCLUDE REGEX "/Tinyxml/xmltest\\.cpp$")
 
+# libsmacker (LGPL-2.1, C): decoder for the original Smacker cutscenes
+list(APPEND ENGINE_SOURCES "${REPO_ROOT}/ThirdParty/libsmacker/smacker.c")
+
 add_executable(openclaw ${ENGINE_SOURCES})
 
 target_include_directories(openclaw PRIVATE

@@ -7,6 +7,7 @@
 #include "../Resource/ResourceCache.h"
 #include "../Resource/ResourceDirectory.h"
 #include "StartupSplash.h"
+#include "../Video/Native/MoviePlayer.h"
 #include "../Resource/ResourceMgr.h"
 #include "../UserInterface/HumanView.h"
 #include "BaseGameLogic.h"
@@ -1286,6 +1287,14 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
     // Data already comes from an unpacked folder: its sounds are served directly.
     if (ResourceDirectory::LooksLikeAssetsFolder(rezArchivePath)) roots.clear();
     LooseSoundFiles::SetSearchRoots(roots);
+
+    // Cutscenes: CLAW.FEC (or MOVIES/CLAW.FEC, MOVIES/*.SMK) next to the game data.
+    std::vector<std::string> movieRoots = {rezDir};
+#ifdef __SWITCH__
+    movieRoots.push_back("/switch/claw");
+    movieRoots.push_back("/Games/claw");
+#endif
+    MoviePlayer::SetSearchRoots(movieRoots, gameOptions.userDirectory);
   }
 #endif
 

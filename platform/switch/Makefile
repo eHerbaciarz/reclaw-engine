@@ -50,7 +50,8 @@ SOURCE_ROOTS := OpenClaw libwap Box2D/Box2D ThirdParty/Tinyxml
 EXCLUDE_RE   := /WASM/|^OpenClaw/Engine/Graphics/[^/]+\.cpp$$|^OpenClaw/Engine/Graphics/(Generic|WebGL|WebGPU)/|/Audio/WebAudioAPI\.cpp$$|^libwap/Miniz\.cpp$$|/Tinyxml/xmltest\.cpp$$
 
 SOURCES := $(shell cd $(REPO) && find $(SOURCE_ROOTS) -name '*.cpp' | LC_ALL=C sort | grep -v -E '$(EXCLUDE_RE)')
-OBJECTS := $(addprefix $(BUILD)/obj/,$(SOURCES:.cpp=.o))
+C_SOURCES := ThirdParty/libsmacker/smacker.c
+OBJECTS := $(addprefix $(BUILD)/obj/,$(SOURCES:.cpp=.o)) $(addprefix $(BUILD)/obj/,$(C_SOURCES:.c=.o))
 DEPENDS := $(OBJECTS:.o=.d)
 
 #---------------------------------------------------------------------------------
@@ -94,6 +95,11 @@ $(BUILD)/obj/%.o: $(REPO)/%.cpp
 	@mkdir -p $(dir $@)
 	@echo $*.cpp
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD)/obj/%.o: $(REPO)/%.c
+	@mkdir -p $(dir $@)
+	@echo $*.c
+	@$(CC) -g -O2 -ffunction-sections -fdata-sections $(ARCH) $(DEFINES) -w -MMD -MP -c $< -o $@
 
 $(BUILD)/$(TARGET).elf: $(OBJECTS)
 	@echo linking $(notdir $@)

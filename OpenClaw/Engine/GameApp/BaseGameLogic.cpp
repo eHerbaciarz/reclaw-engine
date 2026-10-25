@@ -30,6 +30,7 @@
 #ifdef __EMSCRIPTEN__
 #include "SaveBridge.h"
 #endif
+#include "../Video/Native/MoviePlayer.h"
 
 #include "../Physics/ClawPhysics.h"
 
@@ -946,8 +947,18 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
             }
             else
             {
+#ifdef __EMSCRIPTEN__
                 // Try to play intro movie
                 VPlayCutscene("videos/INTRO.mp4");
+#else
+                // Original Smacker movies from the CD (CLAW.FEC), if present.
+                if (MoviePlayer::IsAvailable())
+                {
+                    g_pApp->GetAudio()->StopMusic();
+                    g_pApp->GetAudio()->StopAllSounds();
+                    MoviePlayer::PlayStartupMovies(g_pApp->GetRenderer());
+                }
+#endif
                 // If it failed/skipped immediately, it will fall through or we check state
                 if (m_GameState == GameState_Initializing)
                 {
