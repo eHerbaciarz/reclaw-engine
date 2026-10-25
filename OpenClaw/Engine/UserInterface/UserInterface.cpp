@@ -1,6 +1,7 @@
 #include "UserInterface.h"
 
 #include "../Graphics2D/Image.h"
+#include "../Race/Race.h"
 #include "../Video/Native/MoviePlayer.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
@@ -673,7 +674,9 @@ void ScreenElementMenu::VSetVisible(bool visible)
 
     if (visible)
     {
-        if (g_pApp && g_pApp->GetGameLogic())
+        // Network race: the other console keeps racing, so the world does
+        // not stop (only this player's controls do, as in any menu).
+        if (g_pApp && g_pApp->GetGameLogic() && !Race::IsNetwork())
         {
             g_pApp->GetGameLogic()->SetRunning(false);
         }
