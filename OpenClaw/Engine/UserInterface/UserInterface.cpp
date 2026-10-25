@@ -1926,7 +1926,9 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         const char* align = pPosElem->Attribute("align");
         if (align && std::string(align) == "center" && !m_Images.empty())
         {
-            int width = m_Images.begin()->second->GetWidth();
+            auto it = m_Images.find(MenuItemState_Inactive);
+            if (it == m_Images.end()) it = m_Images.begin();
+            int width = it->second->GetWidth();
             m_Position.x -= width / 2;
             m_DefaultPosition.x -= width / 2;
         }

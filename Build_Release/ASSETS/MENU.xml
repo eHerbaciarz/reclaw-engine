@@ -12,7 +12,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/014_TITLE.PCX</InactiveImage>
-            <Position x="188" y="160" />
+            <Position x="320" y="160" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>SINGLE_PLAYER_BUTTON</Name>
@@ -21,7 +21,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/001_SINGLEPLAYER.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/002_SINGLEPLAYER.PCX</ActiveImage>
-            <Position x="174" y="210" />
+            <Position x="320" y="210" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer</PageName>
@@ -34,7 +34,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/003_MULTIPLAYER.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/004_MULTIPLAYER.PCX</ActiveImage>
-            <Position x="190" y="245" />
+            <Position x="320" y="245" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Multiplayer</PageName>
@@ -48,7 +48,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/005_REPLAYMOVIES.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/006_REPLAYMOVIES.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/007_REPLAYMOVIES.PCX</DisabledImage>
-            <Position x="170" y="280" />
+            <Position x="320" y="280" align="center" />
             <!-- Enabled when the CD movies (CLAW.FEC) are found -->
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -66,7 +66,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/008_OPTIONS.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/009_OPTIONS.PCX</ActiveImage>
-            <Position x="238" y="315" />
+            <Position x="320" y="315" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
@@ -79,7 +79,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/015_CREDITS.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/016_CREDITS.PCX</ActiveImage>
-            <Position x="238" y="350" />
+            <Position x="320" y="350" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Credits</PageName>
@@ -92,7 +92,7 @@
             <State>Inactive</State> 
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/010_HELP.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/011_HELP.PCX</ActiveImage>
-            <Position x="270" y="385" />
+            <Position x="320" y="385" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Help</PageName>
@@ -115,7 +115,7 @@
         <!-- QUIT_BUTTON removed for WASM build - users can just close browser tab -->
     </MenuPage>
     
-    <!-- REPLAY MOVIES PAGE (original CD movies from CLAW.FEC) -->
+    <!-- REPLAY MOVIES PAGE (original CD movies from CLAW.FEC; MOVIEn = movie n-1) -->
     <MenuPage>
         <PageName>MenuPage_ReplayMovies</PageName>
         <KeyboardEvent>
@@ -129,16 +129,16 @@
             <Name>REPLAY_MOVIES_TEXT</Name>
             <Type>Text</Type>
             <State>Inactive</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/033_*.PCX</InactiveImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/033_TITLE.PCX</InactiveImage>
             <Position x="320" y="39" align="center" />
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_1_BUTTON</Name>
+            <Name>MOVIE_TWO_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/001_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/002_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/003_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/004_MOVIETWO.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/005_MOVIETWO.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/006_MOVIETWO.PCX</DisabledImage>
             <Position x="320" y="89" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -151,12 +151,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_2_BUTTON</Name>
+            <Name>MOVIE_THREE_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/004_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/005_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/006_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/007_MOVIETHREE.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/008_MOVIETHREE.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/009_MOVIETHREE.PCX</DisabledImage>
             <Position x="320" y="120" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -169,12 +169,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_3_BUTTON</Name>
+            <Name>MOVIE_FOUR_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/007_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/008_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/009_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/010_MOVIEFOUR.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/011_MOVIEFOUR.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/012_MOVIEFOUR.PCX</DisabledImage>
             <Position x="320" y="151" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -187,12 +187,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_4_BUTTON</Name>
+            <Name>MOVIE_FIVE_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/010_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/011_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/012_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/013_MOVIEFIVE.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/014_MOVIEFIVE.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/015_MOVIEFIVE.PCX</DisabledImage>
             <Position x="320" y="182" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -205,12 +205,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_5_BUTTON</Name>
+            <Name>MOVIE_SIX_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/013_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/014_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/015_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/016_MOVIESIX.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/017_MOVIESIX.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/018_MOVIESIX.PCX</DisabledImage>
             <Position x="320" y="213" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -223,12 +223,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_6_BUTTON</Name>
+            <Name>MOVIE_SEVEN_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/016_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/017_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/018_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/019_MOVIESEVEN.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/020_MOVIESEVEN.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/021_MOVIESEVEN.PCX</DisabledImage>
             <Position x="320" y="244" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -241,12 +241,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_7_BUTTON</Name>
+            <Name>MOVIE_EIGHT_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/019_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/020_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/021_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/022_MOVIEEIGHT.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/023_MOVIEEIGHT.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/024_MOVIEEIGHT.PCX</DisabledImage>
             <Position x="320" y="275" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -259,12 +259,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_8_BUTTON</Name>
+            <Name>MOVIE_NINE_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/022_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/023_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/024_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/025_MOVIENINE.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/026_MOVIENINE.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/027_MOVIENINE.PCX</DisabledImage>
             <Position x="320" y="306" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -277,12 +277,12 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>MOVIE_9_BUTTON</Name>
+            <Name>MOVIE_TEN_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/025_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/026_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/027_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/028_MOVIETEN.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/029_MOVIETEN.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/030_MOVIETEN.PCX</DisabledImage>
             <Position x="320" y="337" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
@@ -295,28 +295,29 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>PLAY_ALL_MOVIES_BUTTON</Name>
+            <Name>MOVIE_ONE_BUTTON</Name>
             <Type>Button</Type>
             <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/028_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/029_*.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/030_*.PCX</DisabledImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/001_MOVIEONE.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/002_MOVIEONE.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/003_MOVIEONE.PCX</DisabledImage>
             <Position x="320" y="368" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
-                <ConditionType>MoviesAvailable</ConditionType>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>0</Level>
             </StateCondition>
             <GeneratedEvent>
                 <Type>PlayMovies</Type>
-                <MovieIndex>-1</MovieIndex>
+                <MovieIndex>0</MovieIndex>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <State>Active</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/031_*.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/032_*.PCX</ActiveImage>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/031_BACK.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/032_BACK.PCX</ActiveImage>
             <Position x="320" y="399" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
@@ -340,7 +341,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/014_TITLE.PCX</InactiveImage>
-            <Position x="160" y="161" />
+            <Position x="340" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>NEW_GAME_BUTTON</Name>
@@ -348,7 +349,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/001_NEWGAME.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/002_NEWGAME.PCX</ActiveImage>
-            <Position x="218" y="210" />
+            <Position x="320" y="210" align="center" />
             <GeneratedEvent>
                 <Type>StartNewGame</Type>
             </GeneratedEvent>
@@ -360,7 +361,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/003_LOADGAME.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/004_LOADGAME.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/003_LOADGAME_DISABLED.png</DisabledImage>
-            <Position x="210" y="245" />
+            <Position x="320" y="245" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>SaveDataExists</ConditionType>
@@ -388,7 +389,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/005_LOADCUSTOM.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/006_LOADCUSTOM.PCX</ActiveImage>
-            <Position x="124" y="315" />
+            <Position x="320" y="315" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadCustomLevel</PageName>
@@ -401,7 +402,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/009_UPLOADSCORES.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/010_UPLOADSCORES.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/011_UPLOADSCORES.PCX</DisabledImage>
-            <Position x="168" y="350" />
+            <Position x="320" y="350" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_UploadScores</PageName>
@@ -413,7 +414,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="385" />
+            <Position x="320" y="385" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -496,7 +497,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="315" />
+            <Position x="320" y="315" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer</PageName>
@@ -566,7 +567,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/NEW/001_TITLE.PCX</InactiveImage>
-            <Position x="196" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LA_ROCA_BUTTON</Name>
@@ -575,7 +576,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/001_LEVELONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/002_LEVELONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/003_LEVELONE.PCX</DisabledImage>
-            <Position x="38" y="215" />
+            <Position x="158" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -596,7 +597,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/004_LEVELTWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/005_LEVELTWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/006_LEVELTWO.PCX</DisabledImage>
-            <Position x="38" y="243" />
+            <Position x="158" y="243" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -617,7 +618,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/007_LEVELTHREE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/008_LEVELTHREE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/009_LEVELTHREE.PCX</DisabledImage>
-            <Position x="38" y="271" />
+            <Position x="158" y="271" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -638,7 +639,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/010_LEVELFOUR.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/011_LEVELFOUR.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/012_LEVELFOUR.PCX</DisabledImage>
-            <Position x="38" y="299" />
+            <Position x="158" y="299" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -659,7 +660,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/013_LEVELFIVE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/014_LEVELFIVE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/015_LEVELFIVE.PCX</DisabledImage>
-            <Position x="38" y="327" />
+            <Position x="158" y="327" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -680,7 +681,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/016_LEVELSIX.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/017_LEVELSIX.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/018_LEVELSIX.PCX</DisabledImage>
-            <Position x="38" y="355" />
+            <Position x="158" y="355" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -701,7 +702,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/019_LEVELSEVEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/020_LEVELSEVEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/021_LEVELSEVEN.PCX</DisabledImage>
-            <Position x="38" y="383" />
+            <Position x="158" y="383" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -722,7 +723,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/022_LEVELEIGHT.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/023_LEVELEIGHT.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/024_LEVELEIGHT.PCX</DisabledImage>
-            <Position x="308" y="215" />
+            <Position x="452" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -743,7 +744,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/025_LEVELNINE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/026_LEVELNINE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/027_LEVELNINE.PCX</DisabledImage>
-            <Position x="308" y="243" />
+            <Position x="452" y="243" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -764,7 +765,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/028_LEVELTEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/029_LEVELTEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/030_LEVELTEN.PCX</DisabledImage>
-            <Position x="308" y="271" />
+            <Position x="452" y="271" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -785,7 +786,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/031_LEVELELEVEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/032_LEVELELEVEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/033_LEVELELEVEN.PCX</DisabledImage>
-            <Position x="308" y="299" />
+            <Position x="452" y="299" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -806,7 +807,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/034_LEVELTWELVE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/035_LEVELTWELVE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/036_LEVELTWELVE.PCX</DisabledImage>
-            <Position x="308" y="327" />
+            <Position x="452" y="327" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -827,7 +828,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/037_LEVELTHIRTEEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/038_LEVELTHIRTEEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/039_LEVELTHIRTEEN.PCX</DisabledImage>
-            <Position x="308" y="355" />
+            <Position x="452" y="355" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -848,7 +849,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/040_LEVELFOURTEEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/041_LEVELFOURTEEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/042_LEVELFOURTEEN.PCX</DisabledImage>
-            <Position x="308" y="383" />
+            <Position x="452" y="383" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -862,7 +863,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/043_BACK.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/044_BACK.PCX</ActiveImage>
-            <Position x="278" y="420" />
+            <Position x="320" y="420" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer</PageName>
@@ -918,7 +919,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/SAVE/001_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/SAVE/002_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="420" />
+            <Position x="320" y="420" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -943,7 +944,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/001_TITLE.PCX</InactiveImage>
-            <Position x="184" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LA_ROCA_BUTTON</Name>
@@ -958,7 +959,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/001_LEVELONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/002_LEVELONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/003_LEVELONE.PCX</DisabledImage>
-            <Position x="38" y="215" />
+            <Position x="158" y="215" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level1</PageName>
@@ -977,7 +978,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/004_LEVELTWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/005_LEVELTWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/006_LEVELTWO.PCX</DisabledImage>
-            <Position x="38" y="243" />
+            <Position x="158" y="243" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level2</PageName>
@@ -996,7 +997,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/007_LEVELTHREE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/008_LEVELTHREE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/009_LEVELTHREE.PCX</DisabledImage>
-            <Position x="38" y="271" />
+            <Position x="158" y="271" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level3</PageName>
@@ -1015,7 +1016,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/010_LEVELFOUR.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/011_LEVELFOUR.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/012_LEVELFOUR.PCX</DisabledImage>
-            <Position x="38" y="299" />
+            <Position x="158" y="299" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level4</PageName>
@@ -1034,7 +1035,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/013_LEVELFIVE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/014_LEVELFIVE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/015_LEVELFIVE.PCX</DisabledImage>
-            <Position x="38" y="327" />
+            <Position x="158" y="327" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level5</PageName>
@@ -1053,7 +1054,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/016_LEVELSIX.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/017_LEVELSIX.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/018_LEVELSIX.PCX</DisabledImage>
-            <Position x="38" y="355" />
+            <Position x="158" y="355" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level6</PageName>
@@ -1072,7 +1073,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/019_LEVELSEVEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/020_LEVELSEVEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/021_LEVELSEVEN.PCX</DisabledImage>
-            <Position x="38" y="383" />
+            <Position x="158" y="383" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level7</PageName>
@@ -1091,7 +1092,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/022_LEVELEIGHT.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/023_LEVELEIGHT.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/024_LEVELEIGHT.PCX</DisabledImage>
-            <Position x="308" y="215" />
+            <Position x="452" y="215" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level8</PageName>
@@ -1110,7 +1111,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/025_LEVELNINE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/026_LEVELNINE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/027_LEVELNINE.PCX</DisabledImage>
-            <Position x="308" y="243" />
+            <Position x="452" y="243" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level9</PageName>
@@ -1129,7 +1130,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/028_LEVELTEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/029_LEVELTEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/030_LEVELTEN.PCX</DisabledImage>
-            <Position x="308" y="271" />
+            <Position x="452" y="271" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level10</PageName>
@@ -1148,7 +1149,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/031_LEVELELEVEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/032_LEVELELEVEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/033_LEVELELEVEN.PCX</DisabledImage>
-            <Position x="308" y="299" />
+            <Position x="452" y="299" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level11</PageName>
@@ -1167,7 +1168,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/034_LEVELTWELVE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/035_LEVELTWELVE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/036_LEVELTWELVE.PCX</DisabledImage>
-            <Position x="308" y="327" />
+            <Position x="452" y="327" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level12</PageName>
@@ -1186,7 +1187,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/037_LEVELTHIRTEEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/038_LEVELTHIRTEEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/039_LEVELTHIRTEEN.PCX</DisabledImage>
-            <Position x="308" y="355" />
+            <Position x="452" y="355" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level13</PageName>
@@ -1205,7 +1206,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/040_LEVELFOURTEEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/041_LEVELFOURTEEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/042_LEVELFOURTEEN.PCX</DisabledImage>
-            <Position x="308" y="383" />
+            <Position x="452" y="383" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame_Level14</PageName>
@@ -1217,7 +1218,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/043_BACK.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LEVELS/044_BACK.PCX</ActiveImage>
-            <Position x="278" y="420" />
+            <Position x="320" y="420" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer</PageName>
@@ -1240,7 +1241,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/011_TITLE.PCX</InactiveImage>
-            <Position x="196" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LA_ROCA_START_BUTTON</Name>
@@ -1248,7 +1249,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1269,7 +1270,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1290,7 +1291,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1304,7 +1305,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1327,7 +1328,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/012_TITLE.PCX</InactiveImage>
-            <Position x="130" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_2_START_BUTTON</Name>
@@ -1335,7 +1336,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1356,7 +1357,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1377,7 +1378,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1391,7 +1392,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1414,7 +1415,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/013_TITLE.PCX</InactiveImage>
-            <Position x="174" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_3_START_BUTTON</Name>
@@ -1422,7 +1423,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1443,7 +1444,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1464,7 +1465,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1478,7 +1479,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1501,7 +1502,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/014_TITLE.PCX</InactiveImage>
-            <Position x="148" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_4_START_BUTTON</Name>
@@ -1509,7 +1510,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1530,7 +1531,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1551,7 +1552,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1565,7 +1566,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1588,7 +1589,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/015_TITLE.PCX</InactiveImage>
-            <Position x="176" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_5_START_BUTTON</Name>
@@ -1596,7 +1597,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1617,7 +1618,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1638,7 +1639,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1652,7 +1653,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1675,7 +1676,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/016_TITLE.PCX</InactiveImage>
-            <Position x="134" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_6_START_BUTTON</Name>
@@ -1683,7 +1684,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1704,7 +1705,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1725,7 +1726,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1739,7 +1740,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1762,7 +1763,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/017_TITLE.PCX</InactiveImage>
-            <Position x="216" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_7_START_BUTTON</Name>
@@ -1770,7 +1771,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1791,7 +1792,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1812,7 +1813,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1826,7 +1827,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1849,7 +1850,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/018_TITLE.PCX</InactiveImage>
-            <Position x="166" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_8_START_BUTTON</Name>
@@ -1857,7 +1858,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1878,7 +1879,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1899,7 +1900,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1913,7 +1914,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -1936,7 +1937,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/019_TITLE.PCX</InactiveImage>
-            <Position x="124" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_9_START_BUTTON</Name>
@@ -1944,7 +1945,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -1965,7 +1966,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -1986,7 +1987,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2000,7 +2001,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -2023,7 +2024,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/020_TITLE.PCX</InactiveImage>
-            <Position x="202" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_10_START_BUTTON</Name>
@@ -2031,7 +2032,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -2052,7 +2053,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2073,7 +2074,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2087,7 +2088,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -2110,7 +2111,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/021_TITLE.PCX</InactiveImage>
-            <Position x="176" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_11_START_BUTTON</Name>
@@ -2118,7 +2119,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -2139,7 +2140,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2160,7 +2161,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2174,7 +2175,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -2197,7 +2198,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/022_TITLE.PCX</InactiveImage>
-            <Position x="78" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_12_START_BUTTON</Name>
@@ -2205,7 +2206,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -2226,7 +2227,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2247,7 +2248,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2261,7 +2262,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -2284,7 +2285,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/023_TITLE.PCX</InactiveImage>
-            <Position x="122" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_13_START_BUTTON</Name>
@@ -2292,7 +2293,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -2313,7 +2314,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2334,7 +2335,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2348,7 +2349,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -2371,7 +2372,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/024_TITLE.PCX</InactiveImage>
-            <Position x="192" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>LEVEL_14_START_BUTTON</Name>
@@ -2379,7 +2380,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/001_START.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/002_START.PCX</ActiveImage>
-            <Position x="256" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>true</IsNewGame>
@@ -2400,7 +2401,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/003_SAVEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/004_SAVEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/005_SAVEONE.PCX</DisabledImage>
-            <Position x="194" y="252" />
+            <Position x="320" y="252" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2421,7 +2422,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/006_SAVETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/007_SAVETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/008_SAVETWO.PCX</DisabledImage>
-            <Position x="194" y="289" />
+            <Position x="320" y="289" align="center" />
             <GeneratedEvent>
                 <Type>LoadGame</Type>
                 <IsNewGame>false</IsNewGame>
@@ -2435,7 +2436,7 @@
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/009_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/LOAD/CHECKPOINTS/010_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="326" />
+            <Position x="320" y="326" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_LoadGame</PageName>
@@ -2473,7 +2474,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/SAVE/001_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/SAVE/002_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="420" />
+            <Position x="320" y="420" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -2497,7 +2498,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/014_TITLE.PCX</InactiveImage>
-            <Position x="216" y="160" />
+            <Position x="320" y="160" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>EDIT_PLAYERS_BUTTON</Name>
@@ -2505,7 +2506,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/001_EDITPLAYERS.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/002_EDITPLAYERS.PCX</ActiveImage>
-            <Position x="188" y="225" />
+            <Position x="320" y="225" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_EditPlayers</PageName>
@@ -2517,7 +2518,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/003_DIFFICULTY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/004_DIFFICULTY.PCX</ActiveImage>
-            <Position x="210" y="260" />
+            <Position x="320" y="260" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Difficulty</PageName>
@@ -2529,7 +2530,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/005_CONTROLS.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/006_CONTROLS.PCX</ActiveImage>
-            <Position x="220" y="295" />
+            <Position x="320" y="295" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Controls</PageName>
@@ -2542,7 +2543,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/007_AUDIO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/008_AUDIO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/009_AUDIO.PCX</DisabledImage>
-            <Position x="260" y="330" />
+            <Position x="320" y="330" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Audio</PageName>
@@ -2557,7 +2558,7 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/010_DISPLAY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/011_DISPLAY.PCX</ActiveImage>
-            <Position x="240" y="365" />
+            <Position x="320" y="365" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Display</PageName>
@@ -2569,7 +2570,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="400" />
+            <Position x="320" y="400" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -2593,7 +2594,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/019_TITLE.PCX</InactiveImage>
-            <Position x="246" y="160" />
+            <Position x="320" y="160" align="center" />
         </MenuItem>
         
         <MenuItem>
@@ -2605,7 +2606,7 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/001_SOUNDON.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/003_SOUNDON.PCX</ActiveImage>
-            <Position x="48" y="225" />
+            <Position x="320" y="225" align="center" />
             <GeneratedEvent>
                 <Type>ChangeSoundEnabled</Type>
                 <IsEnabled>false</IsEnabled>
@@ -2712,7 +2713,7 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/002_SOUNDOFF.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/004_SOUNDOFF.PCX</ActiveImage>
-            <Position x="48" y="225" />
+            <Position x="320" y="225" align="center" />
             <GeneratedEvent>
                 <Type>ChangeSoundEnabled</Type>
                 <IsEnabled>true</IsEnabled>
@@ -2778,7 +2779,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/005_VOICEON.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/007_VOICEON.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/032_VOICEON.PCX</DisabledImage>
-            <Position x="214" y="260" />
+            <Position x="320" y="260" align="center" />
             <GeneratedEvent>
                 <Type>ModifyMenuItemVisibility</Type>
                 <MenuItemName>VOICE_ON_BUTTON</MenuItemName>
@@ -2810,7 +2811,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/006_VOICDOFF.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/008_VOICEOFF.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/033_VOICEOFF.PCX</DisabledImage>
-            <Position x="214" y="260" />
+            <Position x="320" y="260" align="center" />
             <GeneratedEvent>
                 <Type>ModifyMenuItemVisibility</Type>
                 <MenuItemName>VOICE_OFF_BUTTON</MenuItemName>
@@ -2843,7 +2844,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/009_AMBIENTON.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/011_AMBIENTON.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/034_AMBIENTON.PCX</DisabledImage>
-            <Position x="188" y="295" />
+            <Position x="320" y="295" align="center" />
             <GeneratedEvent>
                 <Type>ModifyMenuItemVisibility</Type>
                 <MenuItemName>AMBIENT_ON_BUTTON</MenuItemName>
@@ -2875,7 +2876,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/010_AMBIENTOFF.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/012_AMBIENTOFF.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/035_AMBIENTOFF.PCX</DisabledImage>
-            <Position x="188" y="295" />
+            <Position x="320" y="295" align="center" />
             <GeneratedEvent>
                 <Type>ModifyMenuItemVisibility</Type>
                 <MenuItemName>AMBIENT_OFF_BUTTON</MenuItemName>
@@ -2907,7 +2908,7 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/013_MUSICON.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/015_MUSICON.PCX</ActiveImage>
-            <Position x="52" y="330" />
+            <Position x="320" y="330" align="center" />
             <GeneratedEvent>
                 <Type>ChangeSoundEnabled</Type>
                 <IsEnabled>false</IsEnabled>
@@ -2993,7 +2994,7 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/014_MUSICOFF.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/016_MUSICOFF.PCX</ActiveImage>
-            <Position x="52" y="330" />
+            <Position x="320" y="330" align="center" />
             <GeneratedEvent>
                 <Type>ChangeSoundEnabled</Type>
                 <IsEnabled>true</IsEnabled>
@@ -3045,7 +3046,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="365" />
+            <Position x="320" y="365" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
@@ -3070,7 +3071,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/DISPLAY/021_TITLE.PCX</InactiveImage>
-            <Position x="222" y="160" />
+            <Position x="320" y="160" align="center" />
         </MenuItem>
 
         <MenuItem>
@@ -3220,7 +3221,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="295" />
+            <Position x="320" y="295" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
