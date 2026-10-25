@@ -2577,6 +2577,37 @@
         </MenuItem>
     </MenuPage>
 
+    <!-- CONTROLS PAGE (Switch button layout, image made by scripts/make_controls_image.py) -->
+    <MenuPage>
+        <PageName>MenuPage_Options_Controls</PageName>
+        <KeyboardEvent>
+            <KeyType>Escape</KeyType>
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options</PageName>
+            </GeneratedEvent>
+        </KeyboardEvent>
+        <MenuItem>
+            <Name>CONTROLS_IMAGE</Name>
+            <Type>Text</Type>
+            <State>Disabled</State>
+            <DisabledImage>/CONTROLS/switch_controls.png</DisabledImage>
+            <Position x="20" y="112" />
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Active</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
+            <Position x="320" y="425" align="center" />
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+    </MenuPage>
+
     <!-- AUDIO PAGE -->
     <MenuPage>
         <PageName>MenuPage_Options_Audio</PageName>
