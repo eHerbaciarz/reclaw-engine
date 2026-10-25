@@ -32,6 +32,7 @@
 #endif
 #include "../Video/Native/MoviePlayer.h"
 #include "../UserInterface/TitleScroll.h"
+#include "../SaveState/SaveStateManager.h"
 
 #include "../Physics/ClawPhysics.h"
 
@@ -349,6 +350,9 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
 
 bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 {
+    // Save states belong to one level session.
+    SaveStateManager::Get()->Reset();
+
     // Stop all audio
     g_pApp->GetAudio()->StopAllSounds();
 
@@ -1046,6 +1050,13 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
 
         case GameState_IngameRunning:
         {
+            // Quick save / quick load / rewind happen between steps.
+            m_bSkipWorldStep = SaveStateManager::Get()->OnGameStep(this, msDiff);
+            if (m_bSkipWorldStep)
+            {
+                break;
+            }
+
             if (m_pProcessMgr)
             {
                 m_pProcessMgr->UpdateProcesses(msDiff);
@@ -1117,7 +1128,12 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
     // Limit update to max 100 times / second
     static int msAccumulation = 0;
     msAccumulation += msDiff;
-    if (msAccumulation >= 5)
+    if (m_bSkipWorldStep)
+    {
+        m_bSkipWorldStep = false;
+        msAccumulation = 0;
+    }
+    else if (msAccumulation >= 5)
     {
         // Update all game actors
         for (auto &actorIter : m_ActorMap)
@@ -1519,6 +1535,8 @@ ActorList BaseGameLogic::FindActorByName(const std::string& name)
 
 void BaseGameLogic::UnloadLevel()
 {
+    SaveStateManager::Get()->Reset();
+
     // We cannot do this inside event update loop
     assert(IEventMgr::Get()->VIsUpdating() == false);
 

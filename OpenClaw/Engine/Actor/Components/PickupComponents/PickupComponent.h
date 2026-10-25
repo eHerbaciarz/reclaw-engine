@@ -40,6 +40,9 @@ protected:
 class TreasurePickupComponent : public PickupComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     TreasurePickupComponent();
 
     static const char* g_Name;

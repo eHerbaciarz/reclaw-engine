@@ -64,6 +64,9 @@ class AnimationComponent : public ActorComponent, public AnimationSubject
     friend class Animation;
 
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     AnimationComponent();
     virtual ~AnimationComponent();
 

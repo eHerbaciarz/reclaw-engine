@@ -10,6 +10,9 @@ class ActorRenderComponent;
 class DestroyableComponent : public ActorComponent, public HealthObserver, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     DestroyableComponent();
     virtual ~DestroyableComponent();
 

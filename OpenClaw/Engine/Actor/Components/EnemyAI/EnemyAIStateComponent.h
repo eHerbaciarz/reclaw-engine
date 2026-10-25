@@ -89,6 +89,9 @@ class ActorRenderComponent;
 class BaseEnemyAIStateComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     BaseEnemyAIStateComponent(const std::string &stateName);
     virtual ~BaseEnemyAIStateComponent() { }
 
@@ -169,6 +172,9 @@ private:
 class FallAIStateComponent : public BaseEnemyAIStateComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     FallAIStateComponent();
     virtual ~FallAIStateComponent() { }
 
@@ -198,6 +204,9 @@ typedef std::map<std::string, EnemyAIAction> EnemyActionMap;
 class PatrolEnemyAIStateComponent : public BaseEnemyAIStateComponent, public AnimationObserver, public TriggerObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     PatrolEnemyAIStateComponent();
     virtual ~PatrolEnemyAIStateComponent();
 
@@ -268,6 +277,9 @@ private:
 class RollEnemyAIStateComponent : public BaseEnemyAIStateComponent, public AnimationObserver, public TriggerObserver, public HealthObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     RollEnemyAIStateComponent();
 
     static const char* g_Name;
@@ -370,6 +382,9 @@ typedef std::vector<std::shared_ptr<EnemyAttackAction>> AttackActionList;
 class BaseAttackAIStateComponent : public BaseEnemyAIStateComponent, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     BaseAttackAIStateComponent(const std::string &stateName);
     virtual ~BaseAttackAIStateComponent();
 
@@ -514,6 +529,9 @@ class DiveAttackAIStateComponent : public BaseEnemyAIStateComponent
     };
 
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     DiveAttackAIStateComponent();
     virtual ~DiveAttackAIStateComponent();
 
@@ -556,6 +574,10 @@ private:
 class BaseBossAIStateComponennt : public BaseEnemyAIStateComponent, public HealthObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+    virtual void VOnStateRestored() override;
+
     BaseBossAIStateComponennt(std::string stateName);
     virtual ~BaseBossAIStateComponennt();
 

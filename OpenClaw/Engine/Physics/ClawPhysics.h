@@ -75,7 +75,12 @@ public:
     virtual void VScaleActor(uint32_t actorId, double scale) override;
 
 private:
+    virtual void VSerializeBodyState(uint32_t actorId, class StateArchive& ar) override;
+    virtual void VFlushPendingChanges() override;
+    virtual bool VHasBody(uint32_t actorId) override { return FindBox2DBody(actorId) != NULL; }
+
     b2Body* FindBox2DBody(uint32 actorId);
+    void ProcessPendingChanges();
     uint32 FindActorId(b2Body* pBody);
     void ScheduleActorForRemoval(uint32 actorId) { m_ActorsToBeDestroyed.push_back(actorId); }
     void AddActorFixtureToBody(b2Body* pBody, const ActorFixtureDef* pFixtureDef);

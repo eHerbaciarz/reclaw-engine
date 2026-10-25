@@ -14,6 +14,9 @@ class ActorRenderComponent;
 class FollowableComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     FollowableComponent();
     virtual ~FollowableComponent();
 

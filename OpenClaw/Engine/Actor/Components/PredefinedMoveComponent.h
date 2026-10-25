@@ -8,6 +8,9 @@ class PositionComponent;
 class PredefinedMoveComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     PredefinedMoveComponent() { }
 
     static const char* g_Name;

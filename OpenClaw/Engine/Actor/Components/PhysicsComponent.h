@@ -10,6 +10,9 @@ class ControllableComponent;
 class PhysicsComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     PhysicsComponent();
     virtual ~PhysicsComponent();
 

@@ -12,6 +12,9 @@
 class SoundTriggerComponent : public ActorComponent, public TriggerObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     SoundTriggerComponent();
 
     static const char* g_Name;

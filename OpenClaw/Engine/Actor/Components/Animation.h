@@ -7,6 +7,7 @@
 #include <libwap.h>
 
 class Image;
+class StateArchive;
 struct AnimationFrame
 {
     AnimationFrame()
@@ -61,6 +62,9 @@ public:
     bool IsPaused() const { return _paused; }
 
     const AnimationComponent* GetOwnerComponent() const { return m_pOwner; }
+
+    // Save states (SaveState/ComponentStates.cpp)
+    void SerializeState(StateArchive& ar);
 
 private:
     void AddAnimationFrame(AnimationFrame& animFrame) { _animationFrames.push_back(animFrame); }

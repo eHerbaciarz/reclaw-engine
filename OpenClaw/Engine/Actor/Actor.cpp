@@ -5,6 +5,7 @@
 
 #include "Components/PositionComponent.h"
 #include "Components/PhysicsComponent.h"
+#include "../SaveState/StateArchive.h"
 
 Actor::Actor(uint32 actorGUID)
 {
@@ -45,6 +46,56 @@ void Actor::PostInit()
     for (auto &component : _components)
     {
         component.second->VPostInit();
+    }
+}
+
+// Every component writes its state into its own length-prefixed block, keyed
+// by component id, so a mismatch in one component cannot corrupt the rest.
+void Actor::SerializeState(StateArchive& ar)
+{
+    if (ar.IsSaving())
+    {
+        uint32_t count = (uint32_t)_components.size();
+        ar(count);
+        for (auto& component : _components)
+        {
+            uint32_t id = component.first;
+            ar(id);
+            size_t marker = ar.BeginBlock();
+            component.second->VSerializeState(ar);
+            ar.EndBlock(marker);
+        }
+        return;
+    }
+
+    uint32_t count = 0;
+    ar(count);
+    for (uint32_t i = 0; i < count && !ar.Failed(); ++i)
+    {
+        uint32_t id = 0;
+        ar(id);
+        uint32_t size = ar.ReadBlockSize();
+        size_t start = ar.Position();
+        auto findIt = _components.find(id);
+        if (findIt != _components.end() && size > 0)
+        {
+            findIt->second->VSerializeState(ar);
+            if (ar.Failed() || ar.Position() != start + size)
+            {
+                LOG_WARNING("Save state: component " + std::string(findIt->second->VGetName()) +
+                            " of " + _name + " read a different amount of data");
+                ar.ClearFailure();
+            }
+        }
+        ar.Seek(start + size);
+    }
+}
+
+void Actor::OnStateRestored()
+{
+    for (auto& component : _components)
+    {
+        component.second->VOnStateRestored();
     }
 }
 

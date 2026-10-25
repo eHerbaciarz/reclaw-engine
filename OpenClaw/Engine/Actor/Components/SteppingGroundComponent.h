@@ -8,6 +8,9 @@
 class SteppingGroundComponent : public ActorComponent, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     SteppingGroundComponent();
 
     static const char* g_Name;

@@ -9,6 +9,9 @@
 class SpringBoardComponent : public ActorComponent, public AnimationObserver, public TriggerObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     SpringBoardComponent();
 
     static const char* g_Name;

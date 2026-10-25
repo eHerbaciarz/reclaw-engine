@@ -12,6 +12,8 @@
 #include "../SharedDefines.h"
 #include "ActorFactory.h"
 
+class StateArchive;
+
 class ActorComponent
 {
     friend class ActorFactory;
@@ -42,6 +44,12 @@ public:
     }
 
     virtual void VOnWorldFinishedLoading() { }
+
+    // Save states (quick save / quick load / rewind): runtime state only,
+    // see SaveState/StateArchive.h. Default: the component has none.
+    virtual void VSerializeState(StateArchive& ar) { }
+    // Called after every actor of a save state has been restored.
+    virtual void VOnStateRestored() { }
 
 protected:
     StrongActorPtr m_pOwner;

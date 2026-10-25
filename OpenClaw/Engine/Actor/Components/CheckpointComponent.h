@@ -9,6 +9,9 @@
 class CheckpointComponent : public PickupComponent, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     CheckpointComponent();
 
     static const char* g_Name;

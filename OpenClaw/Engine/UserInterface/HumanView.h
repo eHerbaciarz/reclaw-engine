@@ -104,6 +104,19 @@ protected:
     bool m_bLevelRevealPending = false;
     uint32 m_LevelRevealStart = 0;
     void RenderLevelReveal(SDL_Renderer* pRenderer);
+
+public:
+    // Short message at the top of the screen (quick save / load feedback).
+    void ShowToast(const std::string& text);
+    // Abort running screen effects (death fade, teleport fade) - save states.
+    void CancelScreenEffects();
+
+protected:
+    void RenderToast(SDL_Renderer* pRenderer);
+    std::string m_ToastText;
+    uint32 m_ToastShownAt = 0;
+    SDL_Texture* m_pToastTexture = nullptr;
+    int m_ToastW = 0, m_ToastH = 0;
     void ResetSaveProgressFromManageSavesDelegate(IEventDataPtr pEventData);
 
     void ToggleFullscreenDelegate(IEventDataPtr pEventData);

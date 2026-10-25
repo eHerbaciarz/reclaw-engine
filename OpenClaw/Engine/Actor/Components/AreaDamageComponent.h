@@ -9,6 +9,9 @@
 class AreaDamageComponent : public PickupComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     AreaDamageComponent();
 
     static const char* g_Name;

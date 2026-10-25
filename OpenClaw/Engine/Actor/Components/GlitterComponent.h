@@ -9,6 +9,9 @@ class PositionComponent;
 class GlitterComponent : public ActorComponent, public HealthObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     GlitterComponent();
     ~GlitterComponent();
 

@@ -13,6 +13,9 @@
 class ControllableComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     ControllableComponent();
 
     static const char* g_Name;
@@ -114,6 +117,10 @@ class ClawControllableComponent :
     public HealthObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+    bool IsInBossFight() const { return m_bIsInBossFight; }
+
     ClawControllableComponent();
     virtual ~ClawControllableComponent();
 

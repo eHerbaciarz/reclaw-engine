@@ -22,6 +22,9 @@ public:
 class PowerupComponent : public ActorComponent, public PowerupSubject
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     PowerupComponent();
     virtual ~PowerupComponent();
 

@@ -608,6 +608,12 @@ public:
     virtual RaycastResult VRayCast(const Point& fromPoint, const Point& toPoint, uint32_t filterMask) = 0;
 
     virtual void VScaleActor(uint32_t actorId, double scale) = 0;
+
+    // Save states: body transform, velocity, flags and collision filters.
+    virtual void VSerializeBodyState(uint32_t actorId, class StateArchive& ar) { }
+    // Save states: apply pending body creations/removals right away.
+    virtual void VFlushPendingChanges() { }
+    virtual bool VHasBody(uint32_t actorId) { return false; }
 };
 
 enum GameViewType

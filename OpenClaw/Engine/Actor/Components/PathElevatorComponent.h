@@ -7,6 +7,9 @@
 class PathElevatorComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     PathElevatorComponent();
 
     static const char* g_Name;

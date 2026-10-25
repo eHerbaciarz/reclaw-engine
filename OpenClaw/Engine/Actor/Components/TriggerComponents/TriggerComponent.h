@@ -25,6 +25,9 @@ typedef std::map<FixtureType, std::string> TriggerToSoundMap;
 class TriggerComponent : public ActorComponent, public TriggerSubject
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     TriggerComponent();
     virtual ~TriggerComponent();
 

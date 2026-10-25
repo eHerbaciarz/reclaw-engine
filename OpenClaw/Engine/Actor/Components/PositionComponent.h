@@ -7,6 +7,9 @@
 class PositionComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     static const char* g_Name;
     virtual const char* VGetName() const override { return g_Name; }
 

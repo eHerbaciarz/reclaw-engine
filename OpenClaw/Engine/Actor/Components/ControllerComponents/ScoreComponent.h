@@ -6,6 +6,9 @@
 class ScoreComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     ScoreComponent();
 
     static const char* g_Name;

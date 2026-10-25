@@ -26,6 +26,9 @@ enum BossStagerState
 class BossStagerTriggerComponent : public ActorComponent, public TriggerObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     BossStagerTriggerComponent();
     virtual ~BossStagerTriggerComponent();
 

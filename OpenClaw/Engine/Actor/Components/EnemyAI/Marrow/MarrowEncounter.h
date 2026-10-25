@@ -18,6 +18,9 @@ class FollowableComponent;
 class MarrowAIStateComponent : public  BaseBossAIStateComponennt, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     MarrowAIStateComponent();
     virtual ~MarrowAIStateComponent();
 
@@ -137,6 +140,9 @@ private:
 class MarrowFloorComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     MarrowFloorComponent();
     virtual ~MarrowFloorComponent();
 

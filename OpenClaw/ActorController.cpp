@@ -1,3 +1,4 @@
+#include "Engine/SaveState/SaveStateManager.h"
 #include "ActorController.h"
 #include "Engine/Scene/SceneNodes.h"
 #include "Engine/Events/EventMgr.h"
@@ -167,6 +168,11 @@ void ActorController::OnUpdate(uint32 msDiff)
 
 bool ActorController::VOnKeyDown(SDL_Keycode key)
 {
+    // Save states on the keyboard: F5 save, F8 load, hold F6 to rewind.
+    if (key == SDLK_F5) { SaveStateManager::Get()->RequestSave(); return true; }
+    if (key == SDLK_F8) { SaveStateManager::Get()->RequestLoad(); return true; }
+    if (key == SDLK_F6) { SaveStateManager::Get()->SetRewindHeld(true); return true; }
+
     if (g_pApp->GetControlOptions()->useAlternateControls)
     {
         if (key == SDLK_e)
@@ -206,6 +212,8 @@ bool ActorController::VOnKeyDown(SDL_Keycode key)
 
 bool ActorController::VOnKeyUp(SDL_Keycode key)
 {
+    if (key == SDLK_F6) { SaveStateManager::Get()->SetRewindHeld(false); return true; }
+
     if (g_pApp->GetControlOptions()->useAlternateControls)
     {
 
@@ -478,13 +486,20 @@ bool ActorController::VOnGamepadButtonDown(GamepadButton button, float value)
         case GamepadButton::DPadRight:
             return VOnKeyDown(SDLK_RIGHT);
 
-        // Triggers disabled - use face buttons instead
-
-        case GamepadButton::LeftBumper:  // Change ammo (previous)
-            HandleAction(ActionType_Change_Ammo_Type_Prev);
+        // Save states: ZL save, ZR load, hold R to rewind.
+        case GamepadButton::LeftTrigger:
+            SaveStateManager::Get()->RequestSave();
             return true;
 
-        case GamepadButton::RightBumper:  // Change ammo (next)
+        case GamepadButton::RightTrigger:
+            SaveStateManager::Get()->RequestLoad();
+            return true;
+
+        case GamepadButton::RightBumper:
+            SaveStateManager::Get()->SetRewindHeld(true);
+            return true;
+
+        case GamepadButton::LeftBumper:  // Change ammo (cycles through all types)
             HandleAction(ActionType_Change_Ammo_Type);
             return true;
 
@@ -516,6 +531,10 @@ bool ActorController::VOnGamepadButtonUp(GamepadButton button)
             return VOnKeyUp(SDLK_LEFT);
         case GamepadButton::DPadRight:
             return VOnKeyUp(SDLK_RIGHT);
+
+        case GamepadButton::RightBumper:
+            SaveStateManager::Get()->SetRewindHeld(false);
+            return true;
 
         default:
             return false;

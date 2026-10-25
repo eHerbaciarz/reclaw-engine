@@ -12,6 +12,7 @@
 #include "../Events/EventMgr.h"
 #include "../Events/Events.h"
 #include "../Audio/Audio.h"
+#include <SDL2/SDL_ttf.h>
 #include "../Resource/Loaders/MidiLoader.h"
 #include "../Resource/Loaders/WavLoader.h"
 #include "../Resource/Loaders/XmlLoader.h"
@@ -113,6 +114,7 @@ void HumanView::VOnRender(uint32 msDiff)
         g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
 
         RenderLevelReveal(renderer);
+        RenderToast(renderer);
 
         m_pConsole->OnRender(renderer);
 
@@ -1426,6 +1428,89 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     pLevelData->SetCustomLevel(level.path, level.startX, level.startY);
     g_pApp->GetGameLogic()->SetLevelData(pLevelData);
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
+}
+
+void HumanView::ShowToast(const std::string& text)
+{
+    m_ToastText = text;
+    m_ToastShownAt = SDL_GetTicks();
+    if (m_pToastTexture)
+    {
+        SDL_DestroyTexture(m_pToastTexture);
+        m_pToastTexture = nullptr;
+    }
+}
+
+void HumanView::CancelScreenEffects()
+{
+    if (m_pProcessMgr)
+    {
+        m_pProcessMgr->AbortAllProcesses(true);
+    }
+}
+
+// Gold text with a dark outline, like the menu, for 1.5 s.
+void HumanView::RenderToast(SDL_Renderer* pRenderer)
+{
+    const uint32 kToastMs = 1500;
+    if (m_ToastText.empty())
+    {
+        return;
+    }
+    uint32 elapsed = SDL_GetTicks() - m_ToastShownAt;
+    if (elapsed >= kToastMs)
+    {
+        m_ToastText.clear();
+        if (m_pToastTexture)
+        {
+            SDL_DestroyTexture(m_pToastTexture);
+            m_pToastTexture = nullptr;
+        }
+        return;
+    }
+
+    if (!m_pToastTexture)
+    {
+        if (!TTF_WasInit() && TTF_Init() != 0) return;
+        static TTF_Font* s_pFont = nullptr;
+        if (!s_pFont)
+        {
+            const char* paths[] = { "romfs:/splash.ttf", "splash.ttf",
+                                    "ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf" };
+            for (const char* p : paths)
+                if ((s_pFont = TTF_OpenFont(p, 22)) != nullptr) break;
+            if (!s_pFont) { m_ToastText.clear(); return; }
+        }
+        SDL_Color gold = { 236, 196, 98, 255 }, edge = { 30, 15, 2, 255 };
+        TTF_SetFontOutline(s_pFont, 2);
+        SDL_Surface* back = TTF_RenderUTF8_Blended(s_pFont, m_ToastText.c_str(), edge);
+        TTF_SetFontOutline(s_pFont, 0);
+        SDL_Surface* front = TTF_RenderUTF8_Blended(s_pFont, m_ToastText.c_str(), gold);
+        if (back && front)
+        {
+            SDL_Rect dst = { 2, 2, front->w, front->h };
+            SDL_BlitSurface(front, NULL, back, &dst);
+            m_pToastTexture = SDL_CreateTextureFromSurface(pRenderer, back);
+            m_ToastW = back->w;
+            m_ToastH = back->h;
+        }
+        if (back) SDL_FreeSurface(back);
+        if (front) SDL_FreeSurface(front);
+        if (!m_pToastTexture) { m_ToastText.clear(); return; }
+    }
+
+    int w = 0, h = 0;
+    if (SDL_Texture* pTarget = SDL_GetRenderTarget(pRenderer)) SDL_QueryTexture(pTarget, NULL, NULL, &w, &h);
+    else SDL_GetRendererOutputSize(pRenderer, &w, &h);
+    float sx = 1, sy = 1;
+    SDL_RenderGetScale(pRenderer, &sx, &sy);
+    SDL_RenderSetScale(pRenderer, 1, 1);
+    // fade out during the last 400 ms
+    uint8_t alpha = elapsed > kToastMs - 400 ? (uint8_t)(255 * (kToastMs - elapsed) / 400) : 255;
+    SDL_SetTextureAlphaMod(m_pToastTexture, alpha);
+    SDL_Rect dst = { (w - m_ToastW) / 2, h / 8, m_ToastW, m_ToastH };
+    SDL_RenderCopy(pRenderer, m_pToastTexture, NULL, &dst);
+    SDL_RenderSetScale(pRenderer, sx, sy);
 }
 
 void HumanView::WorldFinishedLoadingDelegate(IEventDataPtr pEventData)

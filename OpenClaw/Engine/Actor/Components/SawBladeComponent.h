@@ -10,6 +10,9 @@ class DamageAuraComponent;
 class SawBladeComponent : public ActorComponent, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     SawBladeComponent();
 
     static const char* g_Name;

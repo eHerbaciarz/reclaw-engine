@@ -41,6 +41,9 @@ class FollowableComponent;
 class GabrielAIStateComponent : public BaseBossAIStateComponennt, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     GabrielAIStateComponent();
     virtual ~GabrielAIStateComponent();
 
@@ -143,6 +146,9 @@ private:
 class GabrielCannonComponent : public ActorComponent, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     GabrielCannonComponent();
     virtual ~GabrielCannonComponent();
 

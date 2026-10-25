@@ -8,6 +8,9 @@ typedef std::map<AmmoType, uint32> AmmoMap;
 class AmmoComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     AmmoComponent();
 
     static const char* g_Name;

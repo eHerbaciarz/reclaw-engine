@@ -64,6 +64,9 @@ private:
 class ActorRenderComponent : public BaseRenderComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     ActorRenderComponent();
 
     static const char* g_Name;

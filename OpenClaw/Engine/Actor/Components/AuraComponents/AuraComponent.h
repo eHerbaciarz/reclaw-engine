@@ -30,6 +30,9 @@ class BaseAuraComponent : public ActorComponent
     typedef std::vector<PulseInfo> ActivePulseList;
 
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     BaseAuraComponent();
 
     static const char* g_Name;

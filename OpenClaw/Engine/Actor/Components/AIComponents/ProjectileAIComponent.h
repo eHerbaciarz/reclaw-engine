@@ -10,6 +10,9 @@
 class ProjectileAIComponent : public ActorComponent, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     ProjectileAIComponent();
     virtual ~ProjectileAIComponent();
 

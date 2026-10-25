@@ -11,6 +11,9 @@ class PositionComponent;
 class KinematicComponent : public ActorComponent
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     KinematicComponent();
     virtual ~KinematicComponent();
 

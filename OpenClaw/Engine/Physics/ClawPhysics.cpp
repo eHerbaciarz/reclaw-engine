@@ -1,4 +1,5 @@
 #include "ClawPhysics.h"
+#include "../SaveState/StateArchive.h"
 #include "../Scene/SceneNodes.h"
 #include "../Events/EventMgr.h"
 #include "../Events/Events.h"
@@ -397,6 +398,77 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
 
     m_pWorld->Step(msDiff / 1000.0f, 10, 8);
 
+    ProcessPendingChanges();
+}
+
+void ClawPhysics::VFlushPendingChanges()
+{
+    if (!m_pWorld->IsLocked())
+    {
+        ProcessPendingChanges();
+    }
+}
+
+// Save states: everything Box2D keeps per body that gameplay changes at run
+// time. Contacts are not stored; Box2D rebuilds them on the next step and the
+// begin/end contact callbacks bring trigger lists etc. up to date.
+void ClawPhysics::VSerializeBodyState(uint32_t actorId, StateArchive& ar)
+{
+    b2Body* pBody = FindBox2DBody(actorId);
+    uint8_t present = pBody ? 1 : 0;
+    ar(present);
+    if (!present) return;
+
+    b2Body* pTarget = pBody;   // on load, may differ only if the actor has no body now
+    float px = pBody ? pBody->GetPosition().x : 0, py = pBody ? pBody->GetPosition().y : 0;
+    float angle = pBody ? pBody->GetAngle() : 0;
+    float vx = pBody ? pBody->GetLinearVelocity().x : 0, vy = pBody ? pBody->GetLinearVelocity().y : 0;
+    float av = pBody ? pBody->GetAngularVelocity() : 0;
+    float gravity = pBody ? pBody->GetGravityScale() : 1;
+    uint8_t awake = pBody ? pBody->IsAwake() : 1;
+    uint8_t active = pBody ? pBody->IsActive() : 1;
+    uint8_t fixedRotation = pBody ? pBody->IsFixedRotation() : 0;
+    ar(px); ar(py); ar(angle); ar(vx); ar(vy); ar(av); ar(gravity);
+    ar(awake); ar(active); ar(fixedRotation);
+
+    // Collision filters (e.g. ghost powerup, dead enemies change them).
+    std::vector<b2Fixture*> fixtures;
+    if (pBody)
+        for (b2Fixture* f = pBody->GetFixtureList(); f; f = f->GetNext()) fixtures.push_back(f);
+    uint32_t count = (uint32_t)fixtures.size();
+    ar(count);
+    bool sameShape = !ar.IsLoading() || count == fixtures.size();
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        b2Filter filter;
+        uint8_t sensor = 0;
+        if (i < fixtures.size())
+        {
+            filter = fixtures[i]->GetFilterData();
+            sensor = fixtures[i]->IsSensor();
+        }
+        ar(filter.categoryBits); ar(filter.maskBits); ar(filter.groupIndex); ar(sensor);
+        if (ar.IsLoading() && sameShape && i < fixtures.size())
+        {
+            fixtures[i]->SetFilterData(filter);
+            fixtures[i]->SetSensor(sensor != 0);
+        }
+    }
+
+    if (ar.IsLoading() && pTarget && !ar.Failed())
+    {
+        pTarget->SetActive(active != 0);
+        pTarget->SetTransform(b2Vec2(px, py), angle);
+        pTarget->SetLinearVelocity(b2Vec2(vx, vy));
+        pTarget->SetAngularVelocity(av);
+        pTarget->SetGravityScale(gravity);
+        pTarget->SetFixedRotation(fixedRotation != 0);
+        pTarget->SetAwake(awake != 0);
+    }
+}
+
+void ClawPhysics::ProcessPendingChanges()
+{
     // Remove actors form physics simulation which are scheduled to be destroyed
     for (uint32 actorId : m_ActorsToBeDestroyed)
     {

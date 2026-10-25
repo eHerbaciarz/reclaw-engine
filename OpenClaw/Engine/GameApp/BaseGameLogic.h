@@ -17,6 +17,7 @@ class BaseGameLogic : public IGameLogic
 {
     // This is just to give game app access to game views
     friend class BaseGameApp;
+    friend class SaveStateManager;
 
     // Command handler should have unlimited access
     friend class CommandHandler;
@@ -142,6 +143,9 @@ protected:
 
     WeakActorPtr m_pClawActor;
 
+    // Save states: the world does not advance this step (rewinding / just loaded)
+    bool m_bSkipWorldStep = false;
+
 private:
     void ExecuteStartupCommands(const std::string& startupCommandsFile);
     void CreateSinglePhysicsTile(int x, int y, const TileCollisionPrototype& proto);
@@ -196,6 +200,7 @@ typedef std::map<PickupType, int> PickupMap;
 class LevelData
 {
     friend class BaseGameLogic;
+    friend class SaveStateManager;
 
 public:
     LevelData(int levelNumber, bool isNewGame, int loadedCheckpoint)

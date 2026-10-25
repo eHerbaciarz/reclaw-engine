@@ -15,6 +15,8 @@ typedef std::map<uint32, StrongActorComponentPtr> ActorComponentsMap;
 class PositionComponent;
 class PhysicsComponent;
 class TiXmlElement;
+class StateArchive;
+
 class Actor
 {
 public:
@@ -28,6 +30,24 @@ public:
     void Update(uint32_t msDiff);
 
     std::string ToXML();
+
+    // Save states: the XML this actor was created from (shared with save
+    // states so destroyed actors can be recreated) and the actor that was
+    // being created when this one was (child actors spawned in PostInit).
+    void SetCreationData(const std::shared_ptr<const std::string>& rootXml,
+                         const std::shared_ptr<const std::string>& overridesXml,
+                         uint32_t parentGuid)
+    {
+        _creationXml = rootXml;
+        _creationOverridesXml = overridesXml;
+        _parentGuid = parentGuid;
+    }
+    const std::shared_ptr<const std::string>& GetCreationXml() const { return _creationXml; }
+    const std::shared_ptr<const std::string>& GetCreationOverridesXml() const { return _creationOverridesXml; }
+    uint32_t GetParentGuid() const { return _parentGuid; }
+
+    void SerializeState(StateArchive& ar);
+    void OnStateRestored();
 
     inline uint32_t GetGUID() const { return _GUID; }
     inline const std::string& GetName() const { return _name; }
@@ -117,6 +137,10 @@ private:
 
     // Resource from which this actor was loaded
     std::string _resource;
+
+    std::shared_ptr<const std::string> _creationXml;
+    std::shared_ptr<const std::string> _creationOverridesXml;
+    uint32_t _parentGuid = 0;
 
     shared_ptr<PositionComponent> m_pPositionComponent;
     shared_ptr<PhysicsComponent> m_pPhysicsComponent; // Cached because physics objects sync every frame

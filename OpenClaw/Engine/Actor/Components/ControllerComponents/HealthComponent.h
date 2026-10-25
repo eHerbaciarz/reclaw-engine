@@ -26,6 +26,9 @@ public:
 class HealthComponent : public ActorComponent, public HealthSubject
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     HealthComponent();
 
     static const char* g_Name;

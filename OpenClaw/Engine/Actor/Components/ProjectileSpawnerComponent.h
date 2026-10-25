@@ -10,6 +10,9 @@ class ActorRenderComponent;
 class ProjectileSpawnerComponent : public ActorComponent, public TriggerObserver, public AnimationObserver
 {
 public:
+    // Save states (SaveState/ComponentStates.cpp)
+    virtual void VSerializeState(StateArchive& ar) override;
+
     ProjectileSpawnerComponent();
     virtual ~ProjectileSpawnerComponent();
 

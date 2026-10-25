@@ -139,16 +139,50 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<RedTailAIStateComponent>();
 }
 
+bool ActorFactory::s_bRecordCreationData = true;
+
+static std::shared_ptr<const std::string> XmlToSharedString(TiXmlElement* pElem)
+{
+    if (!pElem) return nullptr;
+    TiXmlPrinter printer;
+    printer.SetIndent("");
+    printer.SetLineBreak("");
+    pElem->Accept(&printer);
+    return std::make_shared<const std::string>(printer.CStr());
+}
+
 StrongActorPtr ActorFactory::CreateActor(TiXmlElement* pActorRoot, TiXmlElement* overrides)
 {
+    return CreateActorImpl(pActorRoot, overrides, GetNextActorGUID());
+}
+
+StrongActorPtr ActorFactory::CreateActorWithGuid(TiXmlElement* pActorRoot, TiXmlElement* overrides, uint32_t guid)
+{
+    if (guid > _lastActorGUID) _lastActorGUID = guid;
+    return CreateActorImpl(pActorRoot, overrides, guid);
+}
+
+StrongActorPtr ActorFactory::CreateActorImpl(TiXmlElement* pActorRoot, TiXmlElement* overrides, uint32_t nextActorGUID)
+{
     //PROFILE_CPU("Create actor");
-    uint32 nextActorGUID = GetNextActorGUID();
     StrongActorPtr actor(new Actor(nextActorGUID));
     if (!actor->Init(pActorRoot))
     {
         LOG_ERROR("Failed to initialize actor.");
         return NULL;
     }
+
+    if (s_bRecordCreationData)
+    {
+        actor->SetCreationData(XmlToSharedString(pActorRoot), XmlToSharedString(overrides),
+                               _creationStack.empty() ? 0 : _creationStack.back());
+    }
+    _creationStack.push_back(nextActorGUID);
+    struct PopOnExit
+    {
+        std::vector<uint32_t>& stack;
+        ~PopOnExit() { stack.pop_back(); }
+    } popOnExit{ _creationStack };
 
     // Loop through each child element and load the component
     for (TiXmlElement* node = pActorRoot->FirstChildElement(); node != NULL; node = node->NextSiblingElement())
