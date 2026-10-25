@@ -36,7 +36,10 @@ namespace
 
     bool IsNintendoController(SDL_GameController *pController)
     {
-#ifdef __SWITCH__
+        // Nintendo consoles report their buttons by the printed labels.
+        // PlayStation consoles (Vita, PS3) are positional like Xbox pads:
+        // cross = bottom = A (confirm / jump), circle = right = B (back / fire).
+#if defined(__SWITCH__) || defined(__3DS__) || defined(__WIIU__)
         (void)pController;
         return true;
 #elif SDL_VERSION_ATLEAST(2, 0, 12)

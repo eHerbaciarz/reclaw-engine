@@ -33,7 +33,7 @@ struct GameOptions {
   void SetDefaults() {
     windowWidth = 1280;
     windowHeight = 780;
-#ifdef __SWITCH__
+#if defined(__SWITCH__) || defined(__vita__) || defined(__WIIU__) || defined(__PSL1GHT__)
     renderWidth = 854;  // same 480-line widescreen view as the web build
     renderHeight = 480;
 #else

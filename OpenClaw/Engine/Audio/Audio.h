@@ -1,6 +1,12 @@
 #ifndef AUDIO_H_
 #define AUDIO_H_
 
+// The old Windows build played MIDI music through an RPC server (MidiProc);
+// native builds (incl. MinGW) use SDL_mixer + TinySoundFont everywhere.
+#if defined(_WIN32) && !defined(OPENCLAW_NATIVE)
+#define OPENCLAW_MIDI_RPC 1
+#endif
+
 #include <stdint.h>
 #include <SDL2/SDL_mixer.h>
 #include <memory>

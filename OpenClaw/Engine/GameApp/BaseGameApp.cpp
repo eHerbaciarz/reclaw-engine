@@ -1,5 +1,20 @@
 #include "../Audio/Audio.h"
 #include "../UserInterface/Lang.h"
+#include "../Platform/Platform.h"
+#include "../UserInterface/SecondScreen.h"
+#include <fstream>
+
+// A file named in config.xml without a folder: next to the binary / in the
+// working directory when it is there, otherwise among the files bundled with
+// the port (romfs:/, app0:/, the app's folder...).
+static std::string ResolveBundledFile(const std::string& path)
+{
+  if (path.empty() || path.find(':') != std::string::npos || path[0] == '/') return path;
+  if (std::ifstream(path).good()) return path;
+  std::string bundled = Platform::BundlePath(path);
+  if (std::ifstream(bundled).good()) return bundled;
+  return path;
+}
 #include "../Events/EventMgr.h"
 #include "../Events/EventMgrImpl.h"
 #include "../Events/Events.h"
@@ -35,6 +50,9 @@
 
 #ifdef __SWITCH__
 #include <switch.h>
+#endif
+#ifdef __3DS__
+#include <3ds.h>
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -212,6 +230,9 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // Dedication screen (only in builds made with a splash text); stays up
   // while the rest of the game loads.
   StartupSplash::Show(m_pRenderer);
+
+  // 3DS bottom screen / Wii U GamePad: status screen.
+  SecondScreen::Init();
 
   STARTUP_TRACE("begin InitializeAudio");
   if (!InitializeAudio(m_GameOptions)) {
@@ -540,6 +561,7 @@ void BaseGameApp::StepLoop() {
         // PROFILE_CPU("ONLY RENDER");
         pGameView->VOnRender(fixedDeltaMs);
       }
+      SecondScreen::Update();
 #ifdef OPENCLAW_STARTUP_TRACE
       {
         static int s_tracedFrames = 0;
@@ -584,6 +606,10 @@ int32 BaseGameApp::Run() {
   // appletMainLoop() returns false when the system asks the app to exit
   // (e.g. closing it from the HOME menu).
   while (m_IsRunning && appletMainLoop()) {
+    Loop(this);
+  }
+#elif defined(__3DS__)
+  while (m_IsRunning && aptMainLoop()) {
     Loop(this);
   }
 #else
@@ -1101,9 +1127,14 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   }
 
   STARTUP_TRACE("SDL_CreateWindow");
+  Uint32 windowFlags = SDL_WINDOW_SHOWN;
+#ifdef __WIIU__
+  // The game on the TV; the GamePad shows the status screen (SecondScreen).
+  windowFlags |= SDL_WINDOW_WIIU_TV_ONLY;
+#endif
   m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED, gameOptions.windowWidth,
-                               gameOptions.windowHeight, SDL_WINDOW_SHOWN);
+                               gameOptions.windowHeight, windowFlags);
   if (m_pWindow == NULL) {
     LOG_ERROR("Failed to create main window");
     return false;
@@ -1266,7 +1297,7 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
   m_pResourceCache->RegisterLoader(PcxResourceLoader::Create());
 
   std::string customArchivePath =
-      gameOptions.assetsFolder + gameOptions.customArchive;
+      ResolveBundledFile(gameOptions.assetsFolder + gameOptions.customArchive);
 
   IResourceFile *pCustomArchive = new ResourceZipArchive(customArchivePath);
   std::shared_ptr<ResourceCache> pCustomCache{
@@ -1291,10 +1322,12 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
     rezDir = (slash == std::string::npos) ? std::string(".") : rezDir.substr(0, slash);
     std::vector<std::string> roots = {rezDir + "/Sounds", rezDir + "/SOUNDS", rezDir + "/sounds",
                                       rezDir + "/Assets", rezDir + "/ASSETS"};
-#ifdef __SWITCH__
-    roots.push_back("/switch/claw/Sounds");
-    roots.push_back("/switch/claw/Assets");
-    roots.push_back("/Games/claw/Assets");
+#ifndef __EMSCRIPTEN__
+    for (const std::string& folder : Platform::GameDataFolders(0, nullptr))
+    {
+      roots.push_back(folder + "Sounds");
+      roots.push_back(folder + "Assets");
+    }
 #endif
     // Data already comes from an unpacked folder: its sounds are served directly.
     if (ResourceDirectory::LooksLikeAssetsFolder(rezArchivePath)) roots.clear();
@@ -1302,9 +1335,12 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 
     // Cutscenes: CLAW.FEC (or MOVIES/CLAW.FEC, MOVIES/*.SMK) next to the game data.
     std::vector<std::string> movieRoots = {rezDir};
-#ifdef __SWITCH__
-    movieRoots.push_back("/switch/claw");
-    movieRoots.push_back("/Games/claw");
+#ifndef __EMSCRIPTEN__
+    for (std::string folder : Platform::GameDataFolders(0, nullptr))
+    {
+      if (!folder.empty() && folder.back() == '/') folder.pop_back();
+      movieRoots.push_back(folder);
+    }
 #endif
     MoviePlayer::SetSearchRoots(movieRoots, gameOptions.userDirectory);
     // Custom levels: a "Custom" folder in the same places.
@@ -1335,7 +1371,7 @@ bool BaseGameApp::InitializeFont(GameOptions &gameOptions) {
     return false;
   }
 
-  m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(),
+  m_pConsoleFont = TTF_OpenFont(ResolveBundledFile(gameOptions.consoleFontName).c_str(),
                                 gameOptions.consoleFontSize);
   if (m_pConsoleFont == NULL) {
     LOG_ERROR("Failed to load TTF font");

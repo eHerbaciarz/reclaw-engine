@@ -2458,7 +2458,7 @@
             <Name>CREDITS_TEXT</Name>
             <Type>Text</Type>
             <State>Disabled</State>
-            <DisabledImage>/CREDITS/credits_text.png</DisabledImage>
+            <DisabledImage>/CREDITS/credits_text_{lang}.png</DisabledImage>
             <Position x="20" y="105" />
         </MenuItem>
         <MenuItem>
@@ -2585,7 +2585,7 @@
             <Name>CONTROLS_IMAGE</Name>
             <Type>Text</Type>
             <State>Disabled</State>
-            <DisabledImage>/CONTROLS/switch_controls.png</DisabledImage>
+            <DisabledImage>/CONTROLS/controls_{platform}_{lang}.png</DisabledImage>
             <Position x="20" y="112" />
         </MenuItem>
         <MenuItem>

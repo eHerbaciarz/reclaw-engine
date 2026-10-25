@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Audio.h"
+#include "../Platform/Platform.h"
 #include "../Events/EventMgr.h"
 #include "../Events/Events.h"
 #include "AudioSystemFactory.h"
@@ -12,8 +13,8 @@
 
 #include <iostream>
 
-#ifdef _WIN32
-#include <Windows.h>
+#ifdef OPENCLAW_MIDI_RPC
+#include <windows.h>
 #include "../../../MidiProc/midiproc.h"
 #endif
 
@@ -65,9 +66,7 @@ bool Audio::Initialize(const GameOptions& config)
     mixerConfig.soundFontPaths = {
         config.assetsFolder + "music/soundfont.sf3",
         "music/soundfont.sf3",
-#ifdef __SWITCH__
-        "romfs:/music/soundfont.sf3",
-#endif
+        Platform::BundlePath("music/soundfont.sf3"),
     };
     m_audioSystem.reset(new SDL2MixerSystem(mixerConfig));
 #endif
@@ -104,9 +103,9 @@ bool Audio::Initialize(const GameOptions& config)
 
 void Audio::Terminate()
 {
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     TerminateMidiRPC();
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 }
 
 struct _MusicInfo
@@ -129,7 +128,7 @@ static int SetupPlayMusicThread(void* pData)
 {
     _MusicInfo* pMusicInfo = (_MusicInfo*)pData;
 
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     RpcTryExcept
     {
         MidiRPC_PrepareNewSong();
@@ -167,7 +166,7 @@ static int SetupPlayMusicThread(void* pData)
     {
         Mix_ResumeMusic();
     }
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 
     SAFE_DELETE(pMusicInfo);
 
@@ -176,7 +175,7 @@ static int SetupPlayMusicThread(void* pData)
 
 void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
 {
-#if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
+#if !defined(__EMSCRIPTEN__) && !defined(OPENCLAW_MIDI_RPC)
     if (m_audioSystem && m_audioSystem->LoadMusic("music", musicData, musicSize))
     {
         m_audioSystem->PlayMusic("music", looping);
@@ -197,7 +196,7 @@ void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
 
 void Audio::PlayMusicChunk(std::shared_ptr<Mix_Chunk> pChunk, bool looping)
 {
-#if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
+#if !defined(__EMSCRIPTEN__) && !defined(OPENCLAW_MIDI_RPC)
     SDL2MixerSystem* pMixer = static_cast<SDL2MixerSystem*>(m_audioSystem.get());
     if (!pMixer || !pChunk) {
         return;
@@ -214,7 +213,7 @@ void Audio::PlayMusicChunk(std::shared_ptr<Mix_Chunk> pChunk, bool looping)
 
 void Audio::PauseMusic()
 {
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     RpcTryExcept
     {
         MidiRPC_PauseSong();
@@ -230,12 +229,12 @@ void Audio::PauseMusic()
     if (m_audioSystem) {
         m_audioSystem->PauseMusic();
     }
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 }
 
 void Audio::ResumeMusic()
 {
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     RpcTryExcept
     {
         MidiRPC_ResumeSong();
@@ -252,7 +251,7 @@ void Audio::ResumeMusic()
     if (m_audioSystem) {
         m_audioSystem->ResumeMusic();
     }
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 }
 
 void Audio::StopMusic()
@@ -263,7 +262,7 @@ void Audio::StopMusic()
         m_audioSystem->StopMusic();
     }
 
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     RpcTryExcept
     {
         MidiRPC_StopSong();
@@ -275,7 +274,7 @@ void Audio::StopMusic()
     RpcEndExcept
 #elif defined(__EMSCRIPTEN__)
     Mix_HaltMusic();
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 }
 
 void Audio::SetMusicVolume(int volumePercentage)
@@ -302,7 +301,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
     Mix_Chunk* soundChunk = Mix_LoadWAV_RW(soundRwOps, 1);
 
     bool played = PlaySound(soundChunk, soundProperties);
-#if !defined(__EMSCRIPTEN__) && !defined(_WIN32)
+#if !defined(__EMSCRIPTEN__) && !defined(OPENCLAW_MIDI_RPC)
     // This one-shot chunk is not owned by the resource cache; at least free it
     // when it could not be played. (Nothing in the game uses this overload.)
     if (soundChunk && !played) {
@@ -333,7 +332,7 @@ bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
         return true;
     }
     return false;
-#elif !defined(_WIN32)
+#elif !defined(OPENCLAW_MIDI_RPC)
     if (!sound) {
         return false;
     }
@@ -400,17 +399,17 @@ void Audio::StopAllSounds()
 void Audio::PauseAllSounds()
 {
     Mix_Pause(-1);
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     MidiRPC_PauseSong();
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 }
 
 void Audio::ResumeAllSounds()
 {
     Mix_Resume(-1);
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
     MidiRPC_ResumeSong();
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC
 }
 
 void Audio::SetSoundActive(bool active)
@@ -438,7 +437,7 @@ void Audio::SetMusicActive(bool active)
     }
 }
 
-#ifdef _WIN32
+#ifdef OPENCLAW_MIDI_RPC
 //############################################
 //############## MIDI RPC ####################
 //############################################
@@ -559,4 +558,4 @@ void Audio::TerminateMidiRPC()
     }
     RpcEndExcept;
 }
-#endif //_WIN32
+#endif //OPENCLAW_MIDI_RPC

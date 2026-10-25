@@ -24,16 +24,32 @@ namespace RaceNet
 
 #else
 
+#if defined(_WIN32)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+typedef int socklen_t;
+#define CLOSE_SOCKET closesocket
+#else
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#ifdef __SWITCH__
+#define CLOSE_SOCKET close
+#endif
+#if defined(__SWITCH__)
 #include <switch.h>
-#else
-#include <ifaddrs.h>
+#elif defined(__vita__)
+#include <psp2/net/net.h>
+#include <psp2/net/netctl.h>
+#include <psp2/sysmodule.h>
+#include <cstdlib>
+#elif defined(__3DS__)
+#include <3ds.h>
+#include <malloc.h>
+#elif defined(__PSL1GHT__)
+#include <net/net.h>
 #endif
 
 namespace
@@ -43,9 +59,47 @@ namespace
 
     int g_Socket = -1;
     std::string g_Peer;
-#ifdef __SWITCH__
     bool g_SocketsInitialized = false;
+
+    // Brings up the platform's network stack (once).
+    bool InitSockets()
+    {
+        if (g_SocketsInitialized) return true;
+#if defined(_WIN32)
+        WSADATA data;
+        if (WSAStartup(MAKEWORD(2, 2), &data) != 0) return false;
+#elif defined(__SWITCH__)
+        if (R_FAILED(socketInitializeDefault())) return false;
+#elif defined(__vita__)
+        sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+        static void* s_NetMemory = malloc(1024 * 1024);
+        SceNetInitParam param;
+        param.memory = s_NetMemory;
+        param.size = 1024 * 1024;
+        param.flags = 0;
+        int rc = sceNetInit(&param);
+        if (rc < 0 && rc != (int)0x80410110 /* already initialized */) return false;
+        sceNetCtlInit();
+#elif defined(__3DS__)
+        static u32* s_SocBuffer = (u32*)memalign(0x1000, 0x100000);
+        if (!s_SocBuffer || R_FAILED(socInit(s_SocBuffer, 0x100000))) return false;
+#elif defined(__PSL1GHT__)
+        if (netInitialize() < 0) return false;
 #endif
+        g_SocketsInitialized = true;
+        return true;
+    }
+
+    void SetNonBlocking(int socket)
+    {
+#if defined(_WIN32)
+        u_long on = 1;
+        ioctlsocket(socket, FIONBIO, &on);
+#else
+        int flags = fcntl(socket, F_GETFL, 0);
+        fcntl(socket, F_SETFL, flags | O_NONBLOCK);
+#endif
+    }
 
     bool ParseAddress(const std::string& address, sockaddr_in& out)
     {
@@ -77,8 +131,8 @@ namespace
         packet.push_back(kVersion);
         packet.push_back((uint8_t)type);
         packet.insert(packet.end(), payload.begin(), payload.end());
-        return sendto(g_Socket, (const char*)packet.data(), packet.size(), 0,
-            (const sockaddr*)&addr, sizeof(addr)) == (ssize_t)packet.size();
+        return (int)sendto(g_Socket, (const char*)packet.data(), (int)packet.size(), 0,
+            (const sockaddr*)&addr, sizeof(addr)) == (int)packet.size();
     }
 }
 
@@ -87,18 +141,12 @@ namespace RaceNet
     bool Open(bool host)
     {
         Close();
-#ifdef __SWITCH__
-        if (!g_SocketsInitialized)
+        if (!InitSockets())
         {
-            if (R_FAILED(socketInitializeDefault()))
-            {
-                LOG_ERROR("Race: network not available");
-                return false;
-            }
-            g_SocketsInitialized = true;
+            LOG_ERROR("Race: network not available");
+            return false;
         }
-#endif
-        g_Socket = socket(AF_INET, SOCK_DGRAM, 0);
+        g_Socket = (int)socket(AF_INET, SOCK_DGRAM, 0);
         if (g_Socket < 0)
         {
             LOG_ERROR("Race: socket() failed: " + std::to_string(errno));
@@ -119,8 +167,7 @@ namespace RaceNet
             Close();
             return false;
         }
-        int flags = fcntl(g_Socket, F_GETFL, 0);
-        fcntl(g_Socket, F_SETFL, flags | O_NONBLOCK);
+        SetNonBlocking(g_Socket);
         LOG(std::string("Race: socket open as ") + (host ? "host" : "joiner"));
         return true;
     }
@@ -129,7 +176,7 @@ namespace RaceNet
     {
         if (g_Socket >= 0)
         {
-            close(g_Socket);
+            CLOSE_SOCKET(g_Socket);
         }
         g_Socket = -1;
         g_Peer.clear();
@@ -150,20 +197,29 @@ namespace RaceNet
         inet_ntop(AF_INET, &a, buf, sizeof(buf));
         return buf;
 #else
+        // The address the system would use to reach the local network: a UDP
+        // socket "connected" to a private address (no packet is sent).
+        if (!InitSockets()) return "";
+        int s = (int)socket(AF_INET, SOCK_DGRAM, 0);
+        if (s < 0) return "";
+        sockaddr_in target;
+        memset(&target, 0, sizeof(target));
+        target.sin_family = AF_INET;
+        target.sin_port = htons(9);
+        inet_pton(AF_INET, "10.255.255.255", &target.sin_addr);
         std::string result;
-        struct ifaddrs* list = nullptr;
-        if (getifaddrs(&list) != 0) return "";
-        for (struct ifaddrs* it = list; it; it = it->ifa_next)
+        if (connect(s, (const sockaddr*)&target, sizeof(target)) == 0)
         {
-            if (!it->ifa_addr || it->ifa_addr->sa_family != AF_INET) continue;
-            const sockaddr_in* a = (const sockaddr_in*)it->ifa_addr;
-            if (ntohl(a->sin_addr.s_addr) == INADDR_LOOPBACK) continue;
-            char buf[INET_ADDRSTRLEN] = { 0 };
-            inet_ntop(AF_INET, &a->sin_addr, buf, sizeof(buf));
-            result = buf;
-            break;
+            sockaddr_in local;
+            socklen_t len = sizeof(local);
+            if (getsockname(s, (sockaddr*)&local, &len) == 0 && local.sin_addr.s_addr != 0)
+            {
+                char buf[INET_ADDRSTRLEN] = { 0 };
+                inet_ntop(AF_INET, &local.sin_addr, buf, sizeof(buf));
+                result = buf;
+            }
         }
-        freeifaddrs(list);
+        CLOSE_SOCKET(s);
         return result;
 #endif
     }
@@ -209,7 +265,7 @@ namespace RaceNet
             uint8_t buf[1500];
             sockaddr_in from;
             socklen_t fromLen = sizeof(from);
-            ssize_t n = recvfrom(g_Socket, (char*)buf, sizeof(buf), 0, (sockaddr*)&from, &fromLen);
+            int n = (int)recvfrom(g_Socket, (char*)buf, sizeof(buf), 0, (sockaddr*)&from, &fromLen);
             if (n <= 0) return false;
             if (n < 6 || memcmp(buf, kMagic, 4) != 0 || buf[4] != kVersion) continue;
             out.type = (MessageType)buf[5];

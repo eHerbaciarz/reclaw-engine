@@ -2,6 +2,8 @@
 
 #include "../Graphics2D/Image.h"
 #include "../Race/Race.h"
+#include "../Platform/Platform.h"
+#include "Lang.h"
 #include "../Video/Native/MoviePlayer.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
@@ -154,6 +156,13 @@ static shared_ptr<Image> LoadImageFromXmlElement(TiXmlElement* pElem)
     {
         return nullptr;
     }
+
+    // Pictures made for the port come per platform / language:
+    // "{platform}" -> switch, playstation, xbox, pc, 3ds, wiiu; "{lang}" -> pl, en
+    for (size_t pos; (pos = imagePath.find("{platform}")) != std::string::npos;)
+        imagePath.replace(pos, 10, Platform::ControlsStyle());
+    for (size_t pos; (pos = imagePath.find("{lang}")) != std::string::npos;)
+        imagePath.replace(pos, 6, Lang::Get() == Lang::Polish ? "pl" : "en");
 
     // Transform to lowercase to support all naming conventions
     std::transform(imagePath.begin(), imagePath.end(), imagePath.begin(), (int(*)(int)) std::tolower);

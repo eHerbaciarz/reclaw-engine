@@ -2,83 +2,18 @@
 #include "MainLoop.h"
 #include "../Util/StartupTrace.h"
 #include "../Resource/ResourceDirectory.h"
+#include "../Platform/Platform.h"
+#include "../Platform/Input/BlockingInput.h"
 #include <fstream>
-
-#if !(defined(__ANDROID__) || defined(__WINDOWS__))
-#include <pwd.h>
-#include <unistd.h>
-#endif
+#include <sys/stat.h>
+#include <vector>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
-#ifdef __SWITCH__
-#include <switch.h>
-#include <sys/stat.h>
-#include <cstdio>
-#include <vector>
+#ifndef __EMSCRIPTEN__
 #include <SDL2/SDL_ttf.h>
-#include <climits>
-
-// Everything the player provides or the game writes lives here on the SD card:
-// CLAW.REZ (from the player's own copy of the game), config.xml, SAVES.XML and
-// the log. Assets that ship with the port (ASSETS.ZIP, fonts, soundfont and the
-// default config) are bundled in the NRO's romfs.
-static const char* kSwitchDataDir = "/switch/claw/";
-
-static FILE* g_pLogFile = nullptr;
-
-// Single sink for every SDL_Log* message (engine errors/warnings, startup
-// trace): appended to /switch/claw/openclaw.log and mirrored to the debug
-// output (shown as "Guest" lines in emulator logs such as Ryujinx's).
-// Opening the log twice for writing (e.g. freopen of stdout and stderr) fails
-// on the Switch filesystem, so there is exactly one handle.
-static void SwitchLogOutput(void* /*userdata*/, int /*category*/, SDL_LogPriority priority, const char* message)
-{
-    static const char* kPrefix[] = {"", "VERBOSE: ", "DEBUG: ", "INFO: ", "WARN: ", "ERROR: ", "CRITICAL: "};
-    const char* prefix = (priority > 0 && priority < SDL_NUM_LOG_PRIORITIES) ? kPrefix[priority] : "";
-    if (g_pLogFile)
-    {
-        fprintf(g_pLogFile, "%s%s\n", prefix, message);
-        fflush(g_pLogFile);
-    }
-    std::string line = std::string(prefix) + message;
-    svcOutputDebugString(line.c_str(), line.size());
-}
-
-static bool CopyFile(const std::string& from, const std::string& to)
-{
-    std::ifstream in(from, std::ios::binary);
-    if (!in.good())
-    {
-        return false;
-    }
-    std::ofstream out(to, std::ios::binary);
-    out << in.rdbuf();
-    return out.good();
-}
-
-static void SwitchPlatformInit()
-{
-    romfsInit();
-    mkdir("/switch", 0777);
-    mkdir(kSwitchDataDir, 0777);
-
-    // No console on the Switch: keep warnings/errors in a log next to the saves.
-    std::string logPath = std::string(kSwitchDataDir) + "openclaw.log";
-    g_pLogFile = fopen(logPath.c_str(), "w");
-    SDL_LogSetOutputFunction(&SwitchLogOutput, NULL);
-    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
-    SDL_Log("Captain Claw (OpenClaw) for Nintendo Switch - log started");
-
-    // First launch: seed the editable config from the bundled default.
-    std::string configPath = std::string(kSwitchDataDir) + "config.xml";
-    if (!std::ifstream(configPath).good())
-    {
-        CopyFile("romfs:/config.xml", configPath);
-    }
-}
 
 static bool FileExists(const std::string& path)
 {
@@ -86,40 +21,19 @@ static bool FileExists(const std::string& path)
     return !path.empty() && stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode);
 }
 
-static std::string DirectoryOf(const std::string& path)
-{
-    size_t slash = path.find_last_of('/');
-    return slash == std::string::npos ? std::string() : path.substr(0, slash + 1);
-}
-
-// Players often copy CLAW.REZ next to the NRO instead of into /switch/claw/.
-// Accept it there too, and accept an "Assets" folder with the unpacked
-// contents of CLAW.REZ (Polish "Kapitan Pazur" release) in the same places.
-// Returns the paths that were checked, for error reporting.
+// CLAW.REZ (from the player's own copy of the game) or an "Assets" folder
+// with its unpacked contents (Polish "Kapitan Pazur" release), in the
+// configured place or any of the platform's usual folders.
+// Returns the paths that were checked when nothing was found.
 static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int argc, char** argv)
 {
-    std::vector<std::string> folders;
-    if (argc > 0 && argv && argv[0])
-    {
-        std::string nroDir = DirectoryOf(argv[0]);
-        if (!nroDir.empty()) folders.push_back(nroDir);
-    }
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)))
-    {
-        std::string dir(cwd);
-        if (!dir.empty() && dir.back() != '/') dir += '/';
-        folders.push_back(dir);
-    }
-    folders.push_back(kSwitchDataDir);
-    // Common layout for emulators (e.g. Ryujinx), which do not pass the NRO's
-    // path in argv: sdcard/Games/claw/ next to openclaw.nro.
-    folders.push_back("/Games/claw/");
+    std::vector<std::string> folders = Platform::GameDataFolders(argc, argv);
 
     // CLAW.REZ first; an unpacked Assets folder is used only when there is no REZ.
     std::vector<std::string> candidates;
     candidates.push_back(pOptions->assetsFolder + pOptions->rezArchive);
     for (const std::string& folder : folders) candidates.push_back(folder + "CLAW.REZ");
+    for (const std::string& folder : folders) candidates.push_back(folder + "claw.rez");
     for (const std::string& folder : folders)
     {
         candidates.push_back(folder + "Assets");
@@ -144,25 +58,38 @@ static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int arg
     return candidates;
 }
 
-// Shows a readable error instead of silently returning to the HOME menu.
-// Works whether or not the engine managed to create its window.
+// Shows a readable error instead of silently quitting (consoles have no
+// console window). Works whether or not the engine managed to create its window.
 static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
 {
     for (const std::string& line : lines)
     {
         if (!line.empty()) SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "%s", line.c_str());
     }
+    if (!Platform::IsConsole())
+    {
+        std::string text;
+        for (const std::string& line : lines) text += line + "\n";
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Captain Claw", text.c_str(), NULL);
+        return;
+    }
 
     SDL_Renderer* pRenderer = g_pApp ? g_pApp->GetRenderer() : nullptr;
     SDL_Window* pOwnWindow = nullptr;
     if (!pRenderer)
     {
-        if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
+        if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
         {
             return;
         }
-        pOwnWindow = SDL_CreateWindow("Captain Claw", 0, 0, 1280, 720, SDL_WINDOW_SHOWN);
-        pRenderer = pOwnWindow ? SDL_CreateRenderer(pOwnWindow, -1, SDL_RENDERER_PRESENTVSYNC) : nullptr;
+        int w = 1280, h = 720;
+#if defined(__3DS__)
+        w = 400; h = 240;
+#elif defined(__vita__)
+        w = 960; h = 544;
+#endif
+        pOwnWindow = SDL_CreateWindow("Captain Claw", 0, 0, w, h, SDL_WINDOW_SHOWN);
+        pRenderer = pOwnWindow ? SDL_CreateRenderer(pOwnWindow, -1, 0) : nullptr;
         if (!pRenderer)
         {
             return;
@@ -170,53 +97,51 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
     }
     SDL_SetRenderTarget(pRenderer, NULL); // draw straight to the screen
     SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
+    int outW = 0, outH = 0;
+    SDL_GetRendererOutputSize(pRenderer, &outW, &outH);
 
     if (!TTF_WasInit())
     {
         TTF_Init();
     }
-    TTF_Font* pFont = TTF_OpenFont("romfs:/clacon.ttf", 26);
+    int fontSize = outH >= 700 ? 26 : (outH >= 500 ? 18 : 11);
+    TTF_Font* pFont = TTF_OpenFont(Platform::BundlePath("clacon.ttf").c_str(), fontSize);
 
-    PadState pad;
-    padConfigureInput(8, HidNpadStyleSet_NpadStandard);   // 8: keep player 2 (race) connected
-    padInitializeDefault(&pad);
-
-    while (appletMainLoop())
+    BlockingInput::Reset();
+    while (BlockingInput::AppAlive())
     {
-        padUpdate(&pad);
-        if (padGetButtonsDown(&pad) & (HidNpadButton_Plus | HidNpadButton_A | HidNpadButton_B))
+        int in = BlockingInput::Poll();
+        if (in & (BlockingInput::Accept | BlockingInput::Back | BlockingInput::Start | BlockingInput::Quit))
         {
             break;
-        }
-        SDL_Event evt;
-        while (SDL_PollEvent(&evt))
-        {
         }
 
         SDL_SetRenderDrawColor(pRenderer, 20, 24, 48, 255);
         SDL_RenderClear(pRenderer);
         if (pFont)
         {
-            int y = 60;
+            int y = outH / 12;
+            int x = outW / 20;
             for (size_t i = 0; i < lines.size(); ++i)
             {
                 SDL_Color color = (i == 0) ? SDL_Color{240, 196, 80, 255} : SDL_Color{230, 230, 235, 255};
                 if (lines[i].empty())
                 {
-                    y += 20;
+                    y += fontSize * 3 / 4;
                     continue;
                 }
                 SDL_Surface* pSurface = TTF_RenderUTF8_Blended(pFont, lines[i].c_str(), color);
                 if (!pSurface) continue;
                 SDL_Texture* pTexture = SDL_CreateTextureFromSurface(pRenderer, pSurface);
-                SDL_Rect dst = {60, y, pSurface->w, pSurface->h};
+                SDL_Rect dst = {x, y, pSurface->w, pSurface->h};
                 SDL_RenderCopy(pRenderer, pTexture, NULL, &dst);
-                y += pSurface->h + 8;
+                y += pSurface->h + fontSize / 3;
                 SDL_DestroyTexture(pTexture);
                 SDL_FreeSurface(pSurface);
             }
         }
         SDL_RenderPresent(pRenderer);
+        SDL_Delay(16);
     }
 
     if (pFont) TTF_CloseFont(pFont);
@@ -235,37 +160,16 @@ int RunGameEngine(int argc, char** argv)
         LOG_WARNING("Failed to set high priority class to this process");
     }
 
+#ifdef __EMSCRIPTEN__
     std::string userDirectory = "";
-
-#if defined(__ANDROID__)
-    userDirectory = "/sdcard/claw/";
-#elif defined(__SWITCH__)
-    SwitchPlatformInit();
-    STARTUP_TRACE("SwitchPlatformInit done");
-    userDirectory = kSwitchDataDir;
-#elif defined(__WINDOWS__)
-    userDirectory = "";
 #else
-    const char* homedir;
+    Platform::Init(argc, argv);
+    STARTUP_TRACE("Platform::Init done");
+    std::string userDirectory = Platform::DataDir();
 
-    if ((homedir = getenv("HOME")) == NULL) 
+    // Desktop: a config.xml in the working directory wins (running in place).
+    if (!Platform::IsConsole() && TryToFindFile("config.xml"))
     {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-    assert(homedir != NULL);
-
-    userDirectory = std::string(homedir) + "/.config/openclaw/";
-
-#endif
-
-    LOG("Looking for: " + userDirectory + "config.xml");
-
-#ifndef __SWITCH__
-    // Temporary hack - always prefer config in the same folder as binary to default config
-    // (Not on Switch: the working directory there depends on how the NRO was launched.)
-    if (TryToFindFile("config.xml"))
-    {
-        // File was found in a working directory
         userDirectory = "";
     }
 #endif
@@ -277,12 +181,20 @@ int RunGameEngine(int argc, char** argv)
     if (!g_pApp->LoadGameOptions(std::string(userDirectory + "config.xml").c_str()))
     {
         LOG_ERROR("Could not load game options. Exiting.");
+#ifndef __EMSCRIPTEN__
+        ShowFatalErrorScreen({
+            "config.xml not found or damaged",
+            "",
+            "Expected: " + userDirectory + "config.xml",
+            "",
+            "Press any button to exit."});
+#endif
         return -1;
     }
 
     g_pApp->GetGameConfig()->userDirectory = userDirectory;
 
-#ifdef __SWITCH__
+#ifndef __EMSCRIPTEN__
     std::vector<std::string> rezSearched = ResolveRezArchive(g_pApp->GetGameConfig(), argc, argv);
     if (!rezSearched.empty())
     {
@@ -290,9 +202,8 @@ int RunGameEngine(int argc, char** argv)
             "CLAW.REZ not found",
             "",
             "This port needs the data file from your own copy of",
-            "Captain Claw (1997). Copy CLAW.REZ to the SD card:",
-            "    /switch/claw/CLAW.REZ",
-            "(or next to openclaw.nro, or /Games/claw/CLAW.REZ).",
+            "Captain Claw (1997). Copy CLAW.REZ to:",
+            "    " + Platform::DataDir() + "CLAW.REZ",
             "An unpacked \"Assets\" folder works too.",
             "",
             "Searched:"};
@@ -301,7 +212,7 @@ int RunGameEngine(int argc, char** argv)
             lines.push_back("    " + rezSearched[i]);
         }
         lines.push_back("");
-        lines.push_back("Press + to exit.");
+        lines.push_back("Press any button to exit.");
         ShowFatalErrorScreen(lines);
         return -1;
     }
@@ -314,14 +225,14 @@ int RunGameEngine(int argc, char** argv)
     if (!g_pApp->Initialize(argc, argv))
     {
         LOG_ERROR("Failed to initialize. Exiting.");
-#ifdef __SWITCH__
+#ifndef __EMSCRIPTEN__
         ShowFatalErrorScreen({
             "Captain Claw failed to start",
             "",
-            "Details were written to /switch/claw/openclaw.log",
+            "Details were written to " + Platform::DataDir() + "openclaw.log",
             "Please include that file when reporting the problem.",
             "",
-            "Press + to exit."});
+            "Press any button to exit."});
 #endif
         return -1;
     }

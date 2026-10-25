@@ -25,6 +25,7 @@
 #include "../Resource/Loaders/PidLoader.h"
 #include "../Resource/Loaders/WavLoader.h"
 #include "../Platform/Input/BlockingInput.h"
+#include "../Platform/Platform.h"
 
 namespace
 {
@@ -183,14 +184,8 @@ namespace
 
     TTF_Font* OpenFont(int px)
     {
-        const char* paths[] = {
-#ifdef __SWITCH__
-            "romfs:/splash.ttf",
-#endif
-            "splash.ttf",
-            "ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf",
-            "../../ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf",
-        };
+        const std::string fontPath = Platform::SplashFont();
+        const char* paths[] = { fontPath.c_str() };
         for (const char* p : paths)
             if (TTF_Font* f = TTF_OpenFont(p, px)) return f;
         return nullptr;

@@ -22,6 +22,7 @@
 #include "ScoreScreen/EndLevelScoreScreen.h"
 #include "../Race/Race.h"
 #include "Minimap.h"
+#include "../Platform/Platform.h"
 #include "../Race/RaceLobby.h"
 #include "../Scene/HUDSceneNode.h"
 
@@ -1655,10 +1656,7 @@ void HumanView::RenderToast(SDL_Renderer* pRenderer)
         static TTF_Font* s_pFont = nullptr;
         if (!s_pFont)
         {
-            const char* paths[] = { "romfs:/splash.ttf", "splash.ttf",
-                                    "ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf" };
-            for (const char* p : paths)
-                if ((s_pFont = TTF_OpenFont(p, 22)) != nullptr) break;
+            s_pFont = TTF_OpenFont(Platform::SplashFont().c_str(), 22);
             if (!s_pFont) { m_ToastText.clear(); return; }
         }
         SDL_Color gold = { 236, 196, 98, 255 }, edge = { 30, 15, 2, 255 };

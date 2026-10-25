@@ -13,18 +13,27 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from make_controls_image import font, text_with_outline, GOLD, CREAM, S, REPO  # noqa: E402
 from PIL import Image, ImageDraw  # noqa: E402
 
-OUT = os.path.join(REPO, "Build_Release/ASSETS/Credits/credits_text.png")
+OUT = os.path.join(REPO, "Build_Release/ASSETS/Credits/credits_text_{lang}.png")
 W, H = 600, 300
 
-TITLE = "Twórcy"
-BLOCKS = [
-    ("Gra oryginalna", "Claw © 1997 Monolith Productions"),
-    ("OpenClaw", "Petr Jašíček · Pavel Löbl"),
-    ("Pomoc przy OpenClaw", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
-    ("Claw Web", "Arthur Boss"),
-    ("ClawSwitch", "djmuted"),
-    ("Port na Nintendo Switch", "MK  i  Claude (Anthropic)"),
-]
+TEXTS = {
+    "pl": ("Twórcy", [
+        ("Gra oryginalna", "Claw © 1997 Monolith Productions"),
+        ("OpenClaw", "Petr Jašíček · Pavel Löbl"),
+        ("Pomoc przy OpenClaw", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
+        ("Claw Web", "Arthur Boss"),
+        ("ClawSwitch", "djmuted"),
+        ("Porty na konsole", "MK  i  Claude (Anthropic)"),
+    ]),
+    "en": ("Credits", [
+        ("Original game", "Claw © 1997 Monolith Productions"),
+        ("OpenClaw", "Petr Jašíček · Pavel Löbl"),
+        ("OpenClaw contributors", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
+        ("Claw Web", "Arthur Boss"),
+        ("ClawSwitch", "djmuted"),
+        ("Console ports", "MK  and  Claude (Anthropic)"),
+    ]),
+}
 
 
 def centered(draw, y, text, fnt, fill, outline=2):
@@ -32,7 +41,8 @@ def centered(draw, y, text, fnt, fill, outline=2):
     text_with_outline(draw, ((W * S - tw) / 2, y), text, fnt, fill, outline)
 
 
-def main():
+def render(lang):
+    TITLE, BLOCKS = TEXTS[lang]
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     centered(draw, 0, TITLE, font(30), GOLD, outline=3)
@@ -48,8 +58,14 @@ def main():
         y += 41 * S
 
     img = img.resize((W, H), Image.LANCZOS)
-    img.save(OUT)
-    print("wrote", OUT)
+    path = OUT.format(lang=lang)
+    img.save(path)
+    print("wrote", path)
+
+
+def main():
+    for lang in TEXTS:
+        render(lang)
 
 
 if __name__ == "__main__":

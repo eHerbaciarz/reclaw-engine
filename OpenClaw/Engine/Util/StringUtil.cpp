@@ -1,4 +1,5 @@
 #include <memory.h>
+#include <cstring>
 #include "StringUtil.h"
 
 using std::string;
@@ -82,6 +83,16 @@ string ToStr(unsigned int num, int base)
 }
 
 string ToStr(unsigned long num, int base)
+{
+    return std::to_string(num);
+}
+
+string ToStr(unsigned long long num, int base)
+{
+    return std::to_string(num);
+}
+
+string ToStr(long long num, int base)
 {
     return std::to_string(num);
 }

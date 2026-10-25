@@ -15,6 +15,7 @@
 #include "../Resource/Loaders/PcxLoader.h"
 #include "../Resource/Loaders/WavLoader.h"
 #include "../Platform/Input/BlockingInput.h"
+#include "../Platform/Platform.h"
 #include "../UserInterface/Lang.h"
 
 namespace
@@ -48,14 +49,8 @@ namespace
         auto it = s_Fonts.find(px);
         if (it != s_Fonts.end()) return it->second;
         if (!TTF_WasInit() && TTF_Init() != 0) return nullptr;
-        const char* paths[] = {
-#ifdef __SWITCH__
-            "romfs:/splash.ttf",
-#endif
-            "splash.ttf",
-            "ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf",
-            "../../ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf",
-        };
+        const std::string fontPath = Platform::SplashFont();
+        const char* paths[] = { fontPath.c_str() };
         TTF_Font* font = nullptr;
         for (const char* p : paths)
         {

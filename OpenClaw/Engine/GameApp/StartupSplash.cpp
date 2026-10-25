@@ -11,13 +11,7 @@
 
 #include "../Logger/Logger.h"
 
-#ifndef OPENCLAW_SPLASH_FONT
-#ifdef __SWITCH__
-#define OPENCLAW_SPLASH_FONT "romfs:/splash.ttf"
-#else
-#define OPENCLAW_SPLASH_FONT "splash.ttf"
-#endif
-#endif
+#include "../Platform/Platform.h"
 
 namespace
 {
@@ -129,10 +123,10 @@ namespace StartupSplash
         SDL_GetRendererOutputSize(r, &outW, &outH);
         int size = outH > 0 ? outH / 11 : 64;
 
-        TTF_Font* font = TTF_OpenFont(OPENCLAW_SPLASH_FONT, size);
+        TTF_Font* font = TTF_OpenFont(Platform::SplashFont().c_str(), size);
         if (!font)
         {
-            LOG_WARNING(std::string("Splash font missing: ") + OPENCLAW_SPLASH_FONT);
+            LOG_WARNING(std::string("Splash font missing: ") + Platform::SplashFont());
             return;
         }
         // Shrink to fit the width with a margin.
@@ -141,7 +135,7 @@ namespace StartupSplash
         {
             TTF_CloseFont(font);
             size = size * (outW * 9 / 10) / w;
-            font = TTF_OpenFont(OPENCLAW_SPLASH_FONT, size);
+            font = TTF_OpenFont(Platform::SplashFont().c_str(), size);
             if (!font) return;
         }
 

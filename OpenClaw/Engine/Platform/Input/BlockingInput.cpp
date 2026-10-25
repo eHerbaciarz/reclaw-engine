@@ -7,6 +7,9 @@
 #ifdef __SWITCH__
 #include <switch.h>
 #endif
+#ifdef __3DS__
+#include <3ds.h>
+#endif
 
 namespace
 {
@@ -102,8 +105,10 @@ namespace BlockingInput
 
     bool AppAlive()
     {
-#ifdef __SWITCH__
+#if defined(__SWITCH__)
         return appletMainLoop();
+#elif defined(__3DS__)
+        return aptMainLoop();
 #else
         return true;
 #endif

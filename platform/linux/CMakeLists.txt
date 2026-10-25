@@ -58,3 +58,13 @@ target_compile_options(openclaw PRIVATE "-idirafter" "${REPO_ROOT}/ThirdParty")
 target_compile_definitions(openclaw PRIVATE OPENCLAW_NATIVE=1)
 target_compile_options(openclaw PRIVATE -fpermissive -Wno-narrowing)
 target_link_libraries(openclaw PRIVATE PkgConfig::SDL2LIBS Threads::Threads)
+
+# Windows (MinGW-w64 cross build, see platform/windows/build.sh): sockets for
+# the network race, no runtime DLLs of the compiler.
+if (WIN32)
+    target_link_libraries(openclaw PRIVATE ws2_32 iphlpapi)
+    # SDL2_image is a static library here: its PNG support needs libpng/zlib
+    # after it on the link line.
+    set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -L${MINGW_PREFIX}/lib -lpng16 -lz")
+    target_link_options(openclaw PRIVATE -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic)
+endif()
