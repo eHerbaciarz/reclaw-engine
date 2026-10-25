@@ -10,6 +10,10 @@
 #include <cmath>
 #include <vector>
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 #include "../GameApp/BaseGameApp.h"
 #include "../Audio/Audio.h"
 #include "../Graphics2D/Image.h"
