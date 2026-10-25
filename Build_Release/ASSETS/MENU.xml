@@ -49,6 +49,11 @@
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/006_REPLAYMOVIES.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/007_REPLAYMOVIES.PCX</DisabledImage>
             <Position x="170" y="280" />
+            <!-- Enabled when the CD movies (CLAW.FEC) are found -->
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MoviesAvailable</ConditionType>
+            </StateCondition>
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_ReplayMovies</PageName>
@@ -110,6 +115,216 @@
         <!-- QUIT_BUTTON removed for WASM build - users can just close browser tab -->
     </MenuPage>
     
+    <!-- REPLAY MOVIES PAGE (original CD movies from CLAW.FEC) -->
+    <MenuPage>
+        <PageName>MenuPage_ReplayMovies</PageName>
+        <KeyboardEvent>
+            <KeyType>Escape</KeyType>
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Main</PageName>
+            </GeneratedEvent>
+        </KeyboardEvent>
+        <MenuItem>
+            <Name>REPLAY_MOVIES_TEXT</Name>
+            <Type>Text</Type>
+            <State>Inactive</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/033_*.PCX</InactiveImage>
+            <Position x="320" y="39" align="center" />
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_1_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/001_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/002_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/003_*.PCX</DisabledImage>
+            <Position x="320" y="89" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>0</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>1</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_2_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/004_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/005_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/006_*.PCX</DisabledImage>
+            <Position x="320" y="120" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>3</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>2</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_3_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/007_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/008_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/009_*.PCX</DisabledImage>
+            <Position x="320" y="151" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>5</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>3</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_4_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/010_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/011_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/012_*.PCX</DisabledImage>
+            <Position x="320" y="182" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>7</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>4</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_5_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/013_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/014_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/015_*.PCX</DisabledImage>
+            <Position x="320" y="213" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>9</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>5</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_6_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/016_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/017_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/018_*.PCX</DisabledImage>
+            <Position x="320" y="244" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>11</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>6</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_7_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/019_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/020_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/021_*.PCX</DisabledImage>
+            <Position x="320" y="275" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>13</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>7</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_8_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/022_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/023_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/024_*.PCX</DisabledImage>
+            <Position x="320" y="306" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>14</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>8</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>MOVIE_9_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/025_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/026_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/027_*.PCX</DisabledImage>
+            <Position x="320" y="337" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MovieUnlocked</ConditionType>
+                <Level>15</Level>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>9</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>PLAY_ALL_MOVIES_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/028_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/029_*.PCX</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/030_*.PCX</DisabledImage>
+            <Position x="320" y="368" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MoviesAvailable</ConditionType>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>PlayMovies</Type>
+                <MovieIndex>-1</MovieIndex>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Active</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/031_*.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/032_*.PCX</ActiveImage>
+            <Position x="320" y="399" align="center" />
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Main</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+    </MenuPage>
+
     <!-- SINGLE PLAYER PAGE -->
     <MenuPage>
         <PageName>MenuPage_SinglePlayer</PageName>

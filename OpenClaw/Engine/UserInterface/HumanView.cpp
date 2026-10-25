@@ -1367,7 +1367,7 @@ void HumanView::PlayMoviesDelegate(IEventDataPtr pEventData)
     int movieIndex = pCastEventData->GetMovieIndex();
     int lastFinishedLevel = 0;
     shared_ptr<GameSaveMgr> pSaveMgr = g_pApp->GetGameLogic()->GetGameSaveMgr();
-    for (int level = 1; level <= 14; ++level)
+    for (int level = 1; level < LEVELS_COUNT; ++level)
     {
         if (pSaveMgr->HasLevelSave(level + 1))
         {

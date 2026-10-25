@@ -157,6 +157,31 @@ static shared_ptr<Image> LoadImageFromXmlElement(TiXmlElement* pElem)
     // Transform to lowercase to support all naming conventions
     std::transform(imagePath.begin(), imagePath.end(), imagePath.begin(), (int(*)(int)) std::tolower);
 
+    // "/dir/028_*.pcx": file names differ between releases, so the first file
+    // in the directory matching the pattern is used.
+    if (imagePath.find('*') != std::string::npos)
+    {
+        std::string dir = imagePath.substr(0, imagePath.find_last_of('/'));
+        std::vector<std::string> files = g_pApp->GetResourceMgr()->VGetAllFilesInDirectory(dir.c_str());
+        std::sort(files.begin(), files.end());
+        std::string match;
+        for (std::string file : files)
+        {
+            std::transform(file.begin(), file.end(), file.begin(), (int(*)(int)) std::tolower);
+            if (WildcardMatch(imagePath.c_str(), file.c_str()))
+            {
+                match = file;
+                break;
+            }
+        }
+        if (match.empty())
+        {
+            LOG_WARNING("No image matches " + imagePath);
+            return nullptr;
+        }
+        imagePath = match;
+    }
+
     // We are ASSUMING here that all PCXs are from original CLAW.REZ archive
     // For our own purpose we will use PNGs or JPEGs
     std::string extension = imagePath.substr(imagePath.length() - 4);
@@ -1749,6 +1774,19 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
                 m_State = StringToMenuItemStateEnum(conditionForStateStr);
             }
         }
+        else if (conditionTypeStr == "MovieUnlocked")
+        {
+            // Story movie of a chapter: unlocked once <Level> has been reached
+            // (0 = always), and only when the movies were found at all.
+            int level = 0;
+            ParseValueFromXmlElem(&level, pStateConditionElem->FirstChildElement("Level"));
+            // Levels past the last one (the ending) stay locked for now.
+            if (MoviePlayer::IsAvailable() && level <= LEVELS_COUNT &&
+                (level <= 0 || g_pApp->GetGameLogic()->GetGameSaveMgr()->HasCheckpointSave(level, 0)))
+            {
+                m_State = StringToMenuItemStateEnum(conditionForStateStr);
+            }
+        }
         else if (conditionTypeStr == "MoviesAvailable")
         {
             // Original cutscenes found (CLAW.FEC from the CD); native builds only.
@@ -1879,6 +1917,19 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
     if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("ActiveImage")))
     {
         m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
+    }
+
+    // <Position x="320" y="100" align="center" />: x is the item's centre, so
+    // texts of any length (e.g. translated releases) stay centred.
+    if (TiXmlElement* pPosElem = pElem->FirstChildElement("Position"))
+    {
+        const char* align = pPosElem->Attribute("align");
+        if (align && std::string(align) == "center" && !m_Images.empty())
+        {
+            int width = m_Images.begin()->second->GetWidth();
+            m_Position.x -= width / 2;
+            m_DefaultPosition.x -= width / 2;
+        }
     }
 
     /*for (TiXmlElement* pMenuItemImageElem = pElem->FirstChildElement("MenuItemImage");
