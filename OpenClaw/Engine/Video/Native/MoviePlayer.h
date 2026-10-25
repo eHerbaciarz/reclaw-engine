@@ -11,7 +11,8 @@
 // with movies.xml in the user directory (see MoviePlayer.cpp).
 //
 // Playback is blocking: the call returns when the movie ends or the player
-// skips it (A, B, +, Enter, Escape, Space or a tap).
+// skips it. A / Enter / Space / a tap skips the current movie; B / + / Escape
+// also skips the rest of a sequence (startup movies, replay list).
 
 #include <string>
 #include <vector>
@@ -31,6 +32,10 @@ namespace MoviePlayer
 
     // Movie(s) shown after finishing `levelNumber`, before the next level loads.
     void PlayAfterLevel(SDL_Renderer* pRenderer, int levelNumber);
+
+    // "Replay movies" menu entry: startup movies plus the story movies of all
+    // chapters up to and including `lastFinishedLevel`.
+    void PlayReplay(SDL_Renderer* pRenderer, int lastFinishedLevel);
 
     // Plays one movie by index; returns false if it is not available.
     bool PlayMovie(SDL_Renderer* pRenderer, int index);

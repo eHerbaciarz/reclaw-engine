@@ -95,6 +95,7 @@ protected:
     void ExportSaveDataDelegate(IEventDataPtr pEventData);
     void ImportSaveDataDelegate(IEventDataPtr pEventData);
     void StartNewGameDelegate(IEventDataPtr pEventData);
+    void PlayMoviesDelegate(IEventDataPtr pEventData);
     void ResetSaveProgressFromManageSavesDelegate(IEventDataPtr pEventData);
 
     void ToggleFullscreenDelegate(IEventDataPtr pEventData);

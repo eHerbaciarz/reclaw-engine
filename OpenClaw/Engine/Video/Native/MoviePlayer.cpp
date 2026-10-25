@@ -27,10 +27,8 @@ extern "C" {
 
 namespace
 {
-    // Mixer channel used for the movie soundtrack. It is the channel the
-    // engine reserves for chunk music (see SDL2MixerSystem), which is idle
-    // while a movie plays because all music is stopped first.
-    const int kMovieChannel = 16;
+    enum PlayResult { Played, Skipped, Aborted, Missing };
+    enum SkipKind { None = 0, SkipOne, AbortAll };
 
     struct MovieSource
     {
@@ -279,12 +277,16 @@ namespace
 #endif
     }
 
-    bool SkipRequested()
+    // A / Enter / Space / tap: skip this movie. B / + / Escape: stop the sequence.
+    SkipKind SkipRequested()
     {
-        bool skip = false;
+        SkipKind kind = None;
+        auto take = [&kind](SkipKind k) { if (k > kind) kind = k; };
 #ifdef __SWITCH__
         padUpdate(&g_Pad);
-        if (padGetButtonsDown(&g_Pad) & (HidNpadButton_A | HidNpadButton_B | HidNpadButton_Plus)) skip = true;
+        u64 down = padGetButtonsDown(&g_Pad);
+        if (down & HidNpadButton_A) take(SkipOne);
+        if (down & (HidNpadButton_B | HidNpadButton_Plus)) take(AbortAll);
 #endif
         SDL_PumpEvents();
         SDL_Event ev[16];
@@ -293,13 +295,19 @@ namespace
         for (int i = 0; i < n; ++i)
         {
             SDL_Keycode k = ev[i].key.keysym.sym;
-            if (k == SDLK_ESCAPE || k == SDLK_RETURN || k == SDLK_SPACE || k == SDLK_KP_ENTER) skip = true;
+            if (k == SDLK_RETURN || k == SDLK_SPACE || k == SDLK_KP_ENTER) take(SkipOne);
+            if (k == SDLK_ESCAPE || k == SDLK_BACKSPACE) take(AbortAll);
         }
-        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_CONTROLLERBUTTONDOWN, SDL_CONTROLLERBUTTONDOWN) > 0) skip = true;
-        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_FINGERDOWN, SDL_FINGERDOWN) > 0) skip = true;
-        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN) > 0) skip = true;
-        if (SDL_PeepEvents(ev, 16, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) skip = true;
-        return skip;
+        n = SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_CONTROLLERBUTTONDOWN, SDL_CONTROLLERBUTTONDOWN);
+        for (int i = 0; i < n; ++i)
+        {
+            Uint8 b = ev[i].cbutton.button;
+            take((b == SDL_CONTROLLER_BUTTON_START || b == SDL_CONTROLLER_BUTTON_BACK) ? AbortAll : SkipOne);
+        }
+        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_FINGERDOWN, SDL_FINGERDOWN) > 0) take(SkipOne);
+        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN) > 0) take(SkipOne);
+        if (SDL_PeepEvents(ev, 16, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) take(AbortAll);
+        return kind;
     }
 
     void FlushInput()
@@ -322,20 +330,20 @@ namespace
     }
 
     //---------------------------------------------------------------- playback
-    bool PlaySource(SDL_Renderer* r, const MovieSource& m)
+    PlayResult PlaySource(SDL_Renderer* r, const MovieSource& m)
     {
         FILE* fp = fopen(m.path.c_str(), "rb");
-        if (!fp) return false;
+        if (!fp) return Missing;
         if (fseek(fp, m.offset, SEEK_SET) != 0)
         {
             fclose(fp);
-            return false;
+            return Missing;
         }
         smk s = smk_open_filepointer(fp, SMK_MODE_DISK);   // owns fp from now on
         if (!s)
         {
             LOG_ERROR("Could not open movie in " + m.path + " at " + std::to_string(m.offset));
-            return false;
+            return Missing;
         }
 
         unsigned long frameCount = 0, w = 0, h = 0;
@@ -363,7 +371,10 @@ namespace
         AudioCtx ctx;
         Mix_Chunk* pSilence = nullptr;
         static Uint8 s_Silence[4096];
-        int prevVolume = -1;
+        // A channel of its own, added past the engine's channels, so paused
+        // game sounds and music can simply resume afterwards.
+        int baseChannels = Mix_AllocateChannels(-1);
+        int movieChannel = -1;
         if (hasAudio)
         {
             int freq = 0, outCh = 0;
@@ -419,19 +430,22 @@ namespace
         };
 
         InitSkipInput();
-        bool skipped = false;
+        SkipKind skipped = None;
         char status = smk_first(s);
         pushAudio();
 
         if (hasAudio)
         {
             pSilence = Mix_QuickLoad_RAW(s_Silence, sizeof(s_Silence));
-            prevVolume = Mix_Volume(kMovieChannel, -1);
-            Mix_Volume(kMovieChannel, MIX_MAX_VOLUME);
-            if (!pSilence || Mix_PlayChannel(kMovieChannel, pSilence, -1) == -1 ||
-                !Mix_RegisterEffect(kMovieChannel, MovieAudioEffect, NULL, &ctx))
+            if (pSilence && Mix_AllocateChannels(baseChannels + 1) == baseChannels + 1)
             {
-                LOG_WARNING("Movie audio unavailable: " + std::string(Mix_GetError()));
+                movieChannel = baseChannels;
+                Mix_Volume(movieChannel, MIX_MAX_VOLUME);
+                if (Mix_PlayChannel(movieChannel, pSilence, -1) == -1 ||
+                    !Mix_RegisterEffect(movieChannel, MovieAudioEffect, NULL, &ctx))
+                {
+                    LOG_WARNING("Movie audio unavailable: " + std::string(Mix_GetError()));
+                }
             }
         }
 
@@ -441,7 +455,9 @@ namespace
             Uint32 due = start + (Uint32)(frame * usf / 1000.0);
             while ((Sint32)(SDL_GetTicks() - due) < 0)
             {
-                if (!AppAlive() || SkipRequested()) { skipped = true; break; }
+                if (!AppAlive()) { skipped = AbortAll; break; }
+                skipped = SkipRequested();
+                if (skipped != None) break;
                 SDL_Delay(2);
             }
             if (skipped) break;
@@ -455,7 +471,7 @@ namespace
         {
             // Let the tail of the soundtrack play out (at most a second).
             Uint32 tailStart = SDL_GetTicks();
-            while (SDL_GetTicks() - tailStart < 1000 && AppAlive() && !SkipRequested())
+            while (SDL_GetTicks() - tailStart < 1000 && AppAlive() && SkipRequested() == None)
             {
                 int left = 0;
                 if (SDL_LockMutex(ctx.mutex) == 0)
@@ -468,13 +484,13 @@ namespace
             }
         }
 
-        if (pSilence)
+        if (movieChannel >= 0)
         {
-            Mix_UnregisterEffect(kMovieChannel, MovieAudioEffect);
-            Mix_HaltChannel(kMovieChannel);
-            Mix_FreeChunk(pSilence);
+            Mix_UnregisterEffect(movieChannel, MovieAudioEffect);
+            Mix_HaltChannel(movieChannel);
+            Mix_AllocateChannels(baseChannels);
         }
-        if (prevVolume >= 0) Mix_Volume(kMovieChannel, prevVolume);
+        if (pSilence) Mix_FreeChunk(pSilence);
         if (ctx.stream) SDL_FreeAudioStream(ctx.stream);
         if (ctx.mutex) SDL_DestroyMutex(ctx.mutex);
 
@@ -485,7 +501,18 @@ namespace
         SDL_SetRenderTarget(r, pPrevTarget);
         smk_close(s);
         FlushInput();
-        return true;
+        return skipped == AbortAll ? Aborted : (skipped == SkipOne ? Skipped : Played);
+    }
+
+    // Plays a list of movies; B / + stops the rest of the list.
+    void PlayList(SDL_Renderer* r, const std::vector<int>& list)
+    {
+        for (int index : list)
+        {
+            if (!AppAlive() || index < 0 || index >= (int)g_Movies.size()) continue;
+            LOG("Playing movie " + std::to_string(index));
+            if (PlaySource(r, g_Movies[index]) == Aborted) break;
+        }
     }
 }
 
@@ -516,29 +543,35 @@ namespace MoviePlayer
         BuildIndex();
         if (!pRenderer || index < 0 || index >= (int)g_Movies.size()) return false;
         LOG("Playing movie " + std::to_string(index));
-        return PlaySource(pRenderer, g_Movies[index]);
+        return PlaySource(pRenderer, g_Movies[index]) != Missing;
     }
 
     void PlayStartupMovies(SDL_Renderer* pRenderer)
     {
         BuildIndex();
-        for (int index : g_StartupMovies)
-        {
-            if (!AppAlive()) break;
-            PlayMovie(pRenderer, index);
-        }
+        if (pRenderer) PlayList(pRenderer, g_StartupMovies);
     }
 
     void PlayAfterLevel(SDL_Renderer* pRenderer, int levelNumber)
     {
         BuildIndex();
         auto it = g_AfterLevel.find(levelNumber);
-        if (it == g_AfterLevel.end()) return;
-        for (int index : it->second)
+        if (pRenderer && it != g_AfterLevel.end()) PlayList(pRenderer, it->second);
+    }
+
+    void PlayReplay(SDL_Renderer* pRenderer, int lastFinishedLevel)
+    {
+        BuildIndex();
+        if (!pRenderer) return;
+        std::vector<int> list = g_StartupMovies;
+        for (const auto& entry : g_AfterLevel)   // std::map: ascending level order
         {
-            if (!AppAlive()) break;
-            PlayMovie(pRenderer, index);
+            if (entry.first <= lastFinishedLevel)
+            {
+                list.insert(list.end(), entry.second.begin(), entry.second.end());
+            }
         }
+        PlayList(pRenderer, list);
     }
 }
 
@@ -550,6 +583,7 @@ namespace MoviePlayer
     bool IsAvailable() { return false; }
     void PlayStartupMovies(SDL_Renderer*) { }
     void PlayAfterLevel(SDL_Renderer*, int) { }
+    void PlayReplay(SDL_Renderer*, int) { }
     bool PlayMovie(SDL_Renderer*, int) { return false; }
     int GetMovieCount() { return 0; }
 }

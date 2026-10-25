@@ -1,6 +1,7 @@
 #include "UserInterface.h"
 
 #include "../Graphics2D/Image.h"
+#include "../Video/Native/MoviePlayer.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
 #include "../GameApp/GameSaves.h"
@@ -382,6 +383,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
     else if (eventType == "ImportSaveData")
     {
         pEventData.reset(new EventData_Import_Save_Data());
+    }
+    else if (eventType == "PlayMovies")
+    {
+        int movieIndex = -1;
+        ParseValueFromXmlElem(&movieIndex, pElem->FirstChildElement("MovieIndex"));
+        pEventData.reset(new EventData_Menu_Play_Movies(movieIndex));
     }
     else if (eventType == "StartNewGame")
     {
@@ -1738,6 +1745,14 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             m_StateCondition.checkpoint = checkpoint;
 
             if (g_pApp->GetGameLogic()->GetGameSaveMgr()->HasCheckpointSave(level, checkpoint))
+            {
+                m_State = StringToMenuItemStateEnum(conditionForStateStr);
+            }
+        }
+        else if (conditionTypeStr == "MoviesAvailable")
+        {
+            // Original cutscenes found (CLAW.FEC from the CD); native builds only.
+            if (MoviePlayer::IsAvailable())
             {
                 m_State = StringToMenuItemStateEnum(conditionForStateStr);
             }

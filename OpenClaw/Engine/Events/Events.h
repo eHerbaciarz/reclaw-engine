@@ -2357,6 +2357,31 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Play_Movies
+// Fired by the "Replay movies" page: plays one movie (index in CLAW.FEC), or
+// every movie unlocked so far when the index is -1.
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Play_Movies : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Play_Movies(int movieIndex = -1) : m_MovieIndex(movieIndex) { }
+
+    int GetMovieIndex() const { return m_MovieIndex; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Play_Movies(m_MovieIndex)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Play_Movies"; }
+
+private:
+    int m_MovieIndex;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Start_New_Game
 // Fired by the "New Game" button. HumanView routes to reset confirm or level select based on save state.
 //---------------------------------------------------------------------------------------------------------------------

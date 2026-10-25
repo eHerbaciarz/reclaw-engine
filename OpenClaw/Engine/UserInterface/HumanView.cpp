@@ -1,4 +1,5 @@
 #include "HumanView.h"
+#include "../Video/Native/MoviePlayer.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
 #include "../GameApp/GameSaves.h"
@@ -610,6 +611,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::StartNewGameDelegate), EventData_Start_New_Game::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::PlayMoviesDelegate), EventData_Menu_Play_Movies::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ToggleFullscreenDelegate), EventData_Menu_ToggleFullscreen::sk_EventType);
@@ -659,6 +662,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::ImportSaveDataDelegate), EventData_Import_Save_Data::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::StartNewGameDelegate), EventData_Start_New_Game::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::PlayMoviesDelegate), EventData_Menu_Play_Movies::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1347,6 +1352,40 @@ void HumanView::ResetSaveProgressFromManageSavesDelegate(IEventDataPtr pEventDat
 
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(
         new EventData_Menu_SwitchPage("MenuPage_SinglePlayer_SaveData")));
+}
+
+// "Replay movies": the startup movies plus the story movies of every chapter
+// finished so far (a level counts as finished when the next one is unlocked).
+void HumanView::PlayMoviesDelegate(IEventDataPtr pEventData)
+{
+    if (!MoviePlayer::IsAvailable())
+    {
+        return;
+    }
+    shared_ptr<EventData_Menu_Play_Movies> pCastEventData =
+        static_pointer_cast<EventData_Menu_Play_Movies>(pEventData);
+    int movieIndex = pCastEventData->GetMovieIndex();
+    int lastFinishedLevel = 0;
+    shared_ptr<GameSaveMgr> pSaveMgr = g_pApp->GetGameLogic()->GetGameSaveMgr();
+    for (int level = 1; level <= 14; ++level)
+    {
+        if (pSaveMgr->HasLevelSave(level + 1))
+        {
+            lastFinishedLevel = level;
+        }
+    }
+    g_pApp->GetAudio()->PauseMusic();
+    g_pApp->GetAudio()->PauseAllSounds();
+    if (movieIndex >= 0)
+    {
+        MoviePlayer::PlayMovie(g_pApp->GetRenderer(), movieIndex);
+    }
+    else
+    {
+        MoviePlayer::PlayReplay(g_pApp->GetRenderer(), lastFinishedLevel);
+    }
+    g_pApp->GetAudio()->ResumeAllSounds();
+    g_pApp->GetAudio()->ResumeMusic();
 }
 
 void HumanView::StartNewGameDelegate(IEventDataPtr pEventData)
