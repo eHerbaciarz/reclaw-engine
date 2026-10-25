@@ -260,6 +260,44 @@ void BaseGameLogic::VPlayCutscene(const std::string& videoSource)
     }
 }
 
+// The level's own 4:3 loading screen from CLAW.REZ (localized: Polish text in
+// the Polish release), drawn over the middle of the widescreen artwork from
+// ASSETS.ZIP so the side bars are filled with matching graphics.
+static shared_ptr<Image> s_pLoadingScreenOverlay;
+
+static shared_ptr<Image> LoadOriginalLoadingScreen(const std::string& path)
+{
+    shared_ptr<ResourceCache> pRezCache = g_pApp->GetResourceCache();
+    if (!pRezCache)
+    {
+        return nullptr;
+    }
+    Resource resource(path);
+    shared_ptr<ResourceHandle> handle = pRezCache->GetHandle(&resource);
+    if (!handle || !handle->GetDataBuffer())
+    {
+        return nullptr;
+    }
+    shared_ptr<PcxResourceExtraData> extraData = std::static_pointer_cast<PcxResourceExtraData>(handle->GetExtraData());
+    if (!extraData)
+    {
+        extraData.reset(new PcxResourceExtraData());
+        extraData->LoadImage(handle->GetDataBuffer(), handle->GetSize(), false, SDL_Color{ 0, 0, 0, 0 });
+        if (!extraData->GetImage())
+        {
+            return nullptr;
+        }
+        handle->SetExtraData(extraData);
+    }
+    shared_ptr<Image> pImage = extraData->GetImage();
+    // Only a classic 4:3 screen is useful as an overlay.
+    if (!pImage || !pImage->GetTexture() || pImage->GetWidth() > 700)
+    {
+        return nullptr;
+    }
+    return pImage;
+}
+
 void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Point& scale, float progress)
 {
     // While we are at it, eat incoming events
@@ -322,6 +360,38 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
     SDL_Rect backgroundSrc = { 0, 0, bgWidth, bgHeight };
     SDL_RenderCopy(pRenderer, pBackground->GetTexture(), &backgroundSrc, &backgroundDst);
 
+    if (isWidescreenBackground && s_pLoadingScreenOverlay)
+    {
+        // The side edges fade into the widescreen artwork instead of ending
+        // in a hard seam: the outer columns are drawn one by one with rising
+        // opacity.
+        SDL_Texture* pTexture = s_pLoadingScreenOverlay->GetTexture();
+        const int srcW = s_pLoadingScreenOverlay->GetWidth();
+        const int srcH = s_pLoadingScreenOverlay->GetHeight();
+        const double sx = (640.0 * uniformScale) / srcW;
+        const int dstH = (int)(DESIGN_HEIGHT * uniformScale);
+        const int fade = std::min(32, srcW / 4);
+        auto dstX = [&](int col) { return contentOffsetX + (int)(col * sx); };
+
+        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
+        SDL_Rect src = { fade, 0, srcW - 2 * fade, srcH };
+        SDL_Rect dst = { dstX(fade), 0, dstX(srcW - fade) - dstX(fade), dstH };
+        SDL_SetTextureAlphaMod(pTexture, 255);
+        SDL_RenderCopy(pRenderer, pTexture, &src, &dst);
+        for (int i = 0; i < fade; i++)
+        {
+            SDL_SetTextureAlphaMod(pTexture, (Uint8)(255 * (i + 1) / (fade + 1)));
+            int cols[2] = { i, srcW - 1 - i };
+            for (int col : cols)
+            {
+                SDL_Rect s1 = { col, 0, 1, srcH };
+                SDL_Rect d1 = { dstX(col), 0, std::max(1, dstX(col + 1) - dstX(col)), dstH };
+                SDL_RenderCopy(pRenderer, pTexture, &s1, &d1);
+            }
+        }
+        SDL_SetTextureAlphaMod(pTexture, 255);
+    }
+
     // Progress bar (centered within the 4:3 content area)
     int progressFullLength = (int)(640.0 * uniformScale / 2);
     int progressCurrLength = (int)((progressFullLength * progress) / 100.0f);
@@ -378,6 +448,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     shared_ptr<Image> pBackgroundImage = PcxResourceLoader::LoadAndReturnImage(backgroundPath.c_str());
     assert(pBackgroundImage != nullptr);
     assert(pBackgroundImage->GetTexture() != NULL);
+    s_pLoadingScreenOverlay = LoadOriginalLoadingScreen(backgroundPath);
 
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
 
