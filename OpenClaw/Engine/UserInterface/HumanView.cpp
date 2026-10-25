@@ -112,6 +112,8 @@ void HumanView::VOnRender(uint32 msDiff)
 
         g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
 
+        RenderLevelReveal(renderer);
+
         m_pConsole->OnRender(renderer);
 
         // Lazy-load cursor frames on first render (resource cache is guaranteed ready by then)
@@ -616,6 +618,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ToggleFullscreenDelegate), EventData_Menu_ToggleFullscreen::sk_EventType);
@@ -669,6 +673,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::PlayMoviesDelegate), EventData_Menu_Play_Movies::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1420,6 +1426,54 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     pLevelData->SetCustomLevel(level.path, level.startX, level.startY);
     g_pApp->GetGameLogic()->SetLevelData(pLevelData);
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
+}
+
+void HumanView::WorldFinishedLoadingDelegate(IEventDataPtr pEventData)
+{
+    m_bLevelRevealPending = true;
+}
+
+// The original game opens every level by uncovering the view from the left
+// edge to the right (~1.5 s) while the game already runs.
+void HumanView::RenderLevelReveal(SDL_Renderer* pRenderer)
+{
+    const uint32 kRevealMs = 1500;
+    if (m_bLevelRevealPending)
+    {
+        m_bLevelRevealPending = false;
+        m_LevelRevealStart = SDL_GetTicks();
+        if (m_LevelRevealStart == 0) m_LevelRevealStart = 1;
+    }
+    if (m_LevelRevealStart == 0)
+    {
+        return;
+    }
+    uint32 elapsed = SDL_GetTicks() - m_LevelRevealStart;
+    if (elapsed >= kRevealMs)
+    {
+        m_LevelRevealStart = 0;
+        return;
+    }
+
+    int w = 0, h = 0;
+    if (SDL_Texture* pTarget = SDL_GetRenderTarget(pRenderer))
+    {
+        SDL_QueryTexture(pTarget, NULL, NULL, &w, &h);
+    }
+    else
+    {
+        SDL_GetRendererOutputSize(pRenderer, &w, &h);
+    }
+    float scaleX = 1.0f, scaleY = 1.0f;
+    SDL_RenderGetScale(pRenderer, &scaleX, &scaleY);
+    SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
+
+    int revealed = (int)((int64_t)w * elapsed / kRevealMs);
+    SDL_Rect cover = { revealed, 0, w - revealed, h };
+    SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
+    SDL_RenderFillRect(pRenderer, &cover);
+
+    SDL_RenderSetScale(pRenderer, scaleX, scaleY);
 }
 
 void HumanView::StartNewGameDelegate(IEventDataPtr pEventData)

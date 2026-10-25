@@ -97,6 +97,13 @@ protected:
     void StartNewGameDelegate(IEventDataPtr pEventData);
     void PlayMoviesDelegate(IEventDataPtr pEventData);
     void LoadCustomLevelDelegate(IEventDataPtr pEventData);
+    void WorldFinishedLoadingDelegate(IEventDataPtr pEventData);
+
+    // Level start: the view is revealed from left to right like in the
+    // original game. Pending until the first frame of the level is drawn.
+    bool m_bLevelRevealPending = false;
+    uint32 m_LevelRevealStart = 0;
+    void RenderLevelReveal(SDL_Renderer* pRenderer);
     void ResetSaveProgressFromManageSavesDelegate(IEventDataPtr pEventData);
 
     void ToggleFullscreenDelegate(IEventDataPtr pEventData);
