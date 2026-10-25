@@ -2453,19 +2453,13 @@
                 <PageName>MenuPage_Main</PageName>
             </GeneratedEvent>
         </KeyboardEvent>
+        <!-- Text-only credits, image made by scripts/make_credits_image.py -->
         <MenuItem>
-            <Name>CREDITS_IMAGE_PETR</Name>
+            <Name>CREDITS_TEXT</Name>
             <Type>Text</Type>
             <State>Disabled</State>
-            <DisabledImage>/CREDITS/credits_ja.png</DisabledImage>
-            <Position x="44" y="150" />
-        </MenuItem>
-        <MenuItem>
-            <Name>CREDITS_IMAGE_PETR</Name>
-            <Type>Text</Type>
-            <State>Disabled</State>
-            <DisabledImage>/CREDITS/credits_pavel.png</DisabledImage>
-            <Position x="340" y="150" />
+            <DisabledImage>/CREDITS/credits_text.png</DisabledImage>
+            <Position x="20" y="105" />
         </MenuItem>
         <MenuItem>
             <Name>BACK_BUTTON</Name>
