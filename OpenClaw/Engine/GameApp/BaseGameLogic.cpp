@@ -31,6 +31,7 @@
 #include "SaveBridge.h"
 #endif
 #include "../Video/Native/MoviePlayer.h"
+#include "../UserInterface/TitleScroll.h"
 
 #include "../Physics/ClawPhysics.h"
 
@@ -958,6 +959,8 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
                     g_pApp->GetAudio()->StopAllSounds();
                     MoviePlayer::PlayStartupMovies(g_pApp->GetRenderer());
                 }
+                // Title map unrolling, then the menu (from the game's own data).
+                TitleScroll::Play(g_pApp->GetRenderer());
 #endif
                 // If it failed/skipped immediately, it will fall through or we check state
                 if (m_GameState == GameState_Initializing)

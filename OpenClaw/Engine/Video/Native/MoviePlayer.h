@@ -41,4 +41,10 @@ namespace MoviePlayer
     bool PlayMovie(SDL_Renderer* pRenderer, int index);
 
     int GetMovieCount();
+
+    // Shared with other blocking screens (title scroll): 0 = nothing,
+    // 1 = skip (A / Enter / tap), 2 = abort (B / + / Escape).
+    int PollSkipInput();
+    // Drops input that arrived during a blocking screen; keeps device events.
+    void FlushSkipInput();
 }

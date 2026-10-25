@@ -264,6 +264,19 @@ namespace
     bool g_PadReady = false;
 #endif
 
+    void InitSkipInputOnce()
+    {
+#ifdef __SWITCH__
+        if (!g_PadReady)
+        {
+            padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+            padInitializeDefault(&g_Pad);
+            g_PadReady = true;
+            padUpdate(&g_Pad);
+        }
+#endif
+    }
+
     void InitSkipInput()
     {
 #ifdef __SWITCH__
@@ -538,6 +551,17 @@ namespace MoviePlayer
         return (int)g_Movies.size();
     }
 
+    int PollSkipInput()
+    {
+        InitSkipInputOnce();
+        return (int)SkipRequested();
+    }
+
+    void FlushSkipInput()
+    {
+        FlushInput();
+    }
+
     bool PlayMovie(SDL_Renderer* pRenderer, int index)
     {
         BuildIndex();
@@ -586,6 +610,8 @@ namespace MoviePlayer
     void PlayReplay(SDL_Renderer*, int) { }
     bool PlayMovie(SDL_Renderer*, int) { return false; }
     int GetMovieCount() { return 0; }
+    int PollSkipInput() { return 0; }
+    void FlushSkipInput() { }
 }
 
 #endif
