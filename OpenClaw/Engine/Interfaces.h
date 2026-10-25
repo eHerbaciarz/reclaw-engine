@@ -520,6 +520,12 @@ enum ActorPrototype
     ActorPrototype_Level13_BossGem,
     ActorPrototype_Level13_BossStager,
 
+    // Level 14 (Temple)
+    ActorPrototype_Level14_CrumblingPeg,
+    ActorPrototype_Level14_FloorSpike,
+    ActorPrototype_Level14_PathElevator,
+    ActorPrototype_Level14_TogglePeg,
+
     ActorPrototype_Max
 };
 

@@ -35,8 +35,8 @@
     </LogicsToActorPrototypes>
     <ClawSpawnPositions>
         <ClawSpawnPosition spawnNumber="0" x="710" y="2360" />
-        <ClawSpawnPosition spawnNumber="1" x="24496" y="1992" />
-        <ClawSpawnPosition spawnNumber="2" x="13428" y="1672" />
+        <ClawSpawnPosition spawnNumber="1" x="13428" y="1672" />
+        <ClawSpawnPosition spawnNumber="2" x="24496" y="1992" />
     </ClawSpawnPositions>
     <TopLadderEnds>
     </TopLadderEnds>

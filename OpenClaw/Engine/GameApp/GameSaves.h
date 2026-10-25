@@ -395,6 +395,7 @@ public:
                 case 11: levelSave.levelName = "Caverns"; break;
                 case 12: levelSave.levelName = "Undersea Caves"; break;
                 case 13: levelSave.levelName = "Tiger Island"; break;
+                case 14: levelSave.levelName = "Temple"; break;
                 default: assert(false); break;
             }
             levelSave.levelNumber = levelIdx;

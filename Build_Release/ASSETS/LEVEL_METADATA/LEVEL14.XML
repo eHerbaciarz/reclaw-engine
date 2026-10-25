@@ -1,0 +1,35 @@
+<LevelMetadata>
+    <LevelNumber>14</LevelNumber>
+    <LevelName>Level - 14 (Temple)</LevelName>
+    <LogicsToActorPrototypes>
+        <LogicToActorPrototype logic="OneWayTriggerElevator" actorPrototype="ActorPrototype_BaseElevator" />
+        <LogicToActorPrototype logic="Elevator" actorPrototype="ActorPrototype_BaseElevator" />
+        <LogicToActorPrototype logic="TriggerElevator" actorPrototype="ActorPrototype_BaseElevator" />
+        <LogicToActorPrototype logic="PathElevator" actorPrototype="ActorPrototype_Level14_PathElevator" />
+        <LogicToActorPrototype logic="TogglePeg" actorPrototype="ActorPrototype_Level14_TogglePeg" />
+        <LogicToActorPrototype logic="TogglePeg2" actorPrototype="ActorPrototype_Level14_TogglePeg" />
+        <LogicToActorPrototype logic="TogglePeg3" actorPrototype="ActorPrototype_Level14_TogglePeg" />
+        <LogicToActorPrototype logic="TogglePeg4" actorPrototype="ActorPrototype_Level14_TogglePeg" />
+        <LogicToActorPrototype logic="CrumblingPeg" actorPrototype="ActorPrototype_Level14_CrumblingPeg" />
+        <LogicToActorPrototype logic="FloorSpike" actorPrototype="ActorPrototype_Level14_FloorSpike" />
+        <LogicToActorPrototype logic="FloorSpike2" actorPrototype="ActorPrototype_Level14_FloorSpike" />
+        <LogicToActorPrototype logic="FloorSpike3" actorPrototype="ActorPrototype_Level14_FloorSpike" />
+        <LogicToActorPrototype logic="FloorSpike4" actorPrototype="ActorPrototype_Level14_FloorSpike" />
+
+        <!-- Not implemented yet (stage 2-4): hidden instead of shown as static images -->
+        <LogicToActorPrototype logic="TProjectile" actorPrototype="ActorPrototype_Null" />
+        <LogicToActorPrototype logic="BossStager" actorPrototype="ActorPrototype_Null" />
+        <LogicToActorPrototype logic="JumpSwitch" actorPrototype="ActorPrototype_Null" />
+        <LogicToActorPrototype logic="CursePowerup" actorPrototype="ActorPrototype_Null" />
+        <LogicToActorPrototype logic="Chameleon" actorPrototype="ActorPrototype_Null" />
+    </LogicsToActorPrototypes>
+    <ClawSpawnPositions>
+        <!-- start, FirstSuperCheckpoint, SecondSuperCheckpoint -->
+        <ClawSpawnPosition spawnNumber="0" x="1723" y="3173" />
+        <ClawSpawnPosition spawnNumber="1" x="9845" y="3037" />
+        <ClawSpawnPosition spawnNumber="2" x="19892" y="3549" />
+    </ClawSpawnPositions>
+    <TopLadderEnds>
+    </TopLadderEnds>
+    <TileDeathEffect type="LiquidSplash" offsetX="0" offsetY="-20" />
+</LevelMetadata>

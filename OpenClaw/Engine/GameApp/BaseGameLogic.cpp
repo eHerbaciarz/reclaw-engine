@@ -698,8 +698,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
     int finishedLevelNumber = m_pCurrentLevel->GetLevelNumber();
     int nextLevelNumber = m_pCurrentLevel->GetLevelNumber() + 1;
 
-    // Level 11 is the last implemented level; custom levels are never saved
-    if (nextLevelNumber <= 11 && !m_pCurrentLevel->IsCustomLevel())
+    // Unlock the next level (up to the last one); custom levels are never saved
+    if (nextLevelNumber <= (int)LEVELS_COUNT && !m_pCurrentLevel->IsCustomLevel())
     {
         // Add level entry if it doesn't exist
         if (!m_pGameSaveMgr->HasLevelSave(nextLevelNumber)) {
@@ -716,6 +716,9 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
                 case 9: levelName = "Pirate's Cove"; break;
                 case 10: levelName = "Cliffs"; break;
                 case 11: levelName = "Caverns"; break;
+                case 12: levelName = "Undersea Caves"; break;
+                case 13: levelName = "Tiger Island"; break;
+                case 14: levelName = "Temple"; break;
                 default: levelName = "Unknown"; break;
             }
             m_pGameSaveMgr->AddLevelEntry(nextLevelNumber, levelName);

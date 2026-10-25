@@ -237,6 +237,10 @@ std::string EnumToString_ActorPrototype(ActorPrototype actorProto)
         { ActorPrototype_Level13_RedTail, "ActorPrototype_Level13_RedTail" },
         { ActorPrototype_Level13_BossGem, "ActorPrototype_Level13_BossGem" },
         { ActorPrototype_Level13_BossStager, "ActorPrototype_Level13_BossStager" },
+        { ActorPrototype_Level14_CrumblingPeg, "ActorPrototype_Level14_CrumblingPeg" },
+        { ActorPrototype_Level14_FloorSpike, "ActorPrototype_Level14_FloorSpike" },
+        { ActorPrototype_Level14_PathElevator, "ActorPrototype_Level14_PathElevator" },
+        { ActorPrototype_Level14_TogglePeg, "ActorPrototype_Level14_TogglePeg" },
 
         //=======================================
         // Menu
@@ -488,6 +492,10 @@ ActorPrototype StringToEnum_ActorPrototype(const std::string& actorProtoStr)
         { "ActorPrototype_Level13_RedTail", ActorPrototype_Level13_RedTail },
         { "ActorPrototype_Level13_BossGem", ActorPrototype_Level13_BossGem },
         { "ActorPrototype_Level13_BossStager", ActorPrototype_Level13_BossStager },
+        { "ActorPrototype_Level14_CrumblingPeg", ActorPrototype_Level14_CrumblingPeg },
+        { "ActorPrototype_Level14_FloorSpike", ActorPrototype_Level14_FloorSpike },
+        { "ActorPrototype_Level14_PathElevator", ActorPrototype_Level14_PathElevator },
+        { "ActorPrototype_Level14_TogglePeg", ActorPrototype_Level14_TogglePeg },
 
         //=======================================
         // Menu

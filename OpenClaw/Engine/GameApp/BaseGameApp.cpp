@@ -1002,6 +1002,12 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
     ParseValueFromXmlElem(
         &m_DebugOptions.lastImplementedLevel,
         pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
+#ifndef __EMSCRIPTEN__
+    // Older config.xml files on the SD card still say 13; level 14 is playable now.
+    if (m_DebugOptions.lastImplementedLevel < 14) {
+      m_DebugOptions.lastImplementedLevel = 14;
+    }
+#endif
     ParseValueFromXmlElem(
         &m_DebugOptions.skipMenuToLevel,
         pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
