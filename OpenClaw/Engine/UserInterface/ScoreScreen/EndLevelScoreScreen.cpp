@@ -2,6 +2,7 @@
 #include "../../GameApp/BaseGameApp.h"
 #include "../../Video/Native/MoviePlayer.h"
 #include "../../Audio/Audio.h"
+#include "../../GameApp/BaseGameLogic.h"
 #include "../../Resource/Loaders/PalLoader.h"
 #include "../../Resource/Loaders/PcxLoader.h"
 #include "../../Resource/Loaders/PidLoader.h"
@@ -519,6 +520,14 @@ void ScreenElementScoreScreen::LoadNextLevel()
     m_pProcessMgr->AbortAllProcesses(true);
     SAFE_DELETE(m_pProcessMgr);
     IEventMgr::Get()->VAbortAllEvents();
+
+    // A custom level is a one-off: back to the menu, no story movie.
+    shared_ptr<LevelData> pLevel = g_pApp->GetGameLogic()->GetCurrentLevelData();
+    if (pLevel && pLevel->IsCustomLevel())
+    {
+        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Enter_Menu()));
+        return;
+    }
 
 #ifndef __EMSCRIPTEN__
     // Story movie between chapters, as in the original game.

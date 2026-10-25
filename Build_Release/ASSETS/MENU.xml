@@ -391,8 +391,7 @@
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/006_LOADCUSTOM.PCX</ActiveImage>
             <Position x="320" y="315" align="center" />
             <GeneratedEvent>
-                <Type>SwitchPage</Type>
-                <PageName>MenuPage_SinglePlayer_LoadCustomLevel</PageName>
+                <Type>LoadCustomLevel</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>

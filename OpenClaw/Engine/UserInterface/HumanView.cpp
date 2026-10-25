@@ -1,5 +1,6 @@
 #include "HumanView.h"
 #include "../Video/Native/MoviePlayer.h"
+#include "CustomLevels.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
 #include "../GameApp/GameSaves.h"
@@ -613,6 +614,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::PlayMoviesDelegate), EventData_Menu_Play_Movies::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ToggleFullscreenDelegate), EventData_Menu_ToggleFullscreen::sk_EventType);
@@ -664,6 +667,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::StartNewGameDelegate), EventData_Start_New_Game::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::PlayMoviesDelegate), EventData_Menu_Play_Movies::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1386,6 +1391,35 @@ void HumanView::PlayMoviesDelegate(IEventDataPtr pEventData)
     }
     g_pApp->GetAudio()->ResumeAllSounds();
     g_pApp->GetAudio()->ResumeMusic();
+}
+
+// "Load custom level": pick a .WWD from the Custom folder and play it with the
+// assets of the original level it was made for.
+void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
+{
+    CustomLevels::Entry level;
+    if (!CustomLevels::Pick(g_pApp->GetRenderer(), level))
+    {
+        return;   // back to the menu page
+    }
+    if (level.baseLevel < 1 || level.baseLevel > 14)
+    {
+        LOG_ERROR("Custom level does not name its original level: " + level.path);
+        return;
+    }
+    LOG("Loading custom level " + level.path + " (assets of level " + ToStr(level.baseLevel) + ")");
+
+    m_ScreenElements.clear();
+    m_pMenu.reset();
+    m_pScene.reset(new ScreenElementScene(g_pApp->GetRenderer()));
+    m_pHUD.reset(new ScreenElementHUD());
+    m_pScene->AddChild(INVALID_ACTOR_ID, m_pCamera);
+    m_pScene->SetCamera(m_pCamera);
+
+    shared_ptr<LevelData> pLevelData(new LevelData(level.baseLevel, true, 0));
+    pLevelData->SetCustomLevel(level.path, level.startX, level.startY);
+    g_pApp->GetGameLogic()->SetLevelData(pLevelData);
+    g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
 }
 
 void HumanView::StartNewGameDelegate(IEventDataPtr pEventData)

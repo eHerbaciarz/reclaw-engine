@@ -8,6 +8,7 @@
 #include "../Resource/ResourceDirectory.h"
 #include "StartupSplash.h"
 #include "../Video/Native/MoviePlayer.h"
+#include "../UserInterface/CustomLevels.h"
 #include "../Resource/ResourceMgr.h"
 #include "../UserInterface/HumanView.h"
 #include "BaseGameLogic.h"
@@ -1295,6 +1296,8 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
     movieRoots.push_back("/Games/claw");
 #endif
     MoviePlayer::SetSearchRoots(movieRoots, gameOptions.userDirectory);
+    // Custom levels: a "Custom" folder in the same places.
+    CustomLevels::SetSearchRoots(movieRoots);
   }
 #endif
 

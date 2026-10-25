@@ -379,7 +379,33 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 
     // ============== LEVEL LOADING ==============
 
-    WapWwd* pWwd = WwdResourceLoader::LoadAndReturnWwd(xmlLevelResource);
+    WapWwd* pWwd = NULL;
+    if (m_pCurrentLevel->IsCustomLevel())
+    {
+        // Custom level: the WWD comes from a file, the assets from the REZ.
+        static WapWwd* s_pCustomWwd = NULL;
+        if (s_pCustomWwd)
+        {
+            WAP_WwdDestroy(s_pCustomWwd);
+            s_pCustomWwd = NULL;
+        }
+        std::ifstream file(m_pCurrentLevel->GetCustomWwdPath(), std::ios::binary);
+        std::vector<char> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        if (!data.empty())
+        {
+            s_pCustomWwd = WAP_WwdLoadFromData(data.data(), (uint32_t)data.size());
+        }
+        pWwd = s_pCustomWwd;
+        if (pWwd == NULL)
+        {
+            LOG_ERROR("Could not load custom level: " + m_pCurrentLevel->GetCustomWwdPath());
+            return false;
+        }
+    }
+    else
+    {
+        pWwd = WwdResourceLoader::LoadAndReturnWwd(xmlLevelResource);
+    }
     assert(pWwd != NULL);
 
     TiXmlElement* pXmlLevelRoot = WwdToXml(pWwd, m_pCurrentLevel->GetLevelNumber());
@@ -514,8 +540,17 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     }
 
     // Load game save data
-    const CheckpointSave* pCheckpointSave = m_pGameSaveMgr->GetCheckpointSave(
-        m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
+    // Custom levels start with new-game stats and never use the save game.
+    CheckpointSave customStart;
+    customStart.checkpointIdx = 0;
+    customStart.score = 0;
+    customStart.health = 100;
+    customStart.lives = 6;
+    customStart.bulletCount = 10;
+    customStart.magicCount = 5;
+    customStart.dynamiteCount = 3;
+    const CheckpointSave* pCheckpointSave = m_pCurrentLevel->IsCustomLevel() ? &customStart :
+        m_pGameSaveMgr->GetCheckpointSave(m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
     assert(pCheckpointSave != NULL);
 
     loadingProgress = 95.0f;
@@ -531,7 +566,14 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     pEventMgr->VQueueEvent(IEventDataPtr(new EventData_Modify_Player_Stat(clawId, PlayerStat_Dynamite, pCheckpointSave->dynamiteCount, false)));
 
     // Set claw to spawn location
-    m_CurrentSpawnPosition = GetSpawnPosition(m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
+    if (m_pCurrentLevel->IsCustomLevel())
+    {
+        m_CurrentSpawnPosition = Point(m_pCurrentLevel->m_CustomStartX, m_pCurrentLevel->m_CustomStartY);
+    }
+    else
+    {
+        m_CurrentSpawnPosition = GetSpawnPosition(m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
+    }
     pEventMgr->VTriggerEvent(IEventDataPtr(new EventData_Teleport_Actor(clawId, m_CurrentSpawnPosition)));
 
     // Save possible pickup items
@@ -656,8 +698,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
     int finishedLevelNumber = m_pCurrentLevel->GetLevelNumber();
     int nextLevelNumber = m_pCurrentLevel->GetLevelNumber() + 1;
 
-    // Level 11 is the last implemented level
-    if (nextLevelNumber <= 11)
+    // Level 11 is the last implemented level; custom levels are never saved
+    if (nextLevelNumber <= 11 && !m_pCurrentLevel->IsCustomLevel())
     {
         // Add level entry if it doesn't exist
         if (!m_pGameSaveMgr->HasLevelSave(nextLevelNumber)) {
@@ -823,10 +865,9 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
         DO_AND_CHECK(SetTiXmlNodeValue(pScoreRowElem, "ScoreRow.CountOfTotalScoreItemsInLevel", totalCount));
     }
 
-    const CheckpointSave* pStartLevelSave = m_pGameSaveMgr->GetCheckpointSave(finishedLevelNumber, 0);
-    assert(pStartLevelSave != NULL);
-
-    int startLevelScore = pStartLevelSave->score;
+    const CheckpointSave* pStartLevelSave = m_pCurrentLevel->IsCustomLevel() ? NULL :
+        m_pGameSaveMgr->GetCheckpointSave(finishedLevelNumber, 0);
+    int startLevelScore = pStartLevelSave ? pStartLevelSave->score : 0;
     int levelScoreCollected = nextLevelCheckpoint.score - startLevelScore;
 
     //<ScorePointsCollectedInLevel>0<ScorePointsCollectedInLevel>
@@ -1539,6 +1580,10 @@ void BaseGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
     // Only save if this is a save checkpoint (not just a respawn point)
     if (!pCastEventData->IsSaveCheckpoint()) {
         return;
+    }
+
+    if (m_pCurrentLevel && m_pCurrentLevel->IsCustomLevel()) {
+        return;   // custom levels keep their checkpoints in memory only
     }
 
     if (!m_pCurrentLevel) {

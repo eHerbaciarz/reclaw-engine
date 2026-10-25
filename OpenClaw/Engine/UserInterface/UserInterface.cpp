@@ -409,6 +409,10 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
     {
         pEventData.reset(new EventData_Import_Save_Data());
     }
+    else if (eventType == "LoadCustomLevel")
+    {
+        pEventData.reset(new EventData_Menu_Load_Custom_Level());
+    }
     else if (eventType == "PlayMovies")
     {
         int movieIndex = -1;

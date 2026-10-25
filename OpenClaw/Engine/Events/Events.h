@@ -2357,6 +2357,25 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Load_Custom_Level
+// Fired by the "Load custom level" button: shows the list of .WWD files.
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Load_Custom_Level : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    EventData_Menu_Load_Custom_Level() { }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Load_Custom_Level()); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Load_Custom_Level"; }
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Play_Movies
 // Fired by the "Replay movies" page: plays one movie (index in CLAW.FEC), or
 // every movie unlocked so far when the index is -1.

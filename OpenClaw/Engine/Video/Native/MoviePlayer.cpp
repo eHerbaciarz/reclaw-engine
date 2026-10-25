@@ -15,15 +15,13 @@
 
 #include <tinyxml.h>
 
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
 
 extern "C" {
 #include "../../../../ThirdParty/libsmacker/smacker.h"
 }
 
 #include "../../Logger/Logger.h"
+#include "../../Platform/Input/BlockingInput.h"
 
 namespace
 {
@@ -259,88 +257,18 @@ namespace
     }
 
     //---------------------------------------------------------------- input
-#ifdef __SWITCH__
-    PadState g_Pad;
-    bool g_PadReady = false;
-#endif
-
-    void InitSkipInputOnce()
-    {
-#ifdef __SWITCH__
-        if (!g_PadReady)
-        {
-            padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-            padInitializeDefault(&g_Pad);
-            g_PadReady = true;
-            padUpdate(&g_Pad);
-        }
-#endif
-    }
-
-    void InitSkipInput()
-    {
-#ifdef __SWITCH__
-        if (!g_PadReady)
-        {
-            padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-            padInitializeDefault(&g_Pad);
-            g_PadReady = true;
-        }
-        padUpdate(&g_Pad);   // ignore buttons already held when the movie starts
-#endif
-    }
-
-    // A / Enter / Space / tap: skip this movie. B / + / Escape: stop the sequence.
+    // A / Enter / tap: skip this movie. B / + / Escape: stop the sequence.
     SkipKind SkipRequested()
     {
-        SkipKind kind = None;
-        auto take = [&kind](SkipKind k) { if (k > kind) kind = k; };
-#ifdef __SWITCH__
-        padUpdate(&g_Pad);
-        u64 down = padGetButtonsDown(&g_Pad);
-        if (down & HidNpadButton_A) take(SkipOne);
-        if (down & (HidNpadButton_B | HidNpadButton_Plus)) take(AbortAll);
-#endif
-        SDL_PumpEvents();
-        SDL_Event ev[16];
-        // Only look at input events; device add/remove events stay queued for the game.
-        int n = SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_KEYDOWN, SDL_KEYDOWN);
-        for (int i = 0; i < n; ++i)
-        {
-            SDL_Keycode k = ev[i].key.keysym.sym;
-            if (k == SDLK_RETURN || k == SDLK_SPACE || k == SDLK_KP_ENTER) take(SkipOne);
-            if (k == SDLK_ESCAPE || k == SDLK_BACKSPACE) take(AbortAll);
-        }
-        n = SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_CONTROLLERBUTTONDOWN, SDL_CONTROLLERBUTTONDOWN);
-        for (int i = 0; i < n; ++i)
-        {
-            Uint8 b = ev[i].cbutton.button;
-            take((b == SDL_CONTROLLER_BUTTON_START || b == SDL_CONTROLLER_BUTTON_BACK) ? AbortAll : SkipOne);
-        }
-        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_FINGERDOWN, SDL_FINGERDOWN) > 0) take(SkipOne);
-        if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN) > 0) take(SkipOne);
-        if (SDL_PeepEvents(ev, 16, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) take(AbortAll);
-        return kind;
+        int b = BlockingInput::Poll();
+        if (b & (BlockingInput::Back | BlockingInput::Start | BlockingInput::Quit)) return AbortAll;
+        if (b & BlockingInput::Accept) return SkipOne;
+        return None;
     }
 
-    void FlushInput()
-    {
-        SDL_PumpEvents();
-        SDL_FlushEvents(SDL_KEYDOWN, SDL_TEXTINPUT);
-        SDL_FlushEvents(SDL_MOUSEMOTION, SDL_MOUSEWHEEL);
-        SDL_FlushEvents(SDL_JOYAXISMOTION, SDL_JOYBUTTONUP);
-        SDL_FlushEvents(SDL_CONTROLLERAXISMOTION, SDL_CONTROLLERBUTTONUP);
-        SDL_FlushEvents(SDL_FINGERDOWN, SDL_FINGERMOTION);
-    }
-
-    bool AppAlive()
-    {
-#ifdef __SWITCH__
-        return appletMainLoop();
-#else
-        return true;
-#endif
-    }
+    void InitSkipInput() { BlockingInput::Reset(); }
+    void FlushInput() { BlockingInput::Flush(); }
+    bool AppAlive() { return BlockingInput::AppAlive(); }
 
     //---------------------------------------------------------------- playback
     PlayResult PlaySource(SDL_Renderer* r, const MovieSource& m)
@@ -553,7 +481,6 @@ namespace MoviePlayer
 
     int PollSkipInput()
     {
-        InitSkipInputOnce();
         return (int)SkipRequested();
     }
 

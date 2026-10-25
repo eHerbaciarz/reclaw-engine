@@ -45,6 +45,7 @@ const EventType EventData_Menu_LoadGame::sk_EventType(0x12abcdaf);
 const EventType EventData_Quit_Game::sk_EventType(0xbf29c1f5);
 const EventType EventData_Start_New_Game::sk_EventType(0xbf29c3f5);
 const EventType EventData_Menu_Play_Movies::sk_EventType(0x5a1d0c3e);
+const EventType EventData_Menu_Load_Custom_Level::sk_EventType(0x5a1d0c3f);
 const EventType EventData_Reset_Save_Progress::sk_EventType(0xbf29c2f5);
 const EventType EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType(0xbf29c2f6);
 const EventType EventData_Export_Save_Data::sk_EventType(0xae17d3c1);

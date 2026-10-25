@@ -222,6 +222,17 @@ public:
     uint32 GetLevelNumber() const { return m_LeveNumber; }
     uint32 GetLoadedCheckpointNumber() const { return m_LoadedCheckpoint; }
 
+    // Custom level (.WWD from the Custom folder) played with the assets of
+    // level m_LeveNumber. Such levels never touch the save game.
+    void SetCustomLevel(const std::string& wwdPath, int startX, int startY)
+    {
+        m_CustomWwdPath = wwdPath;
+        m_CustomStartX = startX;
+        m_CustomStartY = startY;
+    }
+    bool IsCustomLevel() const { return !m_CustomWwdPath.empty(); }
+    const std::string& GetCustomWwdPath() const { return m_CustomWwdPath; }
+
     const PickupMap* GetLootedItems() { return &m_LootedPickupsMap; }
 
 private:
@@ -232,6 +243,9 @@ private:
     bool m_bIsNewGame;
     uint32 m_LeveNumber;
     uint32 m_LoadedCheckpoint;
+    std::string m_CustomWwdPath;
+    int m_CustomStartX = 0;
+    int m_CustomStartY = 0;
 
     TileDescriptionMap m_TileDescriptionMap;
     TileCollisionPrototypeMap m_TileCollisionPrototypeMap;
