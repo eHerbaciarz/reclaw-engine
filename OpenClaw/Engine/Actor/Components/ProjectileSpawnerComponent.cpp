@@ -134,7 +134,7 @@ void ProjectileSpawnerComponent::SpawnProjectile()
     // Check if the spawned projectile is within some bounds of Claw's Human View display
     // If not, then we can't either hear it nor do we care that there is some projectile
     Point projectilePos = m_pOwner->GetPositionComponent()->GetPosition();
-    if (g_pApp->GetHumanView()->GetCamera()->IntersectsWithPoint(projectilePos, 1.25f))
+    if (g_pApp->GetHumanView()->IsPointInAnyView(projectilePos, 1.25f))
     {
         // Spawn the projectile
         Point projectilePosition = m_pOwner->GetPositionComponent()->GetPosition() + m_Properties.projectileSpawnOffset;

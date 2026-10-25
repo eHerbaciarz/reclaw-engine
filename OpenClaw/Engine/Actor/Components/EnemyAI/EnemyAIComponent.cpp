@@ -124,8 +124,7 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
                 IEventMgr::Get()->VTriggerEvent(pEvent);
 
                 SDL_Rect renderRect = m_pRenderComponent->VGetPositionRect();
-                SDL_Rect cameraRect = pCamera->GetCameraRect();
-                if (!SDL_HasIntersection(&renderRect, &cameraRect))
+                if (!pHumanView->IsRectInAnyView(renderRect))
                 {
                     shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
                     IEventMgr::Get()->VQueueEvent(pEvent);

@@ -16,6 +16,7 @@
 
 #include "../../../Events/EventMgr.h"
 #include "../../../Events/Events.h"
+#include "../../../Race/Race.h"
 
 const char* PickupComponent::g_Name = "PickupComponent";
 const char* TreasurePickupComponent::g_Name = "TreasurePickupComponent";
@@ -197,8 +198,7 @@ void TreasurePickupComponent::VUpdate(uint32 msDiff)
                 IEventMgr::Get()->VTriggerEvent(pEvent);
 
                 SDL_Rect renderRect = m_pRenderComponent->VGetPositionRect();
-                SDL_Rect cameraRect = pCamera->GetCameraRect();
-                if (!SDL_HasIntersection(&renderRect, &cameraRect))
+                if (!pHumanView->IsRectInAnyView(renderRect))
                 {
                     shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
                     IEventMgr::Get()->VQueueEvent(pEvent);
@@ -543,6 +543,17 @@ bool EndLevelPickupComponent::VOnApply(Actor* pActorWhoPickedThis)
     // Only Claw should be able to pick this
     shared_ptr<ClawControllableComponent> pClawComponent = MakeStrongPtr(pActorWhoPickedThis->GetComponent<ClawControllableComponent>());
     assert(pClawComponent != nullptr && "Only claw should be able to pick end level item !");
+
+    // Race: reaching the end decides the race instead of finishing the level.
+    if (Race::OnPlayerFinished(pActorWhoPickedThis->GetGUID()))
+    {
+        if (!m_PickupSound.empty())
+        {
+            SoundInfo soundInfo(m_PickupSound);
+            IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Request_Play_Sound(soundInfo)));
+        }
+        return true;
+    }
 
     shared_ptr<EventData_Finished_Level> pEvent(new EventData_Finished_Level());
     IEventMgr::Get()->VQueueEvent(pEvent);

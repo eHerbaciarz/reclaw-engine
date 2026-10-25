@@ -33,6 +33,7 @@
 #include "../Video/Native/MoviePlayer.h"
 #include "../UserInterface/TitleScroll.h"
 #include "../SaveState/SaveStateManager.h"
+#include "../Race/Race.h"
 
 #include "../Physics/ClawPhysics.h"
 
@@ -688,6 +689,14 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         }
     }
 
+    // Race: player 2 (split screen) or the opponent's ghost (network).
+    if (Race::IsActive())
+    {
+        m_pPhysics->VFlushPendingChanges();
+        Race::OnLevelLoaded(this);
+        m_pPhysics->VFlushPendingChanges();
+    }
+
     loadingProgress = 100.0f;   
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
 
@@ -1121,8 +1130,11 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
 
         case GameState_IngameRunning:
         {
+            // Race: countdown, network, finish (save states are off in races).
+            Race::Update(this, msDiff);
+
             // Quick save / quick load / rewind happen between steps.
-            m_bSkipWorldStep = SaveStateManager::Get()->OnGameStep(this, msDiff);
+            m_bSkipWorldStep = Race::IsActive() ? false : SaveStateManager::Get()->OnGameStep(this, msDiff);
             if (m_bSkipWorldStep)
             {
                 break;
@@ -1665,6 +1677,13 @@ void BaseGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
         static_pointer_cast<EventData_Checkpoint_Reached>(pEventData);
 
     if (!pCastEventData) return;
+
+    // Race: every Captain has his own checkpoint and nothing is saved.
+    if (Race::IsActive())
+    {
+        Race::SetSpawn(pCastEventData->GetActorId(), pCastEventData->GetSpawnPoint());
+        return;
+    }
 
     // Update current spawn position
     m_CurrentSpawnPosition = pCastEventData->GetSpawnPoint();

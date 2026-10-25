@@ -35,9 +35,9 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/003_MULTIPLAYER.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/004_MULTIPLAYER.PCX</ActiveImage>
             <Position x="320" y="245" align="center" />
+            <!-- Race lobby: split screen or network (OpenClaw/Engine/Race) -->
             <GeneratedEvent>
-                <Type>SwitchPage</Type>
-                <PageName>MenuPage_Multiplayer</PageName>
+                <Type>StartRace</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>

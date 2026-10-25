@@ -111,8 +111,26 @@ public:
     // Abort running screen effects (death fade, teleport fade) - save states.
     void CancelScreenEffects();
 
+    // Split-screen race: left half follows player 1, right half player 2
+    // (whose controller is the second pad).
+    void EnableSplitScreen(uint32 secondActorId);
+    void DisableSplitScreen();
+    bool IsSplitScreen() const { return m_pCamera2 != nullptr; }
+    // The camera that follows this actor (player 2 has his own).
+    shared_ptr<CameraNode> GetCameraForActor(uint32 actorId);
+    // Whether something is on screen in any view.
+    bool IsPointInAnyView(const Point& point, float cameraScale);
+    bool IsRectInAnyView(const SDL_Rect& rect);
+
 protected:
     void RenderToast(SDL_Renderer* pRenderer);
+    void RenderSplitScene(SDL_Renderer* pRenderer);
+    void StartRaceDelegate(IEventDataPtr pEventData);
+    virtual void VCreateSecondController(uint32 actorId) { }
+    virtual void VDestroySecondController() { }
+    shared_ptr<CameraNode> m_pCamera2;
+    uint32 m_SecondActorId = 0;
+    shared_ptr<IGamepadHandler> m_pGamepadHandler2;
     std::string m_ToastText;
     uint32 m_ToastShownAt = 0;
     SDL_Texture* m_pToastTexture = nullptr;

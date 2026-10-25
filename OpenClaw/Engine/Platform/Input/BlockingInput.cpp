@@ -18,7 +18,7 @@ namespace
     {
         if (!g_PadReady)
         {
-            padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+            padConfigureInput(8, HidNpadStyleSet_NpadStandard);   // 8: keep player 2 (race) connected
             padInitializeDefault(&g_Pad);
             g_PadReady = true;
             padUpdate(&g_Pad);

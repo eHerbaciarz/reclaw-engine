@@ -86,6 +86,7 @@ public:
 
     inline void SetVisible(bool visible) { m_IsVisible = visible; }
     inline bool IsVisible() { return m_IsVisible; }
+    const std::string& GetCurrentImageName() const { return m_CurrentImageName; }
     inline bool IsMirrored() { return m_IsMirrored; }
     inline bool IsInverted() { return m_IsInverted; }
     inline int GetAlpha() { return m_Alpha; }

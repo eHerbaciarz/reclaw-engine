@@ -4,6 +4,8 @@
 #include "../Graphics2D/Image.h"
 #include "../GameApp/BaseGameApp.h"
 
+bool SDL2HUDSceneNode::s_bHideAll = false;
+
 SDL2HUDSceneNode::SDL2HUDSceneNode(const uint32 actorId,
     BaseRenderComponent* pRenderComponent,
     RenderPass renderPass,

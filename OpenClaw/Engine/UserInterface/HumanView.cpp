@@ -20,6 +20,9 @@
 #include "../Graphics2D/Image.h"
 #include "../Util/PrimeSearch.h"
 #include "ScoreScreen/EndLevelScoreScreen.h"
+#include "../Race/Race.h"
+#include "../Race/RaceLobby.h"
+#include "../Scene/HUDSceneNode.h"
 
 const uint32 g_InvalidGameViewId = 0xFFFFFFFF;
 
@@ -106,7 +109,19 @@ void HumanView::VOnRender(uint32 msDiff)
         {
             if (screenElement->VIsVisible())
             {
+                const bool isScene = m_pScene && screenElement.get() == static_cast<IScreenElement*>(m_pScene.get());
+                if (isScene && m_pCamera2)
+                {
+                    RenderSplitScene(renderer);
+                    continue;
+                }
                 screenElement->VOnRender(msDiff);
+                if (isScene && Race::IsActive())
+                {
+                    Point scale = g_pApp->GetScale();
+                    SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
+                    Race::RenderOverlay(renderer, 0, full);
+                }
             }
         }
         //LOG("SCREEN ELEMENTS: " + ToStr(m_ScreenElements.size()))
@@ -377,6 +392,10 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
             }
 
             // Forward to gamepad handler for in-game controls (only if no menu active)
+            if (!menuActive && m_pGamepadHandler2 && evt.gamepadButton.gamepadIndex == 1) {
+                return m_pGamepadHandler2->VOnGamepadButtonDown(
+                    evt.gamepadButton.button, evt.gamepadButton.value);
+            }
             if (!menuActive && m_pGamepadHandler) {
                 return m_pGamepadHandler->VOnGamepadButtonDown(
                     evt.gamepadButton.button, evt.gamepadButton.value);
@@ -390,6 +409,9 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
             // direction released during the pause gets cleared — otherwise the
             // held-direction state sticks and the player moves on unpause. Mirrors
             // the keyboard key-up handling.
+            if (m_pGamepadHandler2 && evt.gamepadButton.gamepadIndex == 1) {
+                return m_pGamepadHandler2->VOnGamepadButtonUp(evt.gamepadButton.button);
+            }
             if (m_pGamepadHandler) {
                 return m_pGamepadHandler->VOnGamepadButtonUp(evt.gamepadButton.button);
             }
@@ -447,6 +469,10 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
             }
 
             // Forward to gamepad handler for in-game controls (only if no menu active)
+            if (!menuActive && m_pGamepadHandler2 && evt.gamepadAxis.gamepadIndex == 1) {
+                return m_pGamepadHandler2->VOnGamepadAxis(
+                    evt.gamepadAxis.axis, evt.gamepadAxis.value);
+            }
             if (!menuActive && m_pGamepadHandler) {
                 return m_pGamepadHandler->VOnGamepadAxis(
                     evt.gamepadAxis.axis, evt.gamepadAxis.value);
@@ -620,6 +646,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -675,6 +703,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::PlayMoviesDelegate), EventData_Menu_Play_Movies::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -991,16 +1021,23 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
             bool play = true;
             if (!soundSourcePos.IsZeroXY())
             {
+                // Split screen: heard from whichever player's view is closer.
+                shared_ptr<CameraNode> pSoundCamera = m_pCamera;
+                if (m_pCamera2 && (m_pCamera2->GetCenterPosition() - soundSourcePos).Length() <
+                                  (m_pCamera->GetCenterPosition() - soundSourcePos).Length())
+                {
+                    pSoundCamera = m_pCamera2;
+                }
                 const float paddingPx = 150.0f;
-                const float paddingRatio = paddingPx / (float)m_pCamera->GetWidth();
-                if (m_pCamera->IntersectsWithPoint(soundSourcePos, 1.0f + paddingRatio))
+                const float paddingRatio = paddingPx / (float)pSoundCamera->GetWidth();
+                if (pSoundCamera->IntersectsWithPoint(soundSourcePos, 1.0f + paddingRatio))
                 {
                     if (pSoundInfo->setDistanceEffect)
                     {
-                        Point soundDistanceDelta = m_pCamera->GetCenterPosition() - soundSourcePos;
+                        Point soundDistanceDelta = pSoundCamera->GetCenterPosition() - soundSourcePos;
                         double length = soundDistanceDelta.Length();
 
-                        float distanceRatio = length / ((m_pCamera->GetWidth() / 2) * (1.0f + paddingRatio));
+                        float distanceRatio = length / ((pSoundCamera->GetWidth() / 2) * (1.0f + paddingRatio));
                         //float distanceRatio = length / pSoundInfo->maxHearDistance;
                         int sdlDistance = min(distanceRatio * 150, (float)150);
                         /*LOG("SDL DISTANCE: " + ToStr(sdlDistance));
@@ -1021,7 +1058,7 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
                         }
                     }
 
-                    /*LOG("CenterPosition: " + m_pCamera->GetCenterPosition().ToString());
+                    /*LOG("CenterPosition: " + pSoundCamera->GetCenterPosition().ToString());
                     LOG("SoundSourcePos: " + soundSourcePos.ToString());*/
                 } else {
                     play = false;
@@ -1109,6 +1146,8 @@ void HumanView::EnterMenuDelegate(IEventDataPtr pEventData)
         LOG_WARNING("Already in menu state. Skipping.");
         return;
     }
+
+    Race::End();
 
     m_ScreenElements.clear();
     m_pScene.reset(new ScreenElementScene(g_pApp->GetRenderer()));
@@ -1256,6 +1295,13 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
 
     // Strong haptic feedback on death
     HapticFeedback::Trigger(HapticPreset::Death);
+
+    // Race: no game over and no full-screen death fade (the other player
+    // keeps going); the Captain is simply put back at his checkpoint.
+    if (Race::IsActive())
+    {
+        return;
+    }
 
     if (pCastEventData->GetRemainingLives() < 0)
     {
@@ -1428,6 +1474,120 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     pLevelData->SetCustomLevel(level.path, level.startX, level.startY);
     g_pApp->GetGameLogic()->SetLevelData(pLevelData);
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
+}
+
+void HumanView::StartRaceDelegate(IEventDataPtr pEventData)
+{
+    Race::Setup setup;
+    if (!RaceLobby::Run(g_pApp->GetRenderer(), setup))
+    {
+        return;   // back to the menu page
+    }
+    Race::Configure(setup);
+    LOG("Starting race on level " + ToStr(setup.level));
+
+    m_ScreenElements.clear();
+    m_pMenu.reset();
+    m_pScene.reset(new ScreenElementScene(g_pApp->GetRenderer()));
+    m_pHUD.reset(new ScreenElementHUD());
+    m_pScene->AddChild(INVALID_ACTOR_ID, m_pCamera);
+    m_pScene->SetCamera(m_pCamera);
+
+    shared_ptr<LevelData> pLevelData(new LevelData(setup.level, true, 0));
+    g_pApp->GetGameLogic()->SetLevelData(pLevelData);
+    g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
+}
+
+void HumanView::EnableSplitScreen(uint32 secondActorId)
+{
+    shared_ptr<SceneNode> pNode = m_pScene ? static_pointer_cast<SceneNode>(m_pScene->FindActor(secondActorId)) : nullptr;
+    if (!pNode)
+    {
+        LOG_ERROR("Split screen: player 2 has no scene node");
+        return;
+    }
+    Point window = g_pApp->GetWindowSize();
+    m_pCamera->SetSize((uint32)(window.x / 2), (uint32)window.y);
+    m_pCamera2.reset(new CameraNode(m_pCamera->GetPosition(), (uint32)(window.x / 2), (uint32)window.y));
+    m_pCamera2->SetTarget(pNode);
+    m_SecondActorId = secondActorId;
+    VCreateSecondController(secondActorId);
+    if (m_pHUD) m_pHUD->VSetVisible(false);
+    SDL2HUDSceneNode::s_bHideAll = true;
+    LOG("Split screen on");
+}
+
+void HumanView::DisableSplitScreen()
+{
+    if (!m_pCamera2 && m_SecondActorId == 0)
+    {
+        return;
+    }
+    VDestroySecondController();
+    m_pGamepadHandler2.reset();
+    m_pCamera2.reset();
+    m_SecondActorId = 0;
+    Point window = g_pApp->GetWindowSize();
+    m_pCamera->SetSize((uint32)window.x, (uint32)window.y);
+    if (m_pHUD) m_pHUD->VSetVisible(true);
+    SDL2HUDSceneNode::s_bHideAll = false;
+    LOG("Split screen off");
+}
+
+shared_ptr<CameraNode> HumanView::GetCameraForActor(uint32 actorId)
+{
+    if (m_pCamera2 && actorId == m_SecondActorId)
+    {
+        return m_pCamera2;
+    }
+    return m_pCamera;
+}
+
+bool HumanView::IsPointInAnyView(const Point& point, float cameraScale)
+{
+    if (m_pCamera && m_pCamera->IntersectsWithPoint(point, cameraScale)) return true;
+    return m_pCamera2 && m_pCamera2->IntersectsWithPoint(point, cameraScale);
+}
+
+bool HumanView::IsRectInAnyView(const SDL_Rect& rect)
+{
+    if (m_pCamera)
+    {
+        SDL_Rect cameraRect = m_pCamera->GetCameraRect();
+        if (SDL_HasIntersection(&rect, &cameraRect)) return true;
+    }
+    if (m_pCamera2)
+    {
+        SDL_Rect cameraRect = m_pCamera2->GetCameraRect();
+        if (SDL_HasIntersection(&rect, &cameraRect)) return true;
+    }
+    return false;
+}
+
+void HumanView::RenderSplitScene(SDL_Renderer* pRenderer)
+{
+    Point scale = g_pApp->GetScale();
+    int fullW = (int)(g_pApp->GetWindowSize().x / scale.x);
+    int fullH = (int)(g_pApp->GetWindowSize().y / scale.y);
+    int halfW = fullW / 2;
+    SDL_Rect views[2] = { { 0, 0, halfW, fullH }, { halfW, 0, fullW - halfW, fullH } };
+    shared_ptr<CameraNode> cameras[2] = { m_pCamera, m_pCamera2 };
+
+    for (int i = 0; i < 2; ++i)
+    {
+        SDL_RenderSetViewport(pRenderer, &views[i]);
+        m_pScene->SetCamera(cameras[i]);
+        m_pScene->OnRender();
+        SDL_Rect local = { 0, 0, views[i].w, views[i].h };
+        Race::RenderOverlay(pRenderer, i, local);
+    }
+    SDL_RenderSetViewport(pRenderer, NULL);
+    m_pScene->SetCamera(m_pCamera);
+
+    // Divider between the halves
+    SDL_SetRenderDrawColor(pRenderer, 20, 10, 0, 255);
+    SDL_Rect divider = { halfW - 1, 0, 2, fullH };
+    SDL_RenderFillRect(pRenderer, &divider);
 }
 
 void HumanView::ShowToast(const std::string& text)

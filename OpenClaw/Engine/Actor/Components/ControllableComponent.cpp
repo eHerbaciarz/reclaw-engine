@@ -290,7 +290,7 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
     }
 
     assert(g_pApp->GetHumanView() && g_pApp->GetHumanView()->GetCamera());
-    shared_ptr<CameraNode> pCamera = g_pApp->GetHumanView()->GetCamera();
+    shared_ptr<CameraNode> pCamera = g_pApp->GetHumanView()->GetCameraForActor(m_pOwner->GetGUID());
 
     if (m_DuckingTime > g_pApp->GetGlobalOptions()->startLookUpOrDownTime)
     {

@@ -15,6 +15,7 @@
 #include "Engine/Actor/Components/PositionComponent.h"
 #include "Engine/Physics/ClawPhysics.h"
 #include "Engine/GameApp/GameSaves.h"
+#include "Engine/Race/Race.h"
 
 ClawGameLogic::ClawGameLogic()
 {
@@ -89,6 +90,13 @@ void ClawGameLogic::RemoveAllDelegates()
 void ClawGameLogic::PlayerActorAssignmentDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Attach_Actor> pCastEventData = static_pointer_cast<EventData_Attach_Actor>(pEventData);
+
+    // Race: player 2 gets its own controller and camera (HumanView::EnableSplitScreen).
+    StrongActorPtr pAttached = MakeStrongPtr(VGetActor(pCastEventData->GetActorId()));
+    if (pAttached && pAttached->GetName() == "Claw2")
+    {
+        return;
+    }
 
     for (const shared_ptr<IGameView>& pView : m_GameViews)
     {
@@ -389,6 +397,12 @@ void ClawGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
         return;
     }
 
+    if (Race::IsActive())
+    {
+        Race::SetSpawn(pCastEventData->GetActorId(), pCastEventData->GetSpawnPoint());
+        return;
+    }
+
     m_CurrentSpawnPosition = pCastEventData->GetSpawnPoint();
 
     if (pCastEventData->IsSaveCheckpoint())
@@ -436,7 +450,11 @@ void ClawGameLogic::ClawDiedDelegate(IEventDataPtr pEventData)
     }
 
     IEventMgr* pEventMgr = IEventMgr::Get();
-    pEventMgr->VTriggerEvent(IEventDataPtr(new EventData_Modify_Player_Stat(pCastEventData->GetActorId(), PlayerStat_Lives, -1, true)));
+    // Race: unlimited lives
+    if (!Race::IsActive())
+    {
+        pEventMgr->VTriggerEvent(IEventDataPtr(new EventData_Modify_Player_Stat(pCastEventData->GetActorId(), PlayerStat_Lives, -1, true)));
+    }
 
     // On the final death (no lives left) don't revive/respawn Claw — the game-over
     // screen takes over. Claw is held in his death pose by ClawControllableComponent
@@ -450,6 +468,7 @@ void ClawGameLogic::ClawDiedDelegate(IEventDataPtr pEventData)
 
     // Clamp Claw to the floor when spawning him
     Point spawnPoint = m_CurrentSpawnPosition;
+    Race::GetSpawn(pCastEventData->GetActorId(), spawnPoint);
     Point toPoint = spawnPoint + Point(0, 300);
     RaycastResult raycastDown = m_pPhysics->VRayCast(spawnPoint, toPoint, (CollisionFlag_Solid | CollisionFlag_Ground | CollisionFlag_All));
     if (!raycastDown.foundIntersection)

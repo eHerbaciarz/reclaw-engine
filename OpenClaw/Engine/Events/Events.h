@@ -2357,6 +2357,25 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Start_Race
+// Fired by the "Multiplayer" button: race lobby (split screen / network).
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Start_Race : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    EventData_Menu_Start_Race() { }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Start_Race()); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Start_Race"; }
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Load_Custom_Level
 // Fired by the "Load custom level" button: shows the list of .WWD files.
 //---------------------------------------------------------------------------------------------------------------------

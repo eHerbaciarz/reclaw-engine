@@ -110,6 +110,7 @@ struct GameOptions {
   unsigned resourceCacheSize;
   std::string tempDir;
   std::string savesFile;
+  std::string language;   // <Language>: auto / pl / en (port texts)
   // For LINUX ONLY - this is generally ~/.config/openclaw/
   std::string userDirectory;
 

@@ -29,14 +29,14 @@ ActorController::ActorController(shared_ptr<SceneNode> controlledObject, float s
     m_MouseLeftButtonDown = m_MouseRightButtonDown = false;
 }
 
-// Claw's controllable component, for the keg lift button.
-static ClawControllableComponent* GetClawControl()
+// The controlled Captain's controllable component (keg lift button).
+static ClawControllableComponent* GetClawControl(uint32 actorId)
 {
     if (!g_pApp->GetGameLogic())
     {
         return nullptr;
     }
-    StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+    StrongActorPtr pClaw = MakeStrongPtr(g_pApp->GetGameLogic()->VGetActor(actorId));
     if (!pClaw)
     {
         return nullptr;
@@ -44,9 +44,9 @@ static ClawControllableComponent* GetClawControl()
     return MakeStrongPtr(pClaw->GetComponent<ClawControllableComponent>(ClawControllableComponent::g_Name)).get();
 }
 
-static void LiftButton(bool pressed)
+static void LiftButton(uint32 actorId, bool pressed)
 {
-    if (ClawControllableComponent* pClaw = GetClawControl())
+    if (ClawControllableComponent* pClaw = GetClawControl(actorId))
     {
         if (pressed) pClaw->OnLiftPressed();
         else pClaw->OnLiftReleased();
@@ -184,7 +184,7 @@ void ActorController::OnUpdate(uint32 msDiff)
     // Claw walks slower while carrying a powder keg.
     if (fabs(moveX) > FLT_EPSILON)
     {
-        ClawControllableComponent* pClaw = GetClawControl();
+        ClawControllableComponent* pClaw = GetClawControl(m_pControlledObject->VGetProperties()->GetActorId());
         if (pClaw && pClaw->IsCarrying())
         {
             moveX *= 0.6f;
@@ -210,7 +210,7 @@ bool ActorController::VOnKeyDown(SDL_Keycode key)
     if (key == SDLK_F8) { SaveStateManager::Get()->RequestLoad(); return true; }
     if (key == SDLK_F6) { SaveStateManager::Get()->SetRewindHeld(true); return true; }
     // Lift / throw powder kegs
-    if (key == SDLK_z) { LiftButton(true); return true; }
+    if (key == SDLK_z) { LiftButton(m_pControlledObject->VGetProperties()->GetActorId(), true); return true; }
 
     if (g_pApp->GetControlOptions()->useAlternateControls)
     {
@@ -252,7 +252,7 @@ bool ActorController::VOnKeyDown(SDL_Keycode key)
 bool ActorController::VOnKeyUp(SDL_Keycode key)
 {
     if (key == SDLK_F6) { SaveStateManager::Get()->SetRewindHeld(false); return true; }
-    if (key == SDLK_z) { LiftButton(false); return true; }
+    if (key == SDLK_z) { LiftButton(m_pControlledObject->VGetProperties()->GetActorId(), false); return true; }
 
     if (g_pApp->GetControlOptions()->useAlternateControls)
     {
@@ -515,7 +515,7 @@ bool ActorController::VOnGamepadButtonDown(GamepadButton button, float value)
             return true;
 
         case GamepadButton::Y:  // Top face button (Switch "X"): lift / throw powder kegs
-            LiftButton(true);
+            LiftButton(m_pControlledObject->VGetProperties()->GetActorId(), true);
             return true;
 
         // Start button handled in HumanView for pause menu
@@ -580,7 +580,7 @@ bool ActorController::VOnGamepadButtonUp(GamepadButton button)
             return true;
 
         case GamepadButton::Y:
-            LiftButton(false);
+            LiftButton(m_pControlledObject->VGetProperties()->GetActorId(), false);
             return true;
 
         default:

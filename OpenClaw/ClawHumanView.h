@@ -20,12 +20,18 @@ public:
 
     virtual bool VLoadGameDelegate(TiXmlElement* pLevelXmlElem, LevelData* pLevelData) override;
 
+protected:
+    // Split-screen race: player 2's controller (second pad).
+    virtual void VCreateSecondController(uint32 actorId) override;
+    virtual void VDestroySecondController() override;
+
 private:
     void RegisterAllDelegates();
     void RemoveAllDelegates();
 
     shared_ptr<MovementController> m_pFreeCameraController;
     shared_ptr<ActorController> m_pActorController;
+    shared_ptr<ActorController> m_pActorController2;
 
     shared_ptr<SceneNode> m_pControlledActor;
 };

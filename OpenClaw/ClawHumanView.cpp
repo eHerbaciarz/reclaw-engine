@@ -51,6 +51,10 @@ void ClawHumanView::VOnUpdate(uint32 msDiff)
     if (m_pActorController)
     {
         m_pActorController->OnUpdate(msDiff);
+        if (m_pActorController2)
+        {
+            m_pActorController2->OnUpdate(msDiff);
+        }
     }
     else if (m_pFreeCameraController)
     {
@@ -87,6 +91,23 @@ void ClawHumanView::VSetControlledActor(uint32 actorId)
     g_pApp->RegisterTouchRecognizers(*m_pActorController);
 
     m_pCamera->SetTarget(m_pControlledActor);
+}
+
+void ClawHumanView::VCreateSecondController(uint32 actorId)
+{
+    shared_ptr<SceneNode> pNode = static_pointer_cast<SceneNode>(m_pScene->FindActor(actorId));
+    if (!pNode)
+    {
+        return;
+    }
+    // Gamepad only: the keyboard stays with player 1.
+    m_pActorController2.reset(new ActorController(pNode));
+    m_pGamepadHandler2 = m_pActorController2;
+}
+
+void ClawHumanView::VDestroySecondController()
+{
+    m_pActorController2.reset();
 }
 
 bool ClawHumanView::VLoadGameDelegate(TiXmlElement* pLevelXmlElem, LevelData* pLevelData)

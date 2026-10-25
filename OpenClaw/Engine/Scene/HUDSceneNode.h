@@ -17,7 +17,10 @@ public:
 
     // Interface overrides
     virtual void VRender(Scene* pScene);
-    virtual bool IsVisible(Scene* pScene) const { return m_IsActive; }
+    virtual bool IsVisible(Scene* pScene) const { return m_IsActive && !s_bHideAll; }
+
+    // Split-screen race: the classic HUD is replaced by a per-player overlay.
+    static bool s_bHideAll;
     virtual void SetVisible(bool visible) { m_IsActive = visible; }
 
 protected:

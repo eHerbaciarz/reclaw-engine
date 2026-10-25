@@ -178,7 +178,7 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
     TTF_Font* pFont = TTF_OpenFont("romfs:/clacon.ttf", 26);
 
     PadState pad;
-    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+    padConfigureInput(8, HidNpadStyleSet_NpadStandard);   // 8: keep player 2 (race) connected
     padInitializeDefault(&pad);
 
     while (appletMainLoop())

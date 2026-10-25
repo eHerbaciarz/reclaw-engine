@@ -1,4 +1,5 @@
 #include "../Audio/Audio.h"
+#include "../UserInterface/Lang.h"
 #include "../Events/EventMgr.h"
 #include "../Events/EventMgrImpl.h"
 #include "../Events/Events.h"
@@ -821,6 +822,10 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
                           assetsElem->FirstChildElement("TempDir"));
     DO_AND_CHECK(ParseValueFromXmlElem(
         &m_GameOptions.savesFile, assetsElem->FirstChildElement("SavesFile")));
+    if (TiXmlElement *langElem = assetsElem->FirstChildElement("Language"))
+    {
+      if (langElem->GetText()) m_GameOptions.language = langElem->GetText();
+    }
   }
 
   //-------------------------------------------------------------------------
@@ -1311,6 +1316,9 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
   // Custom cache first so ASSETS.ZIP can override CLAW.REZ assets
   m_pResourceMgr->VAddResourceCache(pCustomCache);
   m_pResourceMgr->VAddResourceCache(m_pResourceCache);
+
+  // Language of the port's own texts follows the REZ (or the config).
+  Lang::Detect(gameOptions.language);
 
   LOG("Resource cache successfully initialized");
 

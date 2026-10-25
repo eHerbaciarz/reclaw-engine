@@ -132,7 +132,7 @@ void PunkRatAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, An
         {
             // Spawn is relative to the cannon, no the rat
             Point projectilePos = m_pCannonActor->GetPositionComponent()->GetPosition() + m_ProjectileSpawnOffset;
-            if (g_pApp->GetHumanView()->GetCamera()->IntersectsWithPoint(projectilePos, 1.25f))
+            if (g_pApp->GetHumanView()->IsPointInAnyView(projectilePos, 1.25f))
             {
                 Direction dir = Direction_Right;
                 if (m_bIsMirrored)

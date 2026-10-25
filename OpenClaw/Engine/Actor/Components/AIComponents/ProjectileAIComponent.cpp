@@ -132,7 +132,7 @@ void ProjectileAIComponent::VUpdate(uint32 msDiff)
     assert(g_pApp->GetHumanView() && g_pApp->GetHumanView()->GetCamera());
 
     Point projectilePos = m_pOwner->GetPositionComponent()->GetPosition();
-    if (!g_pApp->GetHumanView()->GetCamera()->IntersectsWithPoint(projectilePos, 1.25f))
+    if (!g_pApp->GetHumanView()->IsPointInAnyView(projectilePos, 1.25f))
     {
         shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
         IEventMgr::Get()->VQueueEvent(pEvent);
