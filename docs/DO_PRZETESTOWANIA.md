@@ -32,6 +32,7 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Wyścig – podzielony ekran | Multiplayer → Podzielony ekran: ekran wyboru kontrolerów, wybór poziomu, odliczanie, dwie połówki ekranu, gracz 2 na drugim padzie, odrodzenie na własnym punkcie kontrolnym, meta i ekran wyników, płynność | nieprzetestowane |
 | Wyścig – przez sieć | Multiplayer → Przez sieć: Utwórz / Dołącz (dwie konsole lub dwa Ryujinxy), znalezienie wyścigu, odliczanie, duch rywala, meta, wyjście rywala / zerwanie połączenia | nieprzetestowane (sam moduł UDP sprawdzony na Linuksie) |
 | Pauza (+ / Start / Esc) | otwiera menu: Wróć do gry, Zakończ życie, Opcje, Pomoc, Zakończ grę; w wyścigu przez sieć świat się nie zatrzymuje | nieprzetestowane |
+| Mapa poziomu (− / Select / Tab) | półprzezroczysta mapa wokół gracza: podłoże, drabiny, kolce, skarby (złote), koniec poziomu (zielony), gracz (miga); w wyścigu drugi gracz / duch na niebiesko; czy skala 1:8 jest dobra | nieprzetestowane |
 | Gracz 2 po filmach / ekranach blokujących | czy drugi pad zostaje podłączony po filmie lub mapie tytułowej | nieprzetestowane |
 | Poziom 14, etap 1 | start, przeciwnicy, elementy poziomu | brak potwierdzenia |
 | Odsłanianie widoku na starcie poziomu | efekt od lewej do prawej | brak potwierdzenia |

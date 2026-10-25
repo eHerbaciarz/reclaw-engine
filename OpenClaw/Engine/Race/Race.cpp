@@ -439,6 +439,11 @@ namespace Race
         return (index >= 0 && index < 2) ? g_Players[index] : 0;
     }
 
+    uint32_t GetGhostActor()
+    {
+        return g_Active ? g_Ghost : 0;
+    }
+
     int PlayerIndexOf(uint32_t actorId)
     {
         if (!g_Active || actorId == 0) return -1;

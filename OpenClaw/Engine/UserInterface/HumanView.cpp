@@ -21,6 +21,7 @@
 #include "../Util/PrimeSearch.h"
 #include "ScoreScreen/EndLevelScoreScreen.h"
 #include "../Race/Race.h"
+#include "Minimap.h"
 #include "../Race/RaceLobby.h"
 #include "../Scene/HUDSceneNode.h"
 
@@ -116,10 +117,11 @@ void HumanView::VOnRender(uint32 msDiff)
                     continue;
                 }
                 screenElement->VOnRender(msDiff);
-                if (isScene && Race::IsActive())
+                if (isScene && (Race::IsActive() || Minimap::IsVisible()))
                 {
                     Point scale = g_pApp->GetScale();
                     SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
+                    Minimap::Render(renderer, full, m_ActorId);
                     Race::RenderOverlay(renderer, 0, full);
                 }
             }
@@ -233,6 +235,15 @@ bool HumanView::VOnEvent(SDL_Event& evt)
             if (evt.key.repeat == 0)
             {
                 bool ingameMenuVisible = m_pIngameMenu && m_pIngameMenu->VIsVisible();
+
+                // Level map (Tab)
+                if (evt.key.keysym.sym == SDLK_TAB &&
+                    g_pApp->GetGameLogic()->GetGameState() == GameState_IngameRunning &&
+                    !ingameMenuVisible)
+                {
+                    Minimap::Toggle();
+                    return true;
+                }
 
                 if (SDL_GetScancodeFromKey(evt.key.keysym.sym) == SDL_SCANCODE_ESCAPE &&
                     g_pApp->GetGameLogic()->GetGameState() == GameState_IngameRunning &&
@@ -389,6 +400,14 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
                     }
                     return true;
                 }
+            }
+
+            // Level map (Select / Minus)
+            if (!menuActive && evt.gamepadButton.button == GamepadButton::Back &&
+                gameState == GameState_IngameRunning)
+            {
+                Minimap::Toggle();
+                return true;
             }
 
             // Forward to gamepad handler for in-game controls (only if no menu active)
@@ -1579,6 +1598,7 @@ void HumanView::RenderSplitScene(SDL_Renderer* pRenderer)
         m_pScene->SetCamera(cameras[i]);
         m_pScene->OnRender();
         SDL_Rect local = { 0, 0, views[i].w, views[i].h };
+        Minimap::Render(pRenderer, local, i == 0 ? m_ActorId : m_SecondActorId);
         Race::RenderOverlay(pRenderer, i, local);
     }
     SDL_RenderSetViewport(pRenderer, NULL);

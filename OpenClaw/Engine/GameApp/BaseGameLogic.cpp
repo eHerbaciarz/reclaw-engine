@@ -34,6 +34,7 @@
 #include "../UserInterface/TitleScroll.h"
 #include "../SaveState/SaveStateManager.h"
 #include "../Race/Race.h"
+#include "../UserInterface/Minimap.h"
 
 #include "../Physics/ClawPhysics.h"
 
@@ -423,6 +424,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 {
     // Save states belong to one level session.
     SaveStateManager::Get()->Reset();
+    // The level map is rebuilt from the new level's collision tiles.
+    Minimap::Reset();
 
     // Stop all audio
     g_pApp->GetAudio()->StopAllSounds();

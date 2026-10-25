@@ -59,6 +59,9 @@ protected:
 private:
     int32 m_ScorePoints;
     bool m_IsPickedUp;
+public:
+    bool IsPickedUp() const { return m_IsPickedUp; }
+private:
 
     shared_ptr<PositionComponent> m_pPositionComponent;
     shared_ptr<ActorRenderComponent> m_pRenderComponent;

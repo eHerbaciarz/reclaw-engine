@@ -1,4 +1,5 @@
 #include "ClawPhysics.h"
+#include "../UserInterface/Minimap.h"
 #include "../SaveState/StateArchive.h"
 #include "../Scene/SceneNodes.h"
 #include "../Events/EventMgr.h"
@@ -556,6 +557,9 @@ void ClawPhysics::VAddStaticGeometry(const Point& position, const Point& size, C
     {
         return;
     }
+
+    // The level map (Select / Minus) draws the same geometry.
+    Minimap::AddGeometry(position, size, (int)collisionType);
 
     // Convert pixel position and size to Box2D meters
     b2Vec2 b2Position = PixelsToMeters(PointToB2Vec2(position));

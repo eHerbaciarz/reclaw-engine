@@ -39,6 +39,7 @@ ROWS_RIGHT = [
     (["ZR"], "szybkie wczytanie"),
     (["R"], "trzymaj: cofanie czasu"),
     (["+"], "pauza i menu"),
+    (["-"], "mapa poziomu"),
     (["X"], "trzymaj: rzut dalej"),
     (["A", "B"], "menu: wybór / powrót"),
 ]
@@ -90,7 +91,7 @@ def column(draw, x0, y0, rows, label_w):
     word_font = font(14)
     desc_font = font(14)
     y = y0
-    step = 32 * S
+    step = 29 * S
     for labels, desc in rows:
         cy = y + step / 2
         x = x0

@@ -58,6 +58,8 @@ namespace Race
 
     // Captains taking part (actor GUIDs; 0 when absent). Index 0 = player 1.
     uint32_t GetPlayerActor(int index);
+    // Network race: the opponent's ghost (0 when none).
+    uint32_t GetGhostActor();
     // 0 / 1 for a racing Captain, -1 otherwise.
     int PlayerIndexOf(uint32_t actorId);
 
