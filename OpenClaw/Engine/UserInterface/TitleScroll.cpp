@@ -10,9 +10,7 @@
 #include <cmath>
 #include <vector>
 
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
+#include "../Platform/Input/BlockingInput.h"
 
 #include "../GameApp/BaseGameApp.h"
 #include "../Audio/Audio.h"
@@ -250,9 +248,7 @@ namespace TitleScroll
 
         while (phase != Done && left.tex && right.tex)
         {
-#ifdef __SWITCH__
-            if (!appletMainLoop()) break;
-#endif
+            if (!BlockingInput::AppAlive()) break;
             int input = MoviePlayer::PollSkipInput();
             if (input == 2) break;
             Uint32 now = SDL_GetTicks();

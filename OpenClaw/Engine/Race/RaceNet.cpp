@@ -95,6 +95,9 @@ namespace
 #if defined(_WIN32)
         u_long on = 1;
         ioctlsocket(socket, FIONBIO, &on);
+#elif defined(__PSL1GHT__)
+        int on = 1;
+        setsockopt(socket, SOL_SOCKET, SO_NBIO, &on, sizeof(on));
 #else
         int flags = fcntl(socket, F_GETFL, 0);
         fcntl(socket, F_SETFL, flags | O_NONBLOCK);

@@ -19,19 +19,19 @@
     <MusicRpcServerPath></MusicRpcServerPath>
   </Audio>
   <Font>
-    <Fontt>romfs:/clacon.ttf</Fontt>
-    <ConsoleFont font="romfs:/clacon.ttf" size="20" />
+    <Fontt>fs:/vol/content/clacon.ttf</Fontt>
+    <ConsoleFont font="fs:/vol/content/clacon.ttf" size="20" />
   </Font>
   <Assets>
     <AssetsFolder></AssetsFolder>
     <RezArchive>fs:/vol/external01/wiiu/apps/claw/CLAW.REZ</RezArchive>
-    <CustomArchive>romfs:/ASSETS.ZIP</CustomArchive>
+    <CustomArchive>fs:/vol/content/ASSETS.ZIP</CustomArchive>
     <ResourceCacheSize>150</ResourceCacheSize>
     <TempDir></TempDir>
     <SavesFile>SAVES.XML</SavesFile>
   </Assets>
   <Console>
-    <BackgroundImagePath>romfs:/console02.tga</BackgroundImagePath>
+    <BackgroundImagePath>fs:/vol/content/console02.tga</BackgroundImagePath>
     <StretchBackgroundImage>
     </StretchBackgroundImage>
     <WidthRatio>1.0</WidthRatio>
@@ -39,7 +39,7 @@
     <LineSeparatorHeight>3</LineSeparatorHeight>
     <CommandPromptOffsetY>10</CommandPromptOffsetY>
     <ConsoleAnimationSpeed>0.7</ConsoleAnimationSpeed>
-    <FontPath>romfs:/clacon.ttf</FontPath>
+    <FontPath>fs:/vol/content/clacon.ttf</FontPath>
     <FontColor r="255" g="255" b="255" />
     <FontHeight>20</FontHeight>
     <LeftOffset>5</LeftOffset>

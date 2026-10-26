@@ -82,6 +82,11 @@ string ToStr(unsigned int num, int base)
     return std::to_string(num);
 }
 
+string ToStr(long num, int base)
+{
+    return std::to_string(num);
+}
+
 string ToStr(unsigned long num, int base)
 {
     return std::to_string(num);

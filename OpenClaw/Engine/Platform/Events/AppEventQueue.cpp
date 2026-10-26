@@ -1,12 +1,12 @@
 #include "AppEventQueue.h"
 
 void AppEventQueue::Push(const AppEvent &e) {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  SdlLockGuard<SdlMutex> lock(m_mutex);
   m_queue.push_back(e);
 }
 
 bool AppEventQueue::Poll(AppEvent &out) {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  SdlLockGuard<SdlMutex> lock(m_mutex);
   if (m_queue.empty()) {
     return false;
   }
@@ -16,6 +16,6 @@ bool AppEventQueue::Poll(AppEvent &out) {
 }
 
 void AppEventQueue::Clear() {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  SdlLockGuard<SdlMutex> lock(m_mutex);
   m_queue.clear();
 }

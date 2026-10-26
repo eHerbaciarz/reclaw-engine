@@ -2,7 +2,33 @@
 #include "../SharedDefines.h"
 #include "../Scene/SceneNodes.h"
 
+#if !defined(OPENCLAW_NO_SDL2_GFX)
 #include <SDL2/SDL2_gfxPrimitives.h>
+#else
+// Ports without SDL2_gfx: the two outlines the physics debug view draws.
+#include <cmath>
+static int polygonRGBA(SDL_Renderer* r, const Sint16* vx, const Sint16* vy, int n, Uint8 cr, Uint8 cg, Uint8 cb, Uint8 ca)
+{
+    if (n < 2) return 0;
+    std::vector<SDL_Point> pts(n + 1);
+    for (int i = 0; i < n; ++i) pts[i] = SDL_Point{ vx[i], vy[i] };
+    pts[n] = pts[0];
+    SDL_SetRenderDrawColor(r, cr, cg, cb, ca);
+    return SDL_RenderDrawLines(r, pts.data(), n + 1);
+}
+static int circleRGBA(SDL_Renderer* r, Sint16 x, Sint16 y, Sint16 rad, Uint8 cr, Uint8 cg, Uint8 cb, Uint8 ca)
+{
+    const int kSegments = 24;
+    SDL_Point pts[kSegments + 1];
+    for (int i = 0; i <= kSegments; ++i)
+    {
+        double a = i * 2.0 * M_PI / kSegments;
+        pts[i] = SDL_Point{ (int)(x + rad * std::cos(a)), (int)(y + rad * std::sin(a)) };
+    }
+    SDL_SetRenderDrawColor(r, cr, cg, cb, ca);
+    return SDL_RenderDrawLines(r, pts, kSegments + 1);
+}
+#endif
 
 // Conversion warnings from Box2D -> SDL2_gfx
 #pragma warning(disable: 4244)

@@ -30,12 +30,16 @@
 #define B2_NOT_USED(x) ((void)(x))
 #define b2Assert(A) assert(A)
 
-typedef signed char	int8;
-typedef signed short int16;
-typedef signed int int32;
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
+// The <stdint.h> types, like the engine's SharedDefines.h: on 32-bit ARM and
+// PowerPC newlib (3DS, Vita, Wii U) int32_t is "long", not "int", and the two
+// sets of typedefs must agree. (OpenClaw port change)
+#include <stdint.h>
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int32_t int32;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
 typedef float float32;
 typedef double float64;
 

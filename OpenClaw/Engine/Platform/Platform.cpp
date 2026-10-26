@@ -17,9 +17,11 @@
 #include <3ds.h>
 #elif defined(__WIIU__)
 #include <coreinit/debug.h>
-#include <romfs-wiiu.h>
 #elif defined(__PS3__) || defined(__PSL1GHT__)
 #include <sys/file.h>
+#include <sys/process.h>
+// Main thread priority and a 1 MB stack (the default is small).
+SYS_PROCESS_PARAM(1001, 0x100000);
 #endif
 
 #if !defined(_WIN32)
@@ -27,6 +29,15 @@
 #if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
 #include <pwd.h>
 #endif
+#endif
+
+#if defined(__vita__)
+// The default newlib heap of a Vita application is small; the resource cache,
+// the level and the textures need much more.
+extern "C" {
+    int _newlib_heap_size_user = 256 * 1024 * 1024;
+    unsigned int sceUserMainThreadStackSize = 4 * 1024 * 1024;
+}
 #endif
 
 #if defined(_WIN32)
@@ -70,6 +81,40 @@ namespace
         out << in.rdbuf();
         return out.good();
     }
+
+#if defined(__ANDROID__)
+    // Files packed into the APK can only be read through SDL_RWops, while the
+    // engine opens its files by path. The bundled files are copied out of the
+    // APK into the app's internal folder (again after an update of the app).
+    void ExtractAndroidBundle(const std::string& to)
+    {
+        static const char* kFiles[] = { "config.xml", "ASSETS.ZIP", "clacon.ttf", "console02.tga",
+                                        "splash.ttf", "music/soundfont.sf3" };
+        const std::string stamp = std::string(__DATE__ " " __TIME__);
+        {
+            std::ifstream in(to + "bundle.stamp");
+            std::string have;
+            std::getline(in, have);
+            if (have == stamp) return;
+        }
+        MakeDirs(to + "music/");
+        for (const char* name : kFiles)
+        {
+            SDL_RWops* src = SDL_RWFromFile(name, "rb");
+            if (!src)
+            {
+                SDL_Log("Android bundle: %s not in the APK", name);
+                continue;
+            }
+            std::ofstream out(to + name, std::ios::binary);
+            char buf[64 * 1024];
+            size_t n;
+            while ((n = SDL_RWread(src, buf, 1, sizeof(buf))) > 0) out.write(buf, n);
+            SDL_RWclose(src);
+        }
+        std::ofstream(to + "bundle.stamp") << stamp << "\n";
+    }
+#endif
 
     // One sink for every SDL_Log message on consoles: a log file in the
     // player's folder plus the system debug output (emulator logs).
@@ -156,17 +201,21 @@ namespace Platform
         g_DataDir = "sdmc:/3ds/claw/";
         g_BundleDir = "romfs:/";
 #elif defined(__WIIU__)
-        romfsInit();
         g_DataDir = "fs:/vol/external01/wiiu/apps/claw/";
-        g_BundleDir = "romfs:/";
+        g_BundleDir = "fs:/vol/content/";   // the .wuhb's content folder
 #elif defined(__PSL1GHT__) || defined(__PS3__)
         g_DataDir = "/dev_hdd0/game/CLAW00001/USRDIR/";
         g_BundleDir = g_DataDir;
 #elif defined(__ANDROID__)
         {
+            // CLAW.REZ, config.xml and saves: Android/data/<app>/files/
+            // (reachable over USB and from file managers).
             const char* external = SDL_AndroidGetExternalStoragePath();
-            g_DataDir = WithSlash(external ? external : "/sdcard/claw");
-            g_BundleDir = g_DataDir;
+            const char* internal = SDL_AndroidGetInternalStoragePath();
+            g_DataDir = WithSlash(external ? external : (internal ? internal : "/sdcard/claw"));
+            g_BundleDir = WithSlash(internal ? internal : g_DataDir.c_str()) + "bundle/";
+            MakeDirs(g_BundleDir);
+            ExtractAndroidBundle(g_BundleDir);
         }
 #elif defined(_WIN32) || defined(__EMSCRIPTEN__)
         g_DataDir = g_BinaryDir;
@@ -188,6 +237,15 @@ namespace Platform
                 home = pw ? pw->pw_dir : ".";
             }
             g_DataDir = std::string(home) + "/.config/openclaw/";
+        }
+#endif
+
+        // Nintendo consoles: SDL reports the buttons by their printed labels
+        // (A = right); the menus swap A/B for that (see SdlGamepadInput).
+#ifdef SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS
+        if (Buttons() == ButtonLabels::Nintendo)
+        {
+            SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "1");
         }
 #endif
 

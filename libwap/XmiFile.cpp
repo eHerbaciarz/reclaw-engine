@@ -160,14 +160,17 @@ public:
         return true;
     }
 
+    // Written byte by byte: correct on little- and big-endian hosts.
     bool writeBigEndianUInt16(uint16_t iValue)
     {
-        return write(_byteSwap(iValue));
+        uint8_t b[2] = { (uint8_t)(iValue >> 8), (uint8_t)iValue };
+        return write(b[0]) && write(b[1]);
     }
 
     bool writeBigEndianUInt32(uint32_t iValue)
     {
-        return write(_byteSwap(iValue));
+        uint8_t b[4] = { (uint8_t)(iValue >> 24), (uint8_t)(iValue >> 16), (uint8_t)(iValue >> 8), (uint8_t)iValue };
+        return write(b[0]) && write(b[1]) && write(b[2]) && write(b[3]);
     }
 
     bool writeUIntVar(unsigned int iValue)

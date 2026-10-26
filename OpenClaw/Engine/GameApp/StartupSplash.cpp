@@ -5,9 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
+#include "../Platform/Input/BlockingInput.h"
 
 #include "../Logger/Logger.h"
 
@@ -90,9 +88,7 @@ namespace
         Uint32 start = SDL_GetTicks();
         while (true)
         {
-#ifdef __SWITCH__
-            if (!appletMainLoop()) return;
-#endif
+            if (!BlockingInput::AppAlive()) return;
             SDL_PumpEvents();   // keep the OS happy without eating game events
             Uint32 t = SDL_GetTicks() - start;
             if (t > ms) t = ms;
@@ -174,9 +170,7 @@ namespace StartupSplash
         // Loading usually takes a few seconds already; only top up the rest.
         while (SDL_GetTicks() - g_ShownAt < kMinVisibleMs)
         {
-#ifdef __SWITCH__
-            if (!appletMainLoop()) break;
-#endif
+            if (!BlockingInput::AppAlive()) break;
             SDL_PumpEvents();
             Draw(r, 255);
             SDL_Delay(16);

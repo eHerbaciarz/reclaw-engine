@@ -2,7 +2,7 @@
 
 #include "AppEvent.h"
 #include <deque>
-#include <mutex>
+#include "../../Util/SdlMutex.h"
 
 class AppEventQueue {
 public:
@@ -11,6 +11,6 @@ public:
   void Clear();
 
 private:
-  std::mutex m_mutex;
+  SdlMutex m_mutex;
   std::deque<AppEvent> m_queue;
 };

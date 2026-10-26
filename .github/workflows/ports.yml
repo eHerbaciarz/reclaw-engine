@@ -1,0 +1,244 @@
+name: Ports (Linux, Windows, Vita, 3DS, Wii U, PS3, Android)
+
+# Every package contains the engine and the port's own files only. No game
+# data: players copy CLAW.REZ from their own copy of Captain Claw (1997).
+
+on:
+  push:
+    paths:
+      - 'OpenClaw/**'
+      - 'libwap/**'
+      - 'Box2D/**'
+      - 'ThirdParty/**'
+      - 'Build_Release/ASSETS/**'
+      - 'Build_Release/music/**'
+      - 'platform/**'
+      - 'scripts/stage_bundle.sh'
+      - '.github/workflows/ports.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux x86_64
+    runs-on: ubuntu-22.04          # older glibc: the package runs on more distributions
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SDL2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev \
+            libsdl2-ttf-dev libsdl2-gfx-dev zlib1g-dev zip
+      - name: Build
+        run: |
+          cmake -S platform/linux -B build-linux -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-linux -j"$(nproc)"
+      - name: Package
+        run: platform/linux/package.sh build-linux dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-linux-x86_64
+          path: dist/claw-linux-x86_64.tar.gz
+
+  windows:
+    name: Windows x86_64
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            zip
+            mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf mingw-w64-x86_64-ntldd
+            mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_mixer
+            mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_gfx mingw-w64-x86_64-zlib
+      - name: Build
+        run: |
+          cmake -S platform/linux -B build-win -G Ninja -DCMAKE_BUILD_TYPE=Release -DMINGW_PREFIX=/mingw64
+          cmake --build build-win
+      - name: Package
+        run: |
+          PKG=dist/claw-windows-x86_64
+          mkdir -p "$PKG"
+          scripts/stage_bundle.sh "$PKG"
+          cp build-win/openclaw.exe "$PKG/Claw.exe"
+          strip "$PKG/Claw.exe"
+          # every DLL the game needs, except Windows' own
+          ntldd -R "$PKG/Claw.exe" | grep -i mingw64 | awk '{print $3}' | tr '\\' '/' | \
+            while read -r dll; do cp "$(cygpath -u "$dll")" "$PKG/"; done
+          cp platform/windows/README.txt "$PKG/"
+          (cd dist && zip -q -r claw-windows-x86_64.zip claw-windows-x86_64)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-windows-x86_64
+          path: dist/claw-windows-x86_64.zip
+
+  vita:
+    name: PlayStation Vita (.vpk)
+    runs-on: ubuntu-latest
+    container:
+      image: vitasdk/vitasdk:latest
+      options: --user root
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools and libraries
+        run: |
+          (apk add --no-cache bash python3 zip cmake make 2>/dev/null || \
+           (apt-get update && apt-get install -y --no-install-recommends bash python3 zip cmake make)) || true
+          vdpm sdl2 sdl2_image sdl2_mixer sdl2_ttf zlib || true
+      - name: Build
+        run: |
+          cmake -S platform/vita -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-vita -j"$(nproc)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-vita
+          path: build-vita/claw.vpk
+
+  n3ds:
+    name: Nintendo 3DS (.3dsx)
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools and libraries
+        run: |
+          dkp-pacman -Sy --noconfirm --needed 3ds-dev 3ds-zlib
+          (apt-get update && apt-get install -y --no-install-recommends zip python3) || true
+          platform/deps/fetch.sh
+      - name: Build
+        run: |
+          cmake -S platform/3ds -B build-3ds -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/3DS.cmake -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-3ds -j"$(nproc)"
+      - name: Package
+        run: |
+          mkdir -p dist/3ds/claw
+          cp build-3ds/claw.3dsx dist/3ds/claw/
+          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to sdmc:/3ds/claw/CLAW.REZ" > dist/3ds/claw/PUT_CLAW.REZ_HERE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-3ds
+          path: dist/
+
+  wiiu:
+    name: Wii U (.wuhb)
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitppc:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools and libraries
+        run: |
+          dkp-pacman -Sy --noconfirm --needed wiiu-dev ppc-zlib
+          (apt-get update && apt-get install -y --no-install-recommends zip python3) || true
+          platform/deps/fetch.sh wiiu
+      - name: Build
+        run: |
+          cmake -S platform/wiiu -B build-wiiu -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/WiiU.cmake -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-wiiu -j"$(nproc)"
+      - name: Package
+        run: |
+          mkdir -p dist/wiiu/apps/claw
+          cp build-wiiu/claw.wuhb dist/wiiu/apps/
+          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to sd:/wiiu/apps/claw/CLAW.REZ" > dist/wiiu/apps/claw/PUT_CLAW.REZ_HERE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-wiiu
+          path: dist/
+
+  ps3:
+    name: PlayStation 3 (.pkg)
+    runs-on: ubuntu-latest
+    env:
+      PS3DEV: /opt/ps3dev
+      PSL1GHT: /opt/ps3dev
+    steps:
+      - uses: actions/checkout@v4
+      - name: Host packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake bison flex \
+            libelf-dev libgmp3-dev libncurses-dev libssl-dev libtool libtool-bin pkg-config \
+            python-is-python3 python3-dev texinfo zlib1g-dev zip wget
+      - name: Resolve toolchain release
+        id: toolchain
+        run: |
+          URL=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" \
+            https://api.github.com/repos/ps3dev/ps3toolchain/releases | \
+            jq -r '[.[] | select(.assets[]?.name == "ps3dev-linux-X64.tar.gz")][0].assets[] | select(.name == "ps3dev-linux-X64.tar.gz") | .browser_download_url')
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+      - name: Cache toolchain
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/ps3dev
+          key: ps3dev-${{ steps.toolchain.outputs.url }}-sdl2-v1
+      - name: Toolchain, PSL1GHT and libraries
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL -o /tmp/ps3dev.tar.gz "${{ steps.toolchain.outputs.url }}"
+          sudo mkdir -p /opt/ps3dev && sudo chown "$USER" /opt/ps3dev
+          mkdir -p /tmp/ps3x && tar xzf /tmp/ps3dev.tar.gz -C /tmp/ps3x
+          SRC=/tmp/ps3x; [ "$(ls -1 $SRC | wc -l)" = 1 ] && SRC="$SRC/$(ls -1 $SRC)"
+          cp -a "$SRC/." /opt/ps3dev/
+          export PATH="$PS3DEV/bin:$PS3DEV/ppu/bin:$PS3DEV/spu/bin:$PATH"
+          # PSL1GHT and the libraries (zlib, libpng, freetype, SDL2, SDL2_mixer)
+          if [ ! -f "$PS3DEV/ppu/include/ppu-lv2.h" ]; then
+            git clone --depth 1 https://github.com/ps3dev/ps3toolchain /tmp/ps3toolchain
+            (cd /tmp/ps3toolchain && ./toolchain.sh 8)
+          fi
+          git clone --depth 1 https://github.com/ps3dev/ps3libraries /tmp/ps3libraries
+          # 1 zlib, 2 libpng, 4 freetype, 14 SDL2 (PSL1GHT port), 16 SDL2_mixer
+          (cd /tmp/ps3libraries && ./libraries.sh 1 2 4 14 16)
+          bash "$GITHUB_WORKSPACE/platform/ps3/build-sdl-addons.sh" /tmp/ps3-sdl-addons
+      - name: Build
+        run: |
+          export PATH="$PS3DEV/bin:$PS3DEV/ppu/bin:$PS3DEV/spu/bin:$PATH"
+          cmake -S platform/ps3 -B build-ps3 -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/platform/ps3/ps3.toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-ps3 -j"$(nproc)"
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp build-ps3/claw.pkg build-ps3/claw.self dist/
+          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to /dev_hdd0/game/CLAW00001/USRDIR/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-ps3
+          path: dist/
+
+  android:
+    name: Android (.apk)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK, NDK and CMake
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018" "cmake;3.22.1" "platforms;android-34" "build-tools;34.0.0"
+          sudo apt-get install -y --no-install-recommends zip
+      - name: Dependencies
+        run: platform/android/fetch-deps.sh
+      - name: Build
+        working-directory: platform/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp platform/android/app/build/outputs/apk/release/app-release.apk dist/CaptainClaw.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-android
+          path: dist/

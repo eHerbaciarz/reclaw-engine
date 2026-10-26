@@ -19,7 +19,7 @@ PLATFORMS = {
                 "PS Vita: 960x544 screen; the game renders 854x480 and is scaled up"),
     "3ds":     ("romfs:/",    "sdmc:/3ds/claw/CLAW.REZ",             (400, 240),  "1",  "24",  "16", "22050",
                 "3DS: top screen 400x240 (the game view), bottom screen = status (SecondScreen)"),
-    "wiiu":    ("romfs:/",    "fs:/vol/external01/wiiu/apps/claw/CLAW.REZ", (1280, 720), "1.5", "150", "64", "44100",
+    "wiiu":    ("fs:/vol/content/",    "fs:/vol/external01/wiiu/apps/claw/CLAW.REZ", (1280, 720), "1.5", "150", "64", "44100",
                 "Wii U: 1280x720 on the TV, the GamePad shows the status screen"),
     "ps3":     ("",           "CLAW.REZ",                            (1280, 720), "1.5", "150", "64", "44100",
                 "PS3: files in /dev_hdd0/game/CLAW00001/USRDIR/"),

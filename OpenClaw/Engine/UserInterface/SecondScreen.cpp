@@ -167,7 +167,7 @@ namespace SecondScreen
             }
             if (auto p = Component<PowerupComponent>(pClaw, PowerupComponent::g_Name))
             {
-                if (p->HasPowerup()) powerup = ToStr(std::max(0, p->GetRemainingPowerupTime() / 1000)) + " s";
+                if (p->HasPowerup()) powerup = ToStr(std::max(0, (int)(p->GetRemainingPowerupTime() / 1000))) + " s";
             }
             if (Race::IsActive()) race = Lang::Tr("Wyścig", "Race");
         }

@@ -796,7 +796,7 @@ void HumanView::HealthUpdatedDelegate(IEventDataPtr pEventData)
     shared_ptr<EventData_Updated_Health> pCastEventData = static_pointer_cast<EventData_Updated_Health>(pEventData);
     if (m_pHUD)
     {
-        m_pHUD->UpdateHealth(max(0, pCastEventData->GetNewHealth()));
+        m_pHUD->UpdateHealth(max(0, (int)pCastEventData->GetNewHealth()));
 
         // Haptic feedback on damage (health decreased, not initial health set)
         if (!pCastEventData->IsInitialHealth() &&

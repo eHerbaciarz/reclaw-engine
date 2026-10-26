@@ -3,13 +3,14 @@
 #include <algorithm>
 #include <string.h>
 #include <stdint.h>
-#include <mutex>
+#include "../OpenClaw/Engine/Util/SdlMutex.h"
 #include <map>
 #include <string>
 #include <string.h>
 #include <cctype>
 
 #include "libwap.h"
+#include "IO.h"
 #include <iostream>
 
 using namespace std;
@@ -22,7 +23,7 @@ struct RezArchiveFileEntry
 {
     RezArchive* rezArchive;
     std::ifstream* fileStream;
-    std::mutex mutex;
+    SdlMutex mutex;
 };
 
 /*************************************************************************/
@@ -46,6 +47,11 @@ static void FileRead(T* dest, std::ifstream* file, int32_t offset)
 {
     file->seekg(offset, std::ios::beg);
     file->read((char*)dest, sizeof(*dest));
+    // REZ archives are little-endian (PowerPC consoles: Wii U, PS3)
+    if (sizeof(*dest) > 1 && system_is_big_endian())
+    {
+        std::reverse((char*)dest, (char*)dest + sizeof(*dest));
+    }
 }
 
 static char* StdStringToCharArray(std::string source)
@@ -137,7 +143,7 @@ char* WAP_GetRezFileData(RezFile* rezFile)
 
         RezArchiveFileEntry* rezArchiveFileEntry = g_rezArchiveFileEntryMap[rezFile->owner];
 
-        std::lock_guard<std::mutex> lock(rezArchiveFileEntry->mutex);
+        SdlLockGuard<SdlMutex> lock(rezArchiveFileEntry->mutex);
 
         // Seek to file's offset within REZ file and load it
         rezArchiveFileEntry->fileStream->seekg(rezFile->offset, std::ios::beg);
@@ -268,8 +274,6 @@ RezDirectory* WAP_GetRezDirectoryFromRezDirectory(RezDirectory* rezDirectory, co
 
 RezFile* WAP_GetRezFileFromRezArchive(RezArchive* rezArchive, const char* rezFilePath)
 {
-    static std::mutex mutex;
-
     // Check if we got valid input
     if ((rezArchive == NULL) || (rezArchive->rootDirectory == NULL) ||
         (rezFilePath == NULL) || (strlen(rezFilePath) == 0))

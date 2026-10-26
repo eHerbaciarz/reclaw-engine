@@ -1184,6 +1184,20 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 
   STARTUP_TRACE("renderer created");
 
+#if defined(__ANDROID__)
+  // Phones and tablets: the same 480 lines tall view as the other ports,
+  // as wide as the screen's aspect ratio.
+  if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
+    int outW = 0, outH = 0;
+    SDL_GetRendererOutputSize(m_pRenderer, &outW, &outH);
+    if (outW > 0 && outH > 0) {
+      if (outH > outW) std::swap(outW, outH);   // landscape
+      gameOptions.renderHeight = 480;
+      gameOptions.renderWidth = (480 * outW / outH) & ~1;
+    }
+  }
+#endif
+
 #ifndef __EMSCRIPTEN__
   if (gameOptions.renderWidth > 0 && gameOptions.renderHeight > 0) {
     m_pRenderTarget = SDL_CreateTexture(m_pRenderer, SDL_PIXELFORMAT_RGBA8888,

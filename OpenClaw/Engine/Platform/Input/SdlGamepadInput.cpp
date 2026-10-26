@@ -188,6 +188,18 @@ namespace SdlGamepadInput
         }
         SDL_GameControllerEventState(SDL_ENABLE);
 
+#if defined(__PSL1GHT__)
+        // The PSL1GHT SDL port has no controller mapping of its own (its
+        // joystick GUID is the start of the name "PS1LIGHT Controller").
+        // Positional like every PlayStation pad: cross = A (confirm / jump),
+        // circle = B (back / attack), square = X, triangle = Y.
+        SDL_GameControllerAddMapping(
+            "5053314c4947485420436f6e74726f6c,PS1LIGHT Controller,"
+            "a:b9,b:b10,x:b8,y:b11,back:b7,start:b4,leftstick:b6,rightstick:b5,"
+            "leftshoulder:b13,rightshoulder:b12,lefttrigger:b15,righttrigger:b14,"
+            "dpleft:b0,dpdown:b1,dpright:b2,dpup:b3,leftx:a0,lefty:a1,rightx:a2,righty:a3,");
+#endif
+
         for (int i = 0; i < SDL_NumJoysticks(); ++i)
         {
             OpenDevice(i);
