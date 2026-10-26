@@ -52,6 +52,10 @@ namespace Platform
     std::vector<std::string> GameDataFolders(int argc, char** argv);
 
     ButtonLabels Buttons();
+    // Names of the menu buttons for on-screen hints: "A"/"B", or on
+    // PlayStation "×" (cross) / "O" (circle).
+    const char* AcceptButtonName();
+    const char* BackButtonName();
 
     // Name used to pick the controls screen picture: "switch", "playstation",
     // "xbox", "3ds", "wiiu", "pc".

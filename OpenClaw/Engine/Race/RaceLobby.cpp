@@ -5,6 +5,7 @@
 
 #include "../GameApp/BaseGameApp.h"
 #include "../UserInterface/Lang.h"
+#include "../Platform/Platform.h"
 
 #ifdef __SWITCH__
 #include <switch.h>
@@ -29,7 +30,8 @@ namespace
         s.title = Lang::Tr("Wybierz poziom", "Choose a level");
         for (int i = 1; i <= 14; ++i) s.items.push_back(LevelLabel(i));
         s.selected = std::max(0, initial - 1);
-        s.footer = { Lang::Tr("A - zatwierdź, B - wróć", "A - confirm, B - back") };
+        s.footer = { std::string(Platform::AcceptButtonName()) + Lang::Tr(" - zatwierdź, ", " - confirm, ") +
+                     Platform::BackButtonName() + Lang::Tr(" - wróć", " - back") };
         int result = RaceUi::Run(r, s);
         return result < 0 ? 0 : result + 1;
     }
@@ -165,8 +167,8 @@ namespace
             }
             screen.items.push_back(Lang::Tr("Anuluj", "Cancel"));
             screen.footer = { hosts.empty()
-                ? Lang::Tr("Na drugiej konsoli wybierz: Utwórz wyścig", "On the other console choose: Create a race")
-                : Lang::Tr("Wybierz wyścig i naciśnij A", "Choose a race and press A"),
+                ? std::string(Lang::Tr("Na drugiej konsoli wybierz: Utwórz wyścig", "On the other console choose: Create a race"))
+                : std::string(Lang::Tr("Wybierz wyścig i naciśnij ", "Choose a race and press ")) + Platform::AcceptButtonName(),
                 Lang::Tr("Obie konsole muszą być w tej samej sieci Wi-Fi.", "Both consoles must be on the same Wi-Fi.") };
         };
         rebuild(s);

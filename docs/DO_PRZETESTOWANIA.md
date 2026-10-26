@@ -39,6 +39,29 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Odsłanianie widoku na starcie poziomu | efekt od lewej do prawej | brak potwierdzenia |
 | Własne poziomy (folder Custom) | lista, wczytanie poziomu | brak potwierdzenia |
 
+## Porty na inne platformy
+
+Opis instalacji i budowania: `docs/PORTY.md`. „Buduje się” = skompilowane
+u mnie; „CI” = budowane tylko przez GitHub Actions (`.github/workflows/ports.yml`),
+bo tutaj nie da się pobrać tych narzędzi.
+
+| Platforma | Paczka | Stan | Co sprawdzić |
+|---|---|---|---|
+| Linux x86_64 | `claw-linux-x86_64.tar.gz` | buduje się, startuje (komunikat o braku CLAW.REZ) | pełna gra z CLAW.REZ, pad, dźwięk, muzyka |
+| Windows x86_64 | `claw-windows-x86_64.zip` | buduje się (MinGW) | start, pad (Xbox), okno / pełny ekran, wyścig przez sieć (zapora!) |
+| 3DS | `claw.3dsx` | buduje się | dolny ekran: mapa z menu + stan gracza; płynność (New 3DS), pamięć, dźwięk, czy widok 400×240 jest wygodny (`<Scale>` w config.xml) |
+| Wii U | `claw.wuhb` | buduje się | GamePad: mapa z menu + stan gracza, TV: gra; przyciski Nintendo (A zatwierdza); wyścig przez sieć |
+| PS Vita | `claw.vpk` | CI | ✕ zatwierdza, ○ wraca, skok i magia bez zamiany; pamięć (256 MB sterty) |
+| PS3 | `claw.pkg` / `claw.self` | CI | ✕ / ○ jak na Vicie, mapowanie pada DualShock 3, RPCS3 |
+| Android | `CaptainClaw.apk` | CI (kod skompilowany na PC) | sterowanie dotykiem i padem, pliki w `Android/data/org.openclaw.claw/files/`, wyścig przez Wi‑Fi |
+
+Wspólne poprawki do sprawdzenia przy okazji:
+- Wii U i PS3 to procesory big‑endian: czytanie CLAW.REZ, SoundFont (muzyka)
+  i zamiana XMI→MIDI zostały poprawione. REZ i SoundFont sprawdziłem na
+  emulowanym PowerPC (qemu): wynik identyczny jak na PC. Poziomy (WWD), grafiki
+  i animacje czytał już wcześniej kod odporny na kolejność bajtów.
+- Mutex SDL zamiast `std::mutex` (PS3) – na Switchu bez zmian w działaniu.
+
 ## Sprawdzone
 
 - Liny (poziom 9) – bez drgań („lina działa idealnie”).

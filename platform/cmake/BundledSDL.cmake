@@ -31,6 +31,8 @@ macro(openclaw_bundled_sdl target)
         set(SDL_STATIC OFF CACHE BOOL "" FORCE)
     else()
         set(BUILD_SHARED_LIBS OFF)
+        # No -fPIC: the Wii U's elf2rpl rejects PIC relocations.
+        set(CMAKE_POSITION_INDEPENDENT_CODE OFF CACHE BOOL "" FORCE)
         set(SDL_SHARED OFF CACHE BOOL "" FORCE)
         set(SDL_STATIC ON CACHE BOOL "" FORCE)
     endif()

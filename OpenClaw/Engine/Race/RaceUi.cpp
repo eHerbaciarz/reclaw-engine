@@ -259,7 +259,7 @@ namespace RaceUi
         s.title = title;
         s.footer = lines;
         s.footer.push_back("");
-        s.footer.push_back(Lang::Tr("A - dalej", "A - continue"));
+        s.footer.push_back(std::string(Platform::AcceptButtonName()) + Lang::Tr(" - dalej", " - continue"));
         s.items.clear();
         s.backCancels = true;
         Uint32 start = SDL_GetTicks();

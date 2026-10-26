@@ -334,6 +334,16 @@ namespace Platform
 #endif
     }
 
+    const char* AcceptButtonName()
+    {
+        return Buttons() == ButtonLabels::PlayStation ? "\xC3\x97" : "A";   // U+00D7
+    }
+
+    const char* BackButtonName()
+    {
+        return Buttons() == ButtonLabels::PlayStation ? "O" : "B";
+    }
+
     const char* ControlsStyle()
     {
 #if defined(__SWITCH__)
