@@ -2,7 +2,7 @@
 
 Guidance for Claude Code when working in this repository.
 
-> **Repository:** this is **ReClaw**, MK's fork of `arthurboss/claw-web` (native and console ports). Push only to MK's own fork, never to `arthurboss/claw-web`; contributions upstream go as pull requests that MK opens. The web (WASM) notes below come from claw-web.
+> **Repository:** this is **ReClaw** (repository `reclaw-engine`), MK's fork of `arthurboss/claw-web` (native and console ports). Push only to `reclaw-engine`, never to `arthurboss/claw-web`; contributions upstream go as pull requests that MK opens. The web (WASM) notes below come from claw-web.
 
 ## Overview
 

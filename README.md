@@ -1,4 +1,4 @@
-# ReClaw
+# ReClaw (reclaw-engine)
 
 **ReClaw** is an unofficial, fan-made engine for the platform game **Claw**
 (Monolith Productions, 1997), also known as Captain Claw / Kapitan Pazur.
@@ -46,6 +46,16 @@ ReClaw would not exist without these projects (all GPL-3.0):
 - [ClawSwitch](https://github.com/djmuted/ClawSwitch) by djmuted – the first Switch port
 
 ReClaw: MK and Claude (Anthropic).
+
+## Building
+
+```
+git clone <this repository> reclaw-engine && cd reclaw-engine
+cmake -S platform/linux -B build-linux -DCMAKE_BUILD_TYPE=Release && cmake --build build-linux -j
+```
+
+Every platform is built by GitHub Actions (`.github/workflows/ports.yml` and
+`switch.yml`); the packages are under Actions → Artifacts.
 
 ## License
 
