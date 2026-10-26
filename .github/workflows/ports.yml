@@ -1,4 +1,4 @@
-name: Ports (Linux, Windows, Vita, 3DS, Wii U, PS3, Android)
+name: Ports (Linux, Windows, Vita, 3DS, Wii U, PS3, PS4, Android)
 
 # Every package contains the engine and the port's own files only. No game
 # data: players copy CLAW.REZ from their own copy of Captain Claw (1997).
@@ -212,6 +212,43 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: claw-ps3
+          path: dist/
+
+
+  ps4:
+    name: PS4 (.pkg, OpenOrbis)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: PacBrew OpenOrbis toolchain and SDL2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pacman-package-manager makepkg libarchive-tools cmake zip
+          printf '\n[pacbrew]\nSigLevel = Optional TrustAll\nServer = https://pacman.mydedibox.fr/pacbrew/packages/\n' | sudo tee -a /etc/pacman.conf
+          sudo pacman -Sy --noconfirm ps4-openorbis ps4-openorbis-portlibs
+      # Optional: libc.prx / libSceFios2.prx for sce_module/ (not in the repository).
+      # Base64 of a zip with the two files in the secret PS4_SCE_MODULES.
+      - name: System modules
+        env:
+          PS4_SCE_MODULES: ${{ secrets.PS4_SCE_MODULES }}
+        run: |
+          if [ -n "$PS4_SCE_MODULES" ]; then
+            echo "$PS4_SCE_MODULES" | base64 -d > /tmp/sce.zip
+            unzip -o -j /tmp/sce.zip '*.prx' -d platform/ps4/sce_module/
+          fi
+      - name: Build
+        run: |
+          source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+          openorbis-cmake -S platform/ps4 -B build-ps4 -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-ps4 -j"$(nproc)"
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp build-ps4/*.pkg dist/
+          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to /data/claw/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claw-ps4
           path: dist/
 
   android:

@@ -26,7 +26,7 @@ SYS_PROCESS_PARAM(1001, 0x100000);
 
 #if !defined(_WIN32)
 #include <unistd.h>
-#if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
+#if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__PS4__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
 #include <pwd.h>
 #endif
 #endif
@@ -154,6 +154,8 @@ namespace Platform
         return "wiiu";
 #elif defined(__PSL1GHT__) || defined(__PS3__)
         return "ps3";
+#elif defined(__PS4__)
+        return "ps4";
 #elif defined(__ANDROID__)
         return "android";
 #elif defined(__EMSCRIPTEN__)
@@ -167,7 +169,7 @@ namespace Platform
 
     bool IsConsole()
     {
-#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__)
+#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
         return true;
 #else
         return false;
@@ -206,6 +208,11 @@ namespace Platform
 #elif defined(__PSL1GHT__) || defined(__PS3__)
         g_DataDir = "/dev_hdd0/game/CLAW00001/USRDIR/";
         g_BundleDir = g_DataDir;
+#elif defined(__PS4__)
+        // Homebrew convention: the app's files in /data/<name>/; the .pkg's
+        // own files are mounted at /app0/.
+        g_DataDir = "/data/claw/";
+        g_BundleDir = "/app0/";
 #elif defined(__ANDROID__)
         {
             // CLAW.REZ, config.xml and saves: Android/data/<app>/files/
@@ -327,7 +334,7 @@ namespace Platform
     {
 #if defined(__SWITCH__) || defined(__3DS__) || defined(__WIIU__)
         return ButtonLabels::Nintendo;
-#elif defined(__vita__) || defined(__PSL1GHT__) || defined(__PS3__)
+#elif defined(__vita__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
         return ButtonLabels::PlayStation;
 #else
         return ButtonLabels::Xbox;
@@ -352,7 +359,7 @@ namespace Platform
         return "3ds";
 #elif defined(__WIIU__)
         return "wiiu";
-#elif defined(__vita__) || defined(__PSL1GHT__) || defined(__PS3__)
+#elif defined(__vita__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
         return "playstation";
 #elif defined(__ANDROID__)
         return "xbox";
@@ -376,7 +383,7 @@ namespace Platform
         width = 400; height = 240;     // top screen, 1:1
 #elif defined(__vita__)
         width = 854; height = 480;     // scaled to 960x544
-#elif defined(__SWITCH__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__)
+#elif defined(__SWITCH__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
         width = 854; height = 480;
 #else
         width = 0; height = 0;         // desktop / Android: the window size

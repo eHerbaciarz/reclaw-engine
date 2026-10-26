@@ -1,0 +1,86 @@
+<Configuration>
+  <Display>
+    <!-- PS4: files in /data/claw/ (FTP / USB); the game renders 854x480, scaled to the TV -->
+    <Size width="1920" height="1080" />
+    <Scale>2.25</Scale>
+    <UseVerticalSync>true</UseVerticalSync>
+    <IsFullscreen>false</IsFullscreen>
+    <IsFullscreenDesktop>false</IsFullscreenDesktop>
+  </Display>
+  <Audio>
+    <Frequency>48000</Frequency>
+    <SoundChannels>2</SoundChannels>
+    <MixingChannels>64</MixingChannels>
+    <ChunkSize>2048</ChunkSize>
+    <SoundVolume>50</SoundVolume>
+    <MusicVolume>25</MusicVolume>
+    <SoundOn>true</SoundOn>
+    <MusicOn>true</MusicOn>
+    <MusicRpcServerPath></MusicRpcServerPath>
+  </Audio>
+  <Font>
+    <Fontt>/app0/clacon.ttf</Fontt>
+    <ConsoleFont font="/app0/clacon.ttf" size="20" />
+  </Font>
+  <Assets>
+    <AssetsFolder></AssetsFolder>
+    <RezArchive>/data/claw/CLAW.REZ</RezArchive>
+    <CustomArchive>/app0/ASSETS.ZIP</CustomArchive>
+    <ResourceCacheSize>200</ResourceCacheSize>
+    <TempDir></TempDir>
+    <SavesFile>SAVES.XML</SavesFile>
+  </Assets>
+  <Console>
+    <BackgroundImagePath>/app0/console02.tga</BackgroundImagePath>
+    <StretchBackgroundImage>
+    </StretchBackgroundImage>
+    <WidthRatio>1.0</WidthRatio>
+    <HeightRatio>0.5</HeightRatio>
+    <LineSeparatorHeight>3</LineSeparatorHeight>
+    <CommandPromptOffsetY>10</CommandPromptOffsetY>
+    <ConsoleAnimationSpeed>0.7</ConsoleAnimationSpeed>
+    <FontPath>/app0/clacon.ttf</FontPath>
+    <FontColor r="255" g="255" b="255" />
+    <FontHeight>20</FontHeight>
+    <LeftOffset>5</LeftOffset>
+    <CommandPrompt>&gt; </CommandPrompt>
+  </Console>
+  <GlobalOptions>
+    <MaxJumpSpeed>8.8</MaxJumpSpeed>
+    <MaxFallSpeed>14.0</MaxFallSpeed>
+    <IdleSoundQuoteInterval>15000</IdleSoundQuoteInterval>
+    <PlatformSpeedModifier>0.015</PlatformSpeedModifier>
+    <MaxJumpHeight>155</MaxJumpHeight>
+    <PowerupMaxJumpHeight>205</PowerupMaxJumpHeight>
+    <StartLookUpOrDownTime>1500</StartLookUpOrDownTime>
+    <FreezeTime>2000</FreezeTime>
+    <MaxLookUpOrDownDistance>250</MaxLookUpOrDownDistance>
+    <LookUpOrDownSpeed>250</LookUpOrDownSpeed>
+    <ClawRunningSpeed>4.5</ClawRunningSpeed>
+    <SpringBoardSpringHeight>UNUSED</SpringBoardSpringHeight>
+    <SpringBoardSpringSpeed>11</SpringBoardSpringSpeed>
+    <ClawMinFallHeight>500</ClawMinFallHeight>
+    <LoadAllLevelSaves>false</LoadAllLevelSaves>
+    <ShowFps>false</ShowFps>
+    <ShowPosition>false</ShowPosition>
+    <GameLogicFps>60</GameLogicFps>
+  </GlobalOptions>
+  <ControlOptions>
+    <UseAlternateControls>false</UseAlternateControls>
+    <TouchScreen>
+      <Enable>false</Enable>
+      <!-- Distance to make a decision (separate tap/press and move events) -->
+      <!-- Range value 0..1 where 1 is screen width/height -->
+      <DistanceThreshold>0.05</DistanceThreshold>
+      <!-- How long make a decision in ms (separate short tap and long press) -->
+      <TimeThreshold>100</TimeThreshold>
+    </TouchScreen>
+  </ControlOptions>
+  <DebugOptions>
+    <SkipMenu>false</SkipMenu>
+    <SkipMenuToLevel>13</SkipMenuToLevel>
+    <LastImplementedLevel>14</LastImplementedLevel>
+    <SkipBossFightIntro>false</SkipBossFightIntro>
+    <CpuDelay>0</CpuDelay>
+  </DebugOptions>
+</Configuration>

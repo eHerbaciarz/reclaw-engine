@@ -57,6 +57,7 @@ bo tutaj nie da się pobrać tych narzędzi.
 | Wii U | `claw.wuhb` | buduje się | GamePad: mapa z menu + stan gracza, TV: gra; przyciski Nintendo (A zatwierdza); wyścig przez sieć |
 | PS Vita | `claw.vpk` | CI | ✕ zatwierdza, ○ wraca, skok i magia bez zamiany; pamięć (256 MB sterty) |
 | PS3 | `claw.pkg` / `claw.self` | CI | ✕ / ○ jak na Vicie, mapowanie pada DualShock 3, RPCS3 |
+| PS4 | `IV0001-CLAW00002_….pkg` | CI (kod sprawdzony clangiem z libc++ jak w OpenOrbis) | start z GoldHEN, pad DualShock 4 (✕ / ○, Options = pauza, touchpad = mapa), dźwięk, pliki w /data/claw/; moduły sce_module (patrz niżej) |
 | Android | `CaptainClaw.apk` | CI (kod skompilowany na PC) | sterowanie dotykiem i padem, pliki w `Android/data/org.openclaw.claw/files/`, wyścig przez Wi‑Fi |
 
 Wspólne poprawki do sprawdzenia przy okazji:

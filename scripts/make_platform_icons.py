@@ -14,6 +14,7 @@ Writes:
   platform/wiiu/tv-splash.png, drc-splash.png          1280x720, 854x480
   platform/ps3/ICON0.PNG                               320x176
   platform/ps3/PIC1.PNG                                1920x1080
+  platform/ps4/sce_sys/icon0.png, pic1.png            512x512, 1920x1080
   platform/android/app/src/main/res/mipmap-*/ic_launcher.png
 """
 import os
@@ -101,6 +102,9 @@ def main():
     ps3icon = banner(320, 176)
     save(ps3icon, "platform/ps3/ICON0.PNG")
     save(banner(1920, 1080, with_title=False), "platform/ps3/PIC1.PNG")
+    # PS4 (OpenOrbis .pkg)
+    save(icon(512), "platform/ps4/sce_sys/icon0.png")
+    save(banner(1920, 1080, with_title=False), "platform/ps4/sce_sys/pic1.png")
     # Android launcher icons
     for name, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
         save(icon(size), f"platform/android/app/src/main/res/mipmap-{name}/ic_launcher.png")

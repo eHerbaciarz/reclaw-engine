@@ -1,4 +1,4 @@
-# Porty: Linux, Windows, PS Vita, 3DS, Wii U, PS3, Android
+# Porty: Linux, Windows, PS Vita, 3DS, Wii U, PS3, PS4, Android
 
 Każda paczka zawiera tylko silnik i pliki portu (menu, czcionki, SoundFont,
 grafiki sterowania). **Danych gry nie ma w żadnej paczce**: gracz kopiuje
@@ -16,6 +16,7 @@ Zamiast `CLAW.REZ` działa też rozpakowany folder `Assets`.
 | 3DS | `claw.3dsx` (Homebrew Launcher) | `sdmc:/3ds/claw/` |
 | Wii U | `claw.wuhb` (Aroma, `sd:/wiiu/apps/`) | `sd:/wiiu/apps/claw/` |
 | PS3 | `claw.pkg` (HEN/CFW) lub `claw.self` (RPCS3) | `/dev_hdd0/game/CLAW00001/USRDIR/` |
+| PS4 | `IV0001-CLAW00002_…pkg` (GoldHEN) | `/data/claw/` (FTP / USB) |
 | Android | `CaptainClaw.apk` | `Android/data/org.openclaw.claw/files/` (USB / menedżer plików) |
 
 ## Przyciski
@@ -24,7 +25,7 @@ W grze przyciski są **pozycyjne** na każdym padzie: dolny skacze, prawy
 strzela (pistolet / magia / dynamit), lewy atakuje szablą, górny podnosi
 beczki. Różni się tylko menu:
 
-- **PlayStation (Vita, PS3)**: ✕ zatwierdza, ○ wraca. Skok (✕) i strzał /
+- **PlayStation (Vita, PS3, PS4)**: ✕ zatwierdza, ○ wraca. Skok (✕) i strzał /
   magia (○) nie są zamieniane.
 - **Nintendo (Switch, 3DS, Wii U)**: A zatwierdza, B wraca (A jest po prawej,
   więc w menu port zamienia przyciski, w grze nie).
@@ -46,7 +47,7 @@ Ekran odświeża się tylko po zmianie stanu (3DS rysuje programowo).
 
 | Platforma | Obraz gry |
 |---|---|
-| Switch, Vita, Wii U, PS3 | 854×480 skalowane do ekranu |
+| Switch, Vita, Wii U, PS3, PS4 | 854×480 skalowane do ekranu |
 | 3DS | 400×240 (górny ekran 1:1; `<Scale>` w config.xml zmienia przybliżenie) |
 | Android | 480 linii, szerokość wg proporcji ekranu |
 | Linux, Windows | rozmiar okna z config.xml |
@@ -79,6 +80,10 @@ cmake -S platform/vita -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.
 
 # PS3 (ps3toolchain + PSL1GHT + ps3libraries 1 2 4 14 16 + platform/ps3/build-sdl-addons.sh)
 cmake -S platform/ps3 -B build-ps3 -DCMAKE_TOOLCHAIN_FILE=platform/ps3/ps3.toolchain.cmake && cmake --build build-ps3 -j
+
+# PS4 (PacBrew: ps4-openorbis ps4-openorbis-portlibs; libc.prx i libSceFios2.prx w platform/ps4/sce_module/)
+source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+openorbis-cmake -S platform/ps4 -B build-ps4 && cmake --build build-ps4 -j
 
 # Android (SDK + NDK 27)
 platform/android/fetch-deps.sh

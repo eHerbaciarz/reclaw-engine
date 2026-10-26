@@ -73,7 +73,13 @@ function(openclaw_link_sdl target)
     pkg_check_modules(OPENCLAW_SDL REQUIRED ${modules})
     target_include_directories(${target} PRIVATE ${OPENCLAW_SDL_STATIC_INCLUDE_DIRS})
     target_compile_options(${target} PRIVATE ${OPENCLAW_SDL_STATIC_CFLAGS_OTHER})
-    target_link_libraries(${target} PRIVATE ${OPENCLAW_SDL_STATIC_LDFLAGS})
+    set(ldflags ${OPENCLAW_SDL_STATIC_LDFLAGS})
+    if (PS4)
+        # The PS4 toolchain links with ld.lld directly: only -L / -l are valid.
+        list(FILTER ldflags INCLUDE REGEX "^-[Ll]")
+        list(FILTER ldflags EXCLUDE REGEX "^-lpthread$|^-lm$")
+    endif()
+    target_link_libraries(${target} PRIVATE ${ldflags})
 endfunction()
 
 # Copies the files that ship with the port (no game data) into <dir>:

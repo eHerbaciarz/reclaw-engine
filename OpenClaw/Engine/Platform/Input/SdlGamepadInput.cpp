@@ -200,6 +200,17 @@ namespace SdlGamepadInput
             "dpleft:b0,dpdown:b1,dpright:b2,dpup:b3,leftx:a0,lefty:a1,rightx:a2,righty:a3,");
 #endif
 
+#if defined(__PS4__)
+        // PacBrew's PS4 SDL port reports the DualShock 4 as a plain joystick
+        // ("Sony DualShock 4 V2"; GUID = start of the name). Positional:
+        // cross = A, circle = B; Options = Start (pause), touch pad = Back (map).
+        SDL_GameControllerAddMapping(
+            "536f6e79204475616c53686f636b2034,Sony DualShock 4 V2,"
+            "a:b0,b:b1,x:b2,y:b3,start:b4,guide:b5,back:b6,leftstick:b7,rightstick:b8,"
+            "leftshoulder:b9,rightshoulder:b10,dpup:b11,dpdown:b12,dpleft:b13,dpright:b14,"
+            "lefttrigger:a4,righttrigger:a5,leftx:a0,lefty:a1,rightx:a2,righty:a3,");
+#endif
+
         for (int i = 0; i < SDL_NumJoysticks(); ++i)
         {
             OpenDevice(i);
