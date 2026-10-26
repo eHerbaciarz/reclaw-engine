@@ -75,7 +75,7 @@ def banner(w, h, with_title=True):
     if with_title:
         left = x0 + int(s * 0.92)
         right = w - int(w * 0.04)
-        title(img, "Captain Claw", (left + right) // 2, int(h * 0.42), int(h * 0.16), right - left)
+        title(img, "ReClaw", (left + right) // 2, int(h * 0.42), int(h * 0.16), right - left)
     return img.convert("RGB")
 
 

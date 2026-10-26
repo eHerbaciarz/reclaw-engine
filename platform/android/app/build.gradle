@@ -1,8 +1,8 @@
-// Captain Claw for Android: SDL2 activity + the engine as libmain.so.
+// ReClaw for Android: SDL2 activity + the engine as libmain.so.
 //   platform/android/fetch-deps.sh      (SDL2 sources and its Java glue)
 //   cd platform/android && ./gradlew assembleRelease
 // CLAW.REZ from your copy of the game goes to
-// Android/data/org.openclaw.claw/files/CLAW.REZ (USB or a file manager).
+// Android/data/org.reclaw.game/files/CLAW.REZ (USB or a file manager).
 
 plugins {
     id 'com.android.application'
@@ -14,7 +14,7 @@ android {
     ndkVersion '27.2.12479018'
 
     defaultConfig {
-        applicationId 'org.openclaw.claw'
+        applicationId 'org.reclaw.game'
         minSdk 21
         targetSdk 34
         versionCode 1

@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-// Launcher: the game needs CLAW.REZ from the player's own copy of Captain Claw
+// Launcher: the game needs CLAW.REZ from the player's own copy of Claw (1997)
 // (it is not in the APK). When it is not in the app's folder yet, this screen
 // lets the player pick CLAW.REZ (and CLAW.FEC with the movies) with the
-// system file picker and copies them into Android/data/org.openclaw.claw/files/,
+// system file picker and copies them into Android/data/<app>/files/,
 // then starts the game. Copying by hand (USB) into that folder works too.
 public class SetupActivity extends Activity {
     private static final int REQ_PICK = 1;
@@ -70,7 +70,7 @@ public class SetupActivity extends Activity {
         layout.setBackgroundColor(0xFF1C0E04);
 
         TextView title = new TextView(this);
-        title.setText("Captain Claw");
+        title.setText("ReClaw");
         title.setTextSize(32);
         title.setTextColor(0xFFF6CD56);
         title.setGravity(Gravity.CENTER);
@@ -82,9 +82,9 @@ public class SetupActivity extends Activity {
         mStatus.setGravity(Gravity.CENTER);
         mStatus.setPadding(0, 32, 0, 32);
         mStatus.setText(tr(
-            "Gra potrzebuje pliku CLAW.REZ z Twojej kopii Captain Claw (1997).\n"
+            "Gra potrzebuje pliku CLAW.REZ z Twojej kopii gry Claw (1997).\n"
                 + "Wskaż CLAW.REZ (i opcjonalnie CLAW.FEC z filmami).",
-            "The game needs CLAW.REZ from your own copy of Captain Claw (1997).\n"
+            "The game needs CLAW.REZ from your own copy of Claw (1997).\n"
                 + "Pick CLAW.REZ (and optionally CLAW.FEC with the movies)."));
         layout.addView(mStatus);
 

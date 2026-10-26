@@ -1,7 +1,7 @@
-name: Ports (Linux, Windows, Vita, 3DS, Wii U, PS3, PS4, Android)
+name: ReClaw ports (Linux, Windows, Vita, 3DS, Wii U, PS3, PS4, Android)
 
 # Every package contains the engine and the port's own files only. No game
-# data: players copy CLAW.REZ from their own copy of Captain Claw (1997).
+# data: players copy CLAW.REZ from their own copy of Claw (1997).
 
 on:
   push:
@@ -40,8 +40,8 @@ jobs:
         run: platform/linux/package.sh build-linux dist
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-linux-x86_64
-          path: dist/claw-linux-x86_64.tar.gz
+          name: reclaw-linux-x86_64
+          path: dist/reclaw-linux-x86_64.tar.gz
 
   windows:
     name: Windows x86_64
@@ -66,20 +66,20 @@ jobs:
           cmake --build build-win
       - name: Package
         run: |
-          PKG=dist/claw-windows-x86_64
+          PKG=dist/reclaw-windows-x86_64
           mkdir -p "$PKG"
           scripts/stage_bundle.sh "$PKG"
-          cp build-win/openclaw.exe "$PKG/Claw.exe"
-          strip "$PKG/Claw.exe"
+          cp build-win/openclaw.exe "$PKG/ReClaw.exe"
+          strip "$PKG/ReClaw.exe"
           # every DLL the game needs, except Windows' own
-          ntldd -R "$PKG/Claw.exe" | grep -i mingw64 | awk '{print $3}' | tr '\\' '/' | \
+          ntldd -R "$PKG/ReClaw.exe" | grep -i mingw64 | awk '{print $3}' | tr '\\' '/' | \
             while read -r dll; do cp "$(cygpath -u "$dll")" "$PKG/"; done
           cp platform/windows/README.txt "$PKG/"
-          (cd dist && zip -q -r claw-windows-x86_64.zip claw-windows-x86_64)
+          (cd dist && zip -q -r reclaw-windows-x86_64.zip reclaw-windows-x86_64)
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-windows-x86_64
-          path: dist/claw-windows-x86_64.zip
+          name: reclaw-windows-x86_64
+          path: dist/reclaw-windows-x86_64.zip
 
   vita:
     name: PlayStation Vita (.vpk)
@@ -101,8 +101,8 @@ jobs:
           cmake --build build-vita -j"$(nproc)"
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-vita
-          path: build-vita/claw.vpk
+          name: reclaw-vita
+          path: build-vita/reclaw.vpk
 
   n3ds:
     name: Nintendo 3DS (.3dsx)
@@ -122,11 +122,11 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist/3ds/claw
-          cp build-3ds/claw.3dsx dist/3ds/claw/
-          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to sdmc:/3ds/claw/CLAW.REZ" > dist/3ds/claw/PUT_CLAW.REZ_HERE.txt
+          cp build-3ds/reclaw.3dsx dist/3ds/claw/
+          echo "Copy CLAW.REZ from your own copy of Claw (1997) to sdmc:/3ds/claw/CLAW.REZ" > dist/3ds/claw/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-3ds
+          name: reclaw-3ds
           path: dist/
 
   wiiu:
@@ -147,11 +147,11 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist/wiiu/apps/claw
-          cp build-wiiu/claw.wuhb dist/wiiu/apps/
-          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to sd:/wiiu/apps/claw/CLAW.REZ" > dist/wiiu/apps/claw/PUT_CLAW.REZ_HERE.txt
+          cp build-wiiu/reclaw.wuhb dist/wiiu/apps/
+          echo "Copy CLAW.REZ from your own copy of Claw (1997) to sd:/wiiu/apps/claw/CLAW.REZ" > dist/wiiu/apps/claw/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-wiiu
+          name: reclaw-wiiu
           path: dist/
 
   ps3:
@@ -207,11 +207,11 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cp build-ps3/claw.pkg build-ps3/claw.self dist/
-          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to /dev_hdd0/game/CLAW00001/USRDIR/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
+          cp build-ps3/reclaw.pkg build-ps3/reclaw.self dist/
+          echo "Copy CLAW.REZ from your own copy of Claw (1997) to /dev_hdd0/game/RCLW00001/USRDIR/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-ps3
+          name: reclaw-ps3
           path: dist/
 
 
@@ -245,10 +245,10 @@ jobs:
         run: |
           mkdir -p dist
           cp build-ps4/*.pkg dist/
-          echo "Copy CLAW.REZ from your own copy of Captain Claw (1997) to /data/claw/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
+          echo "Copy CLAW.REZ from your own copy of Claw (1997) to /data/claw/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-ps4
+          name: reclaw-ps4
           path: dist/
 
   android:
@@ -275,8 +275,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cp platform/android/app/build/outputs/apk/release/app-release.apk dist/CaptainClaw.apk
+          cp platform/android/app/build/outputs/apk/release/app-release.apk dist/ReClaw.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: claw-android
+          name: reclaw-android
           path: dist/

@@ -1,4 +1,4 @@
-# PlayStation Vita build (VitaSDK) -> claw.vpk
+# PlayStation Vita build (VitaSDK) -> reclaw.vpk
 #
 #   cmake -S platform/vita -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake
 #   cmake --build build-vita -j
@@ -7,7 +7,7 @@
 # are compiled from source with the game, like on 3DS / Wii U / Android.
 # CI: .github/workflows/ports.yml
 #
-# Install: claw.vpk with VitaShell; CLAW.REZ from your copy of the game goes to
+# Install: reclaw.vpk with VitaShell; CLAW.REZ from your copy of the game goes to
 # ux0:data/claw/CLAW.REZ (config.xml, saves and openclaw.log are written there).
 
 cmake_minimum_required(VERSION 3.16)
@@ -23,8 +23,8 @@ endif()
 project(ClawVita C CXX)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
-set(VITA_APP_NAME "Captain Claw")
-set(VITA_TITLEID  "CLAW00001")
+set(VITA_APP_NAME "ReClaw")
+set(VITA_TITLEID  "RCLW00001")
 set(VITA_VERSION  "01.00")
 # Memory for the game (newlib heap) is set in Engine/Platform/Platform.cpp.
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12")   # extended RAM mode
@@ -46,7 +46,7 @@ vita_create_self(eboot.bin openclaw UNSAFE)
 set(BUNDLE "${CMAKE_BINARY_DIR}/bundle")
 openclaw_stage_bundle(openclaw_bundle "${BUNDLE}" "${CMAKE_CURRENT_LIST_DIR}/config.xml")
 
-vita_create_vpk(claw.vpk ${VITA_TITLEID} eboot.bin
+vita_create_vpk(reclaw.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME ${VITA_APP_NAME}
     FILE ${CMAKE_CURRENT_LIST_DIR}/sce_sys/icon0.png sce_sys/icon0.png

@@ -1,4 +1,4 @@
-# Wii U build (devkitPPC + wut) -> claw.wuhb (and claw.rpx)
+# ReClaw - Wii U build (devkitPPC + wut) -> reclaw.wuhb
 #
 #   cmake -S platform/wiiu -B build-wiiu -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/WiiU.cmake
 #   cmake --build build-wiiu -j
@@ -9,7 +9,7 @@
 #
 # The game is shown on the TV, the GamePad shows the main menu's map with the
 # player's status (Engine/UserInterface/SecondScreen.cpp).
-# Install: claw.wuhb to sd:/wiiu/apps/ (Aroma); CLAW.REZ from your copy of the
+# Install: reclaw.wuhb to sd:/wiiu/apps/ (Aroma); CLAW.REZ from your copy of the
 # game to sd:/wiiu/apps/claw/CLAW.REZ.
 
 cmake_minimum_required(VERSION 3.16)
@@ -31,12 +31,12 @@ openclaw_stage_bundle(openclaw_bundle "${BUNDLE}" "${CMAKE_CURRENT_LIST_DIR}/con
 dkp_add_asset_target(claw_content "${BUNDLE}")
 set_property(TARGET claw_content APPEND PROPERTY DKP_ASSET_FILES ${OPENCLAW_BUNDLE_FILES})
 
-wut_create_wuhb(claw
+wut_create_wuhb(reclaw
     TARGET    openclaw
-    OUTPUT    "${CMAKE_BINARY_DIR}/claw.wuhb"
+    OUTPUT    "${CMAKE_BINARY_DIR}/reclaw.wuhb"
     CONTENT   claw_content
-    NAME      "Captain Claw"
-    SHORTNAME "Claw"
+    NAME      "ReClaw"
+    SHORTNAME "ReClaw"
     AUTHOR    "OpenClaw, claw-web, MK & Claude"
     ICON      "${CMAKE_CURRENT_LIST_DIR}/icon.png"
     TVSPLASH  "${CMAKE_CURRENT_LIST_DIR}/tv-splash.png"

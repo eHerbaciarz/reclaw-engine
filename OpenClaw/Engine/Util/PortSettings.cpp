@@ -33,7 +33,7 @@ namespace
     void Save()
     {
         std::ofstream out(FilePath(), std::ios::trunc);
-        out << "# Captain Claw port settings\n";
+        out << "# ReClaw settings\n";
         for (const auto& kv : g_Values) out << kv.first << "=" << kv.second << "\n";
     }
 }

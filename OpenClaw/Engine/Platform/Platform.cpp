@@ -206,7 +206,7 @@ namespace Platform
         g_DataDir = "fs:/vol/external01/wiiu/apps/claw/";
         g_BundleDir = "fs:/vol/content/";   // the .wuhb's content folder
 #elif defined(__PSL1GHT__) || defined(__PS3__)
-        g_DataDir = "/dev_hdd0/game/CLAW00001/USRDIR/";
+        g_DataDir = "/dev_hdd0/game/RCLW00001/USRDIR/";
         g_BundleDir = g_DataDir;
 #elif defined(__PS4__)
         // Homebrew convention: the app's files in /data/<name>/; the .pkg's
@@ -262,7 +262,7 @@ namespace Platform
             g_pLogFile = fopen((g_DataDir + "openclaw.log").c_str(), "w");
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
-            SDL_Log("Captain Claw (OpenClaw) for %s - log started", Name());
+            SDL_Log("ReClaw for %s - log started", Name());
         }
         else
         {
@@ -310,7 +310,7 @@ namespace Platform
 #endif
         folders.push_back(g_DataDir);
 #if defined(__SWITCH__)
-        // Ryujinx layout: sdcard/Games/claw/ next to openclaw.nro.
+        // Ryujinx layout: sdcard/Games/claw/ next to reclaw.nro.
         folders.push_back("/Games/claw/");
 #elif defined(__3DS__)
         folders.push_back("sdmc:/claw/");

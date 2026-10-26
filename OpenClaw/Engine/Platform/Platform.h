@@ -9,7 +9,7 @@
 //   PS Vita      ux0:data/claw/                        app0:/   (in the .vpk)
 //   3DS          sdmc:/3ds/claw/                       romfs:/  (in the .3dsx)
 //   Wii U        sd:/wiiu/apps/claw/                   romfs:/  (in the .wuhb)
-//   PS3          /dev_hdd0/game/CLAW00001/USRDIR/      same folder
+//   PS3          /dev_hdd0/game/RCLW00001/USRDIR/      same folder
 //   Android      <external files dir of the app>       same folder (copied from the APK)
 //   Windows      folder of the .exe                    same folder
 //   Linux        folder of the binary, ~/.config/...   folder of the binary

@@ -92,11 +92,11 @@ namespace SecondScreen
         if (!Platform::HasSecondScreen() || g_pWindow) return;
 #if defined(__3DS__)
         g_Width = 320; g_Height = 240;
-        g_pWindow = SDL_CreateWindow("Captain Claw", SDL_WINDOWPOS_UNDEFINED_DISPLAY(1),
+        g_pWindow = SDL_CreateWindow("ReClaw", SDL_WINDOWPOS_UNDEFINED_DISPLAY(1),
                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(1), g_Width, g_Height, SDL_WINDOW_SHOWN);
 #elif defined(__WIIU__)
         g_Width = 854; g_Height = 480;
-        g_pWindow = SDL_CreateWindow("Captain Claw", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        g_pWindow = SDL_CreateWindow("ReClaw", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                      g_Width, g_Height, SDL_WINDOW_SHOWN | SDL_WINDOW_WIIU_GAMEPAD_ONLY);
 #endif
         if (!g_pWindow)

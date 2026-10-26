@@ -9,15 +9,15 @@ Zamiast `CLAW.REZ` działa też rozpakowany folder `Assets`.
 
 | Platforma | Plik gry | Folder z CLAW.REZ (tam też config.xml, zapisy i openclaw.log) |
 |---|---|---|
-| Switch | `openclaw.nro` | `sd:/switch/claw/` |
-| Linux | `claw-linux-x86_64.tar.gz` → `run.sh` | obok `run.sh` |
-| Windows | `claw-windows-x86_64.zip` → `Claw.exe` | obok `Claw.exe` |
-| PS Vita | `claw.vpk` (VitaShell) | `ux0:data/claw/` |
-| 3DS | `claw.3dsx` (Homebrew Launcher) | `sdmc:/3ds/claw/` |
-| Wii U | `claw.wuhb` (Aroma, `sd:/wiiu/apps/`) | `sd:/wiiu/apps/claw/` |
-| PS3 | `claw.pkg` (HEN/CFW) lub `claw.self` (RPCS3) | `/dev_hdd0/game/CLAW00001/USRDIR/` |
-| PS4 | `IV0001-CLAW00002_…pkg` (GoldHEN) | `/data/claw/` (FTP / USB) |
-| Android | `CaptainClaw.apk` | `Android/data/org.openclaw.claw/files/` (USB / menedżer plików) |
+| Switch | `reclaw.nro` | `sd:/switch/claw/` |
+| Linux | `reclaw-linux-x86_64.tar.gz` → `run.sh` | obok `run.sh` |
+| Windows | `reclaw-windows-x86_64.zip` → `ReClaw.exe` | obok `ReClaw.exe` |
+| PS Vita | `reclaw.vpk` (VitaShell) | `ux0:data/claw/` |
+| 3DS | `reclaw.3dsx` (Homebrew Launcher) | `sdmc:/3ds/claw/` |
+| Wii U | `reclaw.wuhb` (Aroma, `sd:/wiiu/apps/`) | `sd:/wiiu/apps/claw/` |
+| PS3 | `reclaw.pkg` (HEN/CFW) lub `reclaw.self` (RPCS3) | `/dev_hdd0/game/RCLW00001/USRDIR/` |
+| PS4 | `IV0001-RCLW00002_…pkg` (GoldHEN) | `/data/claw/` (FTP / USB) |
+| Android | `ReClaw.apk` | `Android/data/org.reclaw.game/files/` (USB / menedżer plików) |
 
 ## Przyciski
 

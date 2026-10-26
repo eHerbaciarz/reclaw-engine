@@ -5,7 +5,7 @@
 #                   switch-sdl2_ttf switch-sdl2_gfx switch-zlib
 #   make -C platform/switch -j$(nproc)
 #
-# Output: platform/switch/openclaw.nro
+# Output: platform/switch/reclaw.nro
 #
 # Unlike devkitPro's template Makefile this keeps object files in a directory
 # tree mirroring the sources, so files with the same name in different folders
@@ -21,8 +21,8 @@ endif
 #---------------------------------------------------------------------------------
 # Application
 #---------------------------------------------------------------------------------
-TARGET      := openclaw
-APP_TITLE   := Captain Claw
+TARGET      := reclaw
+APP_TITLE   := ReClaw
 APP_AUTHOR  := OpenClaw, claw-web and ClawSwitch contributors
 APP_VERSION := 1.0.0
 ICON        := icon.jpg

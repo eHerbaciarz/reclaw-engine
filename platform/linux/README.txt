@@ -1,4 +1,4 @@
-Kapitan Pazur / Captain Claw - Linux (x86_64)
+ReClaw - Linux (x86_64)
 =============================================
 
 PL

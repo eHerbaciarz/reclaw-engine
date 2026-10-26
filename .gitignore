@@ -106,3 +106,4 @@ CLAUDE.local.md
 # Node dependencies and Vite build output
 node_modules/
 dist/
+platform/switch/reclaw.nro

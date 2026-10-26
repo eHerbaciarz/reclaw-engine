@@ -51,14 +51,14 @@ bo tutaj nie da się pobrać tych narzędzi.
 
 | Platforma | Paczka | Stan | Co sprawdzić |
 |---|---|---|---|
-| Linux x86_64 | `claw-linux-x86_64.tar.gz` | buduje się, startuje (komunikat o braku CLAW.REZ) | pełna gra z CLAW.REZ, pad, dźwięk, muzyka |
-| Windows x86_64 | `claw-windows-x86_64.zip` | buduje się (MinGW) | start, pad (Xbox), okno / pełny ekran, wyścig przez sieć (zapora!) |
-| 3DS | `claw.3dsx` | buduje się | dolny ekran: mapa z menu + stan gracza; płynność (New 3DS), pamięć, dźwięk, czy widok 400×240 jest wygodny (`<Scale>` w config.xml) |
-| Wii U | `claw.wuhb` | buduje się | GamePad: mapa z menu + stan gracza, TV: gra; przyciski Nintendo (A zatwierdza); wyścig przez sieć |
-| PS Vita | `claw.vpk` | CI | ✕ zatwierdza, ○ wraca, skok i magia bez zamiany; pamięć (256 MB sterty) |
-| PS3 | `claw.pkg` / `claw.self` | CI | ✕ / ○ jak na Vicie, mapowanie pada DualShock 3, RPCS3 |
-| PS4 | `IV0001-CLAW00002_….pkg` | CI (kod sprawdzony clangiem z libc++ jak w OpenOrbis) | start z GoldHEN, pad DualShock 4 (✕ / ○, Options = pauza, touchpad = mapa), dźwięk, pliki w /data/claw/; czy rusza bez / z libc.prx i libSceFios2.prx w sce_module (nie ma ich w repozytorium) |
-| Android | `CaptainClaw.apk` | CI (kod skompilowany na PC) | sterowanie dotykiem i padem, pliki w `Android/data/org.openclaw.claw/files/`, wyścig przez Wi‑Fi |
+| Linux x86_64 | `reclaw-linux-x86_64.tar.gz` | buduje się, startuje (komunikat o braku CLAW.REZ) | pełna gra z CLAW.REZ, pad, dźwięk, muzyka |
+| Windows x86_64 | `reclaw-windows-x86_64.zip` | buduje się (MinGW) | start, pad (Xbox), okno / pełny ekran, wyścig przez sieć (zapora!) |
+| 3DS | `reclaw.3dsx` | buduje się | dolny ekran: mapa z menu + stan gracza; płynność (New 3DS), pamięć, dźwięk, czy widok 400×240 jest wygodny (`<Scale>` w config.xml) |
+| Wii U | `reclaw.wuhb` | buduje się | GamePad: mapa z menu + stan gracza, TV: gra; przyciski Nintendo (A zatwierdza); wyścig przez sieć |
+| PS Vita | `reclaw.vpk` | CI | ✕ zatwierdza, ○ wraca, skok i magia bez zamiany; pamięć (256 MB sterty) |
+| PS3 | `reclaw.pkg` / `reclaw.self` | CI | ✕ / ○ jak na Vicie, mapowanie pada DualShock 3, RPCS3 |
+| PS4 | `IV0001-RCLW00002_….pkg` | CI (kod sprawdzony clangiem z libc++ jak w OpenOrbis) | start z GoldHEN, pad DualShock 4 (✕ / ○, Options = pauza, touchpad = mapa), dźwięk, pliki w /data/claw/; czy rusza bez / z libc.prx i libSceFios2.prx w sce_module (nie ma ich w repozytorium) |
+| Android | `ReClaw.apk` | CI (kod skompilowany na PC) | sterowanie dotykiem i padem, pliki w `Android/data/org.reclaw.game/files/`, wyścig przez Wi‑Fi |
 
 Wspólne poprawki do sprawdzenia przy okazji:
 - Wii U i PS3 to procesory big‑endian: czytanie CLAW.REZ, SoundFont (muzyka)

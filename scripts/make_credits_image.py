@@ -17,21 +17,21 @@ OUT = os.path.join(REPO, "Build_Release/ASSETS/Credits/credits_text_{lang}.png")
 W, H = 600, 300
 
 TEXTS = {
-    "pl": ("Twórcy", [
+    "pl": ("ReClaw – twórcy", [
         ("Gra oryginalna", "Claw © 1997 Monolith Productions"),
         ("OpenClaw", "Petr Jašíček · Pavel Löbl"),
         ("Pomoc przy OpenClaw", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
         ("Claw Web", "Arthur Boss"),
         ("ClawSwitch", "djmuted"),
-        ("Porty na konsole", "MK  i  Claude (Anthropic)"),
+        ("ReClaw", "MK  i  Claude (Anthropic)"),
     ]),
-    "en": ("Credits", [
+    "en": ("ReClaw – credits", [
         ("Original game", "Claw © 1997 Monolith Productions"),
         ("OpenClaw", "Petr Jašíček · Pavel Löbl"),
         ("OpenClaw contributors", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
         ("Claw Web", "Arthur Boss"),
         ("ClawSwitch", "djmuted"),
-        ("Console ports", "MK  and  Claude (Anthropic)"),
+        ("ReClaw", "MK  and  Claude (Anthropic)"),
     ]),
 }
 

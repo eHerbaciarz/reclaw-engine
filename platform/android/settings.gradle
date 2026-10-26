@@ -11,5 +11,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "CaptainClaw"
+rootProject.name = "ReClaw"
 include ':app'

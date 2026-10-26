@@ -1,113 +1,54 @@
-# Claw Web
+# ReClaw
 
-**[Play here](https://arthurboss.github.io/claw-web/)** - the classic Claw platformer in your web browser (requires uploading CLAW.REZ).
+**ReClaw** is an unofficial, fan-made engine for the platform game **Claw**
+(Monolith Productions, 1997), also known as Captain Claw / Kapitan Pazur.
+It runs the original game from your own copy of its data on PC and on
+consoles, and adds a few things of its own.
 
-> **⚠️ URL Changed:** Previously at `/captain-claw-web/` and `/WASM-OpenClaw/`. Old bookmarks redirect. Your `CLAW.REZ` and saves migrate automatically.
+> **ReClaw contains no game data.** You need `CLAW.REZ` (and, for the
+> movies, `CLAW.FEC`) from a copy of Claw you own. ReClaw is not affiliated
+> with or endorsed by Monolith Productions or Warner Bros.; "Claw" and
+> "Captain Claw" are their trademarks.
 
-| Main Menu | Level 1 Gameplay (in ultra widescreen) |
-|-----------|------------------|
-| ![Game Menu](docs/screenshots/game-menu.jpeg) | ![Level 1 Gameplay](docs/screenshots/gameplay-level1.jpeg) |
+## Platforms
 
-- Supports wide, ultra, and super widescreen resolutions
-- Supports gamepad with vibration/rumble
-- Supports save game progress
+| Platform | Package | Where CLAW.REZ goes |
+|---|---|---|
+| Nintendo Switch | `reclaw.nro` | `sd:/switch/claw/` |
+| Linux x86_64 | `reclaw-linux-x86_64.tar.gz` | next to `run.sh` |
+| Windows x86_64 | `reclaw-windows-x86_64.zip` | next to `ReClaw.exe` |
+| PS Vita | `reclaw.vpk` | `ux0:data/claw/` |
+| Nintendo 3DS | `reclaw.3dsx` | `sdmc:/3ds/claw/` |
+| Wii U | `reclaw.wuhb` | `sd:/wiiu/apps/claw/` |
+| PS3 | `reclaw.pkg` / `reclaw.self` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
+| PS4 | `IV0001-RCLW00002_….pkg` | `/data/claw/` |
+| Android | `ReClaw.apk` | picked in the app on first start |
+| Web browser | see [claw-web](https://github.com/arthurboss/claw-web) | uploaded in the browser |
 
-## Disclaimer
+Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Polish).
 
-> **Unofficial fan project based on [OpenClaw](https://github.com/pjasicek/OpenClaw) by pjasicek:**
- Not affiliated with or endorsed by the rights holders. Captain Claw is a trademark of Monolith Productions / Warner Bros. This project ships no game content - you supply your own `CLAW.REZ` from a copy of the game you own.
+## What ReClaw adds
 
-## Quick Start
+- Ports to Switch, Linux, Windows, PS Vita, 3DS, Wii U, PS3, PS4 and Android
+- Second screen on 3DS / Wii U: the menu map with the player's status
+- Race mode: split screen or two consoles over the local network
+- Save states (save / load / rewind), level map, carrying and throwing powder kegs
+- Subtitles from SRT files for the movies and spoken lines ([docs/NAPISY.md](docs/NAPISY.md))
+- Polish and English texts of its own screens, controls page per platform
 
-### Requirements
+## Based on
 
-- **Browser:** Chrome 105+ / Firefox 121+ / Safari 16.4+ / Edge 105+
-- **Storage:** ~120MB free space in browser
-- **CLAW.REZ:** Original game assets from Captain Claw (1997) — you must own the game
+ReClaw would not exist without these projects (all GPL-3.0):
 
-### Running the Game
+- [OpenClaw](https://github.com/pjasicek/OpenClaw) by Petr Jašíček, Pavel Löbl and contributors – the engine
+- [claw-web](https://github.com/arthurboss/claw-web) by Arthur Boss – this repository is a fork of it
+  (its original README: [docs/README-claw-web.md](docs/README-claw-web.md))
+- [ClawSwitch](https://github.com/djmuted/ClawSwitch) by djmuted – the first Switch port
 
-1. **Clone or download the repository:**
-
-   ```bash
-   git clone https://github.com/arthurboss/claw-web.git
-   cd claw-web
-   ```
-
-2. **Build the game:**
-
-   ```bash
-   source ./emsdk/emsdk_env.sh
-   yarn install
-   ./build_wasm.sh
-   ```
-
-3. **Start the dev server:**
-
-   ```bash
-   yarn dev
-   ```
-
-   The server starts on `http://localhost:5173/`
-
-4. **Open in your web browser:**
-
-   Visit: `http://localhost:5173/`
-
-5. **First time only:** Upload your CLAW.REZ file when prompted
-
-6. **Play!** The game loads in 2-3 seconds
-
-## Controls
-
-### Keyboard
-
-| Action | Keys |
-|--------|------|
-| Move | Arrow keys or WASD |
-| Jump | Space |
-| Attack (Sword) | Left Ctrl |
-| Fire (Ranged) | Left Alt |
-| Change Weapon | Left Shift or E |
-| Pause | Escape |
-
-The game captures keyboard input to prevent browser and OS shortcuts (like Ctrl+C, Alt+Tab) from interfering with gameplay. ESC is also captured in fullscreen mode (Chrome/Edge only).
-
-**macOS Note:** Ctrl + Arrow keys trigger Spaces navigation at the system level and cannot be blocked by the browser. To disable: System Settings → Keyboard → Keyboard Shortcuts → Mission Control → uncheck "Move left/right a space".
-
-### Gamepad
-
-Xbox, PlayStation, and most standard controllers supported. See [Gamepad Support](docs/player/GAMEPAD.md) for button mapping and vibration feedback.
-
-## Features
-
-- **Fast Loading:** 48MB download, levels load as you play
-- **One-Time Setup:** Upload CLAW.REZ once, play forever
-- **Full Game:** All 14 levels with original graphics and audio
-- **Gamepad Support:** Controller input with vibration feedback
-- **Save System:** Progress saved in browser storage
-
-## Troubleshooting
-
-Having issues? See [Troubleshooting Guide](docs/player/TROUBLESHOOTING.md).
-
-## For Developers
-
-See [docs/developer/](docs/developer/) for technical documentation:
-
-- [Building](docs/developer/BUILDING.md) - Compiling from source
-- [Architecture](docs/developer/ARCHITECTURE.md) - Lazy-loading and resource management
+ReClaw: MK and Claude (Anthropic).
 
 ## License
 
-GNU GPL v3 - See LICENSE file
-
-Original game assets (CLAW.REZ) remain copyright Monolith Productions.
-
-## Credits
-
-- **Original Game:** Monolith Productions (1997)
-- **OpenClaw base project:** [Petr Jašíček](https://github.com/pjasicek/)
-- **This web-focused version:** [Arthur Boss](https://github.com/arthurboss)
-
----
+GPL-3.0, like the projects it is based on – see [LICENSE.txt](LICENSE.txt).
+Third-party parts keep their own licenses (Box2D, TinyXML, TinySoundFont,
+libsmacker, SDL2, fonts – see `ThirdParty/` and the font folders).

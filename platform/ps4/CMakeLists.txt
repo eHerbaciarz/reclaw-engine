@@ -1,5 +1,5 @@
-# PS4 build (OpenOrbis toolchain from PacBrew, SDL2 port by cpasjuste)
-#   -> IV0001-CLAW00002_00-CLAW000020100000.pkg
+# ReClaw - PS4 build (OpenOrbis toolchain from PacBrew, SDL2 port by cpasjuste)
+#   -> IV0001-RCLW00002_00-RCLW000020100000.pkg
 #
 #   (pacman) ps4-openorbis ps4-openorbis-portlibs     see platform/ps4/README.txt
 #   source /opt/pacbrew/ps4/openorbis/ps4vars.sh
@@ -20,8 +20,8 @@ project(ClawPS4 C CXX)
 
 include("${CMAKE_CURRENT_LIST_DIR}/../cmake/OpenClawGame.cmake")
 
-set(PS4_TITLE_ID "CLAW00002")
-set(PS4_TITLE    "Captain Claw")
+set(PS4_TITLE_ID "RCLW00002")
+set(PS4_TITLE    "ReClaw")
 set(PS4_VERSION  "01.00")
 
 # PacBrew's static SDL2, SDL2_image, SDL2_mixer and SDL2_ttf (pkg-config)

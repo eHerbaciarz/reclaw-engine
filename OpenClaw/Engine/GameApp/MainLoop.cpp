@@ -70,7 +70,7 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
     {
         std::string text;
         for (const std::string& line : lines) text += line + "\n";
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Captain Claw", text.c_str(), NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ReClaw", text.c_str(), NULL);
         return;
     }
 
@@ -88,7 +88,7 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
 #elif defined(__vita__)
         w = 960; h = 544;
 #endif
-        pOwnWindow = SDL_CreateWindow("Captain Claw", 0, 0, w, h, SDL_WINDOW_SHOWN);
+        pOwnWindow = SDL_CreateWindow("ReClaw", 0, 0, w, h, SDL_WINDOW_SHOWN);
         pRenderer = pOwnWindow ? SDL_CreateRenderer(pOwnWindow, -1, 0) : nullptr;
         if (!pRenderer)
         {
@@ -202,7 +202,7 @@ int RunGameEngine(int argc, char** argv)
             "CLAW.REZ not found",
             "",
             "This port needs the data file from your own copy of",
-            "Captain Claw (1997). Copy CLAW.REZ to:",
+            "Claw (1997). Copy CLAW.REZ to:",
             "    " + Platform::DataDir() + "CLAW.REZ",
             "An unpacked \"Assets\" folder works too.",
             "",
@@ -227,7 +227,7 @@ int RunGameEngine(int argc, char** argv)
         LOG_ERROR("Failed to initialize. Exiting.");
 #ifndef __EMSCRIPTEN__
         ShowFatalErrorScreen({
-            "Captain Claw failed to start",
+            "ReClaw failed to start",
             "",
             "Details were written to " + Platform::DataDir() + "openclaw.log",
             "Please include that file when reporting the problem.",

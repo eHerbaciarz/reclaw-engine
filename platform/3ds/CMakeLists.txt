@@ -1,4 +1,4 @@
-# Nintendo 3DS build (devkitARM + libctru) -> claw.3dsx
+# ReClaw - Nintendo 3DS build (devkitARM + libctru) -> reclaw.3dsx
 #
 #   cmake -S platform/3ds -B build-3ds -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/3DS.cmake
 #   cmake --build build-3ds -j
@@ -9,7 +9,7 @@
 #
 # The game runs on the top screen (400x240); the bottom screen shows the main
 # menu's map with the player's status (Engine/UserInterface/SecondScreen.cpp).
-# Install: claw.3dsx to sdmc:/3ds/claw/ and CLAW.REZ from your copy of the game
+# Install: reclaw.3dsx to sdmc:/3ds/claw/ and CLAW.REZ from your copy of the game
 # to sdmc:/3ds/claw/CLAW.REZ. Use a New 3DS / 2DS XL: the old models have too
 # little memory and CPU for the game.
 
@@ -29,13 +29,13 @@ openclaw_stage_bundle(openclaw_bundle "${BUNDLE}" "${CMAKE_CURRENT_LIST_DIR}/con
 dkp_add_asset_target(claw_romfs "${BUNDLE}")
 set_property(TARGET claw_romfs APPEND PROPERTY DKP_ASSET_FILES ${OPENCLAW_BUNDLE_FILES})
 
-ctr_generate_smdh(claw.smdh
-    NAME        "Captain Claw"
-    DESCRIPTION "OpenClaw port - needs CLAW.REZ"
+ctr_generate_smdh(reclaw.smdh
+    NAME        "ReClaw"
+    DESCRIPTION "Engine for Claw (1997) - needs CLAW.REZ"
     AUTHOR      "OpenClaw, claw-web, MK & Claude"
     ICON        "${CMAKE_CURRENT_LIST_DIR}/icon.png")
 
 ctr_create_3dsx(openclaw
-    OUTPUT "${CMAKE_BINARY_DIR}/claw.3dsx"
-    SMDH   "${CMAKE_BINARY_DIR}/claw.smdh"
+    OUTPUT "${CMAKE_BINARY_DIR}/reclaw.3dsx"
+    SMDH   "${CMAKE_BINARY_DIR}/reclaw.smdh"
     ROMFS  claw_romfs)

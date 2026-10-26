@@ -1,4 +1,4 @@
-# Captain Claw — Nintendo Switch port
+# ReClaw — Nintendo Switch port
 
 A homebrew (`.nro`) build of this repository's engine for the Nintendo Switch.
 
@@ -17,9 +17,9 @@ Captain Claw (1997).
 
 ## Installing
 
-1. Copy `openclaw.nro` to `/switch/claw/` on the SD card.
+1. Copy `reclaw.nro` to `/switch/claw/` on the SD card.
 2. Copy `CLAW.REZ` from your copy of the game to `/switch/claw/CLAW.REZ`.
-3. Launch "Captain Claw" from the Homebrew Menu.
+3. Launch "ReClaw" from the Homebrew Menu.
    Use title-override (hold R while starting a retail game) for full memory;
    applet mode (album) works too but has less RAM.
 
