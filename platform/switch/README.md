@@ -15,11 +15,14 @@ It combines the two existing forks of [pjasicek/OpenClaw](https://github.com/pja
 No game data is included. You need `CLAW.REZ` from your own copy of
 Captain Claw (1997).
 
+See also [docs/OPIS.md](../../docs/OPIS.md) (Polish and English description).
+
 ## Installing
 
 1. Copy `reclaw.nro` to `/switch/claw/` on the SD card.
 2. Copy `CLAW.REZ` from your copy of the game to `/switch/claw/CLAW.REZ`.
-3. Launch "ReClaw" from the Homebrew Menu.
+3. Optional: copy `CLAW.FEC` (the CD movies) to the same folder.
+4. Launch "ReClaw" from the Homebrew Menu.
    Use title-override (hold R while starting a retail game) for full memory;
    applet mode (album) works too but has less RAM.
 
@@ -37,8 +40,12 @@ PC versions on any controller (including the Joy-Cons held sideways):
 | Jump                    | B (bottom)                   |
 | Sword attack            | Y (left)                     |
 | Fire pistol/magic/dynamite | A (right)                 |
-| Previous / next ammo    | L / R                        |
+| Lift / throw a powder keg | X (top)                    |
+| Change ammo             | L                            |
+| Save / load state       | ZL / ZR                      |
+| Rewind                  | hold R                       |
 | Pause menu              | +                            |
+| Level map               | −                            |
 | Menus                   | A confirm, B back, D-pad/stick to navigate |
 
 Rumble is supported (landing, attacks, damage, explosions, death).
@@ -49,11 +56,10 @@ Rumble is supported (landing, attacks, damage, explosions, death).
 - Level music is synthesized on the console with TinySoundFont and the same
   GeneralUser GS soundfont the web build uses; it is decoded in the background
   at startup, so music starts a few seconds after launch.
-- Browser-only menu entries (export/import saves to a file, the Display page
-  with fullscreen/aspect toggles) are hidden. Saves already live in a file on
-  the SD card and can be backed up by copying `SAVES.XML`.
-- Cutscene videos are not played (the web build uses the browser's video
-  player).
+- Browser-only menu entries (export/import saves to a file, fullscreen /
+  aspect toggles) are hidden. Saves already live in a file on the SD card and
+  can be backed up by copying `SAVES.XML`.
+- Cutscenes are played from `CLAW.FEC` (copy it next to `CLAW.REZ`).
 
 ## Building
 
@@ -68,7 +74,7 @@ make -C platform/switch -j"$(nproc)"
 
 Or push the repository to GitHub: `.github/workflows/switch.yml` builds the
 `.nro` in the `devkitpro/devkita64` container and uploads it as the
-`openclaw-switch` artifact (ready-to-copy `switch/claw/` folder).
+`reclaw-switch` artifact (ready-to-copy `switch/claw/` folder).
 
 The same sources build natively on Linux, which is the quickest way to test
 changes before putting them on the console:
