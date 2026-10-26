@@ -3,9 +3,9 @@
 #   cmake -S platform/vita -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake
 #   cmake --build build-vita -j
 #
-# Needs the VitaSDK packages: sdl2 sdl2_image sdl2_mixer sdl2_ttf zlib
-# (vdpm sdl2 sdl2_image sdl2_mixer sdl2_ttf; the vitasdk/vitasdk Docker image
-# has them). CI: .github/workflows/vita.yml
+# Needs VitaSDK (with zlib) and platform/deps/fetch.sh: SDL2 and its add-ons
+# are compiled from source with the game, like on 3DS / Wii U / Android.
+# CI: .github/workflows/ports.yml
 #
 # Install: claw.vpk with VitaShell; CLAW.REZ from your copy of the game goes to
 # ux0:data/claw/CLAW.REZ (config.xml, saves and openclaw.log are written there).
@@ -30,17 +30,12 @@ set(VITA_VERSION  "01.00")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12")   # extended RAM mode
 
 include("${CMAKE_CURRENT_LIST_DIR}/../cmake/OpenClawGame.cmake")
-
-# VitaSDK's pkg-config files for its static libraries
-if (EXISTS "${VITASDK}/bin/arm-vita-eabi-pkg-config")
-    set(PKG_CONFIG_EXECUTABLE "${VITASDK}/bin/arm-vita-eabi-pkg-config")
-else()
-    set(ENV{PKG_CONFIG_LIBDIR} "${VITASDK}/arm-vita-eabi/lib/pkgconfig")
-    set(ENV{PKG_CONFIG_SYSROOT_DIR} "")
-endif()
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/BundledSDL.cmake")
 
 openclaw_add_game(openclaw)
-openclaw_link_sdl(openclaw NO_GFX)
+openclaw_bundled_sdl(openclaw)
+find_package(ZLIB REQUIRED)
+target_link_libraries(openclaw PRIVATE ZLIB::ZLIB)
 target_compile_options(openclaw PRIVATE -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard)
 target_link_libraries(openclaw PRIVATE
     SceNet_stub SceNetCtl_stub SceSysmodule_stub SceAppUtil_stub SceAppMgr_stub

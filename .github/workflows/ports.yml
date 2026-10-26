@@ -91,9 +91,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Tools and libraries
         run: |
-          (apk add --no-cache bash python3 zip cmake make 2>/dev/null || \
-           (apt-get update && apt-get install -y --no-install-recommends bash python3 zip cmake make)) || true
-          vdpm sdl2 sdl2_image sdl2_mixer sdl2_ttf zlib || true
+          (apk add --no-cache bash git python3 zip cmake make 2>/dev/null || \
+           (apt-get update && apt-get install -y --no-install-recommends bash git python3 zip cmake make)) || true
+          vdpm zlib || true
+          platform/deps/fetch.sh
       - name: Build
         run: |
           cmake -S platform/vita -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=Release
@@ -112,7 +113,7 @@ jobs:
       - name: Tools and libraries
         run: |
           dkp-pacman -Sy --noconfirm --needed 3ds-dev 3ds-zlib
-          (apt-get update && apt-get install -y --no-install-recommends zip python3) || true
+          (apt-get update && apt-get install -y --no-install-recommends zip python3 git ca-certificates) || true
           platform/deps/fetch.sh
       - name: Build
         run: |
@@ -137,7 +138,7 @@ jobs:
       - name: Tools and libraries
         run: |
           dkp-pacman -Sy --noconfirm --needed wiiu-dev ppc-zlib
-          (apt-get update && apt-get install -y --no-install-recommends zip python3) || true
+          (apt-get update && apt-get install -y --no-install-recommends zip python3 git ca-certificates) || true
           platform/deps/fetch.sh wiiu
       - name: Build
         run: |

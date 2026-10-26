@@ -73,7 +73,8 @@ cmake -S platform/3ds -B build-3ds -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/3DS.c
 platform/deps/fetch.sh wiiu
 cmake -S platform/wiiu -B build-wiiu -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/WiiU.cmake && cmake --build build-wiiu -j
 
-# PS Vita (VitaSDK + vdpm sdl2 sdl2_image sdl2_mixer sdl2_ttf)
+# PS Vita (VitaSDK + vdpm zlib)
+platform/deps/fetch.sh
 cmake -S platform/vita -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake && cmake --build build-vita -j
 
 # PS3 (ps3toolchain + PSL1GHT + ps3libraries 1 2 4 14 16 + platform/ps3/build-sdl-addons.sh)
@@ -86,7 +87,7 @@ cd platform/android && ./gradlew assembleRelease
 
 Wspólne pliki: `platform/cmake/OpenClawGame.cmake` (źródła gry, flagi),
 `platform/cmake/BundledSDL.cmake` (SDL2 + image/mixer/ttf kompilowane razem
-z grą: Android, 3DS, Wii U), `scripts/stage_bundle.sh` (pliki portu),
+z grą: Android, 3DS, Wii U, Vita), `scripts/stage_bundle.sh` (pliki portu),
 `scripts/make_platform_configs.py` (config.xml dla platform),
 `scripts/make_platform_icons.py` (ikony i banery z ikony portu).
 
