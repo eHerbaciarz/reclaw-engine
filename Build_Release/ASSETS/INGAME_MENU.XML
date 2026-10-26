@@ -78,6 +78,21 @@
                 <PageName>MenuPage_EndGame</PageName>
             </GeneratedEvent>
         </MenuItem>
+        <!-- Shown after the secret code (hold R + down, down, left, right, up) -->
+        <MenuItem>
+            <Name>CHEATS_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatsUnlocked</ConditionType>
+            </VisibilityCondition>
+            <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CHEATS_{lang}_INACTIVE.png</InactiveImage>
+            <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CHEATS_{lang}_ACTIVE.png</ActiveImage>
+            <Position x="320" y="320" align="center" />
+            <GeneratedEvent>
+                <Type>OpenCheats</Type>
+            </GeneratedEvent>
+        </MenuItem>
     </MenuPage>
 
     <!-- END GAME PAGE -->
@@ -897,13 +912,83 @@
         </MenuItem>
 
         <MenuItem>
+            <Name>SUBTITLES_ON_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>SubtitlesOn</ConditionType>
+            </VisibilityCondition>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/DISPLAY/SUBTITLES_ON_{lang}_INACTIVE.png</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/DISPLAY/SUBTITLES_ON_{lang}_ACTIVE.png</ActiveImage>
+            <Position x="320" y="260" align="center" />
+            <GeneratedEvent>
+                <Type>SetSubtitles</Type>
+                <IsEnabled>false</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SUBTITLES_ON_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SUBTITLES_ON_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SUBTITLES_OFF_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SUBTITLES_OFF_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>SUBTITLES_OFF_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>SubtitlesOff</ConditionType>
+            </VisibilityCondition>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/DISPLAY/SUBTITLES_OFF_{lang}_INACTIVE.png</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/DISPLAY/SUBTITLES_OFF_{lang}_ACTIVE.png</ActiveImage>
+            <Position x="320" y="260" align="center" />
+            <GeneratedEvent>
+                <Type>SetSubtitles</Type>
+                <IsEnabled>true</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SUBTITLES_OFF_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SUBTITLES_OFF_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SUBTITLES_ON_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SUBTITLES_ON_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <Hotkey>B</Hotkey>
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
-            <Position x="266" y="260" />
+            <Position x="266" y="295" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>

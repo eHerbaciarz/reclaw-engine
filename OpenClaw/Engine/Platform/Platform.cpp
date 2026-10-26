@@ -89,7 +89,7 @@ namespace
     void ExtractAndroidBundle(const std::string& to)
     {
         static const char* kFiles[] = { "config.xml", "ASSETS.ZIP", "clacon.ttf", "console02.tga",
-                                        "splash.ttf", "music/soundfont.sf3" };
+                                        "splash.ttf", "subtitles.ttf", "music/soundfont.sf3" };
         const std::string stamp = std::string(__DATE__ " " __TIME__);
         {
             std::ifstream in(to + "bundle.stamp");

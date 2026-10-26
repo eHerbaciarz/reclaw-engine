@@ -58,4 +58,5 @@ vita_create_vpk(claw.vpk ${VITA_TITLEID} eboot.bin
     FILE ${BUNDLE}/clacon.ttf clacon.ttf
     FILE ${BUNDLE}/console02.tga console02.tga
     FILE ${BUNDLE}/splash.ttf splash.ttf
+    FILE ${BUNDLE}/subtitles.ttf subtitles.ttf
     FILE ${BUNDLE}/music/soundfont.sf3 music/soundfont.sf3)

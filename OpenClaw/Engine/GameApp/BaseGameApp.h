@@ -358,6 +358,7 @@ public:
   bool LoadLevel(const char *levelResource);
 
   const GameCheats *GetGameCheats() const { return &m_GameCheats; }
+  GameCheats *GetGameCheatsMutable() { return &m_GameCheats; }
   const ConsoleConfig *GetConsoleConfig() const {
     return &m_GameOptions.consoleConfig;
   }

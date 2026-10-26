@@ -1,6 +1,7 @@
 #ifndef HUMANVIEW_H_
 #define HUMANVIEW_H_
 
+#include "CheatCode.h"
 #include <SDL2/SDL.h>
 #include "../SharedDefines.h"
 #include "../GameApp/BaseGameApp.h"
@@ -125,6 +126,9 @@ public:
 protected:
     void RenderToast(SDL_Renderer* pRenderer);
     void RenderSplitScene(SDL_Renderer* pRenderer);
+    void OpenCheatsDelegate(IEventDataPtr pEventData);
+    void SetSubtitlesDelegate(IEventDataPtr pEventData);
+    void OnCheatDirection(CheatCode::Dir dir);
     void StartRaceDelegate(IEventDataPtr pEventData);
     virtual void VCreateSecondController(uint32 actorId) { }
     virtual void VDestroySecondController() { }

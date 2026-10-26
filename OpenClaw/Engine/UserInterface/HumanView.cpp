@@ -22,6 +22,8 @@
 #include "ScoreScreen/EndLevelScoreScreen.h"
 #include "../Race/Race.h"
 #include "Minimap.h"
+#include "Subtitles.h"
+#include "CheatCode.h"
 #include "../Platform/Platform.h"
 #include "../Race/RaceLobby.h"
 #include "../Scene/HUDSceneNode.h"
@@ -136,6 +138,9 @@ void HumanView::VOnRender(uint32 msDiff)
 
         m_pConsole->OnRender(renderer);
 
+        // Subtitles / the cheat code's message, over the game and the menus
+        Subtitles::Render(renderer);
+
         // Lazy-load cursor frames on first render (resource cache is guaranteed ready by then)
         if (m_CursorFrames.empty())
         {
@@ -208,6 +213,24 @@ void HumanView::VOnUpdate(uint32 msDiff)
 
 bool HumanView::VOnEvent(SDL_Event& evt)
 {
+    // Secret code in the pause menu: right Shift held + arrows.
+    if ((evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) && m_pIngameMenu && m_pIngameMenu->VIsVisible())
+    {
+        SDL_Keycode key = evt.key.keysym.sym;
+        if (key == SDLK_RSHIFT)
+        {
+            CheatCode::SetModifierHeld(evt.type == SDL_KEYDOWN);
+            return true;
+        }
+        if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0 && CheatCode::IsModifierHeld() &&
+            (key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT))
+        {
+            OnCheatDirection(key == SDLK_UP ? CheatCode::Dir::Up : key == SDLK_DOWN ? CheatCode::Dir::Down :
+                             key == SDLK_LEFT ? CheatCode::Dir::Left : CheatCode::Dir::Right);
+            return true;
+        }
+    }
+
     // First let console try to eat this event
     if (m_pConsole->OnEvent(evt))
     {
@@ -324,6 +347,26 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
                 return true;
             }
 
+            // Secret code in the pause menu: R held + D-pad.
+            if (m_pIngameMenu && m_pIngameMenu->VIsVisible())
+            {
+                GamepadButton b = evt.gamepadButton.button;
+                if (b == GamepadButton::RightBumper)
+                {
+                    CheatCode::SetModifierHeld(true);
+                    return true;
+                }
+                if (CheatCode::IsModifierHeld() &&
+                    (b == GamepadButton::DPadUp || b == GamepadButton::DPadDown ||
+                     b == GamepadButton::DPadLeft || b == GamepadButton::DPadRight))
+                {
+                    OnCheatDirection(b == GamepadButton::DPadUp ? CheatCode::Dir::Up :
+                                     b == GamepadButton::DPadDown ? CheatCode::Dir::Down :
+                                     b == GamepadButton::DPadLeft ? CheatCode::Dir::Left : CheatCode::Dir::Right);
+                    return true;
+                }
+            }
+
             // Handle gamepad input for menus (main menu, quick menu, or game-over)
             bool inMenu = (gameState == GameState_Menu || menuActive);
 
@@ -425,6 +468,10 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
 
         case AppEventType::GamepadButtonUp:
         {
+            if (evt.gamepadButton.button == GamepadButton::RightBumper)
+            {
+                CheatCode::SetModifierHeld(false);
+            }
             // Always forward button-up (even while the menu is open) so a d-pad
             // direction released during the pause gets cleared — otherwise the
             // held-direction state sticks and the player moves on unpause. Mirrors
@@ -668,6 +715,10 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetSubtitlesDelegate), EventData_Menu_Set_Subtitles::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -725,6 +776,10 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetSubtitlesDelegate), EventData_Menu_Set_Subtitles::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -941,6 +996,11 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
         if ((pSoundInfo->soundToPlay.empty()) || (pSoundInfo->soundToPlay == "/GAME/SOUNDS/NULL.WAV"))
         {
             return;
+        }
+
+        if (!pSoundInfo->isMusic)
+        {
+            Subtitles::OnSoundPlayed(pSoundInfo->soundToPlay);
         }
 
         if (pSoundInfo->isMusic) // Background music - instrumental
@@ -1494,6 +1554,25 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     pLevelData->SetCustomLevel(level.path, level.startX, level.startY);
     g_pApp->GetGameLogic()->SetLevelData(pLevelData);
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
+}
+
+void HumanView::OnCheatDirection(CheatCode::Dir dir)
+{
+    if (CheatCode::FeedDirection(dir) && m_pIngameMenu)
+    {
+        m_pIngameMenu->SetMenuItemVisibleOnAllPages("CHEATS_BUTTON", true);
+    }
+}
+
+void HumanView::OpenCheatsDelegate(IEventDataPtr pEventData)
+{
+    CheatCode::RunCheatsScreen(g_pApp->GetRenderer());
+}
+
+void HumanView::SetSubtitlesDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Subtitles> pCast = static_pointer_cast<EventData_Menu_Set_Subtitles>(pEventData);
+    if (pCast) Subtitles::SetEnabled(pCast->IsEnabled());
 }
 
 void HumanView::StartRaceDelegate(IEventDataPtr pEventData)

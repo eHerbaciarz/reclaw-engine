@@ -2395,6 +2395,49 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Open_Cheats
+// Fired by the pause menu's "Cheats" entry (shown once the secret code was entered).
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Open_Cheats : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    EventData_Menu_Open_Cheats() { }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Open_Cheats()); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Open_Cheats"; }
+};
+
+//---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Subtitles
+// Options -> Display: subtitles on / off.
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Subtitles : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Subtitles(bool enabled = true) : m_bEnabled(enabled) { }
+
+    bool IsEnabled() const { return m_bEnabled; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Subtitles(m_bEnabled)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Subtitles"; }
+
+private:
+    bool m_bEnabled;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Play_Movies
 // Fired by the "Replay movies" page: plays one movie (index in CLAW.FEC), or
 // every movie unlocked so far when the index is -1.

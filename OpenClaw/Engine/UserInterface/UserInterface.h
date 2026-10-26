@@ -155,6 +155,7 @@ private:
 
 public:
     void RefreshActivePageVisibility();
+    void SetMenuItemVisibleOnAllPages(const std::string& menuItemName, bool visible);
 private:
     void ModifyMenuItemVisibilityDelegate(IEventDataPtr pEventData);
     void ModifyMenuItemStateDelegate(IEventDataPtr pEventData);

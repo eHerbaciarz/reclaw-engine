@@ -4,6 +4,8 @@
 #include "../Race/Race.h"
 #include "../Platform/Platform.h"
 #include "Lang.h"
+#include "Subtitles.h"
+#include "CheatCode.h"
 #include "../Video/Native/MoviePlayer.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
@@ -418,6 +420,16 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
     else if (eventType == "ImportSaveData")
     {
         pEventData.reset(new EventData_Import_Save_Data());
+    }
+    else if (eventType == "OpenCheats")
+    {
+        pEventData.reset(new EventData_Menu_Open_Cheats());
+    }
+    else if (eventType == "SetSubtitles")
+    {
+        bool enabled = true;
+        ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
+        pEventData.reset(new EventData_Menu_Set_Subtitles(enabled));
     }
     else if (eventType == "StartRace")
     {
@@ -885,6 +897,17 @@ void ScreenElementMenu::RefreshActivePageVisibility()
     for (auto& pItem : m_pActiveMenuPage->GetMenuItems())
     {
         pItem->ReEvaluateVisibilityCondition();
+    }
+}
+
+void ScreenElementMenu::SetMenuItemVisibleOnAllPages(const std::string& menuItemName, bool visible)
+{
+    for (auto& kv : m_MenuPageMap)
+    {
+        if (shared_ptr<ScreenElementMenuItem> pItem = kv.second->FindMenuItemByName(menuItemName))
+        {
+            pItem->VSetVisible(visible);
+        }
     }
 }
 
@@ -1883,6 +1906,18 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             m_bVisible = false;
         }
+        else if (conditionTypeStr == "SubtitlesOn")
+        {
+            m_bVisible = Subtitles::IsEnabled();
+        }
+        else if (conditionTypeStr == "SubtitlesOff")
+        {
+            m_bVisible = !Subtitles::IsEnabled();
+        }
+        else if (conditionTypeStr == "CheatsUnlocked")
+        {
+            m_bVisible = CheatCode::IsUnlocked();
+        }
         else if (conditionTypeStr == "WebOnly")
         {
             // Browser-only features (file export/import, fullscreen/aspect
@@ -2211,6 +2246,12 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = g_pApp->GetAudio()->IsMusicActive();
     else if (m_VisibilityConditionType == "MusicOff")
         m_bVisible = !g_pApp->GetAudio()->IsMusicActive();
+    else if (m_VisibilityConditionType == "SubtitlesOn")
+        m_bVisible = Subtitles::IsEnabled();
+    else if (m_VisibilityConditionType == "SubtitlesOff")
+        m_bVisible = !Subtitles::IsEnabled();
+    else if (m_VisibilityConditionType == "CheatsUnlocked")
+        m_bVisible = CheatCode::IsUnlocked();
     else if (m_VisibilityConditionType == "WebOnly")
     {
 #ifdef __EMSCRIPTEN__

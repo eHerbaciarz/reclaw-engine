@@ -84,7 +84,7 @@ LIBS     := $(shell $(PKGCONFIG) --libs SDL2_mixer SDL2_image SDL2_ttf SDL2_gfx 
 # own file to /switch/claw/CLAW.REZ on the SD card.
 #---------------------------------------------------------------------------------
 ROMFS_FILES := $(ROMFS)/config.xml $(ROMFS)/ASSETS.ZIP $(ROMFS)/clacon.ttf \
-               $(ROMFS)/console02.tga $(ROMFS)/music/soundfont.sf3 $(ROMFS)/splash.ttf
+               $(ROMFS)/console02.tga $(ROMFS)/music/soundfont.sf3 $(ROMFS)/splash.ttf $(ROMFS)/subtitles.ttf
 
 ASSETS_SRC := $(shell cd $(REPO)/Build_Release && find ASSETS -type f 2>/dev/null)
 
@@ -122,6 +122,10 @@ $(SPLASH_STAMP): FORCE
 FORCE:
 
 $(ROMFS)/splash.ttf: $(REPO)/ThirdParty/Fonts/CinzelDecorative/CinzelDecorative-Bold.ttf
+	@mkdir -p $(dir $@)
+	@cp $< $@
+
+$(ROMFS)/subtitles.ttf: $(REPO)/Box2D/Data/DroidSans.ttf
 	@mkdir -p $(dir $@)
 	@cp $< $@
 

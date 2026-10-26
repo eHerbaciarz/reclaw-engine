@@ -22,6 +22,7 @@ extern "C" {
 
 #include "../../Logger/Logger.h"
 #include "../../Platform/Input/BlockingInput.h"
+#include "../../UserInterface/Subtitles.h"
 
 namespace
 {
@@ -271,7 +272,7 @@ namespace
     bool AppAlive() { return BlockingInput::AppAlive(); }
 
     //---------------------------------------------------------------- playback
-    PlayResult PlaySource(SDL_Renderer* r, const MovieSource& m)
+    PlayResult PlaySource(SDL_Renderer* r, const MovieSource& m, int index)
     {
         FILE* fp = fopen(m.path.c_str(), "rb");
         if (!fp) return Missing;
@@ -367,6 +368,7 @@ namespace
             SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
             SDL_RenderClear(r);
             SDL_RenderCopy(r, tex, NULL, &dst);
+            Subtitles::Render(r);
             SDL_RenderPresent(r);
         };
 
@@ -389,6 +391,10 @@ namespace
                 }
             }
         }
+
+        char trackName[32];
+        snprintf(trackName, sizeof(trackName), "movie_%02d", index);
+        Subtitles::StartTrack(trackName);
 
         Uint32 start = SDL_GetTicks();
         for (unsigned long frame = 0; status != SMK_ERROR; ++frame)
@@ -435,6 +441,7 @@ namespace
         if (ctx.stream) SDL_FreeAudioStream(ctx.stream);
         if (ctx.mutex) SDL_DestroyMutex(ctx.mutex);
 
+        Subtitles::StopTrack();
         if (tex) SDL_DestroyTexture(tex);
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);
@@ -452,7 +459,7 @@ namespace
         {
             if (!AppAlive() || index < 0 || index >= (int)g_Movies.size()) continue;
             LOG("Playing movie " + std::to_string(index));
-            if (PlaySource(r, g_Movies[index]) == Aborted) break;
+            if (PlaySource(r, g_Movies[index], index) == Aborted) break;
         }
     }
 }
@@ -494,7 +501,7 @@ namespace MoviePlayer
         BuildIndex();
         if (!pRenderer || index < 0 || index >= (int)g_Movies.size()) return false;
         LOG("Playing movie " + std::to_string(index));
-        return PlaySource(pRenderer, g_Movies[index]) != Missing;
+        return PlaySource(pRenderer, g_Movies[index], index) != Missing;
     }
 
     void PlayStartupMovies(SDL_Renderer* pRenderer)

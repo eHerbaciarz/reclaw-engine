@@ -13,6 +13,7 @@ przez MK w Ryujinx / na Switchu. Po teście przenosimy wpis do sekcji
 | `rez_lang_probe.py` | odcisk polskiego i angielskiego REZ (rozpoznawanie języka napisów portu) | czeka na `rez_lang_*.txt` z obu wersji |
 | `boss_survey.py` | bossowie Red Tail, Aquatis, Le Rauxe, Katherine, Wolvington i kameleony: obiekty walki z ustawieniami, animacje, grafiki, dźwięki (poziomy 2, 4, 6, 12, 13, 14) | czeka na `boss_survey.txt` |
 | `ingame_menu_check.py` | czy w REZ są wszystkie grafiki menu pauzy (Wróć do gry, Zakończ życie, Opcje, Pomoc, Zakończ grę) | czeka na `ingame_menu_check.txt` |
+| `subtitle_templates.py` | puste szablony SRT: filmy z CLAW.FEC (`movie_00_pl.srt`…) i dźwięki dłuższe niż 0,6 s (`sounds/…_pl.srt`) + `LISTA.txt` z długościami | nieprzetestowany na prawdziwym REZ (sprawdzony na sztucznym) |
 | `pack_rez.py` | pakowanie rozpakowanego folderu Assets z powrotem do .REZ | nieprzetestowany (MK znalazł oryginalny polski REZ) |
 | `claw_level_report.py` | raport poziomów | brak potwierdzenia |
 | `rez_list.py` | lista plików w REZ | brak potwierdzenia |
@@ -34,6 +35,9 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Wyścig – przez sieć | Multiplayer → Przez sieć: Utwórz / Dołącz (dwie konsole lub dwa Ryujinxy), znalezienie wyścigu, odliczanie, duch rywala, meta, wyjście rywala / zerwanie połączenia | nieprzetestowane (sam moduł UDP sprawdzony na Linuksie) |
 | Pauza (+ / Start / Esc) | otwiera menu: Wróć do gry, Zakończ życie, Opcje, Pomoc, Zakończ grę; w wyścigu przez sieć świat się nie zatrzymuje | nieprzetestowane |
 | Mapa poziomu (− / Select / Tab) | półprzezroczysta mapa wokół gracza: podłoże, drabiny, kolce, skarby (złote), koniec poziomu (zielony), gracz (miga); w wyścigu drugi gracz / duch na niebiesko; czy skala 1:8 jest dobra | nieprzetestowane |
+| Kod w menu pauzy | trzymając R (klawiatura: prawy Shift) wcisnąć dół, dół, lewo, prawo, góra → na dole napis „Nie dość, że pirat to jeszcze oszust” (także przy wyłączonych napisach); od tej chwili w pauzie pozycja „Kody” (zapamiętana); czy pozycja (y=320) mieści się na tle menu | nieprzetestowane |
+| Ekran „Kody” | nieśmiertelność, nieskończona amunicja, skok bez ograniczeń (wł./wył.), pełne zdrowie, pełna amunicja, dodatkowe życie | nieprzetestowane |
+| Napisy | Opcje → Wyświetlanie → „Napisy: wł./wył.” (menu główne i pauza); napisy SRT w filmach i przy dźwiękach (dialogi); wygląd i wielkość tekstu | nieprzetestowane (parser i rysowanie sprawdzone osobno na PC) |
 | Gracz 2 po filmach / ekranach blokujących | czy drugi pad zostaje podłączony po filmie lub mapie tytułowej | nieprzetestowane |
 | Poziom 14, etap 1 | start, przeciwnicy, elementy poziomu | brak potwierdzenia |
 | Odsłanianie widoku na starcie poziomu | efekt od lewej do prawej | brak potwierdzenia |

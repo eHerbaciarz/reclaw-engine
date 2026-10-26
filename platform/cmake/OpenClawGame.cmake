@@ -84,7 +84,7 @@ function(openclaw_stage_bundle name dir config)
     file(GLOB_RECURSE assets CONFIGURE_DEPENDS "${OPENCLAW_REPO}/Build_Release/ASSETS/*")
     set(outputs
         "${dir}/config.xml" "${dir}/ASSETS.ZIP" "${dir}/clacon.ttf" "${dir}/console02.tga"
-        "${dir}/splash.ttf" "${dir}/music/soundfont.sf3")
+        "${dir}/splash.ttf" "${dir}/subtitles.ttf" "${dir}/music/soundfont.sf3")
     add_custom_command(OUTPUT ${outputs}
         COMMAND bash "${OPENCLAW_REPO}/scripts/stage_bundle.sh" "${dir}" "${config}"
         DEPENDS ${assets} "${config}" "${OPENCLAW_REPO}/scripts/stage_bundle.sh"
