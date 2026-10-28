@@ -21,7 +21,7 @@
             <State>Active</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/001_RETURN.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/002_RETURN.PID</ActiveImage>
-            <Position x="182" y="145" />
+            <Position x="320" y="145" align="center" />
             <GeneratedEvent>
                 <Type>ResumeGame</Type>
             </GeneratedEvent>
@@ -33,7 +33,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/003_CLAWICIDE.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/004_CLAWICIDE.PID</ActiveImage>
-            <Position x="234" y="180" />
+            <Position x="320" y="180" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_EndLife</PageName>
@@ -46,7 +46,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/005_OPTIONS.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/006_OPTIONS.PID</ActiveImage>
-            <Position x="238" y="215" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
@@ -59,7 +59,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/007_HELP.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/008_HELP.PID</ActiveImage>
-            <Position x="270" y="250" />
+            <Position x="320" y="250" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Help</PageName>
@@ -72,7 +72,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/009_ENDGAME.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/010_ENDGAME.PID</ActiveImage>
-            <Position x="220" y="285" />
+            <Position x="320" y="285" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_EndGame</PageName>
@@ -110,7 +110,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/ENDGAME/005_AREYOUSURE.PID</InactiveImage>
-            <Position x="176" y="170" />
+            <Position x="320" y="170" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>YES_BUTTON</Name>
@@ -119,7 +119,7 @@
             <State>Active</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/ENDGAME/001_YES.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/ENDGAME/002_YES.PID</ActiveImage>
-            <Position x="282" y="260" />
+            <Position x="320" y="260" align="center" />
             <GeneratedEvent>
                 <Type>EndGame</Type>
             </GeneratedEvent>
@@ -131,7 +131,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/ENDGAME/003_NO.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/ENDGAME/004_NO.PID</ActiveImage>
-            <Position x="292" y="300" />
+            <Position x="320" y="300" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -154,7 +154,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CLAWICIDE/005_AREYOUSURE.PID</InactiveImage>
-            <Position x="142" y="170" />
+            <Position x="320" y="170" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>YES_BUTTON</Name>
@@ -163,7 +163,7 @@
             <State>Active</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CLAWICIDE/001_YES.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CLAWICIDE/002_YES.PID</ActiveImage>
-            <Position x="282" y="260" />
+            <Position x="320" y="260" align="center" />
             <GeneratedEvent>
                 <Type>EndLife</Type>
             </GeneratedEvent>
@@ -175,7 +175,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CLAWICIDE/003_NO.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/CLAWICIDE/004_NO.PID</ActiveImage>
-            <Position x="292" y="300" />
+            <Position x="320" y="300" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -231,7 +231,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/SAVE/001_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/SAVE/002_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="420" />
+            <Position x="320" y="420" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -256,7 +256,7 @@
             <State>Active</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/005_AUDIO.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/006_AUDIO.PID</ActiveImage>
-            <Position x="260" y="205" />
+            <Position x="320" y="205" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Audio</PageName>
@@ -272,7 +272,7 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/010_DISPLAY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/011_DISPLAY.PCX</ActiveImage>
-            <Position x="240" y="240" />
+            <Position x="320" y="240" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Display</PageName>
@@ -285,7 +285,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
-            <Position x="266" y="275" />
+            <Position x="320" y="275" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
@@ -748,7 +748,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="266" y="290" />
+            <Position x="320" y="290" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
@@ -988,7 +988,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
-            <Position x="266" y="295" />
+            <Position x="320" y="295" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
