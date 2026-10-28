@@ -27,6 +27,28 @@ CLAW.FEC): tworzy `lang/pl/subtitles/` z pustymi plikami o właściwych nazwach
 i długościach oraz `LISTA.txt`. Pusty szablon niczego nie wyświetla, więc
 można skopiować cały folder `lang` do folderu ReClaw i uzupełniać po kolei.
 
+## Automatyczne napisy (rozpoznawanie mowy)
+
+`scripts/auto_subtitles.py` (razem z `subtitle_templates.py`, uruchamiany
+u siebie obok CLAW.REZ / CLAW.FEC, offline) robi wersję roboczą:
+
+```
+pip install faster-whisper
+python auto_subtitles.py                 # polski: filmy i dialogi
+python auto_subtitles.py --lang en --rez <angielski CLAW.REZ>
+python auto_subtitles.py --only movies   # albo --only dialogue; --model medium = szybciej
+```
+
+- Filmy: dźwięk z każdego filmu w CLAW.FEC → `lang/pl/subtitles/movies/`.
+- Dźwięki: udział mowy (Silero VAD), pewność Whispera, odrzucanie jego
+  typowych wymysłów i podpowiedź ze ścieżki w REZ dzielą je na:
+  **dialog** (od razu do `lang/pl/subtitles/dialogue/`), **niepewne**
+  (do `_do_sprawdzenia/…` – przesłuchać i dobre przenieść) i **odgłos** (pomijane).
+- `raport_pl/raport.html` – wszystkie dźwięki z klasą, udziałem mowy,
+  tekstem i odtwarzaczem; `raport.tsv` – to samo jako tabela.
+- Poprawionych plików nie nadpisuje (tylko puste szablony).
+- Folder raportu zawiera dźwięki z gry – zostaje u Ciebie.
+
 ## Teksty menu (`lang/<język>/menu/strings.txt`)
 
 Napisy w menu i na ekranach dodanych przez port (kody, wyścig, tryby bossów,

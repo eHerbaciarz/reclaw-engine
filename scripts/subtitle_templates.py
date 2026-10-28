@@ -86,8 +86,9 @@ def wav_seconds(data):
     return data_size / byte_rate
 
 
-def smk_movies(path):
-    """Smacker movies in file order (the game's movie_00, movie_01, ...)."""
+def smk_movies(path, with_offsets=False):
+    """Smacker movies in file order (the game's movie_00, movie_01, ...):
+    (seconds, size), or (seconds, size, offset) with with_offsets."""
     size = os.path.getsize(path)
     found = []
     with open(path, "rb") as f:
@@ -107,7 +108,7 @@ def smk_movies(path):
                 if not info:
                     i += 1
                     continue
-                found.append(info)
+                found.append(info + (data_pos + i,) if with_offsets else info)
                 end = data_pos + i + info[1]
                 if end >= data_pos + block:
                     next_pos = end
