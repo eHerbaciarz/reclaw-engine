@@ -126,8 +126,11 @@ void ClawControllableComponent::VPostInit()
     m_AnimThrow = FindAnimation({ "throw", "liftthrow", "throwkeg", "throw1" });
     m_AnimCarryStand = FindAnimation({ "liftstand", "carrystand", "lift2", "liftidle", "carry", "holdkeg" });
     m_AnimCarryWalk = FindAnimation({ "liftwalk", "carrywalk", "walklift", "walkcarry", "carrying" });
-    m_AnimCarryJump = FindAnimation({ "liftjump", "carryjump", "jumplift" });
-    m_AnimCarryFall = FindAnimation({ "liftfall", "carryfall", "falllift" });
+    // The game has no jump / fall animation with a keg: the holding pose
+    // (lift2) is kept in the air.
+    m_AnimCarryJump = FindAnimation({ "liftjump", "carryjump", "jumplift", "lift2" });
+    m_AnimCarryFall = FindAnimation({ "liftfall", "carryfall", "falllift", "lift2" });
+    m_AnimDuckLift = FindAnimation({ "ducklift" });
     LOG("Keg animations: lift='" + m_AnimLift + "' throw='" + m_AnimThrow + "' stand='" + m_AnimCarryStand +
         "' walk='" + m_AnimCarryWalk + "' jump='" + m_AnimCarryJump + "' fall='" + m_AnimCarryFall + "'");
     m_pExclamationMark = MakeStrongPtr(m_pOwner->GetComponent<FollowableComponent>()).get();
@@ -584,11 +587,12 @@ void ClawControllableComponent::OnLiftPressed()
     m_IdleTime = 0;
     m_LookingUpTime = 0;
     m_DuckingTime = 0;
-    if (IsDucking())
+    const bool fromDuck = IsDucking();
+    if (fromDuck)
     {
         m_State = ClawState_Standing;
     }
-    if (!PlayOneShotAnimation(m_AnimLift))
+    if (!PlayOneShotAnimation(fromDuck && !m_AnimDuckLift.empty() ? m_AnimDuckLift : m_AnimLift))
     {
         SetClawAnimation(m_State == ClawState_Walking ? "walk" : "stand");
     }

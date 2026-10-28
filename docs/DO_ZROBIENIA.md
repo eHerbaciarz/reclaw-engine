@@ -38,8 +38,7 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
 
 - Bossowie: Le Rauxe (2), Katherine (4), Wolvington (6) – własne zachowanie;
   Aquatis (12), Red Tail (13) – pełna walka; Omar (14) – brak; kameleony.
-  Czeka na `boss_survey.txt` i filmy z walk.
-- Poziom 14, etapy 2–4; poziom 10 – zły punkt startu (czeka na `level_survey.txt`).
-- Animacje noszenia beczki (czeka na `anim_report.txt`).
+  `boss_survey.txt` jest (28.10); przydadzą się filmy z walk.
+- Poziom 14: Omar, kameleony, tygrysy, lawa (dane z `level_survey.txt`). Poziom 10: checkpointy poprawione 28.10.
 - Wersja przeglądarkowa (Emscripten) – zbudować i sprawdzić przed PR-ami do claw-web.
 - Ikony portów: postać z ikony zastąpić własną grafiką (znak towarowy).

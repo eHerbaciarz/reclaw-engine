@@ -8,11 +8,11 @@ przez MK w Ryujinx / na Switchu. Po teście przenosimy wpis do sekcji
 
 | Skrypt | Do czego | Stan |
 |---|---|---|
-| `anim_report.py` | nazwy animacji kapitana (podnoszenie / noszenie / rzut beczki), beczki na poziomach | czeka na `anim_report.txt` |
-| `level_survey.py` | punkty startu i checkpointy poziomów 1–14, obiekty poziomu 14 (poprawki poziomu 10 i 14) | czeka na `level_survey.txt` |
-| `rez_lang_probe.py` | odcisk polskiego i angielskiego REZ (rozpoznawanie języka napisów portu) | czeka na `rez_lang_*.txt` z obu wersji |
-| `boss_survey.py` | bossowie Red Tail, Aquatis, Le Rauxe, Katherine, Wolvington i kameleony: obiekty walki z ustawieniami, animacje, grafiki, dźwięki (poziomy 2, 4, 6, 12, 13, 14) | czeka na `boss_survey.txt` |
-| `ingame_menu_check.py` | czy w REZ są wszystkie grafiki menu pauzy (Wróć do gry, Zakończ życie, Opcje, Pomoc, Zakończ grę) | czeka na `ingame_menu_check.txt` |
+| `anim_report.py` | nazwy animacji kapitana (podnoszenie / noszenie / rzut beczki), beczki na poziomach | otrzymany 28.10 – nazwy pasują (lift, lift2, liftwalk, throw, ducklift) |
+| `level_survey.py` | punkty startu i checkpointy poziomów 1–14, obiekty poziomu 14 (poprawki poziomu 10 i 14) | otrzymany 28.10 – poprawione checkpointy poziomu 10 |
+| `rez_lang_probe.py` | odcisk polskiego i angielskiego REZ (rozpoznawanie języka napisów portu) | niepotrzebny – język z nazwy folderu data/<kod>/ |
+| `boss_survey.py` | bossowie Red Tail, Aquatis, Le Rauxe, Katherine, Wolvington i kameleony: obiekty walki z ustawieniami, animacje, grafiki, dźwięki (poziomy 2, 4, 6, 12, 13, 14) | otrzymany 28.10 – do wdrożenia bossów |
+| `ingame_menu_check.py` | czy w REZ są wszystkie grafiki menu pauzy (Wróć do gry, Zakończ życie, Opcje, Pomoc, Zakończ grę) | otrzymany 28.10 – wszystkie grafiki są |
 | `subtitle_templates.py` | puste szablony SRT: filmy z CLAW.FEC (`movie_00_pl.srt`…) i dźwięki dłuższe niż 0,6 s (`sounds/…_pl.srt`) + `LISTA.txt` z długościami | nieprzetestowany na prawdziwym REZ (sprawdzony na sztucznym) |
 | `pack_rez.py` | pakowanie rozpakowanego folderu Assets z powrotem do .REZ | nieprzetestowany (MK znalazł oryginalny polski REZ) |
 | `claw_level_report.py` | raport poziomów | brak potwierdzenia |

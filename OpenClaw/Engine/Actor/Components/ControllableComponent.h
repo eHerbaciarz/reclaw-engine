@@ -200,6 +200,7 @@ private:
     int m_LiftChargeMs;
     int m_OneShotAnimLeftMs;
     std::string m_AnimLift;
+    std::string m_AnimDuckLift;
     std::string m_AnimThrow;
     std::string m_AnimCarryStand;
     std::string m_AnimCarryWalk;

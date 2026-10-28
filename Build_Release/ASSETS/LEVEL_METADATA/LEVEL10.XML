@@ -22,8 +22,8 @@
     </LogicsToActorPrototypes>
     <ClawSpawnPositions>
         <ClawSpawnPosition spawnNumber="0" x="740" y="7744" />
-        <ClawSpawnPosition spawnNumber="1" x="8721" y="7759" />
-        <ClawSpawnPosition spawnNumber="2" x="14289" y="7756" />
+        <ClawSpawnPosition spawnNumber="1" x="6939" y="9159" />
+        <ClawSpawnPosition spawnNumber="2" x="22679" y="8067" />
     </ClawSpawnPositions>
     <TopLadderEnds>
         <TopLadderEnd tileId="153" offsetX="0" offsetY="0" />
