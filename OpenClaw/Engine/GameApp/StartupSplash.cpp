@@ -1,5 +1,12 @@
 #include "StartupSplash.h"
 
+// Dedication screen while the game loads - turned off for now.
+// Uncomment the line below to turn it on on every platform (or build the
+// Switch version with make SPLASH="..." to set the text without editing).
+#ifndef OPENCLAW_SPLASH_TEXT
+// #define OPENCLAW_SPLASH_TEXT "Text-Title"
+#endif
+
 #if defined(OPENCLAW_SPLASH_TEXT) && !defined(__EMSCRIPTEN__)
 
 #include <SDL2/SDL.h>
