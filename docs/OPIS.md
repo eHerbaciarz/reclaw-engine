@@ -39,16 +39,36 @@ repozytorium podkreśla, że to silnik, a nie sama gra.
 
 Potrzebna jest przerobiona konsola z Homebrew Menu albo emulator (Ryujinx).
 
-1. Skopiuj `reclaw.nro` do folderu **`sd:/switch/claw/`**.
-2. Skopiuj **`CLAW.REZ`** ze swojej kopii gry do tego samego folderu.
+1. Skopiuj `reclaw.nro` do folderu **`sd:/switch/reclaw/`**.
+2. Skopiuj **`CLAW.REZ`** ze swojej kopii gry do **`sd:/switch/reclaw/data/`**.
    Zamiast `CLAW.REZ` może być rozpakowany folder `Assets`.
-3. Opcjonalnie: **`CLAW.FEC`** (filmy z płyty) do tego samego folderu.
+3. Opcjonalnie: **`CLAW.FEC`** (filmy z płyty) też do `data/`.
 4. Uruchom „ReClaw” z Homebrew Menu. Najlepiej przez gierkę z trzymanym R
    (title override) – więcej pamięci niż z albumu.
 
-Na Ryujinx działa też folder `sdcard/Games/claw/` obok pliku `.nro`.
-Przy pierwszym uruchomieniu powstają tam `config.xml`, zapisy (`SAVES.XML`)
-i dziennik błędów `openclaw.log`.
+W Ryujinx to ten sam folder na wirtualnej karcie SD
+(`sdcard/switch/reclaw/`). Przy pierwszym uruchomieniu gra tworzy resztę
+folderów (opis niżej); ustawienia, zapisy i dziennik błędów `reclaw.log`
+trafiają do `save/`.
+
+### Układ folderu ReClaw
+
+```
+reclaw/
+├── reclaw.nro          (Switch; na PC ReClaw.exe / run.sh)
+├── data/               CLAW.REZ, CLAW.FEC (albo rozpakowany folder Assets) – pliki gry
+├── movies/             zremasterowane filmy (jeszcze nieobsługiwane)
+├── custom/             własne poziomy (.WWD)
+├── lang/
+│   ├── pl/
+│   │   ├── subtitles/movies/     napisy do filmów (movie_01.srt …)
+│   │   ├── subtitles/dialogue/   napisy do kwestii Pazura i przeciwników
+│   │   └── menu/strings.txt      teksty menu i ekranów portu
+│   └── en/   (to samo)
+└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log
+```
+
+Gra tworzy te foldery przy pierwszym uruchomieniu.
 
 **Sterowanie (Switch):** B – skok, Y – szabla, A – strzał/magia/dynamit,
 X – podnieś/rzuć beczkę, L – zmiana broni, + – pauza, − – mapa poziomu,
@@ -85,7 +105,7 @@ Pełna plansza jest w Opcje → Sterowanie.
 - porty poza Switchem: Linux, Windows, 3DS i Wii U się budują, ale nie były
   testowane z grą; Vita, PS3, PS4 i Android powstają w GitHub Actions.
 
-Błędy najlepiej zgłaszać z plikiem `openclaw.log` z folderu gry.
+Błędy najlepiej zgłaszać z plikiem `reclaw.log` z folderu `save/`.
 
 ---
 
@@ -129,16 +149,35 @@ the repository name makes clear that this is an engine, not the game itself.
 
 You need a modded console with the Homebrew Menu, or an emulator (Ryujinx).
 
-1. Copy `reclaw.nro` to **`sd:/switch/claw/`**.
-2. Copy **`CLAW.REZ`** from your copy of the game into the same folder.
+1. Copy `reclaw.nro` to **`sd:/switch/reclaw/`**.
+2. Copy **`CLAW.REZ`** from your copy of the game to **`sd:/switch/reclaw/data/`**.
    An unpacked `Assets` folder works instead of `CLAW.REZ`.
-3. Optional: **`CLAW.FEC`** (the CD movies) into the same folder.
+3. Optional: **`CLAW.FEC`** (the CD movies) into `data/` too.
 4. Start "ReClaw" from the Homebrew Menu, preferably through a game with R held
    (title override) – more memory than from the album.
 
-On Ryujinx, `sdcard/Games/claw/` next to the `.nro` works too. The first start
-creates `config.xml`, the saves (`SAVES.XML`) and the error log `openclaw.log`
-there.
+On Ryujinx it is the same folder on the emulated SD card
+(`sdcard/switch/reclaw/`). The first start creates the other folders (see
+below); settings, saves and the error log `reclaw.log` go to `save/`.
+
+### The ReClaw folder
+
+```
+reclaw/
+├── reclaw.nro          (Switch; ReClaw.exe / run.sh on PC)
+├── data/               CLAW.REZ, CLAW.FEC (or an unpacked Assets folder) - game files
+├── movies/             remastered movies (not supported yet)
+├── custom/             custom levels (.WWD)
+├── lang/
+│   ├── pl/
+│   │   ├── subtitles/movies/     movie subtitles (movie_01.srt ...)
+│   │   ├── subtitles/dialogue/   what Claw and the enemies say
+│   │   └── menu/strings.txt      texts of the port's menus and screens
+│   └── en/   (the same)
+└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log
+```
+
+The game creates these folders on its first start.
 
 **Controls (Switch):** B – jump, Y – sword, A – pistol/magic/dynamite,
 X – lift/throw a keg, L – change weapon, + – pause, − – level map,
@@ -177,4 +216,4 @@ Options → Controls.
   not been tested with the game; Vita, PS3, PS4 and Android are built by
   GitHub Actions.
 
-Please report bugs with the `openclaw.log` file from the game folder.
+Please report bugs with the `reclaw.log` file from the `save/` folder.

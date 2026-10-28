@@ -5,18 +5,20 @@ Run next to CLAW.REZ (and CLAW.FEC, if you have the movies):
 
     python subtitle_templates.py            [CLAW.REZ] [CLAW.FEC]
 
-Creates a folder "subtitles" next to the script:
+Creates the ReClaw folder layout next to the script (LANG = pl):
 
-  subtitles/movie_00_pl.srt ... movie_09_pl.srt   one per movie in CLAW.FEC
-  subtitles/sounds/<path of the sound>_pl.srt     one per sound longer than
-                                                   MIN_SECONDS in CLAW.REZ
-  subtitles/LISTA.txt                              every sound with its length
+  lang/pl/subtitles/movies/movie_00.srt ... movie_09.srt
+                                        one per movie in CLAW.FEC
+  lang/pl/subtitles/dialogue/<path of the sound>.srt
+                                        one per sound longer than MIN_SECONDS
+                                        in CLAW.REZ (Claw and the enemies)
+  lang/pl/subtitles/LISTA.txt           every sound with its length
 
 Every template has one cue spanning the whole sound / movie and no text, so
 an untouched template shows nothing. Write the text under the time line (and
 split the cue if you like), delete the templates you do not need, and copy the
-"subtitles" folder next to CLAW.REZ on the console (e.g. sdmc:/switch/claw/).
-Files ending in _en.srt are used with the English texts of the port.
+"lang" folder into the ReClaw folder (e.g. sdmc:/switch/reclaw/lang/).
+English subtitles go to lang/en/... the same way (LANG = "en" below).
 
 Only lengths and file names are read; nothing from the game is copied.
 """
@@ -152,15 +154,15 @@ def main():
     here = os.path.dirname(os.path.abspath(sys.argv[0]))
     rez = sys.argv[1] if len(sys.argv) > 1 else os.path.join(here, "CLAW.REZ")
     fec = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(rez), "CLAW.FEC")
-    out = os.path.join(here, "subtitles")
+    out = os.path.join(here, "lang", LANG, "subtitles")
     lines, made = [], 0
 
     if os.path.exists(fec):
         movies = smk_movies(fec)
         lines.append("Filmy (CLAW.FEC): %d" % len(movies))
         for i, (seconds, _size) in enumerate(movies):
-            name = "movie_%02d_%s.srt" % (i, LANG)
-            made += write_template(os.path.join(out, name), seconds)
+            name = "movies/movie_%02d.srt" % i
+            made += write_template(os.path.join(out, "movies", "movie_%02d.srt" % i), seconds)
             lines.append("  %-24s %7.1f s" % (name, seconds))
     else:
         lines.append("Brak CLAW.FEC - pominięto filmy")
@@ -181,7 +183,7 @@ def main():
         lines.append("")
         lines.append("Dźwięki dłuższe niż %.1f s: %d" % (MIN_SECONDS, len(sounds)))
         for path, seconds in sounds:
-            rel = "sounds" + path[:-4] + "_" + LANG + ".srt"
+            rel = "dialogue" + path[:-4] + ".srt"
             made += write_template(os.path.join(out, *rel.split("/")), seconds)
             lines.append("  %-60s %6.2f s" % (rel, seconds))
     else:

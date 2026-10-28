@@ -316,7 +316,7 @@ namespace CustomLevels
         }
         Text empty;
         if (levels.empty())
-            empty = MakeText(r, small, "No .WWD files in the Custom folder (e.g. /switch/claw/Custom)", parchment, edge, 1);
+            empty = MakeText(r, small, "No .WWD files in the custom folder (e.g. /switch/reclaw/custom)", parchment, edge, 1);
 
         // Selection: 0..n-1 levels, n = back.
         int count = (int)levels.size();

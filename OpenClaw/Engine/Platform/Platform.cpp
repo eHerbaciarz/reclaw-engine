@@ -49,7 +49,8 @@ extern "C" {
 
 namespace
 {
-    std::string g_DataDir;
+    std::string g_RootDir;     // reclaw/
+    std::string g_DataDir;     // reclaw/save/ (the player's own files)
     std::string g_BundleDir;
     std::string g_BinaryDir;
     FILE* g_pLogFile = nullptr;
@@ -62,7 +63,7 @@ namespace
 
     void MakeDirs(const std::string& path)
     {
-        // Creates every level of the path ("ux0:data/claw/" -> "ux0:data", ...).
+        // Creates every level of the path ("ux0:data/reclaw/" -> "ux0:data", ...).
         for (size_t i = 1; i < path.size(); ++i)
         {
             if (path[i] == '/' && path[i - 1] != ':')
@@ -193,47 +194,49 @@ namespace Platform
 
 #if defined(__SWITCH__)
         romfsInit();
-        g_DataDir = "/switch/claw/";
+        g_RootDir = "/switch/reclaw/";
         g_BundleDir = "romfs:/";
 #elif defined(__vita__)
-        g_DataDir = "ux0:data/claw/";
+        g_RootDir = "ux0:data/reclaw/";
         g_BundleDir = "app0:/";
 #elif defined(__3DS__)
         romfsInit();
-        g_DataDir = "sdmc:/3ds/claw/";
+        g_RootDir = "sdmc:/3ds/reclaw/";
         g_BundleDir = "romfs:/";
 #elif defined(__WIIU__)
-        g_DataDir = "fs:/vol/external01/wiiu/apps/claw/";
+        g_RootDir = "fs:/vol/external01/wiiu/apps/reclaw/";
         g_BundleDir = "fs:/vol/content/";   // the .wuhb's content folder
 #elif defined(__PSL1GHT__) || defined(__PS3__)
-        g_DataDir = "/dev_hdd0/game/RCLW00001/USRDIR/";
-        g_BundleDir = g_DataDir;
+        g_RootDir = "/dev_hdd0/game/RCLW00001/USRDIR/";
+        g_BundleDir = g_RootDir;
 #elif defined(__PS4__)
         // Homebrew convention: the app's files in /data/<name>/; the .pkg's
         // own files are mounted at /app0/.
-        g_DataDir = "/data/claw/";
+        g_RootDir = "/data/reclaw/";
         g_BundleDir = "/app0/";
 #elif defined(__ANDROID__)
         {
-            // CLAW.REZ, config.xml and saves: Android/data/<app>/files/
-            // (reachable over USB and from file managers).
+            // The player's folder: Android/data/<app>/files/ (reachable over
+            // USB and from file managers).
             const char* external = SDL_AndroidGetExternalStoragePath();
             const char* internal = SDL_AndroidGetInternalStoragePath();
-            g_DataDir = WithSlash(external ? external : (internal ? internal : "/sdcard/claw"));
-            g_BundleDir = WithSlash(internal ? internal : g_DataDir.c_str()) + "bundle/";
+            g_RootDir = WithSlash(external ? external : (internal ? internal : "/sdcard/reclaw"));
+            g_BundleDir = WithSlash(internal ? internal : g_RootDir.c_str()) + "bundle/";
             MakeDirs(g_BundleDir);
             ExtractAndroidBundle(g_BundleDir);
         }
 #elif defined(_WIN32) || defined(__EMSCRIPTEN__)
-        g_DataDir = g_BinaryDir;
+        g_RootDir = g_BinaryDir;
         g_BundleDir = g_BinaryDir;
 #else
-        // Linux: a portable folder (config.xml next to the binary) or the
+        // Linux: a portable folder (data/ or save/ next to the binary) or the
         // per-user folder.
         g_BundleDir = g_BinaryDir;
-        if (std::ifstream(g_BinaryDir + "config.xml").good())
+        struct stat st;
+        if ((stat((g_BinaryDir + "data").c_str(), &st) == 0 && S_ISDIR(st.st_mode)) ||
+            (stat((g_BinaryDir + "save").c_str(), &st) == 0 && S_ISDIR(st.st_mode)))
         {
-            g_DataDir = g_BinaryDir;
+            g_RootDir = g_BinaryDir;
         }
         else
         {
@@ -243,9 +246,10 @@ namespace Platform
                 struct passwd* pw = getpwuid(getuid());
                 home = pw ? pw->pw_dir : ".";
             }
-            g_DataDir = std::string(home) + "/.config/openclaw/";
+            g_RootDir = std::string(home) + "/.config/reclaw/";
         }
 #endif
+        g_DataDir = g_RootDir + "save/";
 
         // Nintendo consoles: SDL reports the buttons by their printed labels
         // (A = right); the menus swap A/B for that (see SdlGamepadInput).
@@ -256,10 +260,27 @@ namespace Platform
         }
 #endif
 
+        // The folder layout (empty folders show the player where things go):
+        //   data/      CLAW.REZ, CLAW.FEC (or an unpacked Assets folder)
+        //   movies/    remastered movies
+        //   custom/    custom levels (.WWD)
+        //   lang/<xx>/subtitles/movies, lang/<xx>/subtitles/dialogue, lang/<xx>/menu
+        //   save/      config.xml, SAVES.XML, port_settings.txt, reclaw.log
+#if !defined(__EMSCRIPTEN__)
+        {
+            static const char* kDirs[] = {
+                "data/", "movies/", "custom/", "save/",
+                "lang/pl/subtitles/movies/", "lang/pl/subtitles/dialogue/", "lang/pl/menu/",
+                "lang/en/subtitles/movies/", "lang/en/subtitles/dialogue/", "lang/en/menu/",
+            };
+            for (const char* d : kDirs) MakeDirs(g_RootDir + d);
+        }
+#endif
+
         if (IsConsole())
         {
             MakeDirs(g_DataDir);
-            g_pLogFile = fopen((g_DataDir + "openclaw.log").c_str(), "w");
+            g_pLogFile = fopen((g_DataDir + "reclaw.log").c_str(), "w");
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
             SDL_Log("ReClaw for %s - log started", Name());
@@ -277,6 +298,10 @@ namespace Platform
     }
 
     std::string DataDir() { return g_DataDir; }
+    std::string RootDir() { return g_RootDir; }
+    std::string GameDir() { return g_RootDir + "data/"; }
+    std::string MoviesDir() { return g_RootDir + "movies/"; }
+    std::string LangDir(const std::string& code) { return g_RootDir + "lang/" + code + "/"; }
     std::string BundleDir() { return g_BundleDir; }
     std::string BundlePath(const std::string& file) { return g_BundleDir + file; }
 
@@ -308,17 +333,16 @@ namespace Platform
             if (dir != g_BinaryDir) folders.push_back(dir);
         }
 #endif
-        folders.push_back(g_DataDir);
-#if defined(__SWITCH__)
-        // Ryujinx layout: sdcard/Games/claw/ next to reclaw.nro.
-        folders.push_back("/Games/claw/");
-#elif defined(__3DS__)
-        folders.push_back("sdmc:/claw/");
-#elif defined(__WIIU__)
-        folders.push_back("fs:/vol/external01/claw/");
-#elif defined(__vita__)
-        folders.push_back("uma0:data/claw/");
-#endif
+        // data/ first, then the root folder itself.
+        std::vector<std::string> bases = folders;
+        folders.clear();
+        folders.push_back(GameDir());
+        folders.push_back(g_RootDir);
+        for (const std::string& b : bases)
+        {
+            folders.push_back(b + "data/");
+            folders.push_back(b);
+        }
         (void)argc;
         (void)argv;
         // Without duplicates (the binary's folder is often the data folder).

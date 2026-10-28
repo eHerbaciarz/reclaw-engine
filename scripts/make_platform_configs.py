@@ -15,17 +15,17 @@ BASE = os.path.join(REPO, "platform", "switch", "config.xml")
 
 PLATFORMS = {
     #           bundle prefix  CLAW.REZ path                          window      scale  cache  mixer  freq
-    "vita":    ("app0:/",     "ux0:data/claw/CLAW.REZ",              (960, 544),  "1",  "96",  "32", "44100",
+    "vita":    ("app0:/",     "ux0:data/reclaw/data/CLAW.REZ",       (960, 544),  "1",  "96",  "32", "44100",
                 "PS Vita: 960x544 screen; the game renders 854x480 and is scaled up"),
-    "3ds":     ("romfs:/",    "sdmc:/3ds/claw/CLAW.REZ",             (400, 240),  "1",  "24",  "16", "22050",
+    "3ds":     ("romfs:/",    "sdmc:/3ds/reclaw/data/CLAW.REZ",      (400, 240),  "1",  "24",  "16", "22050",
                 "3DS: top screen 400x240 (the game view), bottom screen = status (SecondScreen)"),
-    "wiiu":    ("fs:/vol/content/",    "fs:/vol/external01/wiiu/apps/claw/CLAW.REZ", (1280, 720), "1.5", "150", "64", "44100",
+    "wiiu":    ("fs:/vol/content/",    "fs:/vol/external01/wiiu/apps/reclaw/data/CLAW.REZ", (1280, 720), "1.5", "150", "64", "44100",
                 "Wii U: 1280x720 on the TV, the GamePad shows the status screen"),
-    "ps3":     ("",           "CLAW.REZ",                            (1280, 720), "1.5", "150", "64", "44100",
+    "ps3":     ("",           "data/CLAW.REZ",                       (1280, 720), "1.5", "150", "64", "44100",
                 "PS3: files in /dev_hdd0/game/RCLW00001/USRDIR/"),
-    "ps4":     ("/app0/",     "/data/claw/CLAW.REZ",                 (1920, 1080), "2.25", "200", "64", "48000",
-                "PS4: files in /data/claw/ (FTP / USB); the game renders 854x480, scaled to the TV"),
-    "android": ("",           "CLAW.REZ",                            (1280, 720), "1.5", "150", "64", "44100",
+    "ps4":     ("/app0/",     "/data/reclaw/data/CLAW.REZ",          (1920, 1080), "2.25", "200", "64", "48000",
+                "PS4: files in /data/reclaw/ (FTP / USB); the game renders 854x480, scaled to the TV"),
+    "android": ("",           "data/CLAW.REZ",                       (1280, 720), "1.5", "150", "64", "44100",
                 "Android: files in the app's folder (Android/data/<app>/files/)"),
 }
 

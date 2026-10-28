@@ -14,6 +14,7 @@ cmake --build "$BUILD" -j2
 PKG="$OUT/reclaw-windows-x86_64"
 rm -rf "$PKG"; mkdir -p "$PKG"
 "$REPO/scripts/stage_bundle.sh" "$PKG"
+"$REPO/scripts/make_reclaw_tree.sh" "$PKG"
 cp "$BUILD/openclaw.exe" "$PKG/ReClaw.exe"
 x86_64-w64-mingw32-strip "$PKG/ReClaw.exe" || true
 cp "$PREFIX"/bin/*.dll "$PKG/"

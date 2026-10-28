@@ -19,15 +19,16 @@ See also [docs/OPIS.md](../../docs/OPIS.md) (Polish and English description).
 
 ## Installing
 
-1. Copy `reclaw.nro` to `/switch/claw/` on the SD card.
-2. Copy `CLAW.REZ` from your copy of the game to `/switch/claw/CLAW.REZ`.
-3. Optional: copy `CLAW.FEC` (the CD movies) to the same folder.
+1. Copy `reclaw.nro` to `/switch/reclaw/` on the SD card.
+2. Copy `CLAW.REZ` from your copy of the game to `/switch/reclaw/data/CLAW.REZ`.
+3. Optional: copy `CLAW.FEC` (the CD movies) to the same `data/` folder.
 4. Launch "ReClaw" from the Homebrew Menu.
    Use title-override (hold R while starting a retail game) for full memory;
    applet mode (album) works too but has less RAM.
 
-The first launch creates `/switch/claw/config.xml`; `SAVES.XML` and
-`openclaw.log` (warnings and errors) are written to the same folder.
+The first launch creates the folder layout (`data/`, `movies/`, `custom/`,
+`lang/`, `save/`, see [docs/PORTY.md](../../docs/PORTY.md)); `config.xml`,
+`SAVES.XML` and `reclaw.log` (warnings and errors) are written to `save/`.
 
 ## Controls
 
@@ -74,7 +75,7 @@ make -C platform/switch -j"$(nproc)"
 
 Or push the repository to GitHub: `.github/workflows/switch.yml` builds the
 `.nro` in the `devkitpro/devkita64` container and uploads it as the
-`reclaw-switch` artifact (ready-to-copy `switch/claw/` folder).
+`reclaw-switch` artifact (ready-to-copy `switch/reclaw/` folder).
 
 The same sources build natively on Linux, which is the quickest way to test
 changes before putting them on the console:

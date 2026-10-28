@@ -25,7 +25,7 @@
   </Font>
   <Assets>
     <AssetsFolder></AssetsFolder>
-    <RezArchive>/switch/claw/CLAW.REZ</RezArchive>
+    <RezArchive>/switch/reclaw/data/CLAW.REZ</RezArchive>
     <CustomArchive>romfs:/ASSETS.ZIP</CustomArchive>
     <ResourceCacheSize>150</ResourceCacheSize>
     <TempDir></TempDir>

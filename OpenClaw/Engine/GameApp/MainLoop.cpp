@@ -167,8 +167,11 @@ int RunGameEngine(int argc, char** argv)
     STARTUP_TRACE("Platform::Init done");
     std::string userDirectory = Platform::DataDir();
 
-    // Desktop: a config.xml in the working directory wins (running in place).
-    if (!Platform::IsConsole() && TryToFindFile("config.xml"))
+    // Desktop: a config.xml in the working directory wins (running in place
+    // from the source tree). Release packages keep the default config.xml
+    // next to the binary and the player's copy in save/.
+    if (!Platform::IsConsole() && TryToFindFile("config.xml") &&
+        !std::ifstream(Platform::RootDir() + "config.xml").good())
     {
         userDirectory = "";
     }
@@ -203,7 +206,7 @@ int RunGameEngine(int argc, char** argv)
             "",
             "This port needs the data file from your own copy of",
             "Claw (1997). Copy CLAW.REZ to:",
-            "    " + Platform::DataDir() + "CLAW.REZ",
+            "    " + Platform::GameDir() + "CLAW.REZ",
             "An unpacked \"Assets\" folder works too.",
             "",
             "Searched:"};
@@ -229,7 +232,7 @@ int RunGameEngine(int argc, char** argv)
         ShowFatalErrorScreen({
             "ReClaw failed to start",
             "",
-            "Details were written to " + Platform::DataDir() + "openclaw.log",
+            "Details were written to " + Platform::DataDir() + "reclaw.log",
             "Please include that file when reporting the problem.",
             "",
             "Press any button to exit."});

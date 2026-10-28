@@ -38,6 +38,7 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Kod w menu pauzy | trzymając R (klawiatura: prawy Shift) wcisnąć dół, dół, lewo, prawo, góra → na dole napis „Nie dość, że pirat to jeszcze oszust” (także przy wyłączonych napisach); od tej chwili w pauzie pozycja „Kody” (zapamiętana); czy pozycja (y=320) mieści się na tle menu | nieprzetestowane |
 | Ekran „Kody” | nieśmiertelność, nieskończona amunicja, skok bez ograniczeń (wł./wył.), pełne zdrowie, pełna amunicja, dodatkowe życie | nieprzetestowane |
 | Napisy | Opcje → Wyświetlanie → „Napisy: wł./wył.” (menu główne i pauza); napisy SRT w filmach i przy dźwiękach (dialogi); wygląd i wielkość tekstu | nieprzetestowane (parser i rysowanie sprawdzone osobno na PC) |
+| Nowy układ folderów | `sd:/switch/reclaw/`: CLAW.REZ / CLAW.FEC w `data/`; po starcie powstają `movies/`, `custom/`, `lang/pl|en/…`, `save/` (config.xml, SAVES.XML, port_settings.txt, reclaw.log); napisy z `lang/pl/subtitles/movies|dialogue/`, brakujące z `lang/en/`; teksty menu z `lang/pl/menu/strings.txt`; stary folder `/switch/claw/` nie jest już czytany | nieprzetestowane |
 | „Skrzyżuj szpady ponownie” (trening) | Jeden gracz → „Skrzyżuj szpady ponownie” (w miejscu „Wyślij wyniki”): lista bossów, do których się dotarło (nazwa + poziom + rekord); start od razu przy bossie (scenka wejścia), śmierć = nowa próba przy bossie, życia się nie kończą; po wygranej czas, rekord, liczba prób i wybór: walcz ponownie / inny boss / menu; czy start przy bossie nie wpada w ścianę lub przepaść (poziomy 2, 4, 6, 8, 10, 12, 13) | nieprzetestowane |
 | „Paruj i kontruj” (Boss Rush) | ostatnia pozycja listy, otwarta po ukończeniu poziomu 14 (albo Kody → „Odblokuj wszystkich bossów”); bossowie po kolei, zdrowie przechodzi dalej (+20 i trochę amunicji między walkami), śmierć kończy próbę; stoper tylko w trakcie walki (nie liczy ładowania, scenki wejścia i pauzy); podsumowanie czasów i suma, rekord; Omara (14) jeszcze nie ma, więc teraz 7 bossów | nieprzetestowane |
 | Gracz 2 po filmach / ekranach blokujących | czy drugi pad zostaje podłączony po filmie lub mapie tytułowej | nieprzetestowane |
@@ -59,7 +60,7 @@ bo tutaj nie da się pobrać tych narzędzi.
 | Wii U | `reclaw.wuhb` | buduje się | GamePad: mapa z menu + stan gracza, TV: gra; przyciski Nintendo (A zatwierdza); wyścig przez sieć |
 | PS Vita | `reclaw.vpk` | CI | ✕ zatwierdza, ○ wraca, skok i magia bez zamiany; pamięć (256 MB sterty) |
 | PS3 | `reclaw.pkg` / `reclaw.self` | CI | ✕ / ○ jak na Vicie, mapowanie pada DualShock 3, RPCS3 |
-| PS4 | `IV0001-RCLW00002_….pkg` | CI (kod sprawdzony clangiem z libc++ jak w OpenOrbis) | start z GoldHEN, pad DualShock 4 (✕ / ○, Options = pauza, touchpad = mapa), dźwięk, pliki w /data/claw/; czy rusza bez / z libc.prx i libSceFios2.prx w sce_module (nie ma ich w repozytorium) |
+| PS4 | `IV0001-RCLW00002_….pkg` | CI (kod sprawdzony clangiem z libc++ jak w OpenOrbis) | start z GoldHEN, pad DualShock 4 (✕ / ○, Options = pauza, touchpad = mapa), dźwięk, pliki w /data/reclaw/ (CLAW.REZ w data/); czy rusza bez / z libc.prx i libSceFios2.prx w sce_module (nie ma ich w repozytorium) |
 | Android | `ReClaw.apk` | CI (kod skompilowany na PC) | sterowanie dotykiem i padem, pliki w `Android/data/org.reclaw.game/files/`, wyścig przez Wi‑Fi |
 
 Wspólne poprawki do sprawdzenia przy okazji:

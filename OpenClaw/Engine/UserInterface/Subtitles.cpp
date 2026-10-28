@@ -153,26 +153,27 @@ namespace
         auto it = g_TrackCache.find(name);
         if (it != g_TrackCache.end()) return it->second;
 
-        const std::string lang = Lang::Get() == Lang::Polish ? "pl" : "en";
+        // lang/<code>/subtitles/movies/movie_01.srt for "movie_01",
+        // lang/<code>/subtitles/dialogue/<sound path>.srt for "sounds/<sound path>";
+        // the current language first, then English.
+        std::string rel;
+        if (name.compare(0, 7, "sounds/") == 0) rel = "subtitles/dialogue/" + name.substr(7) + ".srt";
+        else if (name.compare(0, 6, "movie_") == 0) rel = "subtitles/movies/" + name + ".srt";
+        else rel = "subtitles/" + name + ".srt";
+        std::vector<std::string> codes = { Lang::Code() };
+        if (codes[0] != "en") codes.push_back("en");
+        const std::string lang = codes[0];
         const std::string names[2] = { name + "_" + lang, name };
         std::string data;
         bool found = false;
-        // the player's folder, then the folder of CLAW.REZ
-        std::vector<std::string> dirs = { Platform::DataDir() };
-        if (g_pApp && g_pApp->GetGameConfig())
+        for (const std::string& code : codes)
         {
-            std::string rez = g_pApp->GetGameConfig()->assetsFolder + g_pApp->GetGameConfig()->rezArchive;
-            size_t slash = rez.find_last_of("/\\");
-            std::string rezDir = slash == std::string::npos ? std::string() : rez.substr(0, slash + 1);
-            if (rezDir != dirs[0]) dirs.push_back(rezDir);
-        }
-        for (const std::string& dir : dirs)
-        {
-            for (const std::string& n : names)
+            if (ReadFile(Platform::LangDir(code) + rel, data) ||
+                ReadFile(Platform::BundlePath("lang/" + code + "/" + rel), data))
             {
-                if (ReadFile(dir + "subtitles/" + n + ".srt", data)) { found = true; break; }
+                found = true;
+                break;
             }
-            if (found) break;
         }
         if (!found)
         {

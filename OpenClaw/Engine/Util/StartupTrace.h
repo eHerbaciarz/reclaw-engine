@@ -8,7 +8,7 @@
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_timer.h>
 // Goes through SDL_Log so it lands in the same sink as engine errors
-// (on Switch: openclaw.log + debug output; elsewhere: stderr).
+// (on Switch: reclaw.log + debug output; elsewhere: stderr).
 #define STARTUP_TRACE(msg)                                                     \
   SDL_Log("[trace %7u ms] %s", (unsigned)SDL_GetTicks(), (msg))
 #else

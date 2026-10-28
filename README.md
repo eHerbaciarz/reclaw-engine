@@ -12,20 +12,40 @@ consoles, and adds a few things of its own.
 
 ## Platforms
 
-| Platform | Package | Where CLAW.REZ goes |
+| Platform | Package | ReClaw folder (CLAW.REZ goes to its `data/`) |
 |---|---|---|
-| Nintendo Switch | `reclaw.nro` | `sd:/switch/claw/` |
-| Linux x86_64 | `reclaw-linux-x86_64.tar.gz` | next to `run.sh` |
-| Windows x86_64 | `reclaw-windows-x86_64.zip` | next to `ReClaw.exe` |
-| PS Vita | `reclaw.vpk` | `ux0:data/claw/` |
-| Nintendo 3DS | `reclaw.3dsx` | `sdmc:/3ds/claw/` |
-| Wii U | `reclaw.wuhb` | `sd:/wiiu/apps/claw/` |
+| Nintendo Switch | `reclaw.nro` | `sd:/switch/reclaw/` |
+| Linux x86_64 | `reclaw-linux-x86_64.tar.gz` | the folder of `run.sh` |
+| Windows x86_64 | `reclaw-windows-x86_64.zip` | the folder of `ReClaw.exe` |
+| PS Vita | `reclaw.vpk` | `ux0:data/reclaw/` |
+| Nintendo 3DS | `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
+| Wii U | `reclaw.wuhb` | `sd:/wiiu/apps/reclaw/` |
 | PS3 | `reclaw.pkg` / `reclaw.self` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
-| PS4 | `IV0001-RCLW00002_….pkg` | `/data/claw/` |
+| PS4 | `IV0001-RCLW00002_….pkg` | `/data/reclaw/` |
 | Android | `ReClaw.apk` | picked in the app on first start |
 | Web browser | see [claw-web](https://github.com/arthurboss/claw-web) | uploaded in the browser |
 
 Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Polish).
+
+### The ReClaw folder
+
+```
+reclaw/
+├── reclaw.nro          (Switch; ReClaw.exe / run.sh on PC)
+├── data/               CLAW.REZ, CLAW.FEC (or an unpacked Assets folder) - game files
+├── movies/             remastered movies (not supported yet)
+├── custom/             custom levels (.WWD)
+├── lang/
+│   ├── pl/
+│   │   ├── subtitles/movies/     movie subtitles (movie_01.srt ...)
+│   │   ├── subtitles/dialogue/   what Claw and the enemies say
+│   │   └── menu/strings.txt      texts of the port's menus and screens
+│   └── en/   (the same)
+└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log
+```
+
+The game creates these folders on its first start.
+
 
 ## What ReClaw adds
 

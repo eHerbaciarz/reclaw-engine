@@ -24,7 +24,7 @@
   </Font>
   <Assets>
     <AssetsFolder></AssetsFolder>
-    <RezArchive>fs:/vol/external01/wiiu/apps/claw/CLAW.REZ</RezArchive>
+    <RezArchive>fs:/vol/external01/wiiu/apps/reclaw/data/CLAW.REZ</RezArchive>
     <CustomArchive>fs:/vol/content/ASSETS.ZIP</CustomArchive>
     <ResourceCacheSize>150</ResourceCacheSize>
     <TempDir></TempDir>

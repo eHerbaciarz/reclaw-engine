@@ -6,8 +6,8 @@
 #   openorbis-cmake -S platform/ps4 -B build-ps4 && cmake --build build-ps4 -j
 #
 # Install the .pkg with GoldHEN's Package Installer. CLAW.REZ from your copy
-# of the game goes to /data/claw/CLAW.REZ (FTP or USB); config.xml, saves and
-# openclaw.log are written there.
+# of the game goes to /data/reclaw/data/CLAW.REZ (FTP or USB); config.xml, saves and
+# reclaw.log go to /data/reclaw/save/.
 #
 # sce_module/: the system libraries (libc.prx, libSceFios2.prx) OpenOrbis
 # homebrew carries in its package are NOT in this repository (they are Sony's

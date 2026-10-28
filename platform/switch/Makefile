@@ -68,7 +68,7 @@ INCLUDES := -I$(PORTLIBS)/include -I$(PORTLIBS)/include/SDL2 -I$(LIBNX)/include 
 
 DEFINES  := -D__SWITCH__ -DOPENCLAW_NATIVE=1
 ifeq ($(TRACE),1)
-# Diagnostic build: timestamped startup trace in /switch/claw/openclaw.log
+# Diagnostic build: timestamped startup trace in /switch/reclaw/save/reclaw.log
 DEFINES  += -DOPENCLAW_STARTUP_TRACE
 endif
 
@@ -81,7 +81,7 @@ LIBS     := $(shell $(PKGCONFIG) --libs SDL2_mixer SDL2_image SDL2_ttf SDL2_gfx 
 
 #---------------------------------------------------------------------------------
 # Bundled read-only data (romfs). CLAW.REZ is NOT bundled: players copy their
-# own file to /switch/claw/CLAW.REZ on the SD card.
+# own file to /switch/reclaw/data/CLAW.REZ on the SD card.
 #---------------------------------------------------------------------------------
 ROMFS_FILES := $(ROMFS)/config.xml $(ROMFS)/ASSETS.ZIP $(ROMFS)/clacon.ttf \
                $(ROMFS)/console02.tga $(ROMFS)/music/soundfont.sf3 $(ROMFS)/splash.ttf $(ROMFS)/subtitles.ttf

@@ -9,8 +9,8 @@
 #
 # The game runs on the top screen (400x240); the bottom screen shows the main
 # menu's map with the player's status (Engine/UserInterface/SecondScreen.cpp).
-# Install: reclaw.3dsx to sdmc:/3ds/claw/ and CLAW.REZ from your copy of the game
-# to sdmc:/3ds/claw/CLAW.REZ. Use a New 3DS / 2DS XL: the old models have too
+# Install: reclaw.3dsx to sdmc:/3ds/reclaw/ and CLAW.REZ from your copy of the game
+# to sdmc:/3ds/reclaw/data/CLAW.REZ. Use a New 3DS / 2DS XL: the old models have too
 # little memory and CPU for the game.
 
 cmake_minimum_required(VERSION 3.16)

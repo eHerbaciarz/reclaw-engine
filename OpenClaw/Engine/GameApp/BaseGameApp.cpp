@@ -1358,7 +1358,10 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 #endif
     MoviePlayer::SetSearchRoots(movieRoots, gameOptions.userDirectory);
     // Custom levels: a "Custom" folder in the same places.
-    CustomLevels::SetSearchRoots(movieRoots);
+    // Custom levels: reclaw/custom/ (or a "Custom" folder next to the game data).
+    std::vector<std::string> customRoots = movieRoots;
+    customRoots.insert(customRoots.begin(), Platform::RootDir());
+    CustomLevels::SetSearchRoots(customRoots);
   }
 #endif
 

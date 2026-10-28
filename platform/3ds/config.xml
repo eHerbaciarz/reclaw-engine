@@ -24,7 +24,7 @@
   </Font>
   <Assets>
     <AssetsFolder></AssetsFolder>
-    <RezArchive>sdmc:/3ds/claw/CLAW.REZ</RezArchive>
+    <RezArchive>sdmc:/3ds/reclaw/data/CLAW.REZ</RezArchive>
     <CustomArchive>romfs:/ASSETS.ZIP</CustomArchive>
     <ResourceCacheSize>24</ResourceCacheSize>
     <TempDir></TempDir>

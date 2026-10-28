@@ -24,7 +24,7 @@
   </Font>
   <Assets>
     <AssetsFolder></AssetsFolder>
-    <RezArchive>ux0:data/claw/CLAW.REZ</RezArchive>
+    <RezArchive>ux0:data/reclaw/data/CLAW.REZ</RezArchive>
     <CustomArchive>app0:/ASSETS.ZIP</CustomArchive>
     <ResourceCacheSize>96</ResourceCacheSize>
     <TempDir></TempDir>

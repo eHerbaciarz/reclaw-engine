@@ -2,7 +2,7 @@ ReClaw - PS4 (homebrew, GoldHEN)
 Unofficial fan-made engine for Claw (1997); not affiliated with Monolith or Warner Bros.
 
 No game data is included. Copy CLAW.REZ (and CLAW.FEC for the movies) from
-your own copy of Claw (1997) to /data/claw/ on the PS4 (FTP or USB).
+your own copy of Claw (1997) to /data/reclaw/data/ on the PS4 (FTP or USB).
 
 Building (Ubuntu 24.04):
   sudo apt install -y pacman-package-manager makepkg libarchive-tools cmake

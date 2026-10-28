@@ -34,12 +34,8 @@ jobs:
 
       - name: Package
         run: |
-          mkdir -p dist/switch/claw
-          cp platform/switch/reclaw.nro dist/switch/claw/
-          cat > dist/switch/claw/PUT_CLAW.REZ_HERE.txt <<'EOF'
-          Copy CLAW.REZ from your own copy of Claw (1997) into this folder.
-          Saves, config.xml and openclaw.log are created here on first launch.
-          EOF
+          scripts/make_reclaw_tree.sh dist/switch/reclaw
+          cp platform/switch/reclaw.nro dist/switch/reclaw/
 
       - uses: actions/upload-artifact@v4
         with:

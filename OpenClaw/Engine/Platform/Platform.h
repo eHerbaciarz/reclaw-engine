@@ -4,15 +4,23 @@
 // files live, where the files bundled with the port are, how the controller
 // buttons are labelled and whether there is a second screen.
 //
-//   Platform     Player's folder                       Bundled files
-//   Switch       sdmc:/switch/claw/                    romfs:/  (in the .nro)
-//   PS Vita      ux0:data/claw/                        app0:/   (in the .vpk)
-//   3DS          sdmc:/3ds/claw/                       romfs:/  (in the .3dsx)
-//   Wii U        sd:/wiiu/apps/claw/                   romfs:/  (in the .wuhb)
+//   Platform     ReClaw folder                         Bundled files
+//   Switch       sdmc:/switch/reclaw/                  romfs:/  (in the .nro)
+//   PS Vita      ux0:data/reclaw/                      app0:/   (in the .vpk)
+//   3DS          sdmc:/3ds/reclaw/                     romfs:/  (in the .3dsx)
+//   Wii U        sd:/wiiu/apps/reclaw/                 romfs:/  (in the .wuhb)
 //   PS3          /dev_hdd0/game/RCLW00001/USRDIR/      same folder
-//   Android      <external files dir of the app>       same folder (copied from the APK)
+//   PS4          /data/reclaw/                         /app0/
+//   Android      <external files dir of the app>       copied from the APK
 //   Windows      folder of the .exe                    same folder
-//   Linux        folder of the binary, ~/.config/...   folder of the binary
+//   Linux        folder of the binary, ~/.config/reclaw/   folder of the binary
+//
+// Inside the ReClaw folder:
+//   data/      CLAW.REZ, CLAW.FEC (or an unpacked Assets folder) - game files
+//   movies/    remastered movies
+//   custom/    custom levels
+//   lang/<xx>/ subtitles/movies, subtitles/dialogue, menu (xx = pl, en, ...)
+//   save/      config.xml, SAVES.XML, port_settings.txt, reclaw.log
 
 #include <string>
 #include <vector>
@@ -36,8 +44,13 @@ namespace Platform
     // Prepares the platform (romfs, folders, log file). Before anything else.
     void Init(int argc, char** argv);
 
-    // The player's folder (config.xml, SAVES.XML, the log, CLAW.REZ). Ends with '/'.
+    // The player's own files (save/: config.xml, SAVES.XML, the log). Ends with '/'.
     std::string DataDir();
+    // The ReClaw folder, its data/ (game files), movies/ and lang/<code>/.
+    std::string RootDir();
+    std::string GameDir();
+    std::string MoviesDir();
+    std::string LangDir(const std::string& code);
 
     // Folder of the files that ship with the port (ASSETS.ZIP, fonts,
     // soundfont, default config). Ends with '/' (or ':/').

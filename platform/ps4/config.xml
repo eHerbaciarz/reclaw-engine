@@ -1,6 +1,6 @@
 <Configuration>
   <Display>
-    <!-- PS4: files in /data/claw/ (FTP / USB); the game renders 854x480, scaled to the TV -->
+    <!-- PS4: files in /data/reclaw/ (FTP / USB); the game renders 854x480, scaled to the TV -->
     <Size width="1920" height="1080" />
     <Scale>2.25</Scale>
     <UseVerticalSync>true</UseVerticalSync>
@@ -24,7 +24,7 @@
   </Font>
   <Assets>
     <AssetsFolder></AssetsFolder>
-    <RezArchive>/data/claw/CLAW.REZ</RezArchive>
+    <RezArchive>/data/reclaw/data/CLAW.REZ</RezArchive>
     <CustomArchive>/app0/ASSETS.ZIP</CustomArchive>
     <ResourceCacheSize>200</ResourceCacheSize>
     <TempDir></TempDir>

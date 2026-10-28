@@ -10,7 +10,7 @@
 # The game is shown on the TV, the GamePad shows the main menu's map with the
 # player's status (Engine/UserInterface/SecondScreen.cpp).
 # Install: reclaw.wuhb to sd:/wiiu/apps/ (Aroma); CLAW.REZ from your copy of the
-# game to sd:/wiiu/apps/claw/CLAW.REZ.
+# game to sd:/wiiu/apps/reclaw/data/CLAW.REZ.
 
 cmake_minimum_required(VERSION 3.16)
 project(ClawWiiU C CXX)

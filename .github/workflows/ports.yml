@@ -69,6 +69,7 @@ jobs:
           PKG=dist/reclaw-windows-x86_64
           mkdir -p "$PKG"
           scripts/stage_bundle.sh "$PKG"
+          scripts/make_reclaw_tree.sh "$PKG"
           cp build-win/openclaw.exe "$PKG/ReClaw.exe"
           strip "$PKG/ReClaw.exe"
           # every DLL the game needs, except Windows' own
@@ -121,9 +122,8 @@ jobs:
           cmake --build build-3ds -j"$(nproc)"
       - name: Package
         run: |
-          mkdir -p dist/3ds/claw
-          cp build-3ds/reclaw.3dsx dist/3ds/claw/
-          echo "Copy CLAW.REZ from your own copy of Claw (1997) to sdmc:/3ds/claw/CLAW.REZ" > dist/3ds/claw/PUT_CLAW.REZ_HERE.txt
+          scripts/make_reclaw_tree.sh dist/3ds/reclaw
+          cp build-3ds/reclaw.3dsx dist/3ds/reclaw/
       - uses: actions/upload-artifact@v4
         with:
           name: reclaw-3ds
@@ -146,9 +146,9 @@ jobs:
           cmake --build build-wiiu -j"$(nproc)"
       - name: Package
         run: |
-          mkdir -p dist/wiiu/apps/claw
+          mkdir -p dist/wiiu/apps
           cp build-wiiu/reclaw.wuhb dist/wiiu/apps/
-          echo "Copy CLAW.REZ from your own copy of Claw (1997) to sd:/wiiu/apps/claw/CLAW.REZ" > dist/wiiu/apps/claw/PUT_CLAW.REZ_HERE.txt
+          scripts/make_reclaw_tree.sh dist/wiiu/apps/reclaw
       - uses: actions/upload-artifact@v4
         with:
           name: reclaw-wiiu
@@ -208,7 +208,7 @@ jobs:
         run: |
           mkdir -p dist
           cp build-ps3/reclaw.pkg build-ps3/reclaw.self dist/
-          echo "Copy CLAW.REZ from your own copy of Claw (1997) to /dev_hdd0/game/RCLW00001/USRDIR/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
+          echo "Copy CLAW.REZ from your own copy of Claw (1997) to /dev_hdd0/game/RCLW00001/USRDIR/data/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
           name: reclaw-ps3
@@ -245,7 +245,7 @@ jobs:
         run: |
           mkdir -p dist
           cp build-ps4/*.pkg dist/
-          echo "Copy CLAW.REZ from your own copy of Claw (1997) to /data/claw/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
+          echo "Copy CLAW.REZ from your own copy of Claw (1997) to /data/reclaw/data/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
           name: reclaw-ps4

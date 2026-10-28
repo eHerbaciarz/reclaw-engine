@@ -5,19 +5,40 @@ grafiki sterowania). **Danych gry nie ma w żadnej paczce**: gracz kopiuje
 `CLAW.REZ` (i opcjonalnie `CLAW.FEC` z filmami) z własnej kopii Captain Claw.
 Zamiast `CLAW.REZ` działa też rozpakowany folder `Assets`.
 
-## Gdzie wrzucić CLAW.REZ
+## Gdzie jest folder ReClaw
 
-| Platforma | Plik gry | Folder z CLAW.REZ (tam też config.xml, zapisy i openclaw.log) |
+CLAW.REZ (i CLAW.FEC) idzie do podfolderu `data/`.
+
+| Platforma | Plik gry | Folder ReClaw |
 |---|---|---|
-| Switch | `reclaw.nro` | `sd:/switch/claw/` |
-| Linux | `reclaw-linux-x86_64.tar.gz` → `run.sh` | obok `run.sh` |
-| Windows | `reclaw-windows-x86_64.zip` → `ReClaw.exe` | obok `ReClaw.exe` |
-| PS Vita | `reclaw.vpk` (VitaShell) | `ux0:data/claw/` |
-| 3DS | `reclaw.3dsx` (Homebrew Launcher) | `sdmc:/3ds/claw/` |
-| Wii U | `reclaw.wuhb` (Aroma, `sd:/wiiu/apps/`) | `sd:/wiiu/apps/claw/` |
+| Switch | `reclaw.nro` | `sd:/switch/reclaw/` |
+| Linux | `reclaw-linux-x86_64.tar.gz` → `run.sh` | folder z `run.sh` |
+| Windows | `reclaw-windows-x86_64.zip` → `ReClaw.exe` | folder z `ReClaw.exe` |
+| PS Vita | `reclaw.vpk` (VitaShell) | `ux0:data/reclaw/` |
+| 3DS | `reclaw.3dsx` (Homebrew Launcher) | `sdmc:/3ds/reclaw/` |
+| Wii U | `reclaw.wuhb` (Aroma, `sd:/wiiu/apps/`) | `sd:/wiiu/apps/reclaw/` |
 | PS3 | `reclaw.pkg` (HEN/CFW) lub `reclaw.self` (RPCS3) | `/dev_hdd0/game/RCLW00001/USRDIR/` |
-| PS4 | `IV0001-RCLW00002_…pkg` (GoldHEN) | `/data/claw/` (FTP / USB) |
+| PS4 | `IV0001-RCLW00002_…pkg` (GoldHEN) | `/data/reclaw/` (FTP / USB) |
 | Android | `ReClaw.apk` | `Android/data/org.reclaw.game/files/` (USB / menedżer plików) |
+
+## Układ folderu ReClaw
+
+```
+reclaw/
+├── reclaw.nro          (Switch; na PC ReClaw.exe / run.sh)
+├── data/               CLAW.REZ, CLAW.FEC (albo rozpakowany folder Assets) – pliki gry
+├── movies/             zremasterowane filmy (jeszcze nieobsługiwane)
+├── custom/             własne poziomy (.WWD)
+├── lang/
+│   ├── pl/
+│   │   ├── subtitles/movies/     napisy do filmów (movie_01.srt …)
+│   │   ├── subtitles/dialogue/   napisy do kwestii Pazura i przeciwników
+│   │   └── menu/strings.txt      teksty menu i ekranów portu
+│   └── en/   (to samo)
+└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log
+```
+
+Gra tworzy te foldery przy pierwszym uruchomieniu.
 
 ## Przyciski
 

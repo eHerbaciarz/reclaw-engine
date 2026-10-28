@@ -8,7 +8,8 @@
 # CI: .github/workflows/ports.yml
 #
 # Install: reclaw.vpk with VitaShell; CLAW.REZ from your copy of the game goes to
-# ux0:data/claw/CLAW.REZ (config.xml, saves and openclaw.log are written there).
+# ux0:data/reclaw/data/CLAW.REZ (config.xml, saves and reclaw.log go to
+# ux0:data/reclaw/save/).
 
 cmake_minimum_required(VERSION 3.16)
 
