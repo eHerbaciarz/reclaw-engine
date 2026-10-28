@@ -340,7 +340,11 @@ namespace CustomLevels
         while (!done)
         {
             int in = BlockingInput::Poll();
-            if (in & BlockingInput::Quit) break;
+            if (in & BlockingInput::Quit)
+            {
+                LOG_WARNING("Custom level picker: closed by the system (quit)");
+                break;
+            }
             if (in & BlockingInput::Up)
             {
                 sel = (sel + count) % (count + 1);
@@ -351,7 +355,11 @@ namespace CustomLevels
                 sel = (sel + 1) % (count + 1);
                 PlayMenuSound("/STATES/MENU/SOUNDS/SELECT.WAV");
             }
-            if (in & BlockingInput::Back) done = true;
+            if (in & BlockingInput::Back)
+            {
+                LOG_WARNING("Custom level picker: back");
+                done = true;
+            }
             if (in & BlockingInput::Accept)
             {
                 PlayMenuSound("/STATES/MENU/SOUNDS/CLICK.WAV");
@@ -359,6 +367,11 @@ namespace CustomLevels
                 {
                     out = levels[sel];
                     picked = true;
+                    LOG_WARNING("Custom level picker: chose " + out.path + " (level " + ToStr(out.baseLevel) + ")");
+                }
+                else
+                {
+                    LOG_WARNING("Custom level picker: chose Back");
                 }
                 done = true;
             }
