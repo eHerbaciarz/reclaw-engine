@@ -373,11 +373,12 @@
         </MenuItem>
         <MenuItem>
             <Name>MANAGE_SAVES_BUTTON</Name>
+            <GameFontText>ZARZĄDZAJ ZAPISAMI</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <InactiveImage>/SAVE_DATA/manage_saves_inactive.png</InactiveImage>
             <ActiveImage>/SAVE_DATA/manage_saves_active.png</ActiveImage>
-            <Position x="112" y="280" />
+            <Position x="320" y="280" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_SaveData</PageName>
@@ -398,6 +399,7 @@
             <!-- ReClaw: boss practice and Boss Rush (in place of the original,
                  never working "Upload Scores") -->
             <Name>BOSS_MODES_BUTTON</Name>
+            <GameFontText>SKRZYŻUJ SZPADY PONOWNIE</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES_{lang}_INACTIVE.png</InactiveImage>
@@ -434,13 +436,16 @@
         </KeyboardEvent>
         <MenuItem>
             <Name>SAVE_DATA_TITLE</Name>
+            <GameFontText>ZAPISY GRY</GameFontText>
+            <GameFontUnderline>-2</GameFontUnderline>
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/SAVE_DATA/title.png</InactiveImage>
-            <Position x="150" y="161" />
+            <Position x="320" y="161" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>SAVE_TO_FILE_BUTTON</Name>
+            <GameFontText>ZAPISZ DO PLIKU</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <VisibilityCondition>
@@ -453,13 +458,14 @@
             <InactiveImage>/SAVE_DATA/save_to_file_inactive.png</InactiveImage>
             <ActiveImage>/SAVE_DATA/save_to_file_active.png</ActiveImage>
             <DisabledImage>/SAVE_DATA/save_to_file_disabled.png</DisabledImage>
-            <Position x="191" y="210" />
+            <Position x="320" y="210" align="center" />
             <GeneratedEvent>
                 <Type>ExportSaveData</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
             <Name>IMPORT_FROM_FILE_BUTTON</Name>
+            <GameFontText>WCZYTAJ Z PLIKU</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
@@ -468,13 +474,14 @@
             <InactiveImage>/SAVE_DATA/import_from_file_inactive.png</InactiveImage>
             <DisabledImage>/SAVE_DATA/import_from_file_disabled.png</DisabledImage>
             <ActiveImage>/SAVE_DATA/import_from_file_active.png</ActiveImage>
-            <Position x="144" y="245" />
+            <Position x="320" y="245" align="center" />
             <GeneratedEvent>
                 <Type>ImportSaveData</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
             <Name>RESET_PROGRESS_BUTTON</Name>
+            <GameFontText>WYZERUJ POSTĘPY</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <StateCondition>
@@ -484,7 +491,7 @@
             <InactiveImage>/SAVE_DATA/reset_progress_inactive.png</InactiveImage>
             <ActiveImage>/SAVE_DATA/reset_progress_active.png</ActiveImage>
             <DisabledImage>/SAVE_DATA/reset_progress_disabled.png</DisabledImage>
-            <Position x="157" y="280" />
+            <Position x="320" y="280" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_SaveData_ResetConfirm</PageName>
@@ -517,31 +524,35 @@
         </KeyboardEvent>
         <MenuItem>
             <Name>RESET_WARNING_TEXT</Name>
+            <GameFontText>NA PEWNO USUNĄĆ|WSZYSTKIE ZAPISY</GameFontText>
+            <GameFontUnderline>-1</GameFontUnderline>
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/RESET_CONFIRM/reset_text.png</InactiveImage>
-            <Position x="152" y="170" />
+            <Position x="320" y="170" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>YES_RESET_BUTTON</Name>
+            <GameFontText>TAK</GameFontText>
             <Type>Button</Type>
             <Hotkey>Y</Hotkey>
             <State>Active</State>
             <InactiveImage>/RESET_CONFIRM/yes_inactive.png</InactiveImage>
             <ActiveImage>/RESET_CONFIRM/yes_active.png</ActiveImage>
-            <Position x="281" y="290" />
+            <Position x="320" y="290" align="center" />
             <GeneratedEvent>
                 <Type>ResetProgressFromManageSaves</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
             <Name>NO_RESET_BUTTON</Name>
+            <GameFontText>NIE</GameFontText>
             <Type>Button</Type>
             <Hotkey>N</Hotkey>
             <State>Inactive</State>
             <InactiveImage>/RESET_CONFIRM/no_inactive.png</InactiveImage>
             <ActiveImage>/RESET_CONFIRM/no_active.png</ActiveImage>
-            <Position x="291" y="333" />
+            <Position x="320" y="333" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_SinglePlayer_SaveData</PageName>
@@ -2561,6 +2572,7 @@
             <!-- ReClaw: language of the game data (data/<code>/), only with
                  more than one language folder -->
             <Name>LANGUAGE_BUTTON</Name>
+            <GameFontText>JĘZYK</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE_{lang}_INACTIVE.png</InactiveImage>
@@ -3259,6 +3271,7 @@
 
         <MenuItem>
             <Name>SUBTITLES_ON_BUTTON</Name>
+            <GameFontText>NAPISY: TAK</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
@@ -3294,6 +3307,7 @@
         </MenuItem>
         <MenuItem>
             <Name>SUBTITLES_OFF_BUTTON</Name>
+            <GameFontText>NAPISY: NIE</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>

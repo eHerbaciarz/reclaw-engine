@@ -1,5 +1,6 @@
 #include "UserInterface.h"
 #include "../GameApp/GameLanguages.h"
+#include "GameFont.h"
 
 #include "../Graphics2D/Image.h"
 #include "../Race/Race.h"
@@ -1989,6 +1990,32 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
     if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("ActiveImage")))
     {
         m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
+    }
+
+    // <GameFontText>SKRZYŻUJ SZPADY PONOWNIE</GameFontText> (Polish): with the
+    // Polish release the item is drawn in the game's own menu letters instead
+    // of the pictures above. <GameFontUnderline>: letter to underline (default
+    // 0, -1 none, -2 all).
+    if (TiXmlElement* pFontElem = pElem->FirstChildElement("GameFontText"))
+    {
+        if (pFontElem->GetText() && GameFont::Available())
+        {
+            int underline = 0;
+            ParseValueFromXmlElem(&underline, pElem->FirstChildElement("GameFontUnderline"));
+            std::string text = pFontElem->GetText();
+            const std::pair<MenuItemState, GameFont::Look> looks[] = {
+                { MenuItemState_Inactive, GameFont::Look::Normal },
+                { MenuItemState_Active, GameFont::Look::Active },
+                { MenuItemState_Disabled, GameFont::Look::Disabled },
+            };
+            for (const auto& l : looks)
+            {
+                if (shared_ptr<Image> pImage = GameFont::Render(text, l.second, underline))
+                {
+                    m_Images[l.first] = pImage;
+                }
+            }
+        }
     }
 
     // <Position x="320" y="100" align="center" />: x is the item's centre, so
