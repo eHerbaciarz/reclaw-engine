@@ -401,6 +401,21 @@ namespace Platform
 #endif
     }
 
+    bool SupportsRemasteredMovies()
+    {
+#if defined(__vita__) || defined(__3DS__)
+        return false;
+#else
+        return true;
+#endif
+    }
+
+    bool SupportsSaveStates()
+    {
+        // TODO(MK tests): return false on __vita__ / __3DS__ if too slow.
+        return true;
+    }
+
     void DefaultRenderSize(int& width, int& height)
     {
 #if defined(__3DS__)

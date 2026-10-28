@@ -77,6 +77,14 @@ namespace Platform
     // 3DS bottom screen / Wii U GamePad.
     bool HasSecondScreen();
 
+    // Remastered movies (movies/): not on PS Vita and 3DS - too weak to
+    // decode them. Those platforms keep the original movies from CLAW.FEC.
+    bool SupportsRemasteredMovies();
+
+    // Save states (ZL/ZR) and rewind (hold R). On for now everywhere; to be
+    // checked on PS Vita and 3DS and turned off there if they are too slow.
+    bool SupportsSaveStates();
+
     // Logical size of the game view (the engine renders at this size and
     // the result is scaled to the screen).
     void DefaultRenderSize(int& width, int& height);

@@ -35,6 +35,7 @@
 #include "../SaveState/SaveStateManager.h"
 #include "../Race/Race.h"
 #include "../BossModes/BossModes.h"
+#include "../Platform/Platform.h"
 #include "../UserInterface/Minimap.h"
 
 #include "../Physics/ClawPhysics.h"
@@ -1149,7 +1150,7 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
             BossModes::Update(this, msDiff);
 
             // Quick save / quick load / rewind happen between steps.
-            m_bSkipWorldStep = (Race::IsActive() || BossModes::IsActive()) ? false : SaveStateManager::Get()->OnGameStep(this, msDiff);
+            m_bSkipWorldStep = (Race::IsActive() || BossModes::IsActive() || !Platform::SupportsSaveStates()) ? false : SaveStateManager::Get()->OnGameStep(this, msDiff);
             if (m_bSkipWorldStep)
             {
                 break;

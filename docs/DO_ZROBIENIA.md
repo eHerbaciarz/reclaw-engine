@@ -18,6 +18,16 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
   ekran ładowania. Kilka linijek w `BaseGameLogic::VChangeState(GameState_Menu)`
   i `HumanView::EnterMenuDelegate`.
 
+## Słabsze konsole (PS Vita, 3DS)
+
+- **Zremasterowane filmy** – na Vicie i 3DS niedostępne (zostają filmy
+  z CLAW.FEC). Gotowe: `Platform::SupportsRemasteredMovies()` zwraca tam
+  `false`; trzeba to uszanować, gdy powstanie odtwarzanie z `movies/`.
+- **Zapis stanu i cofanie** – do sprawdzenia na Vicie i New 3DS; jeśli
+  za wolne, wyłączyć w `Platform::SupportsSaveStates()` (teraz wszędzie wł.).
+- Paczki `reclaw.vpk` / `reclaw.3dsx` do testów – zbudować dopiero na
+  sygnał MK (po kolejnych poprawkach).
+
 ## Wcześniej odłożone
 
 - Bossowie: Le Rauxe (2), Katherine (4), Wolvington (6) – własne zachowanie;
