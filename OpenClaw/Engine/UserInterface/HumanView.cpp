@@ -22,6 +22,8 @@
 #include "ScoreScreen/EndLevelScoreScreen.h"
 #include "../Race/Race.h"
 #include "../BossModes/BossModes.h"
+#include "../Race/RaceUi.h"
+#include "Lang.h"
 #include "../GameApp/GameLanguages.h"
 #include "Minimap.h"
 #include "Subtitles.h"
@@ -1550,9 +1552,14 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     if (level.baseLevel < 1 || level.baseLevel > 14)
     {
         LOG_ERROR("Custom level does not name its original level: " + level.path);
+        RaceUi::ShowMessage(g_pApp->GetRenderer(), level.fileName,
+            { Lang::Tr("Nie wiadomo, z którego poziomu gry ten poziom bierze grafiki",
+                       "This level does not say which game level its graphics come from"),
+              Lang::Tr("(brak ścieżek LEVELx w pliku .WWD).", "(no LEVELx paths in the .WWD file).") });
         return;
     }
-    LOG("Loading custom level " + level.path + " (assets of level " + ToStr(level.baseLevel) + ")");
+    LOG_WARNING("Loading custom level " + level.path + " (assets of level " + ToStr(level.baseLevel) +
+                ", start " + ToStr(level.startX) + "," + ToStr(level.startY) + ")");
 
     m_ScreenElements.clear();
     m_pMenu.reset();

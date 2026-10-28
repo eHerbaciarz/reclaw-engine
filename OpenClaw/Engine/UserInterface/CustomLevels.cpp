@@ -248,6 +248,7 @@ namespace CustomLevels
         {
             std::string dir = FindChild(root, "custom");
             if (dir.empty() || !IsDir(dir)) continue;
+            LOG_WARNING("Custom levels: looking in " + dir);
             DIR* d = opendir(dir.c_str());
             if (!d) continue;
             while (struct dirent* de = readdir(d))
@@ -259,7 +260,15 @@ namespace CustomLevels
                 Entry e;
                 e.path = dir + "/" + name;
                 e.fileName = name;
-                if (!ReadHeader(e.path, e)) continue;
+                if (!ReadHeader(e.path, e))
+                {
+                    LOG_WARNING("Custom level skipped (not a Claw WWD or unreadable): " + e.path);
+                    continue;
+                }
+                if (!e.baseLevel)
+                {
+                    LOG_WARNING("Custom level does not name its original level (LEVELx paths): " + e.path);
+                }
                 seen.push_back(lower);
                 out.push_back(e);
             }
@@ -273,7 +282,7 @@ namespace CustomLevels
     {
         if (!r) return false;
         std::vector<Entry> levels = List();
-        LOG("Custom levels found: " + ToStr((int)levels.size()));
+        LOG_WARNING("Custom levels found: " + ToStr((int)levels.size()));
 
         if (!TTF_WasInit() && TTF_Init() != 0) return false;
 
