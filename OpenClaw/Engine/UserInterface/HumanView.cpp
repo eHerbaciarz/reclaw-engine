@@ -22,6 +22,7 @@
 #include "ScoreScreen/EndLevelScoreScreen.h"
 #include "../Race/Race.h"
 #include "../BossModes/BossModes.h"
+#include "../GameApp/GameLanguages.h"
 #include "Minimap.h"
 #include "Subtitles.h"
 #include "CheatCode.h"
@@ -719,6 +720,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::BossModesDelegate), EventData_Menu_Boss_Modes::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::OpenLanguageDelegate), EventData_Menu_Open_Language::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetSubtitlesDelegate), EventData_Menu_Set_Subtitles::sk_EventType);
@@ -782,6 +785,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::BossModesDelegate), EventData_Menu_Boss_Modes::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::OpenLanguageDelegate), EventData_Menu_Open_Language::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1613,6 +1618,12 @@ void HumanView::BossModesDelegate(IEventDataPtr pEventData)
     }
     LOG("Boss mode: loading level " + ToStr(level));
     StartModeLevel(level);
+}
+
+// Options > Language.
+void HumanView::OpenLanguageDelegate(IEventDataPtr pEventData)
+{
+    GameLanguages::RunMenu();
 }
 
 // Loads a level for a race or a boss mode (no save game).

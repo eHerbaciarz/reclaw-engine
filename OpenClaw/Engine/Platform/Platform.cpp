@@ -261,7 +261,7 @@ namespace Platform
 #endif
 
         // The folder layout (empty folders show the player where things go):
-        //   data/      CLAW.REZ, CLAW.FEC (or an unpacked Assets folder)
+        //   data/<xx>/ CLAW.REZ, CLAW.FEC (or an unpacked Assets folder) per language
         //   movies/    remastered movies
         //   custom/    custom levels (.WWD)
         //   lang/<xx>/subtitles/movies, lang/<xx>/subtitles/dialogue, lang/<xx>/menu
@@ -269,7 +269,7 @@ namespace Platform
 #if !defined(__EMSCRIPTEN__)
         {
             static const char* kDirs[] = {
-                "data/", "movies/", "custom/", "save/",
+                "data/", "data/pl/", "data/en/", "movies/", "custom/", "save/",
                 "lang/pl/subtitles/movies/", "lang/pl/subtitles/dialogue/", "lang/pl/menu/",
                 "lang/en/subtitles/movies/", "lang/en/subtitles/dialogue/", "lang/en/menu/",
             };

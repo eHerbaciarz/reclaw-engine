@@ -5,6 +5,7 @@
 #include "../Platform/Platform.h"
 #include "../Platform/Input/BlockingInput.h"
 #include <fstream>
+#include "GameLanguages.h"
 #include <sys/stat.h>
 #include <vector>
 
@@ -198,6 +199,8 @@ int RunGameEngine(int argc, char** argv)
     g_pApp->GetGameConfig()->userDirectory = userDirectory;
 
 #ifndef __EMSCRIPTEN__
+    // data/pl/, data/en/...: the language picked in Options (saved in config.xml).
+    GameLanguages::Setup(g_pApp->GetGameConfig(), userDirectory + "config.xml");
     std::vector<std::string> rezSearched = ResolveRezArchive(g_pApp->GetGameConfig(), argc, argv);
     if (!rezSearched.empty())
     {

@@ -32,7 +32,9 @@ Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Po
 ```
 reclaw/
 ├── reclaw.nro          (Switch; ReClaw.exe / run.sh on PC)
-├── data/               CLAW.REZ, CLAW.FEC (or an unpacked Assets folder) - game files
+├── data/
+│   ├── pl/             CLAW.REZ, CLAW.FEC of the Polish release (or an unpacked Assets)
+│   └── en/             CLAW.REZ, CLAW.FEC of the English release
 ├── movies/             remastered movies (not supported yet)
 ├── custom/             custom levels (.WWD)
 ├── lang/
@@ -45,6 +47,13 @@ reclaw/
 ```
 
 The game creates these folders on its first start.
+
+Each sub-folder of `data/` with CLAW.REZ is one language (the folder name is
+the language code, `de/`, `fr/`... work too). With one folder the game uses
+that language and Options → Language is greyed out. With several: English
+(`en`) on the first start, then the language chosen in **Options →
+Language** – saved in `save/config.xml`, applied when the game is started
+again. CLAW.REZ put straight into `data/` also works (as the only language).
 
 
 ## What ReClaw adds

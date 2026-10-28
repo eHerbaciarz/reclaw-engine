@@ -28,6 +28,12 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
 - Paczki `reclaw.vpk` / `reclaw.3dsx` do testów – zbudować dopiero na
   sygnał MK (po kolejnych poprawkach).
 
+## Języki
+
+- Zmiana języka działa po ponownym uruchomieniu gry. Na później:
+  na Switchu automatyczny restart przez Homebrew Menu (`envSetNextLoad`),
+  ewentualnie zmiana od razu w menu (przeładowanie CLAW.REZ – ryzykowne).
+
 ## Wcześniej odłożone
 
 - Bossowie: Le Rauxe (2), Katherine (4), Wolvington (6) – własne zachowanie;

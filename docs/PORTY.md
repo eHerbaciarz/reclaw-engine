@@ -26,7 +26,9 @@ CLAW.REZ (i CLAW.FEC) idzie do podfolderu `data/`.
 ```
 reclaw/
 ├── reclaw.nro          (Switch; na PC ReClaw.exe / run.sh)
-├── data/               CLAW.REZ, CLAW.FEC (albo rozpakowany folder Assets) – pliki gry
+├── data/
+│   ├── pl/             CLAW.REZ, CLAW.FEC polskiego wydania (albo rozpakowany Assets)
+│   └── en/             CLAW.REZ, CLAW.FEC angielskiego wydania
 ├── movies/             zremasterowane filmy (jeszcze nieobsługiwane)
 ├── custom/             własne poziomy (.WWD)
 ├── lang/
@@ -39,6 +41,13 @@ reclaw/
 ```
 
 Gra tworzy te foldery przy pierwszym uruchomieniu.
+
+Każdy podfolder `data/` z CLAW.REZ to jeden język (nazwa folderu = kod
+języka, także `de/`, `fr/`…). Z jednym folderem gra uruchamia ten język,
+a „Język” w Opcjach jest wyłączony. Z kilkoma: pierwszy start po angielsku
+(`en`), potem język wybrany w **Opcje → Język** – zapisany w
+`save/config.xml`, zmienia się po ponownym uruchomieniu gry. CLAW.REZ
+wrzucony prosto do `data/` też działa (jako jedyny język).
 
 ## Przyciski
 

@@ -131,6 +131,7 @@ protected:
     void OnCheatDirection(CheatCode::Dir dir);
     void StartRaceDelegate(IEventDataPtr pEventData);
     void BossModesDelegate(IEventDataPtr pEventData);
+    void OpenLanguageDelegate(IEventDataPtr pEventData);
     void StartModeLevel(int level);
     virtual void VCreateSecondController(uint32 actorId) { }
     virtual void VDestroySecondController() { }

@@ -2499,7 +2499,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/001_EDITPLAYERS.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/002_EDITPLAYERS.PCX</ActiveImage>
-            <Position x="320" y="225" align="center" />
+            <Position x="320" y="215" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_EditPlayers</PageName>
@@ -2511,7 +2511,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/003_DIFFICULTY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/004_DIFFICULTY.PCX</ActiveImage>
-            <Position x="320" y="260" align="center" />
+            <Position x="320" y="247" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Difficulty</PageName>
@@ -2523,7 +2523,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/005_CONTROLS.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/006_CONTROLS.PCX</ActiveImage>
-            <Position x="320" y="295" align="center" />
+            <Position x="320" y="279" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Controls</PageName>
@@ -2536,7 +2536,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/007_AUDIO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/008_AUDIO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/009_AUDIO.PCX</DisabledImage>
-            <Position x="320" y="330" align="center" />
+            <Position x="320" y="311" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Audio</PageName>
@@ -2551,10 +2551,28 @@
             </VisibilityCondition>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/010_DISPLAY.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/011_DISPLAY.PCX</ActiveImage>
-            <Position x="320" y="365" align="center" />
+            <Position x="320" y="343" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Display</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: language of the game data (data/<code>/), only with
+                 more than one language folder -->
+            <Name>LANGUAGE_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Disabled</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE_{lang}_INACTIVE.png</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE_{lang}_ACTIVE.png</ActiveImage>
+            <DisabledImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE_{lang}_DISABLED.png</DisabledImage>
+            <Position x="320" y="375" align="center" />
+            <StateCondition>
+                <ConditionForState>Inactive</ConditionForState>
+                <ConditionType>MultipleLanguages</ConditionType>
+            </StateCondition>
+            <GeneratedEvent>
+                <Type>OpenLanguage</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
@@ -2563,7 +2581,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="320" y="400" align="center" />
+            <Position x="320" y="407" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>

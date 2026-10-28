@@ -40,9 +40,10 @@ repozytorium podkreśla, że to silnik, a nie sama gra.
 Potrzebna jest przerobiona konsola z Homebrew Menu albo emulator (Ryujinx).
 
 1. Skopiuj `reclaw.nro` do folderu **`sd:/switch/reclaw/`**.
-2. Skopiuj **`CLAW.REZ`** ze swojej kopii gry do **`sd:/switch/reclaw/data/`**.
+2. Skopiuj **`CLAW.REZ`** ze swojej kopii gry do **`sd:/switch/reclaw/data/pl/`**
+   (wydanie polskie; angielskie do `data/en/`).
    Zamiast `CLAW.REZ` może być rozpakowany folder `Assets`.
-3. Opcjonalnie: **`CLAW.FEC`** (filmy z płyty) też do `data/`.
+3. Opcjonalnie: **`CLAW.FEC`** (filmy z płyty) do tego samego folderu.
 4. Uruchom „ReClaw” z Homebrew Menu. Najlepiej przez gierkę z trzymanym R
    (title override) – więcej pamięci niż z albumu.
 
@@ -56,7 +57,9 @@ trafiają do `save/`.
 ```
 reclaw/
 ├── reclaw.nro          (Switch; na PC ReClaw.exe / run.sh)
-├── data/               CLAW.REZ, CLAW.FEC (albo rozpakowany folder Assets) – pliki gry
+├── data/
+│   ├── pl/             CLAW.REZ, CLAW.FEC polskiego wydania (albo rozpakowany Assets)
+│   └── en/             CLAW.REZ, CLAW.FEC angielskiego wydania
 ├── movies/             zremasterowane filmy (jeszcze nieobsługiwane)
 ├── custom/             własne poziomy (.WWD)
 ├── lang/
@@ -69,6 +72,13 @@ reclaw/
 ```
 
 Gra tworzy te foldery przy pierwszym uruchomieniu.
+
+Każdy podfolder `data/` z CLAW.REZ to jeden język (nazwa folderu = kod
+języka, także `de/`, `fr/`…). Z jednym folderem gra uruchamia ten język,
+a „Język” w Opcjach jest wyłączony. Z kilkoma: pierwszy start po angielsku
+(`en`), potem język wybrany w **Opcje → Język** – zapisany w
+`save/config.xml`, zmienia się po ponownym uruchomieniu gry. CLAW.REZ
+wrzucony prosto do `data/` też działa (jako jedyny język).
 
 **Sterowanie (Switch):** B – skok, Y – szabla, A – strzał/magia/dynamit,
 X – podnieś/rzuć beczkę, L – zmiana broni, + – pauza, − – mapa poziomu,
@@ -150,9 +160,10 @@ the repository name makes clear that this is an engine, not the game itself.
 You need a modded console with the Homebrew Menu, or an emulator (Ryujinx).
 
 1. Copy `reclaw.nro` to **`sd:/switch/reclaw/`**.
-2. Copy **`CLAW.REZ`** from your copy of the game to **`sd:/switch/reclaw/data/`**.
+2. Copy **`CLAW.REZ`** from your copy of the game to **`sd:/switch/reclaw/data/en/`**
+   (English release; the Polish one goes to `data/pl/`).
    An unpacked `Assets` folder works instead of `CLAW.REZ`.
-3. Optional: **`CLAW.FEC`** (the CD movies) into `data/` too.
+3. Optional: **`CLAW.FEC`** (the CD movies) into the same folder.
 4. Start "ReClaw" from the Homebrew Menu, preferably through a game with R held
    (title override) – more memory than from the album.
 
@@ -165,7 +176,9 @@ below); settings, saves and the error log `reclaw.log` go to `save/`.
 ```
 reclaw/
 ├── reclaw.nro          (Switch; ReClaw.exe / run.sh on PC)
-├── data/               CLAW.REZ, CLAW.FEC (or an unpacked Assets folder) - game files
+├── data/
+│   ├── pl/             CLAW.REZ, CLAW.FEC of the Polish release (or an unpacked Assets)
+│   └── en/             CLAW.REZ, CLAW.FEC of the English release
 ├── movies/             remastered movies (not supported yet)
 ├── custom/             custom levels (.WWD)
 ├── lang/
@@ -178,6 +191,13 @@ reclaw/
 ```
 
 The game creates these folders on its first start.
+
+Each sub-folder of `data/` with CLAW.REZ is one language (the folder name is
+the language code, `de/`, `fr/`... work too). With one folder the game uses
+that language and Options → Language is greyed out. With several: English
+(`en`) on the first start, then the language chosen in **Options →
+Language** – saved in `save/config.xml`, applied when the game is started
+again. CLAW.REZ put straight into `data/` also works (as the only language).
 
 **Controls (Switch):** B – jump, Y – sword, A – pistol/magic/dynamite,
 X – lift/throw a keg, L – change weapon, + – pause, − – level map,

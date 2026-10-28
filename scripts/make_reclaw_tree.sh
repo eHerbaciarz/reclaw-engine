@@ -6,14 +6,17 @@
 set -e
 DIR="$1"
 [ -n "$DIR" ] || { echo "usage: $0 <dir>"; exit 1; }
-for d in data movies custom save; do mkdir -p "$DIR/$d"; done
+for d in data/pl data/en movies custom save; do mkdir -p "$DIR/$d"; done
 for l in pl en; do
   mkdir -p "$DIR/lang/$l/subtitles/movies" "$DIR/lang/$l/subtitles/dialogue" "$DIR/lang/$l/menu"
 done
 cat > "$DIR/data/PUT_CLAW.REZ_HERE.txt" <<'EOF'
-Copy CLAW.REZ (and CLAW.FEC with the movies, if you have it) from your own
-copy of Claw (1997) into this folder. An unpacked "Assets" folder works too.
-Skopiuj tu CLAW.REZ (i CLAW.FEC z filmami) z własnej kopii gry.
+One folder per language of your copy of Claw (1997):
+  data/en/  CLAW.REZ (+ CLAW.FEC with the movies) of the English release
+  data/pl/  CLAW.REZ (+ CLAW.FEC) of the Polish release
+An unpacked "Assets" folder works instead of CLAW.REZ. With two languages
+choose one in Options > Language (applied on the next start).
+Jeden folder na każdy język: data/pl/ - polskie wydanie, data/en/ - angielskie.
 EOF
 cat > "$DIR/movies/README.txt" <<'EOF'
 Remastered movies (not supported yet). / Zremasterowane filmy (jeszcze nieobsługiwane).

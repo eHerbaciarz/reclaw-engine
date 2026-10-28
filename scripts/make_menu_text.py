@@ -29,6 +29,12 @@ BUTTONS = [
     ("STATES/MENU/IMAGES/MAIN/OPTIONS/DISPLAY/SUBTITLES_OFF", "NAPISY: WYŁ.", "SUBTITLES: OFF"),
     ("GAME/IMAGES/INGAMEMENU/MAIN/CHEATS", "KODY", "CHEATS"),
     ("STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES", "SKRZYŻUJ SZPADY PONOWNIE", "CROSS SWORDS AGAIN"),
+    ("STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE", "JĘZYK", "LANGUAGE"),
+]
+
+# Buttons that can be greyed out (also get _DISABLED pictures).
+WITH_DISABLED = [
+    "STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE",
 ]
 
 
@@ -37,6 +43,14 @@ def font_path():
         if os.path.exists(p):
             return p
     sys.exit("TeX Gyre Bonum Bold not found (apt install fonts-texgyre)")
+
+
+def disabled(img):
+    """Greyed-out version: no colour, darker, a bit see-through."""
+    r, g, b, a = img.split()
+    grey = Image.merge("RGB", (r, g, b)).convert("L").point(lambda v: int(v * 0.55))
+    a = a.point(lambda v: int(v * 0.8))
+    return Image.merge("RGBA", (grey, grey, grey, a))
 
 
 def render(text, active, height=35):
@@ -89,6 +103,11 @@ def main():
                 path = os.path.join(ASSETS, f"{stem}_{lang}_{'ACTIVE' if active else 'INACTIVE'}.png")
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 render(text, active).save(path)
+                written.append(path)
+                print("wrote", os.path.relpath(path, REPO))
+            if stem in WITH_DISABLED:
+                path = os.path.join(ASSETS, f"{stem}_{lang}_DISABLED.png")
+                disabled(render(text, False)).save(path)
                 written.append(path)
                 print("wrote", os.path.relpath(path, REPO))
     if "--preview" in sys.argv:

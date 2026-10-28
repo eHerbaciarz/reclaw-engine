@@ -1,4 +1,5 @@
 #include "UserInterface.h"
+#include "../GameApp/GameLanguages.h"
 
 #include "../Graphics2D/Image.h"
 #include "../Race/Race.h"
@@ -430,6 +431,10 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         bool enabled = true;
         ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
         pEventData.reset(new EventData_Menu_Set_Subtitles(enabled));
+    }
+    else if (eventType == "OpenLanguage")
+    {
+        pEventData.reset(new EventData_Menu_Open_Language());
     }
     else if (eventType == "BossModes")
     {
@@ -1830,6 +1835,14 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             // Levels past the last one (the ending) stay locked for now.
             if (MoviePlayer::IsAvailable() && level <= LEVELS_COUNT &&
                 (level <= 0 || g_pApp->GetGameLogic()->GetGameSaveMgr()->HasCheckpointSave(level, 0)))
+            {
+                m_State = StringToMenuItemStateEnum(conditionForStateStr);
+            }
+        }
+        else if (conditionTypeStr == "MultipleLanguages")
+        {
+            // Options > Language: only with several data/<language>/ folders.
+            if (GameLanguages::CanChoose())
             {
                 m_State = StringToMenuItemStateEnum(conditionForStateStr);
             }

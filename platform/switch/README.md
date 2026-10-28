@@ -20,8 +20,9 @@ See also [docs/OPIS.md](../../docs/OPIS.md) (Polish and English description).
 ## Installing
 
 1. Copy `reclaw.nro` to `/switch/reclaw/` on the SD card.
-2. Copy `CLAW.REZ` from your copy of the game to `/switch/reclaw/data/CLAW.REZ`.
-3. Optional: copy `CLAW.FEC` (the CD movies) to the same `data/` folder.
+2. Copy `CLAW.REZ` from your copy of the game to `/switch/reclaw/data/en/`
+   (or `data/pl/` for the Polish release; both = choice in Options > Language).
+3. Optional: copy `CLAW.FEC` (the CD movies) to the same folder.
 4. Launch "ReClaw" from the Homebrew Menu.
    Use title-override (hold R while starting a retail game) for full memory;
    applet mode (album) works too but has less RAM.

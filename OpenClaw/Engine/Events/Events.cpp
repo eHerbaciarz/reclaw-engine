@@ -50,6 +50,7 @@ const EventType EventData_Menu_Start_Race::sk_EventType(0x5a1d0c40);
 const EventType EventData_Menu_Open_Cheats::sk_EventType(0x5a1d0c41);
 const EventType EventData_Menu_Set_Subtitles::sk_EventType(0x5a1d0c42);
 const EventType EventData_Menu_Boss_Modes::sk_EventType(0x5a1d0c43);
+const EventType EventData_Menu_Open_Language::sk_EventType(0x5a1d0c44);
 const EventType EventData_Reset_Save_Progress::sk_EventType(0xbf29c2f5);
 const EventType EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType(0xbf29c2f6);
 const EventType EventData_Export_Save_Data::sk_EventType(0xae17d3c1);
