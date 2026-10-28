@@ -39,11 +39,11 @@ namespace BlockingInput
         EnsurePad();
         padUpdate(&g_Pad);
         u64 down = padGetButtonsDown(&g_Pad);
-        if (down & (HidNpadButton_Up | HidNpadButton_StickLUp)) result |= Up;
-        if (down & (HidNpadButton_Down | HidNpadButton_StickLDown)) result |= Down;
-        if (down & HidNpadButton_A) result |= Accept;
-        if (down & HidNpadButton_B) result |= Back;
-        if (down & HidNpadButton_Plus) result |= Start;
+        // Only the stick here: the buttons come from SDL below, mapped the
+        // same way as in the game's own menus (so the same button confirms
+        // everywhere, whatever SDL reports for the Nintendo labels).
+        if (down & HidNpadButton_StickLUp) result |= Up;
+        if (down & HidNpadButton_StickLDown) result |= Down;
 #endif
         SDL_PumpEvents();
         SDL_Event ev[16];
@@ -60,8 +60,6 @@ namespace BlockingInput
             }
         }
         n = SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_CONTROLLERBUTTONDOWN, SDL_CONTROLLERBUTTONDOWN);
-#ifndef __SWITCH__
-        // On Switch the same presses were already read from the pad above.
         for (int i = 0; i < n; ++i)
         {
             switch (ev[i].cbutton.button)
@@ -71,12 +69,9 @@ namespace BlockingInput
                 case SDL_CONTROLLER_BUTTON_A: result |= Accept; break;
                 case SDL_CONTROLLER_BUTTON_B: case SDL_CONTROLLER_BUTTON_BACK: result |= Back; break;
                 case SDL_CONTROLLER_BUTTON_START: result |= Start; break;
-                default: result |= Accept; break;
+                default: break;
             }
         }
-#else
-        (void)n;
-#endif
         if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_FINGERDOWN, SDL_FINGERDOWN) > 0) result |= Accept;
         if (SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN) > 0) result |= Accept;
         if (SDL_PeepEvents(ev, 16, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) result |= Quit;
