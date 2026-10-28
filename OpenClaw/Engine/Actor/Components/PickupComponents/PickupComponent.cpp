@@ -17,6 +17,7 @@
 #include "../../../Events/EventMgr.h"
 #include "../../../Events/Events.h"
 #include "../../../Race/Race.h"
+#include "../../../BossModes/BossModes.h"
 
 const char* PickupComponent::g_Name = "PickupComponent";
 const char* TreasurePickupComponent::g_Name = "TreasurePickupComponent";
@@ -545,7 +546,7 @@ bool EndLevelPickupComponent::VOnApply(Actor* pActorWhoPickedThis)
     assert(pClawComponent != nullptr && "Only claw should be able to pick end level item !");
 
     // Race: reaching the end decides the race instead of finishing the level.
-    if (Race::OnPlayerFinished(pActorWhoPickedThis->GetGUID()))
+    if (Race::OnPlayerFinished(pActorWhoPickedThis->GetGUID()) || BossModes::OnLevelEndPickup())
     {
         if (!m_PickupSound.empty())
         {

@@ -21,6 +21,7 @@
 #include "../Util/PrimeSearch.h"
 #include "ScoreScreen/EndLevelScoreScreen.h"
 #include "../Race/Race.h"
+#include "../BossModes/BossModes.h"
 #include "Minimap.h"
 #include "Subtitles.h"
 #include "CheatCode.h"
@@ -120,12 +121,13 @@ void HumanView::VOnRender(uint32 msDiff)
                     continue;
                 }
                 screenElement->VOnRender(msDiff);
-                if (isScene && (Race::IsActive() || Minimap::IsVisible()))
+                if (isScene && (Race::IsActive() || BossModes::IsActive() || Minimap::IsVisible()))
                 {
                     Point scale = g_pApp->GetScale();
                     SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
                     Minimap::Render(renderer, full, m_ActorId);
                     Race::RenderOverlay(renderer, 0, full);
+                    BossModes::RenderOverlay(renderer, full);
                 }
             }
         }
@@ -715,6 +717,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::BossModesDelegate), EventData_Menu_Boss_Modes::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetSubtitlesDelegate), EventData_Menu_Set_Subtitles::sk_EventType);
@@ -776,6 +780,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::LoadCustomLevelDelegate), EventData_Menu_Load_Custom_Level::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::StartRaceDelegate), EventData_Menu_Start_Race::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::BossModesDelegate), EventData_Menu_Boss_Modes::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1584,7 +1590,34 @@ void HumanView::StartRaceDelegate(IEventDataPtr pEventData)
     }
     Race::Configure(setup);
     LOG("Starting race on level " + ToStr(setup.level));
+    StartModeLevel(setup.level);
+}
 
+// Main menu > Single Player > "Skrzyżuj szpady ponownie": the boss list
+// (level 0), or the next boss level of the running boss mode.
+void HumanView::BossModesDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Boss_Modes> pCast = static_pointer_cast<EventData_Menu_Boss_Modes>(pEventData);
+    if (!pCast || g_pApp->GetGameLogic()->GetGameState() != GameState_Menu)
+    {
+        return;
+    }
+    int level = pCast->GetLevel();
+    if (level <= 0)
+    {
+        level = BossModes::RunMenu(g_pApp->GetRenderer());
+    }
+    if (level <= 0 || !BossModes::IsActive())
+    {
+        return;   // back to the menu page
+    }
+    LOG("Boss mode: loading level " + ToStr(level));
+    StartModeLevel(level);
+}
+
+// Loads a level for a race or a boss mode (no save game).
+void HumanView::StartModeLevel(int level)
+{
     m_ScreenElements.clear();
     m_pMenu.reset();
     m_pScene.reset(new ScreenElementScene(g_pApp->GetRenderer()));
@@ -1592,7 +1625,7 @@ void HumanView::StartRaceDelegate(IEventDataPtr pEventData)
     m_pScene->AddChild(INVALID_ACTOR_ID, m_pCamera);
     m_pScene->SetCamera(m_pCamera);
 
-    shared_ptr<LevelData> pLevelData(new LevelData(setup.level, true, 0));
+    shared_ptr<LevelData> pLevelData(new LevelData(level, true, 0));
     g_pApp->GetGameLogic()->SetLevelData(pLevelData);
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
 }

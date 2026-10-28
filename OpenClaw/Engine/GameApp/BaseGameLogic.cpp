@@ -34,6 +34,7 @@
 #include "../UserInterface/TitleScroll.h"
 #include "../SaveState/SaveStateManager.h"
 #include "../Race/Race.h"
+#include "../BossModes/BossModes.h"
 #include "../UserInterface/Minimap.h"
 
 #include "../Physics/ClawPhysics.h"
@@ -628,7 +629,12 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     customStart.bulletCount = 10;
     customStart.magicCount = 5;
     customStart.dynamiteCount = 3;
-    const CheckpointSave* pCheckpointSave = m_pCurrentLevel->IsCustomLevel() ? &customStart :
+    // Boss practice / Boss Rush: their own stats, the save game is not used.
+    if (BossModes::IsActive())
+    {
+        BossModes::FillStartStats(customStart);
+    }
+    const CheckpointSave* pCheckpointSave = (m_pCurrentLevel->IsCustomLevel() || BossModes::IsActive()) ? &customStart :
         m_pGameSaveMgr->GetCheckpointSave(m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
     assert(pCheckpointSave != NULL);
 
@@ -654,6 +660,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         m_CurrentSpawnPosition = GetSpawnPosition(m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
     }
     pEventMgr->VTriggerEvent(IEventDataPtr(new EventData_Teleport_Actor(clawId, m_CurrentSpawnPosition)));
+    // Boss modes: the Captain starts right at the boss.
+    BossModes::OnLevelLoaded(this, clawId, m_CurrentSpawnPosition);
 
     // Save possible pickup items
     for (auto &actorIter : m_ActorMap)
@@ -1111,6 +1119,8 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
 
         case GameState_Menu:
         {
+            // Boss modes: next boss / back to the boss list.
+            BossModes::OnMenu();
             break;
         }
 
@@ -1135,9 +1145,11 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
         {
             // Race: countdown, network, finish (save states are off in races).
             Race::Update(this, msDiff);
+            // Boss practice / Boss Rush: stopwatch, results, next boss.
+            BossModes::Update(this, msDiff);
 
             // Quick save / quick load / rewind happen between steps.
-            m_bSkipWorldStep = Race::IsActive() ? false : SaveStateManager::Get()->OnGameStep(this, msDiff);
+            m_bSkipWorldStep = (Race::IsActive() || BossModes::IsActive()) ? false : SaveStateManager::Get()->OnGameStep(this, msDiff);
             if (m_bSkipWorldStep)
             {
                 break;
@@ -1511,6 +1523,12 @@ void BaseGameLogic::ItemPickedUpDelegate(IEventDataPtr pEventData)
 
 void BaseGameLogic::FinishedLevelDelegate(IEventDataPtr pEventData)
 {
+    // The last level done: the Boss Rush ("Paruj i kontruj") opens.
+    if (m_pCurrentLevel && !m_pCurrentLevel->IsCustomLevel() && !BossModes::IsActive() &&
+        m_pCurrentLevel->GetLevelNumber() == LEVELS_COUNT)
+    {
+        BossModes::MarkGameCompleted();
+    }
     VChangeState(GameState_LoadingScoreScreen);
 }
 
@@ -1529,6 +1547,12 @@ void BaseGameLogic::ActorEnteredBossAreaDelegate(IEventDataPtr pEventData)
     assert(pClawComponent != nullptr);
 
     pClawComponent->SetFrozen(true);
+
+    // Remembered for the boss practice mode ("Skrzyżuj szpady ponownie").
+    if (m_pCurrentLevel && !m_pCurrentLevel->IsCustomLevel() && !Race::IsActive() && !BossModes::IsActive())
+    {
+        BossModes::MarkBossReached((int)m_pCurrentLevel->GetLevelNumber());
+    }
 }
 
 void BaseGameLogic::BossFightStartedDelegate(IEventDataPtr pEventData)
@@ -1685,6 +1709,12 @@ void BaseGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
     if (Race::IsActive())
     {
         Race::SetSpawn(pCastEventData->GetActorId(), pCastEventData->GetSpawnPoint());
+        return;
+    }
+
+    // Boss modes: the Captain always comes back at the boss, nothing is saved.
+    if (BossModes::IsActive())
+    {
         return;
     }
 

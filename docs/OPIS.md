@@ -71,7 +71,9 @@ Pełna plansza jest w Opcje → Sterowanie.
 - polski ekran ładowania z REZ, plansze Sterowanie i Twórcy,
 - napisy SRT w filmach i dialogach (opcja w Wyświetlanie), sekretny kod
   w pauzie z ekranem kodów,
-- własne poziomy (folder Custom).
+- własne poziomy (folder Custom),
+- tryby bossów: „Skrzyżuj szpady ponownie” (trening z wybranym bossem)
+  i „Paruj i kontruj” (wszyscy bossowie pod rząd na czas, po ukończeniu gry).
 
 **Jeszcze nie działa / niekompletne:**
 - bossowie: Le Rauxe (2), Katherine (4) i Wolvington (6) mają tylko ogólne
@@ -159,7 +161,10 @@ Options → Controls.
 - Polish loading screen from the REZ, Controls and Credits pages,
 - SRT subtitles for movies and dialogue (option under Display), a secret code
   in the pause menu with a cheats screen,
-- custom levels (Custom folder).
+- custom levels (Custom folder),
+- boss modes: "Cross Swords Again" (practice against a chosen boss) and
+  "Parry & Thrust" (every boss in a row against the clock, after finishing
+  the game).
 
 **Not working yet / incomplete:**
 - bosses: Le Rauxe (2), Katherine (4) and Wolvington (6) only have generic

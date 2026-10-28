@@ -2438,6 +2438,31 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Boss_Modes
+// Boss practice / Boss Rush ("Skrzyzuj szpady ponownie"): open the boss list
+// (level 0) or start a boss level (level 1-14) from the menu.
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Boss_Modes : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Boss_Modes(int level = 0) : m_Level(level) { }
+
+    int GetLevel() const { return m_Level; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Boss_Modes(m_Level)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Boss_Modes"; }
+
+private:
+    int m_Level;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Play_Movies
 // Fired by the "Replay movies" page: plays one movie (index in CLAW.FEC), or
 // every movie unlocked so far when the index is -1.

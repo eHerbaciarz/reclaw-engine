@@ -1,5 +1,6 @@
 #include "PortSettings.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <map>
 
@@ -52,6 +53,23 @@ namespace PortSettings
     {
         Load();
         g_Values[key] = value ? "1" : "0";
+        Save();
+    }
+
+    int GetInt(const std::string& key, int defaultValue)
+    {
+        Load();
+        auto it = g_Values.find(key);
+        if (it == g_Values.end() || it->second.empty()) return defaultValue;
+        char* end = nullptr;
+        long v = strtol(it->second.c_str(), &end, 10);
+        return (end && *end == '\0') ? (int)v : defaultValue;
+    }
+
+    void SetInt(const std::string& key, int value)
+    {
+        Load();
+        g_Values[key] = std::to_string(value);
         Save();
     }
 }

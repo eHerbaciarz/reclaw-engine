@@ -10,6 +10,7 @@
 #include "../Actor/Components/ControllerComponents/HealthComponent.h"
 #include "../Actor/Components/ControllerComponents/LifeComponent.h"
 #include "../Race/RaceUi.h"
+#include "../BossModes/BossModes.h"
 #include "../Util/PortSettings.h"
 #include "Lang.h"
 #include "Subtitles.h"
@@ -94,11 +95,12 @@ namespace CheatCode
                 Lang::Tr("Pełne zdrowie", "Full health"),
                 Lang::Tr("Pełna amunicja", "Full ammo"),
                 Lang::Tr("Dodatkowe życie", "Extra life"),
+                Lang::Tr("Odblokuj wszystkich bossów i Paruj i kontruj", "Unlock all bosses and Parry & Thrust"),
                 Lang::Tr("Wróć", "Back"),
             };
             s.selected = selected;
             int choice = RaceUi::Run(pRenderer, s);
-            if (choice < 0 || choice == 6) break;
+            if (choice < 0 || choice == 7) break;
             selected = choice;
             switch (choice)
             {
@@ -118,6 +120,10 @@ namespace CheatCode
                     break;
                 case 5:
                     if (auto p = ClawComponent<LifeComponent>(LifeComponent::g_Name)) p->AddLives(1);
+                    break;
+                case 6:
+                    BossModes::UnlockAll();
+                    Subtitles::ShowText(Lang::Tr("Bossowie odblokowani", "Bosses unlocked"), 2500);
                     break;
             }
         }

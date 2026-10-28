@@ -10,4 +10,6 @@ namespace PortSettings
 {
     bool GetBool(const std::string& key, bool defaultValue);
     void SetBool(const std::string& key, bool value);
+    int GetInt(const std::string& key, int defaultValue);
+    void SetInt(const std::string& key, int value);
 }

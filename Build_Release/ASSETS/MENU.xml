@@ -395,16 +395,16 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>UPLOAD_SCORES_BUTTON</Name>
+            <!-- ReClaw: boss practice and Boss Rush (in place of the original,
+                 never working "Upload Scores") -->
+            <Name>BOSS_MODES_BUTTON</Name>
             <Type>Button</Type>
-            <State>Disabled</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/009_UPLOADSCORES.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/010_UPLOADSCORES.PCX</ActiveImage>
-            <DisabledImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/011_UPLOADSCORES.PCX</DisabledImage>
+            <State>Inactive</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES_{lang}_INACTIVE.png</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES_{lang}_ACTIVE.png</ActiveImage>
             <Position x="320" y="350" align="center" />
             <GeneratedEvent>
-                <Type>SwitchPage</Type>
-                <PageName>MenuPage_SinglePlayer_UploadScores</PageName>
+                <Type>BossModes</Type>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>

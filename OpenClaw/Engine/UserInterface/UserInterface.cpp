@@ -431,6 +431,10 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
         pEventData.reset(new EventData_Menu_Set_Subtitles(enabled));
     }
+    else if (eventType == "BossModes")
+    {
+        pEventData.reset(new EventData_Menu_Boss_Modes(0));
+    }
     else if (eventType == "StartRace")
     {
         pEventData.reset(new EventData_Menu_Start_Race());
