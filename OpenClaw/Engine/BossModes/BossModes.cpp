@@ -447,7 +447,10 @@ namespace BossModes
             {
                 // The stager is a narrow trigger where the Captain walks in;
                 // standing on it starts the boss intro straight away.
-                spawnPosition = pActor->GetPositionComponent()->GetPosition();
+                // A little above it: the Captain drops onto the floor instead
+                // of starting half inside it (the stager's point is near the
+                // floor line).
+                spawnPosition = pActor->GetPositionComponent()->GetPosition() + Point(0, -48);
                 IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Teleport_Actor(clawId, spawnPosition)));
                 LOG("Boss modes: Captain placed at the boss (" + std::to_string((int)spawnPosition.x) + ", " +
                     std::to_string((int)spawnPosition.y) + ")");
