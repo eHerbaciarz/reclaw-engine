@@ -38,6 +38,7 @@ private:
     double m_DiagonalLength;
     int m_SoundChannel;
     int m_LastDistance = -1;   // last value given to Mix_SetDistance
+    Uint32 m_LastDistanceTick = 0;
 };
 
 #endif

@@ -164,11 +164,14 @@ void LocalAmbientSoundComponent::UpdateAmbientSound()
 
     // Mix_SetDistance waits for the audio thread (it locks the mixer): called
     // every step it cost the PS Vita up to 25 ms per step. Only real changes.
-    if (std::abs(sdlDistance - m_LastDistance) < 4 && m_LastDistance >= 0)
+    // At most ~7 times a second as well.
+    const Uint32 now = SDL_GetTicks();
+    if (m_LastDistance >= 0 && (std::abs(sdlDistance - m_LastDistance) < 8 || now - m_LastDistanceTick < 150))
     {
         return;
     }
     m_LastDistance = sdlDistance;
+    m_LastDistanceTick = now;
     Mix_SetDistance(m_SoundChannel, sdlDistance);
 
     /*LOG("Distance ratio: " + ToStr(distanceRatio));

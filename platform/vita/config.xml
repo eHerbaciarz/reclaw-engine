@@ -8,7 +8,7 @@
     <IsFullscreenDesktop>false</IsFullscreenDesktop>
   </Display>
   <Audio>
-    <Frequency>44100</Frequency>
+    <Frequency>22050</Frequency>
     <SoundChannels>2</SoundChannels>
     <MixingChannels>32</MixingChannels>
     <ChunkSize>2048</ChunkSize>

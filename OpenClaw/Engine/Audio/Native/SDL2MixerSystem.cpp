@@ -159,7 +159,13 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
         {
             tsf_set_output(pFont, self->m_OutputChannels >= 2 ? TSF_STEREO_INTERLEAVED : TSF_MONO,
                            self->m_OutputFrequency, 0.0f);
+#if defined(__vita__) || defined(__3DS__)
+            // Handhelds: the synth runs in the audio thread; fewer voices
+            // keep it in time (the level music rarely needs more).
+            tsf_set_max_voices(pFont, 48);
+#else
             tsf_set_max_voices(pFont, 256);
+#endif
             self->m_pSoundFont = pFont;
             self->ResetSynthChannels();
         }

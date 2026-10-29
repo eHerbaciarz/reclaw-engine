@@ -15,7 +15,7 @@ BASE = os.path.join(REPO, "platform", "switch", "config.xml")
 
 PLATFORMS = {
     #           bundle prefix  CLAW.REZ path                          window      scale  cache  mixer  freq
-    "vita":    ("app0:/",     "ux0:data/reclaw/data/CLAW.REZ",       (960, 544),  "1",  "96",  "32", "44100",
+    "vita":    ("app0:/",     "ux0:data/reclaw/data/CLAW.REZ",       (960, 544),  "1",  "96",  "32", "22050",
                 "PS Vita: 960x544 screen; the game renders 854x480 and is scaled up"),
     "3ds":     ("romfs:/",    "sdmc:/3ds/reclaw/data/CLAW.REZ",      (400, 240),  "1",  "24",  "16", "22050",
                 "3DS: top screen 400x240 (the game view), bottom screen = status (SecondScreen)"),
