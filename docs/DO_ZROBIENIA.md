@@ -24,7 +24,8 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
   z CLAW.FEC). Gotowe: `Platform::SupportsRemasteredMovies()` zwraca tam
   `false`; trzeba to uszanować, gdy powstanie odtwarzanie z `movies/`.
 - **Zapis stanu i cofanie** – do sprawdzenia na Vicie i New 3DS; jeśli
-  za wolne, wyłączyć w `Platform::SupportsSaveStates()` (teraz wszędzie wł.).
+  za wolne, wyłączyć w `Platform::SupportsSaveStates()` (w alfie wyłączone –
+  działa tylko z `experimental=1`).
 - Paczki `reclaw.vpk` / `reclaw.3dsx` do testów – zbudować dopiero na
   sygnał MK (po kolejnych poprawkach).
 

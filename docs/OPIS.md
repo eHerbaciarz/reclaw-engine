@@ -82,7 +82,7 @@ wrzucony prosto do `data/` też działa (jako jedyny język).
 
 **Sterowanie (Switch):** B – skok, Y – szabla, A – strzał/magia/dynamit,
 X – podnieś/rzuć beczkę, L – zmiana broni, + – pauza, − – mapa poziomu,
-ZL/ZR – zapisz/wczytaj stan, trzymane R – cofanie czasu.
+ZL/ZR – zapisz/wczytaj stan, trzymane R – cofanie czasu (oba eksperymentalne).
 Pełna plansza jest w Opcje → Sterowanie.
 
 ### Co działa, a co jeszcze nie
@@ -105,10 +105,10 @@ Pełna plansza jest w Opcje → Sterowanie.
 - tryby bossów: „Skrzyżuj szpady ponownie” (trening z wybranym bossem)
   i „Paruj i kontruj” (wszyscy bossowie pod rząd na czas, po ukończeniu gry).
 
-W wersji alfa tryb wieloosobowy, własne poziomy i tryby bossów są
-**eksperymentalne** i w menu wyszarzone. Można je włączyć w ekranie Kody
-(„Tryby eksperymentalne”) albo wpisując `experimental=1` w
-`save/port_settings.txt`.
+W wersji alfa tryb wieloosobowy, własne poziomy, tryby bossów oraz zapis
+stanu i cofanie czasu są **eksperymentalne** i ukryte. Można je włączyć
+w ekranie Kody („Tryby eksperymentalne”) albo wpisując `experimental=1`
+w `save/port_settings.txt`.
 
 **Jeszcze nie działa / niekompletne:**
 - bossowie: Le Rauxe (2), Katherine (4) i Wolvington (6) mają tylko ogólne
@@ -206,7 +206,7 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 
 **Controls (Switch):** B – jump, Y – sword, A – pistol/magic/dynamite,
 X – lift/throw a keg, L – change weapon, + – pause, − – level map,
-ZL/ZR – save/load state, hold R – rewind. The full chart is in
+ZL/ZR – save/load state, hold R – rewind (both experimental). The full chart is in
 Options → Controls.
 
 ### What works and what does not yet
@@ -230,9 +230,9 @@ Options → Controls.
   "Parry & Thrust" (every boss in a row against the clock, after finishing
   the game).
 
-In the alpha release multiplayer, custom levels and the boss modes are
-**experimental** and greyed out in the menu. Switch them on in the cheats
-screen ("Experimental modes") or with `experimental=1` in
+In the alpha release multiplayer, custom levels, the boss modes and save
+states / rewind are **experimental** and hidden. Switch them on in the
+cheats screen ("Experimental modes") or with `experimental=1` in
 `save/port_settings.txt`.
 
 **Not working yet / incomplete:**

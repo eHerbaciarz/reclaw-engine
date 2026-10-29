@@ -2005,6 +2005,12 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             m_bVisible = CheatCode::IsUnlocked();
         }
+        else if (conditionTypeStr == "Experimental")
+        {
+            // Experimental modes (alpha): shown only with experimental=1 in
+            // port_settings.txt (or switched on in the cheats screen).
+            m_bVisible = PortSettings::GetBool("experimental", false);
+        }
         else if (conditionTypeStr == "WebOnly")
         {
             // Browser-only features (file export/import, fullscreen/aspect
@@ -2371,6 +2377,8 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = !Subtitles::IsEnabled();
     else if (m_VisibilityConditionType == "CheatsUnlocked")
         m_bVisible = CheatCode::IsUnlocked();
+    else if (m_VisibilityConditionType == "Experimental")
+        m_bVisible = PortSettings::GetBool("experimental", false);
     else if (m_VisibilityConditionType == "WebOnly")
     {
 #ifdef __EMSCRIPTEN__

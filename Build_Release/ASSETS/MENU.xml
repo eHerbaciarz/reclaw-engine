@@ -30,14 +30,13 @@
         </MenuItem>
         <MenuItem>
             <Name>MULTIPLAYER_BUTTON</Name>
-            <!-- experimental (alpha): port_settings.txt experimental=1 -->
-            <StateCondition>
-                <ConditionForState>Inactive</ConditionForState>
+            <!-- experimental (alpha): shown with experimental=1 in port_settings.txt -->
+            <VisibilityCondition>
                 <ConditionType>Experimental</ConditionType>
-            </StateCondition>
+            </VisibilityCondition>
             <Type>Button</Type>
             <Hotkey>M</Hotkey>
-            <State>Disabled</State>
+            <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/003_MULTIPLAYER.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/004_MULTIPLAYER.PCX</ActiveImage>
             <Position x="320" y="245" align="center" />
@@ -393,13 +392,12 @@
         </MenuItem>
         <MenuItem>
             <Name>LOAD_CUSTOM_LEVEL_BUTTON</Name>
-            <!-- experimental (alpha): port_settings.txt experimental=1 -->
-            <StateCondition>
-                <ConditionForState>Inactive</ConditionForState>
+            <!-- experimental (alpha): shown with experimental=1 in port_settings.txt -->
+            <VisibilityCondition>
                 <ConditionType>Experimental</ConditionType>
-            </StateCondition>
+            </VisibilityCondition>
             <Type>Button</Type>
-            <State>Disabled</State>
+            <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/005_LOADCUSTOM.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/006_LOADCUSTOM.PCX</ActiveImage>
             <Position x="320" y="315" align="center" />
@@ -411,14 +409,13 @@
             <!-- ReClaw: boss practice and Boss Rush (in place of the original,
                  never working "Upload Scores") -->
             <Name>BOSS_MODES_BUTTON</Name>
-            <!-- experimental (alpha): port_settings.txt experimental=1 -->
-            <StateCondition>
-                <ConditionForState>Inactive</ConditionForState>
+            <!-- experimental (alpha): shown with experimental=1 in port_settings.txt -->
+            <VisibilityCondition>
                 <ConditionType>Experimental</ConditionType>
-            </StateCondition>
+            </VisibilityCondition>
             <GameFontText>SKRZYŻUJ SZPADY PONOWNIE</GameFontText>
             <Type>Button</Type>
-            <State>Disabled</State>
+            <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES_{lang}_INACTIVE.png</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES_{lang}_ACTIVE.png</ActiveImage>
             <Position x="320" y="350" align="center" />

@@ -1,4 +1,5 @@
 #include "Platform.h"
+#include "../Util/PortSettings.h"
 
 #include <SDL2/SDL.h>
 
@@ -412,8 +413,10 @@ namespace Platform
 
     bool SupportsSaveStates()
     {
-        // TODO(MK tests): return false on __vita__ / __3DS__ if too slow.
-        return true;
+        // Alpha: save states and rewind are experimental (not tested enough);
+        // on with experimental=1 in port_settings.txt / the cheats screen.
+        // TODO(MK tests): always false on __vita__ / __3DS__ if too slow.
+        return PortSettings::GetBool("experimental", false);
     }
 
     void DefaultRenderSize(int& width, int& height)
