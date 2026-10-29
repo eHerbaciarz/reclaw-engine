@@ -3,6 +3,8 @@
 #include <map>
 #include "../GameApp/GameLanguages.h"
 #include "GameFont.h"
+#include "../GameApp/ReclawVersion.h"
+#include <SDL2/SDL_ttf.h>
 #include "ControlsScreen.h"
 #include "../Util/PortSettings.h"
 
@@ -603,6 +605,51 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
     }
 }
 
+// "0.1 alfa" in the bottom-right corner of the main menu: the original game
+// shows its version there in small white letters.
+static void RenderVersion(SDL_Renderer* pRenderer)
+{
+    static SDL_Texture* s_pText = nullptr;
+    static int s_W = 0, s_H = 0, s_Px = 0;
+    int px = std::max(8, (int)(13 * g_MenuScale.y));
+    if (!s_pText || s_Px != px)
+    {
+        if (s_pText) { SDL_DestroyTexture(s_pText); s_pText = nullptr; }
+        s_Px = px;
+        if (!TTF_WasInit() && TTF_Init() != 0) return;
+        TTF_Font* pFont = TTF_OpenFont(Platform::BundlePath("subtitles.ttf").c_str(), px);
+        if (!pFont) return;
+        std::string text = std::string(RECLAW_VERSION " ") + Lang::Tr(RECLAW_STAGE_PL, RECLAW_STAGE_EN);
+        SDL_Surface* pWhite = TTF_RenderUTF8_Blended(pFont, text.c_str(), SDL_Color{ 255, 255, 255, 255 });
+        SDL_Surface* pShadow = TTF_RenderUTF8_Blended(pFont, text.c_str(), SDL_Color{ 0, 0, 0, 160 });
+        TTF_CloseFont(pFont);
+        if (pWhite && pShadow)
+        {
+            SDL_Surface* pBoth = SDL_CreateRGBSurfaceWithFormat(0, pWhite->w + 1, pWhite->h + 1, 32, SDL_PIXELFORMAT_ARGB8888);
+            if (pBoth)
+            {
+                SDL_SetSurfaceBlendMode(pShadow, SDL_BLENDMODE_BLEND);
+                SDL_SetSurfaceBlendMode(pWhite, SDL_BLENDMODE_BLEND);
+                SDL_Rect sh = { 1, 1, pShadow->w, pShadow->h };
+                SDL_BlitSurface(pShadow, NULL, pBoth, &sh);
+                SDL_BlitSurface(pWhite, NULL, pBoth, NULL);
+                s_pText = SDL_CreateTextureFromSurface(pRenderer, pBoth);
+                s_W = pBoth->w;
+                s_H = pBoth->h;
+                SDL_FreeSurface(pBoth);
+            }
+        }
+        if (pWhite) SDL_FreeSurface(pWhite);
+        if (pShadow) SDL_FreeSurface(pShadow);
+        if (!s_pText) return;
+    }
+    int right = (int)(g_MenuOffset.x + 640 * g_MenuScale.x);
+    int bottom = (int)(g_MenuOffset.y + 480 * g_MenuScale.y);
+    int margin = (int)(4 * g_MenuScale.y);
+    SDL_Rect r = { right - s_W - margin, bottom - s_H - margin, s_W, s_H };
+    SDL_RenderCopy(pRenderer, s_pText, NULL, &r);
+}
+
 void ScreenElementMenu::VOnRender(uint32 msDiff)
 {
     // Menu DOES NOT use renderer scaling
@@ -689,6 +736,12 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
 
     assert(m_pActiveMenuPage);
     m_pActiveMenuPage->VOnRender(msDiff);
+
+    // Version in the bottom-right corner, white like in the original game.
+    if (m_MenuType == MenuType_MainMenu)
+    {
+        RenderVersion(m_pRenderer);
+    }
 
     // Restore scale
     Point scale = Point(g_pApp->GetGameConfig()->scale, g_pApp->GetGameConfig()->scale);

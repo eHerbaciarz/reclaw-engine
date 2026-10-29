@@ -1,4 +1,5 @@
 #include "Platform.h"
+#include "../GameApp/ReclawVersion.h"
 #include "../Util/PortSettings.h"
 
 #include <SDL2/SDL.h>
@@ -284,7 +285,7 @@ namespace Platform
             g_pLogFile = fopen((g_DataDir + "reclaw.log").c_str(), "w");
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
-            SDL_Log("ReClaw for %s - log started", Name());
+            SDL_Log("ReClaw " RECLAW_VERSION " " RECLAW_STAGE_EN " for %s - log started", Name());
         }
         else
         {
