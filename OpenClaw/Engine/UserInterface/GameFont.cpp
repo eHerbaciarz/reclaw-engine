@@ -485,13 +485,15 @@ namespace
         if (!bar.empty())
         {
             // H: two I stems joined by the bar, a little above the middle.
-            const Glyph& i = g_Glyphs['I'];
+            // the I without its side spacing; the serifs of the two stems
+            // nearly touch, like in the font's own N and U
+            Glyph i = Crop(g_Glyphs['I']);
             std::pair<int, int> stem = StemRange(i);
-            const int gap = 9;
-            Glyph h = blank(i.w * 2 + gap);
-            h = Combine(h, i, 0, 0);
-            h = Combine(h, i, i.w + gap, 0);
-            int from = stem.second + 1, to = i.w + gap + stem.first - 1;
+            const int gap = 3;
+            Glyph h = blank(i.w * 2 + gap + 2);
+            h = Combine(h, i, 1, 0);
+            h = Combine(h, i, 1 + i.w + gap, 0);
+            int from = 1 + stem.second + 1, to = 1 + i.w + gap + stem.first - 1;
             int top = capMid - (int)bar.size() / 2 - 1;
             for (int k = 0; k < (int)bar.size(); ++k)
                 for (int x = from; x <= to; ++x) h.px[(size_t)(top + k) * h.w + x] = bar[k];
