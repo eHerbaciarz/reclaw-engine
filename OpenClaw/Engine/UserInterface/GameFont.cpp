@@ -188,6 +188,9 @@ namespace
     int FindBaseline(const Pic& p, int src)
     {
         std::vector<std::pair<int, int>> ranges;
+        // English pictures: the letter we take is often the first one, with
+        // the hotkey underline under it; the whole picture outvotes it.
+        if (g_English) return FindBaselineAll(p, { { 0, p.w - 1 } });
         for (int gi = 0; gi < kGlyphCount; ++gi)
         {
             const GlyphRef& r = kGlyphs[gi];
