@@ -77,6 +77,7 @@ enum MenuPage
     MenuPage_Options_Difficulty,
     MenuPage_Options_Controls,
     MenuPage_Options_Display,
+    MenuPage_Options_Language,
     MenuPage_Options_Audio,
 
     MenuPage_Multiplayer_LevelRacing,

@@ -42,4 +42,6 @@ namespace GameLanguages
 
     // Options > Language: the list; a new choice is saved for the next start.
     void RunMenu();
+    // Saves a language for the next start (Options > Language page).
+    void Choose(const std::string& code);
 }

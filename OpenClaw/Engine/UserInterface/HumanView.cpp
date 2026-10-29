@@ -24,6 +24,7 @@
 #include "../BossModes/BossModes.h"
 #include "../Race/RaceUi.h"
 #include "Lang.h"
+#include "GameFont.h"
 #include "../GameApp/GameLanguages.h"
 #include "Minimap.h"
 #include "Subtitles.h"
@@ -1630,6 +1631,21 @@ void HumanView::BossModesDelegate(IEventDataPtr pEventData)
 // Options > Language.
 void HumanView::OpenLanguageDelegate(IEventDataPtr pEventData)
 {
+    shared_ptr<EventData_Menu_Open_Language> pEvent =
+        static_pointer_cast<EventData_Menu_Open_Language>(pEventData);
+    if (!pEvent->GetCode().empty())
+    {
+        // An item of the Language page: saved for the next start, back to Options.
+        GameLanguages::Choose(pEvent->GetCode());
+        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Menu_SwitchPage("MenuPage_Options")));
+        return;
+    }
+    // The menu page in the game's letters; other releases keep the list.
+    if (GameFont::Available())
+    {
+        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Menu_SwitchPage("MenuPage_Options_Language")));
+        return;
+    }
     GameLanguages::RunMenu();
 }
 

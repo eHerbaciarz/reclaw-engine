@@ -69,6 +69,7 @@ std::map<std::string, MenuPage> g_StringToMenuPageEnumMap =
     { "MenuPage_Options_Difficulty",            MenuPage_Options_Difficulty },
     { "MenuPage_Options_Controls",              MenuPage_Options_Controls },
     { "MenuPage_Options_Display",               MenuPage_Options_Display },
+    { "MenuPage_Options_Language",              MenuPage_Options_Language },
     { "MenuPage_Options_Audio",                 MenuPage_Options_Audio },
     { "MenuPage_Multiplayer_LevelRacing",       MenuPage_Multiplayer_LevelRacing },
     { "MenuPage_Multiplayer_EditMacros",        MenuPage_Multiplayer_EditMacros },
@@ -443,6 +444,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
     else if (eventType == "OpenLanguage")
     {
         pEventData.reset(new EventData_Menu_Open_Language());
+    }
+    else if (eventType == "SetLanguage")
+    {
+        std::string code;
+        ParseValueFromXmlElem(&code, pElem->FirstChildElement("Language"));
+        pEventData.reset(new EventData_Menu_Open_Language(code));
     }
     else if (eventType == "BossModes")
     {
@@ -2104,6 +2111,10 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             m_bVisible = (bool)EM_ASM_INT({ return window.forceOriginalAspect ? 1 : 0; });
 #endif
         }
+        else if (conditionTypeStr.compare(0, 18, "LanguageAvailable:") == 0)
+        {
+            ReEvaluateVisibilityCondition();
+        }
     }
     std::string menuItemTypeStr;
     ParseValueFromXmlElem(&menuItemTypeStr, pElem->FirstChildElement("Type"));
@@ -2148,10 +2159,16 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             };
             for (const auto& l : looks)
             {
-                if (shared_ptr<Image> pImage = GameFont::Render(text, l.second, underline))
+                // <GameFontScale>: size in percent (small notes)
+                int scale = 100;
+                ParseValueFromXmlElem(&scale, pElem->FirstChildElement("GameFontScale"));
+                GameFont::Pixels px;
+                if (!GameFont::RenderPixels(text, l.second, underline, px)) continue;
+                if (scale != 100) px = GameFont::WithShadow(GameFont::Scale(px, scale), 2, 2, 200);
+                if (shared_ptr<Image> pImage = GameFont::ToImage(px))
                 {
                     m_Images[l.first] = pImage;
-                    m_DrawOffsetY = -GameFont::ExtraTop();
+                    m_DrawOffsetY = -GameFont::ExtraTop() * scale / 100;
                 }
             }
         }
@@ -2463,6 +2480,13 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = CheatCode::IsUnlocked();
     else if (m_VisibilityConditionType == "Experimental")
         m_bVisible = PortSettings::GetBool("experimental", false);
+    else if (m_VisibilityConditionType.compare(0, 18, "LanguageAvailable:") == 0)
+    {
+        // Options > Language: one item per data/<code>/ folder
+        const std::string code = m_VisibilityConditionType.substr(18);
+        for (const GameLanguages::Entry& e : GameLanguages::Available())
+            if (e.code == code) m_bVisible = true;
+    }
     else if (m_VisibilityConditionType == "WebOnly")
     {
 #ifdef __EMSCRIPTEN__

@@ -2471,14 +2471,19 @@ class EventData_Menu_Open_Language : public BaseEventData
 public:
     static const EventType sk_EventType;
 
-    EventData_Menu_Open_Language() { }
+    // code empty: open Options > Language; "pl", "en"...: choose that language
+    explicit EventData_Menu_Open_Language(const std::string& code = "") : m_Code(code) { }
 
     virtual const EventType& VGetEventType(void) const { return sk_EventType; }
-    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Open_Language()); }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Open_Language(m_Code)); }
+    const std::string& GetCode() const { return m_Code; }
     virtual void VSerialize(std::ostringstream& out) const { }
     virtual void VDeserialize(std::istringstream& in) { }
 
     virtual const char* GetName(void) const { return "EventData_Menu_Open_Language"; }
+
+private:
+    std::string m_Code;
 };
 
 //---------------------------------------------------------------------------------------------------------------------

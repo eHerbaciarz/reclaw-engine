@@ -192,4 +192,11 @@ namespace GameLanguages
         if (!saved) lines.push_back(Lang::Tr("Nie udało się zapisać config.xml!", "Could not write config.xml!"));
         RaceUi::ShowMessage(r, DisplayName(code), lines);
     }
+
+    void Choose(const std::string& code)
+    {
+        if (!g_pApp) return;
+        if (g_pApp->GetGameConfig()) g_pApp->GetGameConfig()->language = code;
+        SaveChoice(code);
+    }
 }
