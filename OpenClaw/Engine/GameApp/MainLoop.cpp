@@ -234,13 +234,20 @@ int RunGameEngine(int argc, char** argv)
     {
         LOG_ERROR("Failed to initialize. Exiting.");
 #ifndef __EMSCRIPTEN__
-        ShowFatalErrorScreen({
-            "ReClaw failed to start",
-            "",
-            "Details were written to " + Platform::DataDir() + "reclaw.log",
-            "Please include that file when reporting the problem.",
-            "",
-            "Press any button to exit."});
+        extern std::string g_StartupFailureHint;
+        std::vector<std::string> lines = { "ReClaw failed to start", "" };
+        if (!g_StartupFailureHint.empty())
+        {
+            std::string h = g_StartupFailureHint;
+            for (size_t pos; (pos = h.find('|')) != std::string::npos; h = h.substr(pos + 1)) lines.push_back(h.substr(0, pos));
+            lines.push_back(h);
+            lines.push_back("");
+        }
+        lines.push_back("Details were written to " + Platform::DataDir() + "reclaw.log");
+        lines.push_back("Please include that file when reporting the problem.");
+        lines.push_back("");
+        lines.push_back("Press any button to exit.");
+        ShowFatalErrorScreen(lines);
 #endif
         return -1;
     }

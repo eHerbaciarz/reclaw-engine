@@ -216,6 +216,8 @@ void BaseGameApp::OnAppEvent(const AppEvent &event) {
 
 // A plain loading screen while the game starts (the first start on handhelds
 // takes several seconds): "ReClaw" and a progress bar, straight on the screen.
+std::string g_StartupFailureHint;   // extra lines for the "failed to start" screen ('|' = new line)
+
 static void ShowStartupProgress(SDL_Renderer* r, int percent)
 {
   if (!r) return;
@@ -1392,6 +1394,13 @@ bool BaseGameApp::InitializeAudio(GameOptions &gameOptions) {
   m_pAudio = new Audio();
   if (!m_pAudio->Initialize(gameOptions)) {
     LOG_ERROR("Failed to initialize SDL Mixer audio subsystem");
+#if defined(__3DS__)
+    // Homebrew sound on the 3DS needs the DSP firmware dumped once.
+    if (std::string(SDL_GetError()).find("dspfirm") != std::string::npos) {
+      g_StartupFailureHint = "Sound needs the 3DS DSP firmware: run the DSP1 homebrew once|"
+                             "(it creates sdmc:/3ds/dspfirm.cdc), then start ReClaw again.";
+    }
+#endif
     return false;
   }
 
