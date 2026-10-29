@@ -1303,6 +1303,12 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   STARTUP_TRACE("SDL_CreateRenderer");
   m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, rendererFlags);
   if (m_pRenderer == NULL) {
+    // Without a GPU renderer (Nintendo 3DS: SDL draws in software) the
+    // accelerated / vsync request finds no driver; take whatever there is.
+    LOG_WARNING(std::string("No accelerated renderer (") + SDL_GetError() + "), trying any");
+    m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, 0);
+  }
+  if (m_pRenderer == NULL) {
     LOG_ERROR("Failed to create SDL2 Renderer. Error: %s" +
               std::string(SDL_GetError()));
     return false;
