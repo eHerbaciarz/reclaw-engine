@@ -38,6 +38,8 @@ openclaw_add_game(openclaw)
 openclaw_bundled_sdl(openclaw)
 find_package(ZLIB REQUIRED)
 target_link_libraries(openclaw PRIVATE ZLIB::ZLIB)
+# Startup trace in reclaw.log (first Vita builds: where a start hangs).
+target_compile_definitions(openclaw PRIVATE OPENCLAW_STARTUP_TRACE)
 target_compile_options(openclaw PRIVATE -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard)
 target_link_libraries(openclaw PRIVATE
     SceNet_stub SceNetCtl_stub SceSysmodule_stub SceAppUtil_stub SceAppMgr_stub
