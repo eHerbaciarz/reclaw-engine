@@ -528,8 +528,19 @@ void BaseGameApp::StepLoop() {
     }
 
     if (m_pGame) {
+#ifdef OPENCLAW_STARTUP_TRACE
+      // Performance in reclaw.log every 5 s: frames, logic and render time.
+      static Uint64 s_perfStart = SDL_GetPerformanceCounter(), s_logicTicks = 0, s_renderTicks = 0;
+      static int s_perfFrames = 0, s_perfUpdates = 0;
+      static double s_worstMs = 0;
+      const Uint64 perfFreq = SDL_GetPerformanceFrequency();
+      Uint64 perfT0 = SDL_GetPerformanceCounter();
+#endif
       // Fixed timestep update loop - game logic runs at constant rate
       while (m_accumulator >= m_fixedTimestep) {
+#ifdef OPENCLAW_STARTUP_TRACE
+        s_perfUpdates++;
+#endif
         // PROFILE_CPU("ONLY GAME UPDATE");
         IEventMgr::Get()->VUpdate(
             20); // Allow event queue to process for up to 20 ms
@@ -551,6 +562,9 @@ void BaseGameApp::StepLoop() {
       // previous/current positions by this alpha, so motion stays smooth even when
       // the display refreshes faster than the fixed logic rate.
       m_alpha = m_accumulator / m_fixedTimestep;
+#ifdef OPENCLAW_STARTUP_TRACE
+      Uint64 perfT1 = SDL_GetPerformanceCounter();
+#endif
 
       // Render every frame. The main loop is driven by requestAnimationFrame, which
       // is already synced to the display's refresh rate — so rendering adapts to the
@@ -563,6 +577,22 @@ void BaseGameApp::StepLoop() {
       }
       SecondScreen::Update();
 #ifdef OPENCLAW_STARTUP_TRACE
+      {
+        Uint64 perfT2 = SDL_GetPerformanceCounter();
+        s_renderTicks += perfT2 - perfT1;
+        s_logicTicks += perfT1 - perfT0;
+        s_perfFrames++;
+        s_worstMs = std::max(s_worstMs, (double)(perfT2 - perfT0) * 1000.0 / perfFreq);
+        double secs = (double)(perfT2 - s_perfStart) / perfFreq;
+        if (secs >= 5.0) {
+          char line[160];
+          snprintf(line, sizeof(line), "perf: %.1f fps, logic %.1f ms/frame (%.2f updates), render %.1f ms, worst %.0f ms",
+                   s_perfFrames / secs, (double)s_logicTicks * 1000.0 / perfFreq / s_perfFrames,
+                   (double)s_perfUpdates / s_perfFrames, (double)s_renderTicks * 1000.0 / perfFreq / s_perfFrames, s_worstMs);
+          STARTUP_TRACE(line);
+          s_perfStart = perfT2; s_logicTicks = s_renderTicks = 0; s_perfFrames = s_perfUpdates = 0; s_worstMs = 0;
+        }
+      }
       {
         static int s_tracedFrames = 0;
         if (s_tracedFrames < 3) {
