@@ -19,10 +19,13 @@
 namespace
 {
     const int kWidth = 600;
-    const int kKeyRight = 252;      // right edge of the key column
-    const int kGap = 14;            // between the keys and the action
-    const int kTop = 56;            // first row
-    const int kTextPercent = 62;    // action letters, against the menu buttons' size
+    // Two columns like the port's earlier screen, each: keys right-aligned,
+    // then the action.
+    const int kLeftKeys = 48;       // right edge of the left key column
+    const int kRightKeys = 352;     // ... of the right one
+    const int kGap = 10;            // between the keys and the action
+    const int kTop = 54;            // first row
+    const int kTextPercent = 55;    // action letters, against the menu buttons' size
 
     // Buttons per controller style (as in scripts/make_controls_image.py):
     // jump fire sword lift ammo save load rewind pause map ok back
@@ -125,7 +128,7 @@ namespace ControlsScreen
         const bool experimental = PortSettings::GetBool("experimental", false);
 
         struct Row { std::vector<std::string> keys; const char* text; };
-        std::vector<Row> rows = {
+        std::vector<Row> left = {
             { { "left" }, "W LEWO" },
             { { "right" }, "W PRAWO" },
             { { "up" }, "WSPINANIE" },
@@ -133,6 +136,8 @@ namespace ControlsScreen
             { { b[0] }, "SKOK" },
             { { b[2] }, "ATAK WRĘCZ" },
             { { b[1] }, "STRZELANIE" },
+        };
+        std::vector<Row> right = {
             { { b[3] }, "PODNOSZENIE I RZUT" },
             { { b[3] }, "TRZYMAJ: DALEKI RZUT" },
             { { b[4] }, "ZMIEŃ BROŃ" },
@@ -141,16 +146,17 @@ namespace ControlsScreen
         };
         if (experimental)
         {
-            rows.push_back({ { b[5] }, "SZYBKI ZAPIS" });
-            rows.push_back({ { b[6] }, "SZYBKIE WCZYTANIE" });
-            rows.push_back({ { b[7] }, "TRZYMAJ: COFANIE CZASU" });
+            right.push_back({ { b[5] }, "SZYBKI ZAPIS" });
+            right.push_back({ { b[6] }, "SZYBKIE WCZYTANIE" });
+            right.push_back({ { b[7] }, "TRZYMAJ: COFANIE CZASU" });
         }
-        rows.push_back({ { b[10], b[11] }, "MENU: WYBÓR I POWRÓT" });
+        right.push_back({ { b[10], b[11] }, "MENU: WYBÓR I POWRÓT" });
 
-        const int step = experimental ? 16 : 20;
+        const int rowsMax = (int)std::max(left.size(), right.size());
+        const int step = rowsMax > 7 ? 21 : 25;
         Pixels canvas;
         canvas.w = kWidth;
-        canvas.h = kTop + step * (int)rows.size() + 8;
+        canvas.h = kTop + step * rowsMax + 8;
         canvas.px.assign((size_t)canvas.w * canvas.h, 0);
 
         // Title, full size, underlined like the original page titles.
@@ -162,42 +168,49 @@ namespace ControlsScreen
 
         // Letters' baseline inside a GameFont picture.
         const int baseline = GameFont::ExtraTop() + 27;
-        int y = kTop;
-        for (const Row& row : rows)
-        {
-            int cy = y + step / 2;
-            // keys, right-aligned
-            std::vector<Pixels> badges;
-            int keysW = 0;
-            for (const std::string& k : row.keys)
+        auto drawColumn = [&](const std::vector<Row>& rows, int keyRight, int textRight) {
+            int y = kTop;
+            for (const Row& row : rows)
             {
-                Pixels badge;
-                if (LoadBadge(k, badge))
+                int cy = y + step / 2;
+                // keys, right-aligned
+                std::vector<Pixels> badges;
+                int keysW = 0;
+                for (const std::string& k : row.keys)
                 {
-                    keysW += (badges.empty() ? 0 : 4) + badge.w;
-                    badges.push_back(badge);
+                    Pixels badge;
+                    if (LoadBadge(k, badge))
+                    {
+                        keysW += (badges.empty() ? 0 : 3) + badge.w;
+                        badges.push_back(badge);
+                    }
+                    else
+                    {
+                        LOG_WARNING("Controls screen: no badge " + k);
+                    }
                 }
-                else
+                int x = keyRight - keysW;
+                for (const Pixels& badge : badges)
                 {
-                    LOG_WARNING("Controls screen: no badge " + k);
+                    Paste(canvas, badge, x, cy - badge.h / 2);
+                    x += badge.w + 3;
                 }
+                // action, smaller when it would not fit the column
+                Pixels text;
+                if (GameFont::RenderPixels(row.text, GameFont::Look::Normal, -1, text))
+                {
+                    int percent = kTextPercent;
+                    int room = textRight - (keyRight + kGap);
+                    if (text.w * percent / 100 > room) percent = std::max(35, room * 100 / text.w);
+                    Pixels small = Shrink(text, percent);
+                    int base = baseline * percent / 100;
+                    Paste(canvas, small, keyRight + kGap, cy + 6 - base);
+                }
+                y += step;
             }
-            int x = kKeyRight - keysW;
-            for (const Pixels& badge : badges)
-            {
-                Paste(canvas, badge, x, cy - badge.h / 2);
-                x += badge.w + 4;
-            }
-            // action
-            Pixels text;
-            if (GameFont::RenderPixels(row.text, GameFont::Look::Normal, -1, text))
-            {
-                Pixels small = Shrink(text, kTextPercent);
-                int base = baseline * kTextPercent / 100;
-                Paste(canvas, small, kKeyRight + kGap, cy + 7 - base);
-            }
-            y += step;
-        }
+        };
+        drawColumn(left, kLeftKeys, kRightKeys - 46);
+        drawColumn(right, kRightKeys, kWidth);
         return GameFont::ToImage(canvas);
     }
 }

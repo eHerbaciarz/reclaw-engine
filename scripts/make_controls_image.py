@@ -19,7 +19,7 @@ BADGE_FONT = os.path.join(REPO, "Box2D/Data/DroidSans.ttf")
 OUT_DIR = os.path.join(REPO, "Build_Release/ASSETS/CONTROLS")
 
 S = 4                      # supersampling
-W, H = 600, 330
+W, H = 600, 240
 
 GOLD = (246, 205, 86, 255)
 CREAM = (250, 236, 200, 255)
@@ -119,7 +119,7 @@ GAP = 14
 def rows_for(style, t):
     jump, fire, sword, lift, ammo, save, load, rewind, pause, mapb, ok, back = [
         t.get(b, b) if b == "SPACE" else b for b in BUTTONS[style]]
-    return [
+    left = [
         (["<"], t["left"]),
         ([">"], t["right"]),
         (["^"], t["up"]),
@@ -127,6 +127,8 @@ def rows_for(style, t):
         ([jump], t["jump"]),
         ([sword], t["sword"]),
         ([fire], t["fire"]),
+    ]
+    right = [
         ([lift], t["lift"]),
         ([lift], t["liftfar"]),
         ([ammo], t["ammo"]),
@@ -134,6 +136,7 @@ def rows_for(style, t):
         ([mapb], t["map"]),
         ([ok, back], t["menu"]),
     ]
+    return left, right
 
 
 def badges_width(draw, labels, fnt_big, fnt_small):
@@ -144,7 +147,7 @@ def badges_width(draw, labels, fnt_big, fnt_small):
         shape = label in ("<", ">", "^", "v") or label in PS_COLORS
         fnt = fnt_small if len(label) > 3 and label not in PS_COLORS else fnt_big
         tw = 0 if shape else draw.textlength(label, font=fnt)
-        w += max(18 * S, tw + 10 * S)
+        w += max(22 * S, tw + 12 * S)      # as badge() draws it
     return w
 
 
@@ -160,19 +163,22 @@ def render(style, lang):
     badge_font = font(11, BADGE_FONT)
     small_badge = font(9, BADGE_FONT)
     desc_font = font(13)
-    y = 48 * S
-    step = ROW_STEP * S
-    for labels, desc in rows_for(style, t):
-        cy = y + step / 2
-        x = KEY_RIGHT * S - badges_width(draw, labels, badge_font, small_badge)
-        for i, label in enumerate(labels):
-            if i:
-                x += 4 * S
-            fnt = small_badge if len(label) > 3 and label not in PS_COLORS else badge_font
-            x += badge(draw, x, cy, label, fnt)
-        asc, d = desc_font.getmetrics()
-        text_with_outline(draw, ((KEY_RIGHT + GAP) * S, cy - (asc + d) / 2), desc.upper(), desc_font, GOLD)
-        y += step
+    step = 25 * S
+    wide = style in ("pc", "3ds", "playstation", "xbox")
+    left, right = rows_for(style, t)
+    for rows, key_right in ((left, 70 if wide else 48), (right, 352 if not wide else 372)):
+        y = 54 * S
+        for labels, desc in rows:
+            cy = y + step / 2
+            x = key_right * S - badges_width(draw, labels, badge_font, small_badge)
+            for i, label in enumerate(labels):
+                if i:
+                    x += 4 * S
+                fnt = small_badge if len(label) > 3 and label not in PS_COLORS else badge_font
+                x += badge(draw, x, cy, label, fnt)
+            asc, d = desc_font.getmetrics()
+            text_with_outline(draw, ((key_right + 10) * S, cy - (asc + d) / 2), desc.upper(), desc_font, GOLD)
+            y += step
 
     img = img.resize((W, H), Image.LANCZOS)
     os.makedirs(OUT_DIR, exist_ok=True)

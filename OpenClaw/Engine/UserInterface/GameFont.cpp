@@ -128,10 +128,15 @@ namespace
     }
 
     // Row where most columns of the picture end (the letters' baseline).
-    int FindBaseline(const Pic& p)
+    // Only the columns of the letters taken from this picture count (other
+    // parts, like the volume slider next to MUZYKA:, end elsewhere).
+    int FindBaseline(const Pic& p, int src);
+
+    int FindBaselineAll(const Pic& p, const std::vector<std::pair<int, int>>& ranges)
     {
         std::map<int, int> votes;
-        for (int x = 0; x < p.w; ++x)
+        for (auto& r : ranges)
+        for (int x = std::max(0, r.first); x <= std::min(p.w - 1, r.second); ++x)
         {
             for (int y = p.h - 1; y >= 0; --y)
             {
@@ -141,6 +146,15 @@ namespace
         int best = p.h - 1, n = -1;
         for (auto& v : votes) if (v.second > n) { n = v.second; best = v.first; }
         return best;
+    }
+
+    int FindBaseline(const Pic& p, int src)
+    {
+        std::vector<std::pair<int, int>> ranges;
+        for (const GlyphRef& r : kGlyphs)
+            if (r.src == src && r.code != 'J' && r.code != 0x0118) ranges.push_back({ r.x0, r.x1 });
+        if (ranges.empty()) ranges.push_back({ 0, p.w - 1 });
+        return FindBaselineAll(p, ranges);
     }
 
     Glyph Cut(const Pic& p, int x0, int x1, bool keepBelow)
@@ -334,13 +348,36 @@ namespace
                 LOG_WARNING(std::string("GameFont: different picture (not the Polish release?): ") + kSources[i].path);
                 return;
             }
-            g_Pics[i].baseline = FindBaseline(g_Pics[i]);
+            g_Pics[i].baseline = FindBaseline(g_Pics[i], i);
         }
 
         for (const GlyphRef& r : kGlyphs)
         {
             bool below = r.code == 'J' || r.code == 0x0118;   // J, Ę go under the line
             g_Glyphs[r.code] = Cut(g_Pics[r.src], r.x0, r.x1, below);
+        }
+
+        // L: in the menus it always stands with its foot under the next letter,
+        // so a cut L loses the foot. It is made from E instead: the stem and
+        // the bottom arm, without the top and middle arms.
+        {
+            const Glyph& e = g_Glyphs['E'];
+            const int H = kAbove + kBelow;
+            int stemEnd = LeftEdge(e);
+            while (stemEnd < e.w)
+            {
+                int n = 0;
+                for (int y = 0; y < H; ++y) n += InkAt(e, stemEnd, y);
+                if (n < 12) break;
+                stemEnd++;
+            }
+            int probe = std::min(e.w - 3, stemEnd + 6), foot = 0;
+            for (int y = kAbove; y > 0 && InkAt(e, probe, y); --y) foot++;
+            Glyph l = e;
+            for (int y = 0; y < H; ++y)
+                for (int x = stemEnd + 1; x < e.w; ++x)
+                    if (y < kAbove - foot - 1) l.px[(size_t)y * e.w + x] = 0;
+            g_Glyphs['L'] = l;
         }
 
         // Marks for the letters the menus do not have: what Ę has more than E
