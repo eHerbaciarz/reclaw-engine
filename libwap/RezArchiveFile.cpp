@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "../OpenClaw/Engine/Util/SdlMutex.h"
 #include <map>
 #include <string>
@@ -19,10 +20,84 @@ using namespace std;
 /**************************** PRIVATE STRUCTURES *************************/
 /*************************************************************************/
 
+// CLAW.REZ is read in many small pieces (its directory, then one picture or
+// sound at a time). std::ifstream drops its small buffer on every seek, so
+// each piece became a separate read from the card - very slow on the PS Vita
+// and the 3DS. RezStream keeps a large block of the file in memory and serves
+// nearby reads from it; big reads go straight to the file.
+class RezStream
+{
+public:
+    explicit RezStream(const char* path)
+    {
+        m_File = fopen(path, "rb");
+        if (m_File)
+        {
+            setvbuf(m_File, NULL, _IONBF, 0);
+            fseek(m_File, 0, SEEK_END);
+            m_Size = ftell(m_File);
+            fseek(m_File, 0, SEEK_SET);
+            m_Block.resize(kBlock);
+        }
+    }
+    ~RezStream() { if (m_File) fclose(m_File); }
+
+    bool is_open() const { return m_File != NULL; }
+    void seekg(long long off, std::ios::seekdir dir)
+    {
+        if (dir == std::ios::beg) m_Pos = off;
+        else if (dir == std::ios::cur) m_Pos += off;
+        else m_Pos = m_Size + off;
+    }
+    long long tellg() const { return m_Pos; }
+    int get()
+    {
+        char c = 0;
+        return read(&c, 1) == 1 ? (unsigned char)c : EOF;
+    }
+    size_t read(char* dest, size_t n)
+    {
+        if (!m_File || n == 0) return 0;
+        if (m_Pos + (long long)n > m_Size) n = m_Pos < m_Size ? (size_t)(m_Size - m_Pos) : 0;
+        size_t done = 0;
+        if (n >= kBlock / 2)
+        {
+            // big piece (a picture, a sound): straight from the file
+            fseek(m_File, (long)m_Pos, SEEK_SET);
+            done = fread(dest, 1, n, m_File);
+            m_Pos += done;
+            return done;
+        }
+        while (done < n)
+        {
+            if (m_Pos < m_BlockStart || m_Pos >= m_BlockStart + (long long)m_BlockLen)
+            {
+                m_BlockStart = m_Pos;
+                fseek(m_File, (long)m_BlockStart, SEEK_SET);
+                m_BlockLen = fread(m_Block.data(), 1, kBlock, m_File);
+                if (m_BlockLen == 0) break;
+            }
+            size_t at = (size_t)(m_Pos - m_BlockStart);
+            size_t take = std::min(n - done, m_BlockLen - at);
+            memcpy(dest + done, m_Block.data() + at, take);
+            done += take;
+            m_Pos += take;
+        }
+        return done;
+    }
+
+private:
+    static const size_t kBlock = 256 * 1024;
+    FILE* m_File = NULL;
+    long long m_Size = 0, m_Pos = 0, m_BlockStart = 0;
+    size_t m_BlockLen = 0;
+    std::vector<char> m_Block;
+};
+
 struct RezArchiveFileEntry
 {
     RezArchive* rezArchive;
-    std::ifstream* fileStream;
+    RezStream* fileStream;
     SdlMutex mutex;
 };
 
@@ -43,7 +118,7 @@ uint8_t directorySeparator = '/';
 /*************************************************************************/
 
 template<typename T>
-static void FileRead(T* dest, std::ifstream* file, int32_t offset)
+static void FileRead(T* dest, RezStream* file, int32_t offset)
 {
     file->seekg(offset, std::ios::beg);
     file->read((char*)dest, sizeof(*dest));
@@ -339,7 +414,7 @@ RezFile* WAP_GetRezFileFromRezDirectory(RezDirectory* rezDirectory, const char* 
     return GetChildFile(searchedFileDirectory, fullFileName);
 }
 
-static void RegisterRezArchiveFile(RezArchive* rezArchive, std::ifstream* rezArchiveFileStream)
+static void RegisterRezArchiveFile(RezArchive* rezArchive, RezStream* rezArchiveFileStream)
 {
     // Create loaded REZ file entry
     RezArchiveFileEntry* rezArchiveFileEntry = new RezArchiveFileEntry;
@@ -454,7 +529,7 @@ uint32_t WAP_GetRezFilesCount(RezArchive* rezArchive)
     return g_rezArchiveFilesMap[rezArchive]->size();
 }
 
-static void ReadRezDirectory(RezArchive*& rezArchive, RezDirectory* rezDirectory, std::ifstream* fileStream)
+static void ReadRezDirectory(RezArchive*& rezArchive, RezDirectory* rezDirectory, RezStream* fileStream)
 {
     uint32_t i;
     uint32_t currentOffset = rezDirectory->offset;
@@ -605,9 +680,10 @@ static void ReadRezDirectory(RezArchive*& rezArchive, RezDirectory* rezDirectory
 
 RezArchive* WAP_LoadRezArchive(const char* rezFilePath)
 {
-    std::ifstream* fileStream = new std::ifstream(rezFilePath, std::ifstream::binary);
+    RezStream* fileStream = new RezStream(rezFilePath);
     if (!fileStream->is_open())
     {
+        delete fileStream;
         return NULL;
     }
 

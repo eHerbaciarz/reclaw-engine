@@ -1,3 +1,4 @@
+#include "../../Util/StartupTrace.h"
 #include "MoviePlayer.h"
 
 #ifndef __EMSCRIPTEN__
@@ -274,8 +275,11 @@ namespace
     //---------------------------------------------------------------- playback
     PlayResult PlaySource(SDL_Renderer* r, const MovieSource& m, int index)
     {
+        STARTUP_TRACE("movie: open");
         FILE* fp = fopen(m.path.c_str(), "rb");
         if (!fp) return Missing;
+        // Frames are read one by one; a big buffer saves many small card reads.
+        setvbuf(fp, NULL, _IOFBF, 256 * 1024);
         if (fseek(fp, m.offset, SEEK_SET) != 0)
         {
             fclose(fp);
@@ -374,6 +378,7 @@ namespace
 
         InitSkipInput();
         SkipKind skipped = None;
+        STARTUP_TRACE("movie: first frame");
         char status = smk_first(s);
         pushAudio();
 
