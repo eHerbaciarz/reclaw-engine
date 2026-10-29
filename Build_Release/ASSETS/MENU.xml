@@ -896,10 +896,9 @@
         </MenuItem>
     </MenuPage>
 
-    <!-- HELP PAGE -->
+    <!-- HELP PAGE: the controls screen (ControlsScreen / controls image), like Options > Controls -->
     <MenuPage>
         <PageName>MenuPage_Help</PageName>
-        <BackgroundImage>/STATES/HELP/SCREENS/HELP.PCX</BackgroundImage>
         <KeyboardEvent>
             <KeyType>Escape</KeyType>
             <GeneratedEvent>
@@ -908,15 +907,23 @@
             </GeneratedEvent>
         </KeyboardEvent>
         <MenuItem>
-            <Name>TOUCHSCREEN_BUTTON</Name>
+            <Name>CONTROLS_IMAGE</Name>
+            <Type>Text</Type>
+            <State>Disabled</State>
+            <DisabledImage>/CONTROLS/controls_{platform}_{lang}.png</DisabledImage>
+            <GameFontControls />
+            <Position x="20" y="150" />
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <State>Active</State>
-            <InactiveImage>/CONTROLS/touchscreen_title.png</InactiveImage>
-            <ActiveImage>/CONTROLS/touchscreen_title.png</ActiveImage>
-            <Position x="325" y="452" />
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
+            <Position x="320" y="425" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
-                <PageName>MenuPage_Help_TouchScreen</PageName>
+                <PageName>MenuPage_Main</PageName>
             </GeneratedEvent>
         </MenuItem>
     </MenuPage>
@@ -2633,7 +2640,7 @@
             <State>Disabled</State>
             <DisabledImage>/CONTROLS/controls_{platform}_{lang}.png</DisabledImage>
             <GameFontControls />
-            <Position x="20" y="100" />
+            <Position x="20" y="150" />
         </MenuItem>
         <MenuItem>
             <Name>BACK_BUTTON</Name>

@@ -184,10 +184,9 @@
         </MenuItem>
     </MenuPage>
 
-    <!-- HELP PAGE -->
+    <!-- HELP PAGE: the controls screen (ControlsScreen / controls image), like Options > Controls -->
     <MenuPage>
         <PageName>MenuPage_Help</PageName>
-        <BackgroundImage>/STATES/HELP/SCREENS/HELP.PCX</BackgroundImage>
         <KeyboardEvent>
             <KeyType>Escape</KeyType>
             <GeneratedEvent>
@@ -196,15 +195,23 @@
             </GeneratedEvent>
         </KeyboardEvent>
         <MenuItem>
-            <Name>TOUCHSCREEN_BUTTON</Name>
+            <Name>CONTROLS_IMAGE</Name>
+            <Type>Text</Type>
+            <State>Disabled</State>
+            <DisabledImage>/CONTROLS/controls_{platform}_{lang}.png</DisabledImage>
+            <GameFontControls />
+            <Position x="20" y="150" />
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <State>Active</State>
-            <InactiveImage>/CONTROLS/touchscreen_title.png</InactiveImage>
-            <ActiveImage>/CONTROLS/touchscreen_title.png</ActiveImage>
-            <Position x="325" y="452" />
+            <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
+            <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
+            <Position x="320" y="425" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
-                <PageName>MenuPage_Help_TouchScreen</PageName>
+                <PageName>MenuPage_Main</PageName>
             </GeneratedEvent>
         </MenuItem>
     </MenuPage>
