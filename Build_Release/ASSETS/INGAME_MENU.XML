@@ -83,7 +83,7 @@
         <!-- Shown after the secret code (hold R + down, down, left, right, up) -->
         <MenuItem>
             <Name>CHEATS_BUTTON</Name>
-            <GameFontText>KODY</GameFontText>
+            <GameFontText en="CHEATS">KODY</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
@@ -923,7 +923,7 @@
 
         <MenuItem>
             <Name>SUBTITLES_ON_BUTTON</Name>
-            <GameFontText>NAPISY: TAK</GameFontText>
+            <GameFontText en="SUBTITLES: ON">NAPISY: TAK</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
@@ -959,7 +959,7 @@
         </MenuItem>
         <MenuItem>
             <Name>SUBTITLES_OFF_BUTTON</Name>
-            <GameFontText>NAPISY: NIE</GameFontText>
+            <GameFontText en="SUBTITLES: OFF">NAPISY: NIE</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>

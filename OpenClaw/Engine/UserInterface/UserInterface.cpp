@@ -2131,11 +2131,16 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
     // 0, -1 none, -2 all).
     if (TiXmlElement* pFontElem = pElem->FirstChildElement("GameFontText"))
     {
-        if (pFontElem->GetText() && GameFont::Available())
+        // The element's text is Polish; en="..." gives the English one (items
+        // without it keep their pictures in the English release).
+        const char* fontText = pFontElem->GetText();
+        if (Lang::Code() == "en") fontText = pFontElem->Attribute("en");
+        else if (Lang::Code() != "pl") fontText = nullptr;
+        if (fontText && GameFont::Available())
         {
             int underline = 0;
             ParseValueFromXmlElem(&underline, pElem->FirstChildElement("GameFontUnderline"));
-            std::string text = pFontElem->GetText();
+            std::string text = fontText;
             const std::pair<MenuItemState, GameFont::Look> looks[] = {
                 { MenuItemState_Inactive, GameFont::Look::Normal },
                 { MenuItemState_Active, GameFont::Look::Active },

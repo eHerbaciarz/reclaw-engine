@@ -20,7 +20,7 @@ namespace
     // Menu pictures of the Polish release (size checked before use) and the
     // columns of single letters in them (from scripts/menu_letters.py output).
     struct Source { const char* path; int w, h; };
-    const Source kSources[] = {
+    const Source kSourcesPl[] = {
         { "/STATES/MENU/IMAGES/MAIN/001_SINGLEPLAYER.PCX", 245, 37 },               // 0 JEDEN GRACZ
         { "/STATES/MENU/IMAGES/MAIN/003_MULTIPLAYER.PCX", 393, 38 },                // 1 TRYB WIELOOSOBOWY
         { "/STATES/MENU/IMAGES/MAIN/OPTIONS/003_DIFFICULTY.PCX", 363, 35 },         // 2 POZIOM TRUDNOŚCI
@@ -33,13 +33,12 @@ namespace
         { "/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX", 158, 35 },       // 9 POWRÓT
         { "/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/013_MUSICON.PCX", 536, 35 },      // 10 MUZYKA:
     };
-    const int kSourceCount = (int)(sizeof(kSources) / sizeof(kSources[0]));
     // Picture with an underlined first letter (J of JEDEN GRACZ): the underline.
-    const int kUnderlineSource = 0;
-    const int kUnderlineX0 = 3, kUnderlineX1 = 39;
+    int kUnderlineSource = 0;
+    int kUnderlineX0 = 3, kUnderlineX1 = 39;
 
     struct GlyphRef { uint32_t code; int src, x0, x1; };
-    const GlyphRef kGlyphs[] = {
+    const GlyphRef kGlyphsPl[] = {
         { 'A', 0, 174, 195 }, { 'B', 1, 72, 93 },   { 'C', 2, 321, 343 }, { 'D', 2, 224, 250 },
         { 'E', 0, 67, 89 },   { 'F', 3, 186, 208 }, { 'G', 0, 127, 149 }, { 'I', 4, 233, 245 },
         { 'J', 5, 142, 155 }, { 'K', 6, 118, 142 }, { 'L', 3, 222, 236 }, { 'M', 2, 114, 145 },
@@ -52,6 +51,44 @@ namespace
         { 0x0179, 6, 29, 50 },     // Ź
         { ':', 10, 151, 158 },
     };
+
+    // English release: its menu letters touch each other, so the columns
+    // were found at the narrowest points between letters (scripts/
+    // menu_letters.py output of the English CLAW.REZ). No Q (its tail meets
+    // the underline), no J X Z in the menus: J and Z are put together below.
+    const Source kSourcesEn[] = {
+        { "/STATES/MENU/IMAGES/MAIN/OPTIONS/007_AUDIO.PCX", 120, 35 },                   // 0 AUDIO
+        { "/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX", 108, 35 },            // 1 BACK
+        { "/STATES/MENU/IMAGES/MAIN/015_CREDITS.PCX", 164, 35 },                         // 2 CREDITS
+        { "/STATES/MENU/IMAGES/MAIN/OPTIONS/003_DIFFICULTY.PCX", 220, 35 },              // 3 DIFFICULTY
+        { "/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/001_NEWGAME.PCX", 204, 35 },            // 4 NEW GAME
+        { "/STATES/MENU/IMAGES/MAIN/MULTIPLAYER/003_GAMELOBBY.PCX", 244, 35 },           // 5 GAME LOBBY
+        { "/STATES/MENU/IMAGES/MAIN/010_HELP.PCX", 100, 35 },                            // 6 HELP
+        { "/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/003_LOADGAME.PCX", 220, 35 },           // 7 LOAD GAME
+        { "/STATES/MENU/IMAGES/MAIN/003_MULTIPLAYER.PCX", 260, 38 },                     // 8 MULTIPLAYER
+        { "/STATES/MENU/IMAGES/MAIN/008_OPTIONS.PCX", 164, 35 },                         // 9 OPTIONS
+        { "/STATES/MENU/IMAGES/MAIN/001_SINGLEPLAYER.PCX", 292, 37 },                    // 10 SINGLE PLAYER
+        { "/STATES/MENU/IMAGES/MAIN/012_QUIT.PCX", 96, 41 },                             // 11 QUIT
+        { "/STATES/MENU/IMAGES/MAIN/005_REPLAYMOVIES.PCX", 300, 36 },                    // 12 REPLAY MOVIES
+        { "/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/009_UPLOADSCORES.PCX", 304, 35 },       // 13 UPLOAD SCORES
+        { "/STATES/MENU/IMAGES/MAIN/MULTIPLAYER/001_LEVELRACING.PCX", 272, 35 },         // 14 LEVEL RACING
+        { "/STATES/MENU/IMAGES/MAIN/MULTIPLAYER/GAMELOBBY/001_YES.PCX", 76, 35 },        // 15 YES
+        { "/STATES/MENU/IMAGES/MAIN/OPTIONS/AUDIO/001_SOUNDON.PCX", 544, 35 },           // 16 SOUND: ON
+    };
+    const GlyphRef kGlyphsEn[] = {
+        { 'A', 0, 4, 29 }, { 'B', 1, 5, 27 }, { 'C', 2, 4, 28 }, { 'D', 3, 4, 28 }, { 'E', 4, 176, 198 },
+        { 'F', 3, 42, 63 }, { 'G', 5, 5, 28 }, { 'H', 6, 4, 30 }, { 'I', 3, 30, 41 }, { 'K', 1, 76, 102 },
+        { 'L', 7, 4, 23 }, { 'M', 8, 5, 34 }, { 'N', 4, 5, 29 }, { 'O', 9, 5, 31 }, { 'P', 10, 149, 169 },
+        { 'R', 12, 6, 29 }, { 'S', 10, 8, 28 }, { 'T', 11, 68, 89 }, { 'U', 13, 4, 27 },
+        { 'V', 14, 51, 72 }, { 'W', 4, 54, 84 }, { 'Y', 15, 4, 26 }, { ':', 16, 127, 134 },
+    };
+
+    // The tables of the release in use (Build()).
+    const Source* kSources = kSourcesPl;
+    int kSourceCount = 0;
+    const GlyphRef* kGlyphs = kGlyphsPl;
+    int kGlyphCount = 0;
+    bool g_English = false;
 
     // The baseline sits on row 27 of a text picture, like in the original
     // 35-pixel menu pictures, so new items line up with the original ones.
@@ -151,8 +188,11 @@ namespace
     int FindBaseline(const Pic& p, int src)
     {
         std::vector<std::pair<int, int>> ranges;
-        for (const GlyphRef& r : kGlyphs)
+        for (int gi = 0; gi < kGlyphCount; ++gi)
+        {
+            const GlyphRef& r = kGlyphs[gi];
             if (r.src == src && r.code != 'J' && r.code != 0x0118) ranges.push_back({ r.x0, r.x1 });
+        }
         if (ranges.empty()) ranges.push_back({ 0, p.w - 1 });
         return FindBaselineAll(p, ranges);
     }
@@ -373,6 +413,12 @@ namespace
             }
     }
 
+    bool Has(uint32_t code)
+    {
+        auto it = g_Glyphs.find(code);
+        return it != g_Glyphs.end() && it->second.w > 0;
+    }
+
     int TopRow(const Glyph& g)
     {
         auto parts = RowParts(g);
@@ -382,7 +428,21 @@ namespace
     void Build()
     {
         g_Tried = true;
-        if (Lang::Code() != "pl" || !g_pApp || !g_pApp->GetResourceMgr()) return;
+        if (!g_pApp || !g_pApp->GetResourceMgr()) return;
+        if (Lang::Code() == "pl")
+        {
+            kSources = kSourcesPl; kSourceCount = (int)(sizeof(kSourcesPl) / sizeof(kSourcesPl[0]));
+            kGlyphs = kGlyphsPl; kGlyphCount = (int)(sizeof(kGlyphsPl) / sizeof(kGlyphsPl[0]));
+        }
+        else if (Lang::Code() == "en")
+        {
+            kSources = kSourcesEn; kSourceCount = (int)(sizeof(kSourcesEn) / sizeof(kSourcesEn[0]));
+            kGlyphs = kGlyphsEn; kGlyphCount = (int)(sizeof(kGlyphsEn) / sizeof(kGlyphsEn[0]));
+            g_English = true;
+            kUnderlineSource = 9;   // the O of OPTIONS
+            kUnderlineX0 = 5; kUnderlineX1 = 31;
+        }
+        else return;
         g_Pics.resize(kSourceCount);
         for (int i = 0; i < kSourceCount; ++i)
         {
@@ -395,17 +455,52 @@ namespace
             }
             if (g_Pics[i].w != kSources[i].w || g_Pics[i].h != kSources[i].h)
             {
-                LOG_WARNING(std::string("GameFont: different picture (not the Polish release?): ") + kSources[i].path);
+                LOG_WARNING(std::string("GameFont: different picture (another release of the game?): ") + kSources[i].path);
                 return;
             }
             g_Pics[i].baseline = FindBaseline(g_Pics[i], i);
         }
 
-        for (const GlyphRef& r : kGlyphs)
+        for (int gi = 0; gi < kGlyphCount; ++gi)
         {
+            const GlyphRef& r = kGlyphs[gi];
             bool below = r.code == 'J' || r.code == 0x0118;   // J, Ę go under the line
             g_Glyphs[r.code] = Cut(g_Pics[r.src], r.x0, r.x1, below);
             if (r.code != ':') RemoveSpecks(g_Glyphs[r.code], 8);
+        }
+
+        // English menus have no J and Z. J: the right part of U (a stem
+        // with the bowl turning left at the bottom). Z: N turned a quarter
+        // round (its diagonal and two bars), squeezed to the capitals' height.
+        if (!Has('J') && Has('U'))
+        {
+            const Glyph& u = g_Glyphs['U'];
+            int from = u.w * 2 / 5;
+            Glyph j;
+            j.w = u.w - from;
+            j.px.assign((size_t)j.w * (kAbove + kBelow), 0);
+            for (int y = 0; y < kAbove + kBelow; ++y)
+                for (int x = 0; x < j.w; ++x) j.px[(size_t)y * j.w + x] = u.px[(size_t)y * u.w + from + x];
+            g_Glyphs['J'] = Crop(j);
+        }
+        if (!Has('Z') && Has('N'))
+        {
+            const Glyph& n = g_Glyphs['N'];
+            const int H = kAbove + kBelow;
+            int top = TopRow(n), capH = kAbove - top + 1;
+            // N's columns become Z's rows (turned clockwise), scaled to capH
+            Glyph z;
+            z.w = std::max(8, capH * 9 / 10);
+            z.px.assign((size_t)z.w * H, 0);
+            for (int y = 0; y < capH; ++y)
+                for (int x = 0; x < z.w; ++x)
+                {
+                    // turned clockwise: target (x, y) <- source column sx, row sy
+                    int sx = y * n.w / capH;
+                    int sy = top + (z.w - 1 - x) * capH / z.w;
+                    z.px[(size_t)(top + y) * z.w + x] = n.px[(size_t)sy * n.w + sx];
+                }
+            g_Glyphs['Z'] = z;
         }
 
         // L: in the menus it always stands with its foot under the next letter,
@@ -497,7 +592,7 @@ namespace
             int top = capMid - (int)bar.size() / 2 - 1;
             for (int k = 0; k < (int)bar.size(); ++k)
                 for (int x = from; x <= to; ++x) h.px[(size_t)(top + k) * h.w + x] = bar[k];
-            g_Glyphs['H'] = h;
+            if (!Has('H')) g_Glyphs['H'] = h;
             // Dash (–, -): the bar, short, in the middle.
             Glyph dash = blank(20);
             top = capMid - (int)bar.size() / 2;
@@ -506,6 +601,7 @@ namespace
             g_Glyphs[0x2013] = dash;
             g_Glyphs['-'] = dash;
         }
+        if (!Has('V'))
         {
             // V: the upper part of Y (a V on a stem), stretched down to the
             // baseline; the serif rows at the top keep their size.
@@ -592,8 +688,29 @@ namespace
         }
         LOG_WARNING("GameFont: underline " + ToStr(underlineRows) + " rows (negative: made from the bar)");
 
+        // drop letters that could not be made (empty)
+        for (auto it = g_Glyphs.begin(); it != g_Glyphs.end();)
+            it = it->second.w > 0 ? std::next(it) : g_Glyphs.erase(it);
+
         g_Ok = true;
         LOG_WARNING("GameFont: menu letters of the game ready (" + ToStr((int)g_Glyphs.size()) + ")");
+    }
+
+    // The letter without its mark, for releases whose menus lack the marked one.
+    uint32_t BaseLetter(uint32_t cp)
+    {
+        switch (cp)
+        {
+            case 0x0104: return 'A';
+            case 0x0106: case 0x010C: return 'C';
+            case 0x0118: return 'E';
+            case 0x00CD: return 'I';
+            case 0x0143: return 'N';
+            case 0x00D3: case 0x00D6: return 'O';
+            case 0x015A: case 0x0160: return 'S';
+            case 0x0179: case 0x017B: return 'Z';
+            default: return cp;
+        }
     }
 
     std::vector<uint32_t> Decode(const std::string& s)
@@ -680,6 +797,7 @@ namespace GameFont
             for (uint32_t cp : l)
             {
                 auto it = g_Glyphs.find(cp);
+                if (it == g_Glyphs.end()) it = g_Glyphs.find(BaseLetter(cp));
                 w += (it != g_Glyphs.end()) ? it->second.w : kSpace;
             }
             return w;
@@ -700,6 +818,7 @@ namespace GameFont
             for (uint32_t cp : lines[li])
             {
                 auto it = g_Glyphs.find(cp);
+                if (it == g_Glyphs.end()) it = g_Glyphs.find(BaseLetter(cp));
                 if (it == g_Glyphs.end()) { x += kSpace; continue; }
                 const Glyph& g = it->second;
                 for (int y = 0; y < GH; ++y)

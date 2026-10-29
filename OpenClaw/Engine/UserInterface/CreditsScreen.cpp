@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "GameFont.h"
+#include "Lang.h"
 #include "../Graphics2D/Image.h"
 
 namespace
@@ -23,10 +24,18 @@ namespace
     // Same texts as scripts/make_credits_image.py (no digits in the letters,
     // so the year of the original game is left out here).
     struct Block { const char* label; std::vector<const char*> names; };
-    const Block kBlocks[] = {
+    const Block kBlocksPl[] = {
         { "GRA ORYGINALNA", { "CLAW · MONOLITH PRODUCTIONS" } },
         { "OPENCLAW", { "PETR JAŠÍČEK · PAVEL LÖBL" } },
         { "POMOC PRZY OPENCLAW", { "RICORODRIGES · DENIS PAPEC · BAKASURA", "GREG V · PIOTR KRZEMINSKI" } },
+        { "CLAW WEB", { "ARTHUR BOSS" } },
+        { "CLAWSWITCH", { "DJMUTED" } },
+        { "RECLAW", { "HERBACIARZ" } },
+    };
+    const Block kBlocksEn[] = {
+        { "ORIGINAL GAME", { "CLAW · MONOLITH PRODUCTIONS" } },
+        { "OPENCLAW", { "PETR JAŠÍČEK · PAVEL LÖBL" } },
+        { "OPENCLAW CONTRIBUTORS", { "RICORODRIGES · DENIS PAPEC · BAKASURA", "GREG V · PIOTR KRZEMINSKI" } },
         { "CLAW WEB", { "ARTHUR BOSS" } },
         { "CLAWSWITCH", { "DJMUTED" } },
         { "RECLAW", { "HERBACIARZ" } },
@@ -39,6 +48,9 @@ namespace CreditsScreen
     {
         if (!GameFont::Available()) return nullptr;
         typedef GameFont::Pixels Pixels;
+        const bool english = std::string(Lang::Code()) == "en";
+        std::vector<Block> kBlocks(english ? std::begin(kBlocksEn) : std::begin(kBlocksPl),
+                                   english ? std::end(kBlocksEn) : std::end(kBlocksPl));
 
         int height = kFirstLabel;
         for (const Block& b : kBlocks)
@@ -61,7 +73,7 @@ namespace CreditsScreen
 
         // Title, full size, underlined like the original page titles.
         Pixels title;
-        if (GameFont::RenderPixels("RECLAW – TWÓRCY", GameFont::Look::Normal, -2, title))
+        if (GameFont::RenderPixels(Lang::Tr("RECLAW – TWÓRCY", "RECLAW – CREDITS"), GameFont::Look::Normal, -2, title))
             GameFont::Paste(canvas, GameFont::WithShadow(title, 3, 3, 170), (kWidth - title.w) / 2, kTopPad - GameFont::ExtraTop());
 
         int y = kFirstLabel;

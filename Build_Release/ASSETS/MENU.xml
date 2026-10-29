@@ -379,7 +379,7 @@
         </MenuItem>
         <MenuItem>
             <Name>MANAGE_SAVES_BUTTON</Name>
-            <GameFontText>ZARZĄDZAJ ZAPISAMI</GameFontText>
+            <GameFontText en="MANAGE SAVED GAMES">ZARZĄDZAJ ZAPISAMI</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <InactiveImage>/SAVE_DATA/manage_saves_inactive.png</InactiveImage>
@@ -413,7 +413,7 @@
             <VisibilityCondition>
                 <ConditionType>Experimental</ConditionType>
             </VisibilityCondition>
-            <GameFontText>SKRZYŻUJ SZPADY PONOWNIE</GameFontText>
+            <GameFontText en="CROSS SWORDS AGAIN">SKRZYŻUJ SZPADY PONOWNIE</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/BOSS_MODES_{lang}_INACTIVE.png</InactiveImage>
@@ -451,7 +451,7 @@
         </KeyboardEvent>
         <MenuItem>
             <Name>SAVE_DATA_TITLE</Name>
-            <GameFontText>ZAPISY GRY</GameFontText>
+            <GameFontText en="SAVED GAMES">ZAPISY GRY</GameFontText>
             <GameFontUnderline>-2</GameFontUnderline>
             <Type>Text</Type>
             <State>Inactive</State>
@@ -460,7 +460,7 @@
         </MenuItem>
         <MenuItem>
             <Name>SAVE_TO_FILE_BUTTON</Name>
-            <GameFontText>ZAPISZ DO PLIKU</GameFontText>
+            <GameFontText en="SAVE TO FILE">ZAPISZ DO PLIKU</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <VisibilityCondition>
@@ -480,7 +480,7 @@
         </MenuItem>
         <MenuItem>
             <Name>IMPORT_FROM_FILE_BUTTON</Name>
-            <GameFontText>WCZYTAJ Z PLIKU</GameFontText>
+            <GameFontText en="LOAD FROM FILE">WCZYTAJ Z PLIKU</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
@@ -496,7 +496,7 @@
         </MenuItem>
         <MenuItem>
             <Name>RESET_PROGRESS_BUTTON</Name>
-            <GameFontText>WYZERUJ POSTĘPY</GameFontText>
+            <GameFontText en="RESET PROGRESS">WYZERUJ POSTĘPY</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <StateCondition>
@@ -539,7 +539,7 @@
         </KeyboardEvent>
         <MenuItem>
             <Name>RESET_WARNING_TEXT</Name>
-            <GameFontText>NA PEWNO USUNĄĆ|WSZYSTKIE ZAPISY</GameFontText>
+            <GameFontText en="DELETE ALL|SAVED GAMES">NA PEWNO USUNĄĆ|WSZYSTKIE ZAPISY</GameFontText>
             <GameFontUnderline>-1</GameFontUnderline>
             <Type>Text</Type>
             <State>Inactive</State>
@@ -548,7 +548,7 @@
         </MenuItem>
         <MenuItem>
             <Name>YES_RESET_BUTTON</Name>
-            <GameFontText>TAK</GameFontText>
+            <GameFontText en="YES">TAK</GameFontText>
             <Type>Button</Type>
             <Hotkey>Y</Hotkey>
             <State>Active</State>
@@ -561,7 +561,7 @@
         </MenuItem>
         <MenuItem>
             <Name>NO_RESET_BUTTON</Name>
-            <GameFontText>NIE</GameFontText>
+            <GameFontText en="NO">NIE</GameFontText>
             <Type>Button</Type>
             <Hotkey>N</Hotkey>
             <State>Inactive</State>
@@ -2596,7 +2596,7 @@
             <!-- ReClaw: language of the game data (data/<code>/), only with
                  more than one language folder -->
             <Name>LANGUAGE_BUTTON</Name>
-            <GameFontText>JĘZYK</GameFontText>
+            <GameFontText en="LANGUAGE">JĘZYK</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/LANGUAGE_{lang}_INACTIVE.png</InactiveImage>
@@ -3297,7 +3297,7 @@
 
         <MenuItem>
             <Name>SUBTITLES_ON_BUTTON</Name>
-            <GameFontText>NAPISY: TAK</GameFontText>
+            <GameFontText en="SUBTITLES: ON">NAPISY: TAK</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
@@ -3333,7 +3333,7 @@
         </MenuItem>
         <MenuItem>
             <Name>SUBTITLES_OFF_BUTTON</Name>
-            <GameFontText>NAPISY: NIE</GameFontText>
+            <GameFontText en="SUBTITLES: OFF">NAPISY: NIE</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>

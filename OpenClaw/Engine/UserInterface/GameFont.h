@@ -3,13 +3,14 @@
 // Menu texts made of the game's own menu letters.
 //
 // The original game has no font file: every menu text is a picture. For the
-// Polish release, GameFont cuts single letters out of its menu pictures (in
-// the player's CLAW.REZ, at start-up) and puts new texts together from them,
+// Polish and English releases, GameFont cuts single letters out of their menu
+// pictures (in the player's CLAW.REZ, at start-up) and puts new texts together from them,
 // so menu items the port adds look like the original ones. Nothing from the
 // game is stored in the port: only where the letters are (GameFont.cpp).
 //
-// Letters available: A-Z without Q X, Ą Ć Ę Ó Ś Ź Ż Ń, and for names
-// Í Ö Š Č; ':' '.' '·' '–' and space; no digits. Lower case is drawn as
+// Letters available (Polish release): A-Z without Q X, Ą Ć Ę Ó Ś Ź Ż Ń, and
+// for names Í Ö Š Č; ':' '.' '·' '–' and space; no digits. English release:
+// A-Z without Q X, Ö Ż, the same marks; other marked letters are drawn plain. Lower case is drawn as
 // upper case. L, H, V and the extra marks are put together from other letters.
 
 #include <cstdint>
@@ -28,7 +29,7 @@ namespace GameFont
         Disabled,   // grey
     };
 
-    // True when the menu pictures of the Polish release are there.
+    // True when the menu pictures of a known release (Polish, English) are there.
     bool Available();
 
     // Rows the pictures have above the top of an original 35-pixel menu

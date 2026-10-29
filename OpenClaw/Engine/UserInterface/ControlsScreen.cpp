@@ -9,6 +9,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "GameFont.h"
+#include "Lang.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../Graphics2D/Image.h"
 #include "../Platform/Platform.h"
@@ -83,28 +84,28 @@ namespace ControlsScreen
 
         struct Row { std::vector<std::string> keys; const char* text; };
         std::vector<Row> left = {
-            { { "left" }, "W LEWO" },
-            { { "right" }, "W PRAWO" },
-            { { "up" }, "WSPINANIE" },
-            { { "down" }, "KUCANIE I ZEJŚCIE" },
-            { { b[0] }, "SKOK" },
-            { { b[2] }, "ATAK WRĘCZ" },
-            { { b[1] }, "STRZELANIE" },
+            { { "left" }, Lang::Tr("W LEWO", "MOVE LEFT") },
+            { { "right" }, Lang::Tr("W PRAWO", "MOVE RIGHT") },
+            { { "up" }, Lang::Tr("WSPINANIE", "CLIMB") },
+            { { "down" }, Lang::Tr("KUCANIE I ZEJŚCIE", "DUCK AND CLIMB DOWN") },
+            { { b[0] }, Lang::Tr("SKOK", "JUMP") },
+            { { b[2] }, Lang::Tr("ATAK WRĘCZ", "SWORD ATTACK") },
+            { { b[1] }, Lang::Tr("STRZELANIE", "SHOOT") },
         };
         std::vector<Row> right = {
-            { { b[3] }, "PODNOSZENIE I RZUT" },
-            { { b[3] }, "TRZYMAJ: DALEKI RZUT" },
-            { { b[4] }, "ZMIEŃ BROŃ" },
-            { { b[8] }, "PAUZA I MENU" },
-            { { b[9] }, "MAPA POZIOMU" },
+            { { b[3] }, Lang::Tr("PODNOSZENIE I RZUT", "PICK UP AND THROW") },
+            { { b[3] }, Lang::Tr("TRZYMAJ: DALEKI RZUT", "HOLD: FAR THROW") },
+            { { b[4] }, Lang::Tr("ZMIEŃ BROŃ", "CHANGE WEAPON") },
+            { { b[8] }, Lang::Tr("PAUZA I MENU", "PAUSE AND MENU") },
+            { { b[9] }, Lang::Tr("MAPA POZIOMU", "LEVEL MAP") },
         };
         if (experimental)
         {
-            right.push_back({ { b[5] }, "SZYBKI ZAPIS" });
-            right.push_back({ { b[6] }, "SZYBKIE WCZYTANIE" });
-            right.push_back({ { b[7] }, "TRZYMAJ: COFANIE CZASU" });
+            right.push_back({ { b[5] }, Lang::Tr("SZYBKI ZAPIS", "QUICK SAVE") });
+            right.push_back({ { b[6] }, Lang::Tr("SZYBKIE WCZYTANIE", "QUICK LOAD") });
+            right.push_back({ { b[7] }, Lang::Tr("TRZYMAJ: COFANIE CZASU", "HOLD: REWIND") });
         }
-        right.push_back({ { b[10], b[11] }, "MENU: WYBÓR I POWRÓT" });
+        right.push_back({ { b[10], b[11] }, Lang::Tr("MENU: WYBÓR I POWRÓT", "MENU: SELECT AND BACK") });
 
         const int rowsMax = (int)std::max(left.size(), right.size());
         const int step = rowsMax > 7 ? 21 : 25;
@@ -115,7 +116,7 @@ namespace ControlsScreen
 
         // Title, full size, underlined like the original page titles.
         Pixels title;
-        if (GameFont::RenderPixels("STEROWANIE", GameFont::Look::Normal, -2, title))
+        if (GameFont::RenderPixels(Lang::Tr("STEROWANIE", "CONTROLS"), GameFont::Look::Normal, -2, title))
         {
             GameFont::Paste(canvas, GameFont::WithShadow(title, 3, 3, 170), (kWidth - title.w) / 2, -GameFont::ExtraTop());
         }
