@@ -377,6 +377,25 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
         const int fade = std::min(32, srcW / 4);
         auto dstX = [&](int col) { return contentOffsetX + (int)(col * sx); };
 
+        // The widescreen artwork has the English level name in the middle,
+        // and long names reach under the faded edges (THE DARK WOODS...).
+        // Under the edges, show the artwork from just outside the 4:3 area,
+        // mirrored, so the fade goes into plain parchment.
+        {
+            const double bgScale = backgroundDst.h / (double)bgHeight;
+            const int L = dstX(0), R = dstX(srcW);
+            const int fw = dstX(fade) - L;
+            const int fwArt = std::max(1, (int)(fw / bgScale + 0.5));
+            const int artL = (int)((L - backgroundDst.x) / bgScale);
+            const int artR = (int)((R - backgroundDst.x) / bgScale);
+            SDL_Rect srcL = { std::max(0, artL - fwArt), 0, fwArt, bgHeight };
+            SDL_Rect srcR = { std::min(bgWidth - fwArt, artR), 0, fwArt, bgHeight };
+            SDL_Rect dstLeft = { L, backgroundDst.y, fw, backgroundDst.h };
+            SDL_Rect dstRight = { R - fw, backgroundDst.y, fw, backgroundDst.h };
+            SDL_RenderCopyEx(pRenderer, pBackground->GetTexture(), &srcL, &dstLeft, 0.0, NULL, SDL_FLIP_HORIZONTAL);
+            SDL_RenderCopyEx(pRenderer, pBackground->GetTexture(), &srcR, &dstRight, 0.0, NULL, SDL_FLIP_HORIZONTAL);
+        }
+
         SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
         SDL_Rect src = { fade, 0, srcW - 2 * fade, srcH };
         SDL_Rect dst = { dstX(fade), 0, dstX(srcW - fade) - dstX(fade), dstH };
