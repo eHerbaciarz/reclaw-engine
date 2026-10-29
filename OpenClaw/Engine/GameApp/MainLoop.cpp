@@ -208,8 +208,10 @@ int RunGameEngine(int argc, char** argv)
             "CLAW.REZ not found",
             "",
             "This port needs the data file from your own copy of",
-            "Claw (1997). Copy CLAW.REZ to:",
-            "    " + Platform::GameDir() + "CLAW.REZ",
+            "Claw (1997). The folders are ready - copy CLAW.REZ",
+            "(and CLAW.FEC for the movies) into one of them:",
+            "    " + Platform::GameDir() + "pl/   (Polish release)",
+            "    " + Platform::GameDir() + "en/   (English release)",
             "An unpacked \"Assets\" folder works too.",
             "",
             "Searched:"};

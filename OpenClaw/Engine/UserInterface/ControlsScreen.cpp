@@ -34,6 +34,10 @@ namespace
         { "switch",      { "b", "a", "y", "x", "l", "zl", "zr", "r", "plus", "minus", "a", "b" } },
         { "3ds",         { "b", "a", "y", "x", "l", "zl", "zr", "r", "start", "select", "a", "b" } },
         { "wiiu",        { "b", "a", "y", "x", "l", "zl", "zr", "r", "plus", "minus", "a", "b" } },
+#if defined(__vita__)
+        // PS Vita: L and R (no L1 / R1, no L2 / R2)
+        { "playstation", { "ps_x", "ps_o", "ps_sq", "ps_tri", "l", "l", "r", "r", "start", "select", "ps_x", "ps_o" } },
+#endif
         { "playstation", { "ps_x", "ps_o", "ps_sq", "ps_tri", "l1", "l2", "r2", "r1", "start", "select", "ps_x", "ps_o" } },
         { "xbox",        { "a", "b", "x", "y", "lb", "lt", "rt", "rb", "start", "back", "a", "b" } },
         { "pc",          { "spacja", "alt", "ctrl", "z", "shift", "f5", "f8", "f6", "esc", "tab", "enter", "esc" } },
@@ -73,7 +77,7 @@ namespace ControlsScreen
 
         std::string styleName = Platform::ControlsStyle();
         const Style* style = &kStyles[0];
-        for (const Style& s : kStyles) if (styleName == s.name) style = &s;
+        for (const Style& s : kStyles) if (styleName == s.name) { style = &s; break; }
         const char* const* b = style->b;
         const bool experimental = PortSettings::GetBool("experimental", false);
 

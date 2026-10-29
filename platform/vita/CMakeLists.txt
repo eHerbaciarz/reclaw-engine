@@ -7,9 +7,10 @@
 # are compiled from source with the game, like on 3DS / Wii U / Android.
 # CI: .github/workflows/ports.yml
 #
-# Install: reclaw.vpk with VitaShell; CLAW.REZ from your copy of the game goes to
-# ux0:data/reclaw/data/CLAW.REZ (config.xml, saves and reclaw.log go to
-# ux0:data/reclaw/save/).
+# Install: reclaw.vpk with VitaShell. The first start creates ux0:data/reclaw/
+# with data/pl/, data/en/, movies/, custom/, lang/, save/; CLAW.REZ (+ CLAW.FEC)
+# from your copy of the game goes to data/pl/ or data/en/ (config.xml, saves
+# and reclaw.log are in save/).
 
 cmake_minimum_required(VERSION 3.16)
 
