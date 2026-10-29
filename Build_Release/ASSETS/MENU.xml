@@ -120,7 +120,7 @@
         <!-- QUIT_BUTTON removed for WASM build - users can just close browser tab -->
     </MenuPage>
     
-    <!-- REPLAY MOVIES PAGE (original CD movies from CLAW.FEC; MOVIEn = movie n-1) -->
+    <!-- REPLAY MOVIES PAGE (original CD movies from CLAW.FEC; MOVIEn = movie n-1). Positions as in the original: title under the logo, items 25 px apart -->
     <MenuPage>
         <PageName>MenuPage_ReplayMovies</PageName>
         <KeyboardEvent>
@@ -135,7 +135,7 @@
             <Type>Text</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/033_TITLE.PCX</InactiveImage>
-            <Position x="320" y="39" align="center" />
+            <Position x="320" y="158" align="center" />
         </MenuItem>
         <MenuItem>
             <Name>MOVIE_TWO_BUTTON</Name>
@@ -144,7 +144,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/004_MOVIETWO.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/005_MOVIETWO.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/006_MOVIETWO.PCX</DisabledImage>
-            <Position x="320" y="89" align="center" />
+            <Position x="320" y="200" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -162,7 +162,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/007_MOVIETHREE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/008_MOVIETHREE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/009_MOVIETHREE.PCX</DisabledImage>
-            <Position x="320" y="120" align="center" />
+            <Position x="320" y="225" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -180,7 +180,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/010_MOVIEFOUR.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/011_MOVIEFOUR.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/012_MOVIEFOUR.PCX</DisabledImage>
-            <Position x="320" y="151" align="center" />
+            <Position x="320" y="250" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -198,7 +198,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/013_MOVIEFIVE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/014_MOVIEFIVE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/015_MOVIEFIVE.PCX</DisabledImage>
-            <Position x="320" y="182" align="center" />
+            <Position x="320" y="275" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -216,7 +216,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/016_MOVIESIX.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/017_MOVIESIX.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/018_MOVIESIX.PCX</DisabledImage>
-            <Position x="320" y="213" align="center" />
+            <Position x="320" y="300" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -234,7 +234,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/019_MOVIESEVEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/020_MOVIESEVEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/021_MOVIESEVEN.PCX</DisabledImage>
-            <Position x="320" y="244" align="center" />
+            <Position x="320" y="325" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -252,7 +252,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/022_MOVIEEIGHT.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/023_MOVIEEIGHT.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/024_MOVIEEIGHT.PCX</DisabledImage>
-            <Position x="320" y="275" align="center" />
+            <Position x="320" y="350" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -270,7 +270,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/025_MOVIENINE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/026_MOVIENINE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/027_MOVIENINE.PCX</DisabledImage>
-            <Position x="320" y="306" align="center" />
+            <Position x="320" y="375" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -288,7 +288,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/028_MOVIETEN.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/029_MOVIETEN.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/030_MOVIETEN.PCX</DisabledImage>
-            <Position x="320" y="337" align="center" />
+            <Position x="320" y="400" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -306,7 +306,7 @@
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/001_MOVIEONE.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/002_MOVIEONE.PCX</ActiveImage>
             <DisabledImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/003_MOVIEONE.PCX</DisabledImage>
-            <Position x="320" y="368" align="center" />
+            <Position x="320" y="425" align="center" />
             <StateCondition>
                 <ConditionForState>Inactive</ConditionForState>
                 <ConditionType>MovieUnlocked</ConditionType>
@@ -323,7 +323,7 @@
             <State>Active</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/031_BACK.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/REPLAYMOVIES/032_BACK.PCX</ActiveImage>
-            <Position x="320" y="399" align="center" />
+            <Position x="320" y="450" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
