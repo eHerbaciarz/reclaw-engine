@@ -2632,7 +2632,8 @@
             <Type>Text</Type>
             <State>Disabled</State>
             <DisabledImage>/CONTROLS/controls_{platform}_{lang}.png</DisabledImage>
-            <Position x="20" y="112" />
+            <GameFontControls />
+            <Position x="20" y="100" />
         </MenuItem>
         <MenuItem>
             <Name>BACK_BUTTON</Name>

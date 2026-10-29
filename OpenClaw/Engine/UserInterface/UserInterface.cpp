@@ -3,6 +3,7 @@
 #include <map>
 #include "../GameApp/GameLanguages.h"
 #include "GameFont.h"
+#include "ControlsScreen.h"
 #include "../Util/PortSettings.h"
 
 #include "../Graphics2D/Image.h"
@@ -2092,6 +2093,17 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
                     m_DrawOffsetY = -GameFont::ExtraTop();
                 }
             }
+        }
+    }
+
+    // <GameFontControls />: the controls screen in the game's menu letters.
+    if (pElem->FirstChildElement("GameFontControls"))
+    {
+        if (shared_ptr<Image> pImage = ControlsScreen::Build())
+        {
+            m_Images[MenuItemState_Disabled] = pImage;
+            m_Images[MenuItemState_Inactive] = pImage;
+            m_Images[MenuItemState_Active] = pImage;
         }
     }
 

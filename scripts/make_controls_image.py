@@ -19,7 +19,7 @@ BADGE_FONT = os.path.join(REPO, "Box2D/Data/DroidSans.ttf")
 OUT_DIR = os.path.join(REPO, "Build_Release/ASSETS/CONTROLS")
 
 S = 4                      # supersampling
-W, H = 600, 290
+W, H = 600, 330
 
 GOLD = (246, 205, 86, 255)
 CREAM = (250, 236, 200, 255)
@@ -40,19 +40,19 @@ BUTTONS = {
 TEXTS = {
     "pl": {
         "title": "Sterowanie",
-        "move": "ruch (gałka lub krzyżak)", "move_pc": "ruch (strzałki)",
-        "up": "patrz w górę, wspinaj się", "down": "kucnij, schodź w dół",
-        "jump": "skok", "sword": "cios mieczem", "fire": "strzał", "lift": "podnieś / rzuć beczkę",
-        "ammo": "zmiana broni", "save": "szybki zapis", "load": "szybkie wczytanie",
+        "left": "w lewo", "right": "w prawo",
+        "up": "wspinanie", "down": "kucanie i zejście",
+        "jump": "skok", "sword": "atak wręcz", "fire": "strzelanie", "lift": "podnoszenie i rzut",
+        "ammo": "zmień broń", "save": "szybki zapis", "load": "szybkie wczytanie",
         "rewind": "trzymaj: cofanie czasu", "pause": "pauza i menu", "map": "mapa poziomu",
-        "liftfar": "trzymaj: rzut dalej", "menu": "menu: wybór / powrót",
+        "liftfar": "trzymaj: daleki rzut", "menu": "menu: wybór i powrót",
         "SPACE": "SPACJA",
     },
     "en": {
         "title": "Controls",
-        "move": "move (stick or d-pad)", "move_pc": "move (arrow keys)",
-        "up": "look up, climb", "down": "duck, climb down",
-        "jump": "jump", "sword": "sword", "fire": "shoot", "lift": "lift / throw a keg",
+        "left": "left", "right": "right",
+        "up": "climb", "down": "duck, climb down",
+        "jump": "jump", "sword": "melee attack", "fire": "shoot", "lift": "lift, throw",
         "ammo": "change weapon", "save": "quick save", "load": "quick load",
         "rewind": "hold: rewind time", "pause": "pause and menu", "map": "level map",
         "liftfar": "hold: throw farther", "menu": "menu: select / back",
@@ -108,59 +108,71 @@ def badge(draw, x, cy, label, fnt):
     return w
 
 
-def column(draw, x0, y0, rows, label_w):
-    badge_font = font(13, BADGE_FONT)
-    small_badge = font(10, BADGE_FONT)
-    desc_font = font(14)
-    y = y0
-    step = 29 * S
-    for labels, desc in rows:
-        cy = y + step / 2
-        x = x0
-        for i, label in enumerate(labels):
-            if i:
-                x += 4 * S
-            fnt = small_badge if len(label) > 3 and label not in PS_COLORS else badge_font
-            x += badge(draw, x, cy, label, fnt)
-        asc, d = desc_font.getmetrics()
-        text_with_outline(draw, (x0 + label_w * S, cy - (asc + d) / 2), desc, desc_font, CREAM)
-        y += step
+# One row per action, like the original controls screen: buttons right-aligned
+# in the key column, the action on the right. Experimental actions (save
+# states, rewind) are left out of the pictures.
+ROW_STEP = 20
+KEY_RIGHT = 252          # right edge of the key column (picture coordinates)
+GAP = 14
 
 
-def render(style, lang):
-    t = TEXTS[lang]
+def rows_for(style, t):
     jump, fire, sword, lift, ammo, save, load, rewind, pause, mapb, ok, back = [
         t.get(b, b) if b == "SPACE" else b for b in BUTTONS[style]]
-    move = t["move_pc"] if style == "pc" else t["move"]
-    left = [
-        (["<", ">"], move),
+    return [
+        (["<"], t["left"]),
+        ([">"], t["right"]),
         (["^"], t["up"]),
         (["v"], t["down"]),
         ([jump], t["jump"]),
         ([sword], t["sword"]),
         ([fire], t["fire"]),
         ([lift], t["lift"]),
-    ]
-    right = [
+        ([lift], t["liftfar"]),
         ([ammo], t["ammo"]),
-        ([save], t["save"]),
-        ([load], t["load"]),
-        ([rewind], t["rewind"]),
         ([pause], t["pause"]),
         ([mapb], t["map"]),
-        ([lift], t["liftfar"]),
         ([ok, back], t["menu"]),
     ]
+
+
+def badges_width(draw, labels, fnt_big, fnt_small):
+    w = 0
+    for i, label in enumerate(labels):
+        if i:
+            w += 4 * S
+        shape = label in ("<", ">", "^", "v") or label in PS_COLORS
+        fnt = fnt_small if len(label) > 3 and label not in PS_COLORS else fnt_big
+        tw = 0 if shape else draw.textlength(label, font=fnt)
+        w += max(18 * S, tw + 10 * S)
+    return w
+
+
+def render(style, lang):
+    t = TEXTS[lang]
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    title_font = font(30)
-    tw = draw.textlength(t["title"], font=title_font)
-    text_with_outline(draw, ((W * S - tw) / 2, 0), t["title"], title_font, GOLD, outline=3)
+    title_font = font(26)
+    tw = draw.textlength(t["title"].upper(), font=title_font)
+    text_with_outline(draw, ((W * S - tw) / 2, 0), t["title"].upper(), title_font, GOLD, outline=3)
+    draw.rectangle(((W * S - tw) / 2, 36 * S, (W * S + tw) / 2, 38 * S), fill=GOLD)
 
-    wide = style in ("pc", "3ds", "playstation", "xbox")
-    top = 58 * S
-    column(draw, 0, top, left, 70 if wide else 56)
-    column(draw, 296 * S, top, right, 88 if style == "pc" else (74 if wide else 56))
+    badge_font = font(11, BADGE_FONT)
+    small_badge = font(9, BADGE_FONT)
+    desc_font = font(13)
+    y = 48 * S
+    step = ROW_STEP * S
+    for labels, desc in rows_for(style, t):
+        cy = y + step / 2
+        x = KEY_RIGHT * S - badges_width(draw, labels, badge_font, small_badge)
+        for i, label in enumerate(labels):
+            if i:
+                x += 4 * S
+            fnt = small_badge if len(label) > 3 and label not in PS_COLORS else badge_font
+            x += badge(draw, x, cy, label, fnt)
+        asc, d = desc_font.getmetrics()
+        text_with_outline(draw, ((KEY_RIGHT + GAP) * S, cy - (asc + d) / 2), desc.upper(), desc_font, GOLD)
+        y += step
 
     img = img.resize((W, H), Image.LANCZOS)
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -169,10 +181,38 @@ def render(style, lang):
     return path
 
 
+def badge_file(label):
+    return {"<": "left", ">": "right", "^": "up", "v": "down", "+": "plus", "-": "minus"}.get(label, label).lower()
+
+
+def render_badges():
+    """Single button badges for the in-game controls screen made of the
+    game's menu letters (GameFont): CONTROLS/BADGES/<name>.png, 18 px high."""
+    out = os.path.join(OUT_DIR, "BADGES")
+    os.makedirs(out, exist_ok=True)
+    labels = set(["<", ">", "^", "v"])
+    for style in BUTTONS:
+        for b in BUTTONS[style]:
+            labels.add(TEXTS["pl"].get(b, b) if b == "SPACE" else b)
+            labels.add(TEXTS["en"].get(b, b) if b == "SPACE" else b)
+    for label in sorted(labels):
+        probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
+        big, small = font(13, BADGE_FONT), font(10, BADGE_FONT)
+        w = int(badges_width(probe, [label], big, small) // S) + 4
+        img = Image.new("RGBA", (w * S, 24 * S), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        fnt = small if len(label) > 3 and label not in PS_COLORS else big
+        badge(draw, 2 * S, 12 * S, label, fnt)
+        img = img.resize((w * 18 // 24 + 1, 18), Image.LANCZOS)
+        img.save(os.path.join(out, badge_file(label) + ".png"))
+
+
 def main():
     for style in BUTTONS:
         for lang in TEXTS:
             print("wrote", render(style, lang))
+    render_badges()
+    print("wrote CONTROLS/BADGES/*.png")
 
 
 if __name__ == "__main__":

@@ -457,9 +457,9 @@ namespace GameFont
         return g_Ok;
     }
 
-    std::shared_ptr<Image> Render(const std::string& utf8, Look look, int underline)
+    bool RenderPixels(const std::string& utf8, Look look, int underline, Pixels& out)
     {
-        if (!Available()) return nullptr;
+        if (!Available()) return false;
 
         // Lines of glyph codes.
         std::vector<std::vector<uint32_t>> lines(1);
@@ -574,13 +574,28 @@ namespace GameFont
             px.swap(out);
         }
 
+        out.w = W;
+        out.h = H;
+        out.px.swap(px);
+        return true;
+    }
+
+    std::shared_ptr<Image> ToImage(Pixels& p)
+    {
         // RGBA bytes (R first) -> texture
-        SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(px.data(), W, H, 32, W * 4, SDL_PIXELFORMAT_ABGR8888);
+        SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(p.px.data(), p.w, p.h, 32, p.w * 4, SDL_PIXELFORMAT_ABGR8888);
         if (!surface) return nullptr;
         SDL_Texture* texture = SDL_CreateTextureFromSurface(g_pApp->GetRenderer(), surface);
         SDL_FreeSurface(surface);
         if (!texture) return nullptr;
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
         return std::shared_ptr<Image>(new Image(texture));
+    }
+
+    std::shared_ptr<Image> Render(const std::string& utf8, Look look, int underline)
+    {
+        Pixels p;
+        if (!RenderPixels(utf8, look, underline, p)) return nullptr;
+        return ToImage(p);
     }
 }

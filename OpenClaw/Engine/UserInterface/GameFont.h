@@ -11,8 +11,10 @@
 // Letters available: A-Z without H Q V X, Ą Ć Ę Ó Ś Ź Ż Ń, digits none,
 // ':' '.' and space. Lower case is drawn as upper case.
 
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 class Image;
 
@@ -35,4 +37,13 @@ namespace GameFont
     // underline: index of the letter to underline (-1 none, -2 the whole
     // text). Lines are separated by '|' and centred. nullptr when unavailable.
     std::shared_ptr<Image> Render(const std::string& utf8, Look look, int underline = 0);
+
+    // The same as pixels (RGBA, 0xAABBGGRR) for composing bigger pictures.
+    struct Pixels
+    {
+        int w = 0, h = 0;
+        std::vector<uint32_t> px;
+    };
+    bool RenderPixels(const std::string& utf8, Look look, int underline, Pixels& out);
+    std::shared_ptr<Image> ToImage(Pixels& pixels);
 }
