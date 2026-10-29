@@ -1,4 +1,6 @@
 #include "UserInterface.h"
+#include <algorithm>
+#include <map>
 #include "../GameApp/GameLanguages.h"
 #include "GameFont.h"
 
@@ -1331,6 +1333,44 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
         m_MenuItems.push_back(pItem);
     }
 
+    // <AutoLayout top="210" step="35" bottom="400" />: the buttons of the page
+    // (items with <NoAutoLayout /> excepted) are put in rows from `top` down,
+    // `step` apart, keeping their order. Items that shared a row (on / off
+    // pairs) stay together; rows whose items are all hidden from the start
+    // (other platforms) are left out. With too many rows the step shrinks so
+    // that the last one is at most at `bottom`. Adding an item to such a page
+    // needs no other position changes.
+    if (TiXmlElement* pLayout = pElem->FirstChildElement("AutoLayout"))
+    {
+        int top = 210, step = 35, bottom = 400;
+        pLayout->QueryIntAttribute("top", &top);
+        pLayout->QueryIntAttribute("step", &step);
+        pLayout->QueryIntAttribute("bottom", &bottom);
+        std::vector<double> rows;
+        std::map<double, bool> rowShown;
+        for (auto& pItem : m_MenuItems)
+        {
+            if (!pItem->IsButton() || !pItem->TakesPartInLayout()) continue;
+            double y = pItem->GetLayoutY();
+            if (std::find(rows.begin(), rows.end(), y) == rows.end()) rows.push_back(y);
+            rowShown[y] = rowShown[y] || pItem->VIsVisible();
+        }
+        rows.erase(std::remove_if(rows.begin(), rows.end(), [&](double y) { return !rowShown[y]; }), rows.end());
+        std::sort(rows.begin(), rows.end());
+        if (rows.size() > 1 && top + step * (int)(rows.size() - 1) > bottom)
+        {
+            step = std::max(20, (bottom - top) / (int)(rows.size() - 1));
+        }
+        std::map<double, double> newY;
+        for (size_t i = 0; i < rows.size(); ++i) newY[rows[i]] = top + step * (double)i;
+        for (auto& pItem : m_MenuItems)
+        {
+            if (!pItem->IsButton() || !pItem->TakesPartInLayout()) continue;
+            auto it = newY.find(pItem->GetLayoutY());
+            if (it != newY.end()) pItem->SetLayoutY(it->second);
+        }
+    }
+
     // Load coin animation frames (/STATES/MENU/IMAGES/COINS/FRAME001.PID .. FRAME009.PID)
     // The coin PIDs require the palette embedded in MENU.PCX (the menu background image).
     // Level palettes produce wrong colors — the menu state uses its own distinct palette.
@@ -1978,6 +2018,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
     m_Type = StringToMenuItemType(menuItemTypeStr);
 
     ParseValueFromXmlElem(&m_bVisible, pElem->FirstChildElement("IsVisible"));
+    if (pElem->FirstChildElement("NoAutoLayout")) m_bAutoLayout = false;
 
     if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
     {

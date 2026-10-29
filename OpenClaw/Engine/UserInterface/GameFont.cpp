@@ -53,7 +53,9 @@ namespace
         { ':', 10, 151, 158 },
     };
 
-    const int kAbove = 32;          // canvas rows above the baseline
+    // The baseline sits on row 27 of a text picture, like in the original
+    // 35-pixel menu pictures, so new items line up with the original ones.
+    const int kAbove = 27;          // canvas rows above the baseline
     const int kBelow = 9;           // and below (descenders, underline)
     const int kSpace = 10;          // width of a space
     const int kLineGap = 4;         // between lines
@@ -185,22 +187,92 @@ namespace
         return out;
     }
 
-    // Paints `mark` (its own rows) over `base`, centred horizontally plus dx,
-    // moved by dy rows.
-    Glyph Combine(const Glyph& base, const Glyph& mark, int dx, int dy)
+    // Paints `mark` over `base` with its left edge at column x, moved by dy rows.
+    Glyph Combine(const Glyph& base, const Glyph& mark, int x0, int dy)
     {
         Glyph out = base;
         const int H = kAbove + kBelow;
-        int ox = (base.w - mark.w) / 2 + dx;
         for (int y = 0; y < H; ++y)
             for (int x = 0; x < mark.w; ++x)
             {
                 uint32_t c = mark.px[(size_t)y * mark.w + x];
-                int tx = x + ox, ty = y + dy;
+                int tx = x + x0, ty = y + dy;
                 if ((c >> 24) == 0 || tx < 0 || tx >= out.w || ty < 0 || ty >= H) continue;
                 out.px[(size_t)ty * out.w + tx] = c;
             }
         return out;
+    }
+
+    int g_LastCropX = 0;    // left column the last Crop() removed
+
+    // Only the columns that hold pixels (rows unchanged).
+    Glyph Crop(const Glyph& g)
+    {
+        const int H = kAbove + kBelow;
+        int x0 = g.w, x1 = -1;
+        for (int y = 0; y < H; ++y)
+            for (int x = 0; x < g.w; ++x)
+                if (g.px[(size_t)y * g.w + x] >> 24) { x0 = std::min(x0, x); x1 = std::max(x1, x); }
+        Glyph out;
+        g_LastCropX = x0;
+        if (x1 < x0) return out;
+        out.w = x1 - x0 + 1;
+        out.px.assign((size_t)out.w * H, 0);
+        for (int y = 0; y < H; ++y)
+            for (int x = x0; x <= x1; ++x) out.px[(size_t)y * out.w + x - x0] = g.px[(size_t)y * g.w + x];
+        return out;
+    }
+
+    bool InkAt(const Glyph& g, int x, int y)
+    {
+        return x >= 0 && y >= 0 && x < g.w && y < kAbove + kBelow && (g.px[(size_t)y * g.w + x] >> 24) != 0;
+    }
+
+    int LeftEdge(const Glyph& g)
+    {
+        // first column with a long run of pixels (the stem / the bowl)
+        const int H = kAbove + kBelow;
+        for (int x = 0; x < g.w; ++x)
+        {
+            int n = 0;
+            for (int y = 0; y < H; ++y) n += InkAt(g, x, y);
+            if (n >= 8) return x;
+        }
+        return 0;
+    }
+
+    // Pixels of `marked` (rows y0..y1) that `plain`, lined up by the left
+    // edge, does not have nearby: the extra mark of a Polish letter.
+    Glyph DiffMark(const Glyph& marked, const Glyph& plain, int y0, int y1)
+    {
+        Glyph out = marked;
+        const int H = kAbove + kBelow;
+        int dx = LeftEdge(plain) - LeftEdge(marked);
+        for (int y = 0; y < H; ++y)
+            for (int x = 0; x < marked.w; ++x)
+            {
+                bool keep = y >= y0 && y <= y1 && InkAt(marked, x, y);
+                if (keep)
+                {
+                    for (int oy = -1; oy <= 1 && keep; ++oy)
+                        for (int ox = -1; ox <= 1 && keep; ++ox)
+                            if (InkAt(plain, x + dx + ox, y + oy)) keep = false;
+                }
+                if (!keep) out.px[(size_t)y * marked.w + x] = 0;
+            }
+        // drop stray single pixels
+        Glyph clean = out;
+        for (int y = 0; y < H; ++y)
+            for (int x = 0; x < out.w; ++x)
+            {
+                if (!InkAt(out, x, y)) continue;
+                int n = 0;
+                for (int oy = -1; oy <= 1; ++oy)
+                    for (int ox = -1; ox <= 1; ++ox)
+                        if ((ox || oy) && InkAt(out, x + ox, y + oy)) n++;
+                if (n < 2) clean.px[(size_t)y * out.w + x] = 0;
+            }
+        return clean;
     }
 
     int TopRow(const Glyph& g)
@@ -237,33 +309,39 @@ namespace
             g_Glyphs[r.code] = Cut(g_Pics[r.src], r.x0, r.x1, below);
         }
 
-        // Marks for the letters the menus do not have.
+        // Marks for the letters the menus do not have: what Ę has more than E
+        // (the hook), what Ś has more than S (the accent), the colon's dots.
+        Glyph hook = Crop(DiffMark(g_Glyphs[0x0118], g_Glyphs['E'], kAbove - 8, kAbove + kBelow - 1));
+        const int hookX = g_LastCropX;
+        Glyph acute = Crop(DiffMark(g_Glyphs[0x015A], g_Glyphs['S'], 0, TopRow(g_Glyphs['S']) + 1));
+        LOG_WARNING("GameFont: hook " + ToStr(hook.w) + " px, accent " + ToStr(acute.w) + " px");
+        if (hook.w > 0)
+        {
+            // Ą: the hook under the right foot of A, as far right as on Ę
+            const Glyph& e = g_Glyphs[0x0118];
+            int fromRight = e.w - (hookX + hook.w);
+            g_Glyphs[0x0104] = Combine(g_Glyphs['A'], hook, g_Glyphs['A'].w - hook.w - std::max(0, fromRight - 1), 0);
+        }
+        if (acute.w > 0)
+        {
+            g_Glyphs[0x0106] = Combine(g_Glyphs['C'], acute, (g_Glyphs['C'].w - acute.w) / 2 + 2, 0);
+            g_Glyphs[0x0143] = Combine(g_Glyphs['N'], acute, (g_Glyphs['N'].w - acute.w) / 2 + 1, 0);
+        }
         const Glyph& colon = g_Glyphs[':'];
         auto colonParts = RowParts(colon);
         if (colonParts.size() >= 2)
         {
-            Glyph dotTop = Rows(colon, colonParts[0].first, colonParts[0].second);
-            Glyph dotLow = Rows(colon, colonParts.back().first, colonParts.back().second);
-            g_Glyphs['.'] = dotLow;
-            // Ż: Z with a dot above it (the dot moved up to above the capitals)
+            Glyph dotTop = Crop(Rows(colon, colonParts[0].first, colonParts[0].second));
+            Glyph dotLow = Crop(Rows(colon, colonParts.back().first, colonParts.back().second));
+            Glyph period;
+            period.w = dotLow.w + 2;
+            period.px.assign((size_t)period.w * (kAbove + kBelow), 0);
+            g_Glyphs['.'] = Combine(period, dotLow, 1, 0);
+            // Ż: the dot moved up to just above the capitals
             int capTop = TopRow(g_Glyphs['Z']);
-            int dy = (capTop - 3) - colonParts[0].second;
-            g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dotTop, 0, dy);
+            int dy = (capTop - 2) - colonParts[0].second;
+            g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dotTop, (g_Glyphs['Z'].w - dotTop.w) / 2, dy);
         }
-        // Ć, Ń: the accent of Ś
-        const Glyph& s = g_Glyphs[0x015A];
-        auto sParts = RowParts(s);
-        if (sParts.size() >= 2)
-        {
-            Glyph acute = Rows(s, sParts[0].first, sParts[0].second);
-            g_Glyphs[0x0106] = Combine(g_Glyphs['C'], acute, 0, 0);
-            g_Glyphs[0x0143] = Combine(g_Glyphs['N'], acute, 0, 0);
-            if (!g_Glyphs.count(0x0179)) g_Glyphs[0x0179] = Combine(g_Glyphs['Z'], acute, 0, 0);
-        }
-        // Ą: the hook of Ę under A (rows below the baseline)
-        const Glyph& e = g_Glyphs[0x0118];
-        Glyph hook = Rows(e, kAbove + 1, kAbove + kBelow - 1);
-        g_Glyphs[0x0104] = Combine(g_Glyphs['A'], hook, (g_Glyphs['A'].w - e.w) / 2 + 2, 0);
 
         // Underline: one column from the middle of the original one.
         const Pic& u = g_Pics[kUnderlineSource];
@@ -366,14 +444,14 @@ namespace GameFont
         for (auto& l : lines) textW = std::max(textW, lineWidth(l));
         const int GH = kAbove + kBelow;
         const int W = textW + 2 * kPad;
-        const int H = (int)lines.size() * GH + ((int)lines.size() - 1) * kLineGap + 2 * kPad;
+        const int H = (int)lines.size() * GH + ((int)lines.size() - 1) * kLineGap + kPad;
         std::vector<uint32_t> px((size_t)W * H, 0);
 
         int letterIndex = 0;
         for (size_t li = 0; li < lines.size(); ++li)
         {
             int x = kPad + (textW - lineWidth(lines[li])) / 2;
-            int top = kPad + (int)li * (GH + kLineGap);
+            int top = (int)li * (GH + kLineGap);
             int lineStart = x;
             for (uint32_t cp : lines[li])
             {

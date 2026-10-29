@@ -353,7 +353,14 @@ public:
     void ReEvaluateStateCondition();
     void ReEvaluateVisibilityCondition();
 
+    // <AutoLayout> of the page: buttons are put in rows one under another.
+    bool IsButton() const { return m_Type == MenuItemType_Button; }
+    bool TakesPartInLayout() const { return m_bAutoLayout; }
+    double GetLayoutY() const { return m_DefaultPosition.y; }
+    void SetLayoutY(double y) { m_DefaultPosition.y = y; m_Position.y = y; }
+
 private:
+    bool m_bAutoLayout = true;
     std::string m_Name;
     MenuItemState m_State;
     Point m_DefaultPosition;
