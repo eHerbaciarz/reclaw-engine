@@ -611,7 +611,7 @@ static void RenderVersion(SDL_Renderer* pRenderer)
 {
     static SDL_Texture* s_pText = nullptr;
     static int s_W = 0, s_H = 0, s_Px = 0;
-    int px = std::max(8, (int)(13 * g_MenuScale.y));
+    int px = std::max(10, (int)(16 * g_MenuScale.y));
     if (!s_pText || s_Px != px)
     {
         if (s_pText) { SDL_DestroyTexture(s_pText); s_pText = nullptr; }
@@ -619,6 +619,8 @@ static void RenderVersion(SDL_Renderer* pRenderer)
         if (!TTF_WasInit() && TTF_Init() != 0) return;
         TTF_Font* pFont = TTF_OpenFont(Platform::BundlePath("subtitles.ttf").c_str(), px);
         if (!pFont) return;
+        // Thick letters like the original's "1.4.5.4".
+        TTF_SetFontStyle(pFont, TTF_STYLE_BOLD);
         std::string text = std::string(RECLAW_VERSION " ") + Lang::Tr(RECLAW_STAGE_PL, RECLAW_STAGE_EN);
         SDL_Surface* pWhite = TTF_RenderUTF8_Blended(pFont, text.c_str(), SDL_Color{ 255, 255, 255, 255 });
         SDL_Surface* pShadow = TTF_RenderUTF8_Blended(pFont, text.c_str(), SDL_Color{ 0, 0, 0, 160 });
@@ -630,7 +632,7 @@ static void RenderVersion(SDL_Renderer* pRenderer)
             {
                 SDL_SetSurfaceBlendMode(pShadow, SDL_BLENDMODE_BLEND);
                 SDL_SetSurfaceBlendMode(pWhite, SDL_BLENDMODE_BLEND);
-                SDL_Rect sh = { 1, 1, pShadow->w, pShadow->h };
+                SDL_Rect sh = { 1, 1, pShadow->w, pShadow->h };  // dark edge below-right
                 SDL_BlitSurface(pShadow, NULL, pBoth, &sh);
                 SDL_BlitSurface(pWhite, NULL, pBoth, NULL);
                 s_pText = SDL_CreateTextureFromSurface(pRenderer, pBoth);
