@@ -107,3 +107,4 @@ CLAUDE.local.md
 node_modules/
 dist/
 platform/switch/reclaw.nro
+build-vita/
