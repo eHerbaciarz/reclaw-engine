@@ -322,6 +322,10 @@ namespace
             int fromRight = e.w - (hookX + hook.w);
             g_Glyphs[0x0104] = Combine(g_Glyphs['A'], hook, g_Glyphs['A'].w - hook.w - std::max(0, fromRight - 1), 0);
         }
+        // Ż: the release draws its Ź (DŹWIĘK) with a dot over a lowered Z,
+        // which is exactly how Ż should look; a dot added above the capitals
+        // would not fit the picture.
+        g_Glyphs[0x017B] = g_Glyphs[0x0179];
         if (acute.w > 0)
         {
             g_Glyphs[0x0106] = Combine(g_Glyphs['C'], acute, (g_Glyphs['C'].w - acute.w) / 2 + 2, 0);
@@ -340,7 +344,8 @@ namespace
             // Ż: the dot moved up to just above the capitals
             int capTop = TopRow(g_Glyphs['Z']);
             int dy = (capTop - 2) - colonParts[0].second;
-            g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dotTop, (g_Glyphs['Z'].w - dotTop.w) / 2, dy);
+            (void)dy;
+            (void)dotTop;
         }
 
         // Underline: one column from the middle of the original one.
