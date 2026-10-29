@@ -267,7 +267,7 @@ void BaseGameLogic::VPlayCutscene(const std::string& videoSource)
 
 // Trace builds: time spent in game processes [0], physics [1], game views
 // and actors [2] (reported with the fps in BaseGameApp).
-Uint64 g_PerfLogicTicks[3] = { 0, 0, 0 };
+Uint64 g_PerfLogicTicks[4] = { 0, 0, 0, 0 };
 
 // The level's own 4:3 loading screen from CLAW.REZ (localized: Polish text in
 // the Polish release), drawn over the middle of the widescreen artwork from
@@ -1267,6 +1267,11 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
     }
 
 #ifdef OPENCLAW_STARTUP_TRACE
+    extern bool g_PerfSampleStep;
+    extern int g_PerfSampledSteps;
+    static int s_StepNo = 0;
+    g_PerfSampleStep = (m_GameState == GameState_IngameRunning) && (++s_StepNo % 8 == 0);
+    if (g_PerfSampleStep) g_PerfSampledSteps++;
     Uint64 perfViews = SDL_GetPerformanceCounter();
     struct ViewsTimer { Uint64 t0; ~ViewsTimer() { g_PerfLogicTicks[2] += SDL_GetPerformanceCounter() - t0; } } viewsTimer{ perfViews };
 #endif
@@ -1275,6 +1280,9 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
     {
         pGameView->VOnUpdate(msDiff);
     }
+#ifdef OPENCLAW_STARTUP_TRACE
+    g_PerfLogicTicks[3] += SDL_GetPerformanceCounter() - perfViews;   // views alone
+#endif
 
     // Limit update to max 100 times / second
     static int msAccumulation = 0;

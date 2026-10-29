@@ -123,12 +123,32 @@ void Actor::Destroy()
 
 #ifdef OPENCLAW_STARTUP_TRACE
 int g_PerfActorUpdates = 0;
+// Trace builds: every 8th logic step, time per component type (keyed by its
+// name pointer - no allocations) and the slowest single actors.
+bool g_PerfSampleStep = false;
+int g_PerfSampledSteps = 0;
+std::map<const char*, Uint64> g_PerfComponentTicks;
+std::map<std::string, Uint64> g_PerfActorTicks;
 #endif
 
 void Actor::Update(uint32 msDiff)
 {
 #ifdef OPENCLAW_STARTUP_TRACE
     g_PerfActorUpdates++;
+    if (g_PerfSampleStep)
+    {
+        Uint64 a0 = SDL_GetPerformanceCounter();
+        for (auto &component : _components)
+        {
+            Uint64 t0 = SDL_GetPerformanceCounter();
+            component.second->VUpdate(msDiff);
+            g_PerfComponentTicks[component.second->VGetName()] += SDL_GetPerformanceCounter() - t0;
+        }
+        Uint64 spent = SDL_GetPerformanceCounter() - a0;
+        if (spent * 2000 > SDL_GetPerformanceFrequency())   // over 0.5 ms
+            g_PerfActorTicks[GetName()] += spent;
+        return;
+    }
 #endif
     for (auto &component : _components)
     {
