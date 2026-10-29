@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "LocalAmbientSoundComponent.h"
 #include "../../GameApp/BaseGameApp.h"
 #include "../../GameApp/BaseGameLogic.h"
@@ -124,6 +125,7 @@ void LocalAmbientSoundComponent::PlayAmbientSound()
     Mix_VolumeChunk(pSound.get(), chunkVolume);
 
     m_SoundChannel = Mix_PlayChannel(m_SoundChannel, pSound.get(), -1);
+    m_LastDistance = -1;
 
     // Set positional properties
     UpdateAmbientSound();
@@ -160,6 +162,13 @@ void LocalAmbientSoundComponent::UpdateAmbientSound()
 
     int sdlDistance = min(distanceRatio * 255, (double)255);
 
+    // Mix_SetDistance waits for the audio thread (it locks the mixer): called
+    // every step it cost the PS Vita up to 25 ms per step. Only real changes.
+    if (std::abs(sdlDistance - m_LastDistance) < 4 && m_LastDistance >= 0)
+    {
+        return;
+    }
+    m_LastDistance = sdlDistance;
     Mix_SetDistance(m_SoundChannel, sdlDistance);
 
     /*LOG("Distance ratio: " + ToStr(distanceRatio));

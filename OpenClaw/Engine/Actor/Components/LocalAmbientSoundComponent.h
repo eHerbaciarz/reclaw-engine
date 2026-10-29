@@ -37,6 +37,7 @@ private:
     Actor* m_pActorInArea;
     double m_DiagonalLength;
     int m_SoundChannel;
+    int m_LastDistance = -1;   // last value given to Mix_SetDistance
 };
 
 #endif
