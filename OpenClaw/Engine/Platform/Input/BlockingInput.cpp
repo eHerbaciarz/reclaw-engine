@@ -13,6 +13,23 @@
 
 namespace
 {
+    // Screens shown before the game opens its controllers (the "CLAW.REZ
+    // not found" screen) would get no button events: open them here.
+    void EnsureControllers()
+    {
+        if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0)
+        {
+            if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0) return;
+        }
+        for (int i = 0; i < SDL_NumJoysticks(); ++i)
+        {
+            if (!SDL_IsGameController(i)) continue;
+            SDL_JoystickID id = SDL_JoystickGetDeviceInstanceID(i);
+            if (SDL_GameControllerFromInstanceID(id)) continue;   // already open
+            SDL_GameControllerOpen(i);
+        }
+    }
+
 #ifdef __SWITCH__
     PadState g_Pad;
     bool g_PadReady = false;
@@ -45,6 +62,7 @@ namespace BlockingInput
         if (down & HidNpadButton_StickLUp) result |= Up;
         if (down & HidNpadButton_StickLDown) result |= Down;
 #endif
+        EnsureControllers();
         SDL_PumpEvents();
         SDL_Event ev[16];
         int n = SDL_PeepEvents(ev, 16, SDL_GETEVENT, SDL_KEYDOWN, SDL_KEYDOWN);
