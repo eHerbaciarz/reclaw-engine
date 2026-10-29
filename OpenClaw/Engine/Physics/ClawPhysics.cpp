@@ -397,7 +397,13 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
 {
     //PROFILE_CPU("ClawPhysics::VOnUpdate");
 
+#if defined(__vita__) || defined(__3DS__)
+    // Handhelds: Box2D's recommended solver iterations (8 / 3) instead of 10 / 8;
+    // the bodies here are simple (boxes on tiles), the difference is not visible.
+    m_pWorld->Step(msDiff / 1000.0f, 8, 3);
+#else
     m_pWorld->Step(msDiff / 1000.0f, 10, 8);
+#endif
 
     ProcessPendingChanges();
 }

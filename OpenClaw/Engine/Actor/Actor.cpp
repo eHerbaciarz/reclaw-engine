@@ -1,3 +1,6 @@
+#include <map>
+#include <string>
+#include <SDL2/SDL.h>
 #include <tinyxml.h>
 
 #include "../SharedDefines.h"
@@ -117,12 +120,28 @@ void Actor::Destroy()
     _components.clear();
 }
 
+#ifdef OPENCLAW_STARTUP_TRACE
+// Trace builds: time per component type (reported with the fps).
+std::map<std::string, Uint64> g_PerfComponentTicks;
+int g_PerfActorUpdates = 0;
+#endif
+
 void Actor::Update(uint32 msDiff)
 {
+#ifdef OPENCLAW_STARTUP_TRACE
+    g_PerfActorUpdates++;
+    for (auto &component : _components)
+    {
+        Uint64 t0 = SDL_GetPerformanceCounter();
+        component.second->VUpdate(msDiff);
+        g_PerfComponentTicks[component.second->VGetName()] += SDL_GetPerformanceCounter() - t0;
+    }
+#else
     for (auto &component : _components)
     {
         component.second->VUpdate(msDiff);
     }
+#endif
 }
 
 std::string Actor::ToXML()

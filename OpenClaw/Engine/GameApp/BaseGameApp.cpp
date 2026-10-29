@@ -1,3 +1,5 @@
+#include <map>
+#include <algorithm>
 #include "../Audio/Audio.h"
 #include "../UserInterface/Lang.h"
 #include "../Platform/Platform.h"
@@ -593,7 +595,7 @@ void BaseGameApp::StepLoop() {
         double secs = (double)(perfT2 - s_perfStart) / perfFreq;
         if (secs >= 5.0) {
           extern Uint64 g_PerfLogicTicks[3];
-          char line[256];
+          char line[700];
           const double perUpdate = 1000.0 / perfFreq / std::max(1, s_perfUpdates);
           snprintf(line, sizeof(line), "perf: %.1f fps, logic %.1f ms/frame (%.2f updates), render %.1f ms, worst %.0f ms;"
                    " per update: processes %.1f, physics %.1f, views+actors %.1f ms",
@@ -601,6 +603,23 @@ void BaseGameApp::StepLoop() {
                    (double)s_perfUpdates / s_perfFrames, (double)s_renderTicks * 1000.0 / perfFreq / s_perfFrames, s_worstMs,
                    g_PerfLogicTicks[0] * perUpdate, g_PerfLogicTicks[1] * perUpdate, g_PerfLogicTicks[2] * perUpdate);
           g_PerfLogicTicks[0] = g_PerfLogicTicks[1] = g_PerfLogicTicks[2] = 0;
+          STARTUP_TRACE(line);
+          // the slowest component types (ms per logic step) and actor updates per step
+          extern std::map<std::string, Uint64> g_PerfComponentTicks;
+          extern int g_PerfActorUpdates;
+          std::vector<std::pair<Uint64, std::string>> comps;
+          for (auto& c : g_PerfComponentTicks) comps.push_back({ c.second, c.first });
+          std::sort(comps.rbegin(), comps.rend());
+          std::string top = "perf: " + std::to_string(g_PerfActorUpdates / std::max(1, s_perfUpdates)) + " actor updates/step;";
+          for (size_t i = 0; i < comps.size() && i < 6; ++i)
+          {
+            char part[96];
+            snprintf(part, sizeof(part), " %s %.2f", comps[i].second.c_str(), comps[i].first * perUpdate);
+            top += part;
+          }
+          snprintf(line, sizeof(line), "%s", top.c_str());
+          g_PerfComponentTicks.clear();
+          g_PerfActorUpdates = 0;
           STARTUP_TRACE(line);
           s_perfStart = perfT2; s_logicTicks = s_renderTicks = 0; s_perfFrames = s_perfUpdates = 0; s_worstMs = 0;
         }
