@@ -843,11 +843,17 @@ static smk smk_open_generic(const unsigned char m, union smk_read_t fp, unsigned
 			use fseek to verify that the file is "complete" */
 		smk_malloc(s->source.file.chunk_offset, (s->f + s->ring_frame) * sizeof(unsigned long));
 
-		for (temp_u = 0; temp_u < (s->f + s->ring_frame); temp_u ++) {
-			s->source.file.chunk_offset[temp_u] = ftell(fp.file);
-
-			if (fseek(fp.file, s->chunk_size[temp_u], SEEK_CUR)) {
-				fprintf(stderr, "libsmacker::smk_open - ERROR: fseek to frame %lu not OK.\n", temp_u);
+		/* ReClaw: the offsets are added up instead of one fseek per frame (on
+			the PS Vita every fseek refilled the stdio buffer: minutes per
+			movie); one seek at the end still checks the file is complete. */
+		{
+			unsigned long offset = (unsigned long)ftell(fp.file);
+			for (temp_u = 0; temp_u < (s->f + s->ring_frame); temp_u ++) {
+				s->source.file.chunk_offset[temp_u] = offset;
+				offset += s->chunk_size[temp_u];
+			}
+			if (fseek(fp.file, (long)offset, SEEK_SET)) {
+				fprintf(stderr, "libsmacker::smk_open - ERROR: fseek past the last frame not OK.\n");
 				perror("\tError reported was");
 				goto error;
 			}
@@ -1613,7 +1619,10 @@ static char smk_render(smk s)
 
 	if (s->mode == SMK_MODE_DISK) {
 		/* Skip to frame in file */
-		if (fseek(s->source.file.fp, s->source.file.chunk_offset[s->cur_frame], SEEK_SET)) {
+		/* ReClaw: frames follow each other; seek only when needed (a seek
+			drops the stdio buffer). */
+		if ((unsigned long)ftell(s->source.file.fp) != s->source.file.chunk_offset[s->cur_frame] &&
+			fseek(s->source.file.fp, s->source.file.chunk_offset[s->cur_frame], SEEK_SET)) {
 			fprintf(stderr, "libsmacker::smk_render(s) - ERROR: fseek to frame %lu (offset %lu) failed.\n", s->cur_frame, s->source.file.chunk_offset[s->cur_frame]);
 			perror("\tError reported was");
 			goto error;

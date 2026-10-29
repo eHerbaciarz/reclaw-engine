@@ -23,8 +23,8 @@ using namespace std;
 // CLAW.REZ is read in many small pieces (its directory, then one picture or
 // sound at a time). std::ifstream drops its small buffer on every seek, so
 // each piece became a separate read from the card - very slow on the PS Vita
-// and the 3DS. RezStream keeps a large block of the file in memory and serves
-// nearby reads from it; big reads go straight to the file.
+// and the 3DS. RezStream keeps blocks of the file in memory and serves
+// nearby reads from them; big reads go straight to the file.
 class RezStream
 {
 public:
@@ -37,7 +37,7 @@ public:
             fseek(m_File, 0, SEEK_END);
             m_Size = ftell(m_File);
             fseek(m_File, 0, SEEK_SET);
-            m_Block.resize(kBlock);
+            m_Blocks.resize(kBlocks);
         }
     }
     ~RezStream() { if (m_File) fclose(m_File); }
@@ -60,7 +60,7 @@ public:
         if (!m_File || n == 0) return 0;
         if (m_Pos + (long long)n > m_Size) n = m_Pos < m_Size ? (size_t)(m_Size - m_Pos) : 0;
         size_t done = 0;
-        if (n >= kBlock / 2)
+        if (n >= kBlock)
         {
             // big piece (a picture, a sound): straight from the file
             fseek(m_File, (long)m_Pos, SEEK_SET);
@@ -70,16 +70,13 @@ public:
         }
         while (done < n)
         {
-            if (m_Pos < m_BlockStart || m_Pos >= m_BlockStart + (long long)m_BlockLen)
-            {
-                m_BlockStart = m_Pos;
-                fseek(m_File, (long)m_BlockStart, SEEK_SET);
-                m_BlockLen = fread(m_Block.data(), 1, kBlock, m_File);
-                if (m_BlockLen == 0) break;
-            }
-            size_t at = (size_t)(m_Pos - m_BlockStart);
-            size_t take = std::min(n - done, m_BlockLen - at);
-            memcpy(dest + done, m_Block.data() + at, take);
+            long long index = m_Pos / kBlock;
+            const Block* blk = Get(index);
+            if (!blk || blk->len == 0) break;
+            size_t at = (size_t)(m_Pos - index * (long long)kBlock);
+            if (at >= blk->len) break;
+            size_t take = std::min(n - done, blk->len - at);
+            memcpy(dest + done, blk->data.data() + at, take);
             done += take;
             m_Pos += take;
         }
@@ -87,11 +84,32 @@ public:
     }
 
 private:
-    static const size_t kBlock = 256 * 1024;
+    // The REZ directory jumps between its folders, so several blocks are kept
+    // (least recently used one is replaced).
+    static const size_t kBlock = 32 * 1024;
+    static const size_t kBlocks = 64;
+    struct Block { long long index = -1; size_t len = 0; unsigned long long used = 0; std::vector<char> data; };
+
+    const Block* Get(long long index)
+    {
+        Block* victim = &m_Blocks[0];
+        for (Block& b : m_Blocks)
+        {
+            if (b.index == index) { b.used = ++m_Clock; return &b; }
+            if (b.used < victim->used) victim = &b;
+        }
+        if (victim->data.empty()) victim->data.resize(kBlock);
+        fseek(m_File, (long)(index * (long long)kBlock), SEEK_SET);
+        victim->len = fread(victim->data.data(), 1, kBlock, m_File);
+        victim->index = index;
+        victim->used = ++m_Clock;
+        return victim;
+    }
+
     FILE* m_File = NULL;
-    long long m_Size = 0, m_Pos = 0, m_BlockStart = 0;
-    size_t m_BlockLen = 0;
-    std::vector<char> m_Block;
+    long long m_Size = 0, m_Pos = 0;
+    unsigned long long m_Clock = 0;
+    std::vector<Block> m_Blocks;
 };
 
 struct RezArchiveFileEntry

@@ -34,6 +34,7 @@ SYS_PROCESS_PARAM(1001, 0x100000);
 #endif
 
 #if defined(__vita__)
+#include <psp2/power.h>
 // The default newlib heap of a Vita application is small; the resource cache,
 // the level and the textures need much more.
 extern "C" {
@@ -181,6 +182,14 @@ namespace Platform
 
     void Init(int argc, char** argv)
     {
+#if defined(__vita__)
+        // Applications start at 333 MHz; the game needs the full speed of the
+        // CPU (444 MHz) and the faster bus and GPU clocks, like other ports.
+        scePowerSetArmClockFrequency(444);
+        scePowerSetBusClockFrequency(222);
+        scePowerSetGpuClockFrequency(222);
+        scePowerSetGpuXbarClockFrequency(166);
+#endif
         // Folder of the binary (desktop builds look for their files there).
         if (char* base = SDL_GetBasePath())
         {
