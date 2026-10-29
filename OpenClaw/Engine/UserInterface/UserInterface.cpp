@@ -3,6 +3,7 @@
 #include <map>
 #include "../GameApp/GameLanguages.h"
 #include "GameFont.h"
+#include "../Util/PortSettings.h"
 
 #include "../Graphics2D/Image.h"
 #include "../Race/Race.h"
@@ -1761,7 +1762,13 @@ void ScreenElementMenuItem::SetVolumeFromPointerX(int menuX)
 
 void ScreenElementMenuItem::VOnRender(uint32 msDiff)
 {
-    shared_ptr<Image> pCurrImage = m_Images[m_State];
+    // Greyed out without a picture of its own: the normal picture, darkened.
+    bool greyed = false;
+    if (m_State == MenuItemState_Disabled && !m_Images[MenuItemState_Disabled] && m_Images[MenuItemState_Inactive])
+    {
+        greyed = true;
+    }
+    shared_ptr<Image> pCurrImage = greyed ? m_Images[MenuItemState_Inactive] : m_Images[m_State];
     if (pCurrImage == nullptr)
     {
         LOG_ERROR("Offending button: " + m_Name + " for state: " + ToStr(m_State));
@@ -1774,7 +1781,17 @@ void ScreenElementMenuItem::VOnRender(uint32 msDiff)
     renderRect.w = (int)(pCurrImage->GetWidth() * g_MenuScale.x);
     renderRect.h = (int)(pCurrImage->GetHeight() * g_MenuScale.y);
 
+    if (greyed)
+    {
+        SDL_SetTextureColorMod(pCurrImage->GetTexture(), 95, 95, 95);
+        SDL_SetTextureAlphaMod(pCurrImage->GetTexture(), 200);
+    }
     SDL_RenderCopy(m_pRenderer, pCurrImage->GetTexture(), NULL, &renderRect);
+    if (greyed)
+    {
+        SDL_SetTextureColorMod(pCurrImage->GetTexture(), 255, 255, 255);
+        SDL_SetTextureAlphaMod(pCurrImage->GetTexture(), 255);
+    }
 }
 
 bool ScreenElementMenuItem::TryHandleKey(SDL_Keycode key)
@@ -1892,6 +1909,18 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             // Original cutscenes found (CLAW.FEC from the CD); native builds only.
             if (MoviePlayer::IsAvailable())
+            {
+                m_State = StringToMenuItemStateEnum(conditionForStateStr);
+            }
+        }
+        else if (conditionTypeStr == "Experimental")
+        {
+            // Experimental modes (alpha): usable only with experimental=1 in
+            // port_settings.txt (or switched on in the cheats screen).
+            m_StateCondition.conditionType = conditionTypeStr;
+            m_StateCondition.conditionForState = conditionForStateStr;
+            m_StateCondition.defaultState = menuItemStateStr;
+            if (PortSettings::GetBool("experimental", false))
             {
                 m_State = StringToMenuItemStateEnum(conditionForStateStr);
             }
@@ -2310,6 +2339,10 @@ void ScreenElementMenuItem::ReEvaluateStateCondition()
     else if (m_StateCondition.conditionType == "SaveDataExists")
     {
         conditionMet = g_pApp->GetGameLogic()->GetGameSaveMgr()->HasProgress();
+    }
+    else if (m_StateCondition.conditionType == "Experimental")
+    {
+        conditionMet = PortSettings::GetBool("experimental", false);
     }
 
     m_State = StringToMenuItemStateEnum(conditionMet

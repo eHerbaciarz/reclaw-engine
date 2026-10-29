@@ -96,11 +96,12 @@ namespace CheatCode
                 Lang::Tr("Pełna amunicja", "Full ammo"),
                 Lang::Tr("Dodatkowe życie", "Extra life"),
                 Lang::Tr("Odblokuj wszystkich bossów i Paruj i kontruj", "Unlock all bosses and Parry & Thrust"),
+                std::string(Lang::Tr("Tryby eksperymentalne: ", "Experimental modes: ")) + OnOff(PortSettings::GetBool("experimental", false)),
                 Lang::Tr("Wróć", "Back"),
             };
             s.selected = selected;
             int choice = RaceUi::Run(pRenderer, s);
-            if (choice < 0 || choice == 7) break;
+            if (choice < 0 || choice == 8) break;
             selected = choice;
             switch (choice)
             {
@@ -124,6 +125,11 @@ namespace CheatCode
                 case 6:
                     BossModes::UnlockAll();
                     Subtitles::ShowText(Lang::Tr("Bossowie odblokowani", "Bosses unlocked"), 2500);
+                    break;
+                case 7:
+                    PortSettings::SetBool("experimental", !PortSettings::GetBool("experimental", false));
+                    Subtitles::ShowText(Lang::Tr("Zmiana widoczna po powrocie do menu głównego",
+                                                 "Applies when you are back in the main menu"), 3000);
                     break;
             }
         }

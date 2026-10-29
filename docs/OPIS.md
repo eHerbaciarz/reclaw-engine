@@ -105,6 +105,11 @@ Pełna plansza jest w Opcje → Sterowanie.
 - tryby bossów: „Skrzyżuj szpady ponownie” (trening z wybranym bossem)
   i „Paruj i kontruj” (wszyscy bossowie pod rząd na czas, po ukończeniu gry).
 
+W wersji alfa tryb wieloosobowy, własne poziomy i tryby bossów są
+**eksperymentalne** i w menu wyszarzone. Można je włączyć w ekranie Kody
+(„Tryby eksperymentalne”) albo wpisując `experimental=1` w
+`save/port_settings.txt`.
+
 **Jeszcze nie działa / niekompletne:**
 - bossowie: Le Rauxe (2), Katherine (4) i Wolvington (6) mają tylko ogólne
   zachowanie, Aquatis (12) i Red Tail (13) są uproszczeni, Omara (14) jeszcze
@@ -224,6 +229,11 @@ Options → Controls.
 - boss modes: "Cross Swords Again" (practice against a chosen boss) and
   "Parry & Thrust" (every boss in a row against the clock, after finishing
   the game).
+
+In the alpha release multiplayer, custom levels and the boss modes are
+**experimental** and greyed out in the menu. Switch them on in the cheats
+screen ("Experimental modes") or with `experimental=1` in
+`save/port_settings.txt`.
 
 **Not working yet / incomplete:**
 - bosses: Le Rauxe (2), Katherine (4) and Wolvington (6) only have generic
