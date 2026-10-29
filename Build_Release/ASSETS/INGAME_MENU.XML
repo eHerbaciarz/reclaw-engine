@@ -28,6 +28,8 @@
         </MenuItem>
         <MenuItem>
             <Name>END_LIFE_BUTTON</Name>
+            <!-- Polish release: the picture's Z has no proper dot; same text in the game's letters -->
+            <GameFontText>KONIEC ŻYCIA</GameFontText>
             <Type>Button</Type>
             <Hotkey>L</Hotkey>
             <State>Inactive</State>
