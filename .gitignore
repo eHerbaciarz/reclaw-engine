@@ -108,3 +108,4 @@ node_modules/
 dist/
 platform/switch/reclaw.nro
 build-vita/
+build-3ds/

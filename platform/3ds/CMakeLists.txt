@@ -9,9 +9,10 @@
 #
 # The game runs on the top screen (400x240); the bottom screen shows the main
 # menu's map with the player's status (Engine/UserInterface/SecondScreen.cpp).
-# Install: reclaw.3dsx to sdmc:/3ds/reclaw/ and CLAW.REZ from your copy of the game
-# to sdmc:/3ds/reclaw/data/CLAW.REZ. Use a New 3DS / 2DS XL: the old models have too
-# little memory and CPU for the game.
+# Install: reclaw.3dsx to sdmc:/3ds/reclaw/ (or reclaw.cia with FBI); the first
+# start creates sdmc:/3ds/reclaw/ with data/pl/, data/en/, ... - CLAW.REZ (+ CLAW.FEC)
+# from your copy of the game goes to data/pl/ or data/en/. Use a New 3DS / 2DS XL:
+# the old models have too little memory and CPU for the game.
 
 cmake_minimum_required(VERSION 3.16)
 project(ClawN3DS C CXX)
@@ -32,7 +33,7 @@ set_property(TARGET claw_romfs APPEND PROPERTY DKP_ASSET_FILES ${OPENCLAW_BUNDLE
 ctr_generate_smdh(reclaw.smdh
     NAME        "ReClaw"
     DESCRIPTION "Engine for Claw (1997) - needs CLAW.REZ"
-    AUTHOR      "OpenClaw, claw-web, MK & Claude"
+    AUTHOR      "OpenClaw, claw-web, Herbaciarz"
     ICON        "${CMAKE_CURRENT_LIST_DIR}/icon.png")
 
 ctr_create_3dsx(openclaw

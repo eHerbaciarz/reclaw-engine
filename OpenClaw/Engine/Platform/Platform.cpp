@@ -189,6 +189,9 @@ namespace Platform
         scePowerSetBusClockFrequency(222);
         scePowerSetGpuClockFrequency(222);
         scePowerSetGpuXbarClockFrequency(166);
+#elif defined(__3DS__)
+        // New 3DS / 2DS XL: 804 MHz and the L2 cache (no effect on old models).
+        osSetSpeedupEnable(true);
 #endif
         // Folder of the binary (desktop builds look for their files there).
         if (char* base = SDL_GetBasePath())
