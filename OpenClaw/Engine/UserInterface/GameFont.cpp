@@ -55,7 +55,8 @@ namespace
 
     // The baseline sits on row 27 of a text picture, like in the original
     // 35-pixel menu pictures, so new items line up with the original ones.
-    const int kAbove = 27;          // canvas rows above the baseline
+    const int kAbove = 35;          // canvas rows above the baseline
+    const int kOriginalAbove = 27;  // ... in the original menu pictures
     const int kBelow = 9;           // and below (descenders, underline)
     const int kSpace = 10;          // width of a space
     const int kLineGap = 4;         // between lines
@@ -322,10 +323,6 @@ namespace
             int fromRight = e.w - (hookX + hook.w);
             g_Glyphs[0x0104] = Combine(g_Glyphs['A'], hook, g_Glyphs['A'].w - hook.w - std::max(0, fromRight - 1), 0);
         }
-        // Ż: the release draws its Ź (DŹWIĘK) with a dot over a lowered Z,
-        // which is exactly how Ż should look; a dot added above the capitals
-        // would not fit the picture.
-        g_Glyphs[0x017B] = g_Glyphs[0x0179];
         if (acute.w > 0)
         {
             g_Glyphs[0x0106] = Combine(g_Glyphs['C'], acute, (g_Glyphs['C'].w - acute.w) / 2 + 2, 0);
@@ -344,8 +341,7 @@ namespace
             // Ż: the dot moved up to just above the capitals
             int capTop = TopRow(g_Glyphs['Z']);
             int dy = (capTop - 2) - colonParts[0].second;
-            (void)dy;
-            (void)dotTop;
+            g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dotTop, (g_Glyphs['Z'].w - dotTop.w) / 2, dy);
         }
 
         // Underline: one column from the middle of the original one.
@@ -419,6 +415,8 @@ namespace
 
 namespace GameFont
 {
+    int ExtraTop() { return kAbove - kOriginalAbove; }
+
     bool Available()
     {
         if (!g_Tried) Build();

@@ -1770,7 +1770,7 @@ void ScreenElementMenuItem::VOnRender(uint32 msDiff)
 
     SDL_Rect renderRect;
     renderRect.x = (int)(g_MenuOffset.x + (m_Position.x + pCurrImage->GetOffsetX()) * g_MenuScale.x);
-    renderRect.y = (int)(g_MenuOffset.y + m_Position.y * g_MenuScale.y);
+    renderRect.y = (int)(g_MenuOffset.y + (m_Position.y + m_DrawOffsetY) * g_MenuScale.y);
     renderRect.w = (int)(pCurrImage->GetWidth() * g_MenuScale.x);
     renderRect.h = (int)(pCurrImage->GetHeight() * g_MenuScale.y);
 
@@ -2054,6 +2054,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
                 if (shared_ptr<Image> pImage = GameFont::Render(text, l.second, underline))
                 {
                     m_Images[l.first] = pImage;
+                    m_DrawOffsetY = -GameFont::ExtraTop();
                 }
             }
         }
@@ -2393,7 +2394,7 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
 
     SDL_Rect itemRect;
     itemRect.x = (int)m_Position.x;
-    itemRect.y = (int)m_Position.y;
+    itemRect.y = (int)m_Position.y + m_DrawOffsetY;
     itemRect.w = itemWidth;
     itemRect.h = itemHeight;
 

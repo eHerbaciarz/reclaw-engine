@@ -28,6 +28,10 @@ namespace GameFont
     // True when the menu pictures of the Polish release are there.
     bool Available();
 
+    // Rows the pictures have above the top of an original 35-pixel menu
+    // picture (room for accents); menu items draw them that much higher.
+    int ExtraTop();
+
     // underline: index of the letter to underline (-1 none, -2 the whole
     // text). Lines are separated by '|' and centred. nullptr when unavailable.
     std::shared_ptr<Image> Render(const std::string& utf8, Look look, int underline = 0);

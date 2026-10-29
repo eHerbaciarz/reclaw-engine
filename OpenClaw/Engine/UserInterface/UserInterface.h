@@ -361,6 +361,7 @@ public:
 
 private:
     bool m_bAutoLayout = true;
+    int m_DrawOffsetY = 0;          // GameFont pictures reach higher than the originals
     std::string m_Name;
     MenuItemState m_State;
     Point m_DefaultPosition;
