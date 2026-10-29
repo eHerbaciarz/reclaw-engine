@@ -24,6 +24,8 @@ openclaw_add_game(openclaw)
 openclaw_bundled_sdl(openclaw)          # SDL's main() (SDL2main) sets up the screens
 find_package(ZLIB REQUIRED)
 target_link_libraries(openclaw PRIVATE ZLIB::ZLIB ctru m)
+# Startup trace and fps every 5 s in reclaw.log (first 3DS builds).
+target_compile_definitions(openclaw PRIVATE OPENCLAW_STARTUP_TRACE)
 
 set(BUNDLE "${CMAKE_BINARY_DIR}/romfs")
 openclaw_stage_bundle(openclaw_bundle "${BUNDLE}" "${CMAKE_CURRENT_LIST_DIR}/config.xml")

@@ -308,7 +308,7 @@ public:
   SDL_Window *GetWindow() const { return m_pWindow; }
   Point GetWindowSize() { return m_WindowSize; }
   // Presents the frame; with a RenderSize target it is first scaled to the window.
-  void PresentFrame();
+  void PresentFrame(bool present = true);  // false: only puts the frame on the window (3DS right eye)
   void SetWindowSize(int width, int height, double scale);
 
   // Engine-owned cursor position, in window (device-pixel canvas) space.

@@ -1077,9 +1077,9 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
   return true;
 }
 
-void BaseGameApp::PresentFrame() {
+void BaseGameApp::PresentFrame(bool present) {
   if (!m_pRenderTarget) {
-    SDL_RenderPresent(m_pRenderer);
+    if (present) SDL_RenderPresent(m_pRenderer);
     return;
   }
   float scaleX = 1.0f, scaleY = 1.0f;
@@ -1100,7 +1100,7 @@ void BaseGameApp::PresentFrame() {
   SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
   SDL_RenderClear(m_pRenderer);
   SDL_RenderCopy(m_pRenderer, m_pRenderTarget, NULL, &dst);
-  SDL_RenderPresent(m_pRenderer);
+  if (present) SDL_RenderPresent(m_pRenderer);
 
   SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
   SDL_RenderSetScale(m_pRenderer, scaleX, scaleY);

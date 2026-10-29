@@ -25,6 +25,7 @@
 #include "../Race/RaceUi.h"
 #include "Lang.h"
 #include "GameFont.h"
+#include "../Graphics2D/Stereo3D.h"
 #include "../GameApp/GameLanguages.h"
 #include "Minimap.h"
 #include "Subtitles.h"
@@ -106,86 +107,108 @@ void HumanView::VOnRender(uint32 msDiff)
     {
         //PROFILE_CPU(".");
 
-        // If we render out of bounds, render it as black color
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
-        SDL_RenderClear(renderer);
-
-        // Sort screen elements
-        m_ScreenElements.sort(SortBy_SharedPtr_Content<IScreenElement>());
-
-        for (shared_ptr<IScreenElement>& screenElement : m_ScreenElements)
+        // Nintendo 3DS 3D slider: the level is drawn twice, right eye first.
+        const bool inLevel = m_pScene && m_pScene->VIsVisible() && !m_pCamera2 && !g_pApp->IsMenuActive();
+        const int eyes = Stereo3D::BeginFrame(inLevel) ? 2 : 1;
+        for (int pass = 0; pass < eyes; ++pass)
         {
-            if (screenElement->VIsVisible())
+            Stereo3D::SetEye(eyes == 2 ? (pass == 0 ? 1 : -1) : 0);
+            // If we render out of bounds, render it as black color
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+            SDL_RenderClear(renderer);
+
+            // Sort screen elements
+            m_ScreenElements.sort(SortBy_SharedPtr_Content<IScreenElement>());
+
+            for (shared_ptr<IScreenElement>& screenElement : m_ScreenElements)
             {
-                const bool isScene = m_pScene && screenElement.get() == static_cast<IScreenElement*>(m_pScene.get());
-                if (isScene && m_pCamera2)
+                if (screenElement->VIsVisible())
                 {
-                    RenderSplitScene(renderer);
-                    continue;
-                }
-                screenElement->VOnRender(msDiff);
-                if (isScene && (Race::IsActive() || BossModes::IsActive() || Minimap::IsVisible()))
-                {
-                    Point scale = g_pApp->GetScale();
-                    SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
-                    Minimap::Render(renderer, full, m_ActorId);
-                    Race::RenderOverlay(renderer, 0, full);
-                    BossModes::RenderOverlay(renderer, full);
+                    const bool isScene = m_pScene && screenElement.get() == static_cast<IScreenElement*>(m_pScene.get());
+                    if (isScene && m_pCamera2)
+                    {
+                        RenderSplitScene(renderer);
+                        continue;
+                    }
+                    // 3D: the HUD and other elements over the level stand out of the screen
+                    const int pop = isScene ? 0 : Stereo3D::Offset(-0.6f);
+                    if (pop)
+                    {
+                        SDL_Rect vp = { pop, 0, (int)(g_pApp->GetWindowSize().x), (int)(g_pApp->GetWindowSize().y) };
+                        SDL_RenderSetViewport(renderer, &vp);
+                    }
+                    screenElement->VOnRender(msDiff);
+                    if (pop) SDL_RenderSetViewport(renderer, NULL);
+                    if (isScene && (Race::IsActive() || BossModes::IsActive() || Minimap::IsVisible()))
+                    {
+                        Point scale = g_pApp->GetScale();
+                        SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
+                        Minimap::Render(renderer, full, m_ActorId);
+                        Race::RenderOverlay(renderer, 0, full);
+                        BossModes::RenderOverlay(renderer, full);
+                    }
                 }
             }
-        }
-        //LOG("SCREEN ELEMENTS: " + ToStr(m_ScreenElements.size()))
+            //LOG("SCREEN ELEMENTS: " + ToStr(m_ScreenElements.size()))
 
-        g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
+            g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
 
-        RenderLevelReveal(renderer);
-        RenderToast(renderer);
+            RenderLevelReveal(renderer);
+            RenderToast(renderer);
 
-        m_pConsole->OnRender(renderer);
+            m_pConsole->OnRender(renderer);
 
-        // Subtitles / the cheat code's message, over the game and the menus
-        Subtitles::Render(renderer);
+            // Subtitles / the cheat code's message, over the game and the menus
+            Subtitles::Render(renderer);
 
-        // Lazy-load cursor frames on first render (resource cache is guaranteed ready by then)
-        if (m_CursorFrames.empty())
-        {
-            for (int i = 1; i <= 19; i++)
+            // Lazy-load cursor frames on first render (resource cache is guaranteed ready by then)
+            if (m_CursorFrames.empty())
             {
-                char path[64];
-                snprintf(path, sizeof(path), "/states/menu/images/cursor/cursor%02d.pcx", i);
-                // PCX palette index 0 = magenta-pink (R=255, G=0, B=132) — use as color key
-                shared_ptr<Image> pFrame = PcxResourceLoader::LoadAndReturnImage(path, true, { 255, 0, 132, 0 });
-                if (pFrame)
-                    m_CursorFrames.push_back(pFrame);
+                for (int i = 1; i <= 19; i++)
+                {
+                    char path[64];
+                    snprintf(path, sizeof(path), "/states/menu/images/cursor/cursor%02d.pcx", i);
+                    // PCX palette index 0 = magenta-pink (R=255, G=0, B=132) — use as color key
+                    shared_ptr<Image> pFrame = PcxResourceLoader::LoadAndReturnImage(path, true, { 255, 0, 132, 0 });
+                    if (pFrame)
+                        m_CursorFrames.push_back(pFrame);
+                }
+            }
+
+            // Draw the custom cursor only when a menu is active (main/loading menu
+            // or the in-game quick menu) — IsMenuActive() is the shared source of
+            // truth for that condition.
+            bool showCursor = g_pApp->IsMenuActive();
+    #ifdef __EMSCRIPTEN__
+            // The mouse cursor only makes sense when the mouse is the active input.
+            // Touch has no hovering pointer (cursor would stick at the last tap) and
+            // gamepad navigates without one — so show the cursor only for mouse.
+            // Self-corrects: moving the mouse brings it back on hybrid setups.
+            if (!g_pApp->WasLastInputMouse()) showCursor = false;
+    #endif
+            if (showCursor && !m_CursorFrames.empty())
+            {
+                int mouseX, mouseY;
+    #ifdef __EMSCRIPTEN__
+                mouseX = g_pApp->GetPointerX();
+                mouseY = g_pApp->GetPointerY();
+    #else
+                SDL_GetMouseState(&mouseX, &mouseY);
+    #endif
+
+                shared_ptr<Image> pCursor = m_CursorFrames[m_CursorFrameIdx];
+                SDL_Rect destRect = { mouseX, mouseY, pCursor->GetWidth(), pCursor->GetHeight() };
+                SDL_RenderCopy(renderer, pCursor->GetTexture(), NULL, &destRect);
+            }
+
+            if (eyes == 2 && pass == 0)
+            {
+                g_pApp->PresentFrame(false);
+                Stereo3D::StoreRightEye(g_pApp->GetWindow());
             }
         }
-
-        // Draw the custom cursor only when a menu is active (main/loading menu
-        // or the in-game quick menu) — IsMenuActive() is the shared source of
-        // truth for that condition.
-        bool showCursor = g_pApp->IsMenuActive();
-#ifdef __EMSCRIPTEN__
-        // The mouse cursor only makes sense when the mouse is the active input.
-        // Touch has no hovering pointer (cursor would stick at the last tap) and
-        // gamepad navigates without one — so show the cursor only for mouse.
-        // Self-corrects: moving the mouse brings it back on hybrid setups.
-        if (!g_pApp->WasLastInputMouse()) showCursor = false;
-#endif
-        if (showCursor && !m_CursorFrames.empty())
-        {
-            int mouseX, mouseY;
-#ifdef __EMSCRIPTEN__
-            mouseX = g_pApp->GetPointerX();
-            mouseY = g_pApp->GetPointerY();
-#else
-            SDL_GetMouseState(&mouseX, &mouseY);
-#endif
-
-            shared_ptr<Image> pCursor = m_CursorFrames[m_CursorFrameIdx];
-            SDL_Rect destRect = { mouseX, mouseY, pCursor->GetWidth(), pCursor->GetHeight() };
-            SDL_RenderCopy(renderer, pCursor->GetTexture(), NULL, &destRect);
-        }
+        Stereo3D::SetEye(0);
 
         if (!m_bPostponeRenderPresent)
         {

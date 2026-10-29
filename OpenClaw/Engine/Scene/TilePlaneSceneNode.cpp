@@ -1,3 +1,4 @@
+#include "../Graphics2D/Stereo3D.h"
 #include <SDL2/SDL.h>
 #include "Scene.h"
 #include "TilePlaneSceneNode.h"
@@ -68,6 +69,16 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
         minTileIdxY = 0;
     }
 
+    // 3DS 3D slider: planes behind the action plane sink into the screen
+    // (the slower they scroll, the deeper), planes in front come out of it.
+    float depth = 0.0f;
+    if (!pProperties->isMainPlane)
+    {
+        if (pProperties->movementPercentX < 100) depth = 0.4f + 0.6f * (100 - pProperties->movementPercentX) / 100.0f;
+        else depth = -0.4f;
+    }
+    const int eyeShift = Stereo3D::Offset(depth);
+
     int32_t row, col;
     for (row = startRow; row < (startRow + rowTilesToRender) && row <= maxTileIdxY; row++)
     {
@@ -90,7 +101,7 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
 
             if (image && image->GetTexture() != NULL)
             {
-                int32_t x = col * tilePixelWidth - parallaxCameraPosX;
+                int32_t x = col * tilePixelWidth - parallaxCameraPosX + eyeShift;
                 int32_t y = row * tilePixelHeight - parallaxCameraPosY;
 
                 // Draw the tile at its native size, clipped to its grid cell,
