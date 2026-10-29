@@ -323,6 +323,56 @@ namespace
         return out;
     }
 
+    // Columns of the main vertical stroke: those nearly as tall as the
+    // tallest column (arms next to the stem are much shorter).
+    std::pair<int, int> StemRange(const Glyph& g)
+    {
+        const int H = kAbove + kBelow;
+        std::vector<int> n(g.w, 0);
+        int best = 0;
+        for (int x = 0; x < g.w; ++x)
+        {
+            for (int y = 0; y < H; ++y) n[x] += InkAt(g, x, y);
+            best = std::max(best, n[x]);
+        }
+        int s0 = 0;
+        while (s0 < g.w - 1 && n[s0] * 100 < best * 75) s0++;
+        int s1 = s0;
+        while (s1 + 1 < g.w && n[s1 + 1] * 100 >= best * 75) s1++;
+        return { s0, s1 };
+    }
+
+    // Removes specks: groups of up to `maxPixels` touching pixels (bits of
+    // the neighbouring letters or shadows caught at the edge of a cut).
+    void RemoveSpecks(Glyph& g, int maxPixels)
+    {
+        const int H = kAbove + kBelow;
+        std::vector<int> seen((size_t)g.w * H, 0);
+        for (int y0 = 0; y0 < H; ++y0)
+            for (int x0 = 0; x0 < g.w; ++x0)
+            {
+                if (seen[(size_t)y0 * g.w + x0] || !InkAt(g, x0, y0)) continue;
+                std::vector<std::pair<int, int>> group, todo{ { x0, y0 } };
+                seen[(size_t)y0 * g.w + x0] = 1;
+                while (!todo.empty())
+                {
+                    auto p = todo.back();
+                    todo.pop_back();
+                    group.push_back(p);
+                    for (int dy = -1; dy <= 1; ++dy)
+                        for (int dx = -1; dx <= 1; ++dx)
+                        {
+                            int x = p.first + dx, y = p.second + dy;
+                            if (!InkAt(g, x, y) || seen[(size_t)y * g.w + x]) continue;
+                            seen[(size_t)y * g.w + x] = 1;
+                            todo.push_back({ x, y });
+                        }
+                }
+                if ((int)group.size() <= maxPixels)
+                    for (auto& p : group) g.px[(size_t)p.second * g.w + p.first] = 0;
+            }
+    }
+
     int TopRow(const Glyph& g)
     {
         auto parts = RowParts(g);
@@ -355,6 +405,7 @@ namespace
         {
             bool below = r.code == 'J' || r.code == 0x0118;   // J, Ę go under the line
             g_Glyphs[r.code] = Cut(g_Pics[r.src], r.x0, r.x1, below);
+            if (r.code != ':') RemoveSpecks(g_Glyphs[r.code], 8);
         }
 
         // L: in the menus it always stands with its foot under the next letter,
@@ -363,20 +414,14 @@ namespace
         {
             const Glyph& e = g_Glyphs['E'];
             const int H = kAbove + kBelow;
-            int stemEnd = LeftEdge(e);
-            while (stemEnd < e.w)
-            {
-                int n = 0;
-                for (int y = 0; y < H; ++y) n += InkAt(e, stemEnd, y);
-                if (n < 12) break;
-                stemEnd++;
-            }
+            int stemEnd = StemRange(e).second;
             int probe = std::min(e.w - 3, stemEnd + 6), foot = 0;
             for (int y = kAbove; y > 0 && InkAt(e, probe, y); --y) foot++;
             Glyph l = e;
             for (int y = 0; y < H; ++y)
                 for (int x = stemEnd + 1; x < e.w; ++x)
                     if (y < kAbove - foot - 1) l.px[(size_t)y * e.w + x] = 0;
+            RemoveSpecks(l, 12);
             g_Glyphs['L'] = l;
         }
 
@@ -425,52 +470,74 @@ namespace
             return m;
         };
         auto blank = [&](int w) { Glyph g; g.w = w; g.px.assign((size_t)w * H, 0); return g; };
+        // A horizontal stroke of the font: the rows of T's top bar (a column
+        // a third of the way in, clear of the stem and the end serifs).
+        std::vector<uint32_t> bar;
         {
-            // H: two I stems joined by E's middle arm.
+            const Glyph& t = g_Glyphs['T'];
+            int x = t.w * 3 / 10, y = TopRow(t);
+            while (y < H && !InkAt(t, x, y)) y++;
+            for (; y < H && InkAt(t, x, y); ++y) bar.push_back(t.px[(size_t)y * t.w + x]);
+            LOG_WARNING("GameFont: bar " + ToStr((int)bar.size()) + " rows");
+        }
+        const int capTop = TopRow(g_Glyphs['O']);
+        const int capMid = (capTop + kAbove) / 2;
+        if (!bar.empty())
+        {
+            // H: two I stems joined by the bar, a little above the middle.
             const Glyph& i = g_Glyphs['I'];
-            const Glyph& e = g_Glyphs['E'];
-            int s0 = LeftEdge(i), s1 = s0;
-            while (s1 + 1 < i.w && inkCount(i, s1 + 1) >= 12) s1++;
-            int es = LeftEdge(e), ee = es;
-            while (ee + 1 < e.w && inkCount(e, ee + 1) >= 12) ee++;
-            int probe = std::min(e.w - 1, ee + 3);
-            // runs of ink in that column: top arm, middle arm, bottom arm
-            std::vector<std::pair<int, int>> runs;
-            for (int y = 0, start = -1; y <= kAbove; ++y)
-            {
-                bool ink = y < kAbove + 1 && InkAt(e, probe, y);
-                if (ink && start < 0) start = y;
-                if (!ink && start >= 0) { runs.push_back({ start, y - 1 }); start = -1; }
-            }
-            if (runs.size() >= 3)
-            {
-                const int gap = 8;
-                Glyph h = blank(i.w * 2 + gap);
-                h = Combine(h, i, 0, 0);
-                h = Combine(h, i, i.w + gap, 0);
-                int from = s1 + 1, to = i.w + gap + s0 - 1;
-                for (int y = runs[1].first; y <= runs[1].second; ++y)
-                {
-                    uint32_t c = e.px[(size_t)y * e.w + probe];
-                    for (int x = from; x <= to; ++x) h.px[(size_t)y * h.w + x] = c;
-                }
-                g_Glyphs['H'] = h;
-            }
+            std::pair<int, int> stem = StemRange(i);
+            const int gap = 9;
+            Glyph h = blank(i.w * 2 + gap);
+            h = Combine(h, i, 0, 0);
+            h = Combine(h, i, i.w + gap, 0);
+            int from = stem.second + 1, to = i.w + gap + stem.first - 1;
+            int top = capMid - (int)bar.size() / 2 - 1;
+            for (int k = 0; k < (int)bar.size(); ++k)
+                for (int x = from; x <= to; ++x) h.px[(size_t)(top + k) * h.w + x] = bar[k];
+            g_Glyphs['H'] = h;
+            // Dash (–, -): the bar, short, in the middle.
+            Glyph dash = blank(20);
+            top = capMid - (int)bar.size() / 2;
+            for (int k = 0; k < (int)bar.size(); ++k)
+                for (int x = 3; x < dash.w - 3; ++x) dash.px[(size_t)(top + k) * dash.w + x] = bar[k];
+            g_Glyphs[0x2013] = dash;
+            g_Glyphs['-'] = dash;
         }
         {
-            // V: the left half of W (W is two Vs side by side).
-            const Glyph& w = g_Glyphs['W'];
-            int apex = w.w / 2, best = H;
-            for (int x = w.w / 3; x <= 2 * w.w / 3; ++x)
+            // V: the upper part of Y (a V on a stem), stretched down to the
+            // baseline; the serif rows at the top keep their size.
+            const Glyph& y = g_Glyphs['Y'];
+            const int top = TopRow(y);
+            auto runsAt = [&](int row) {
+                int runs = 0;
+                bool in = false;
+                for (int x = 0; x < y.w; ++x)
+                {
+                    bool ink = InkAt(y, x, row);
+                    if (ink && !in) runs++;
+                    in = ink;
+                }
+                return runs;
+            };
+            // the fork: first row (below the serifs) where the arms have met
+            int fork = -1;
+            for (int row = top + 4; row < kAbove; ++row)
+                if (runsAt(row) == 1 && runsAt(row - 1) >= 2) { fork = row; break; }
+            if (fork > top + 6)
             {
-                int top = H;
-                for (int y = 0; y < H; ++y) if (InkAt(w, x, y)) { top = y; break; }
-                if (top < best) { best = top; apex = x; }
+                const int keep = 4;
+                Glyph v = blank(y.w);
+                for (int row = top; row <= kAbove; ++row)
+                {
+                    int src = row;
+                    if (row >= top + keep)
+                        src = top + keep + (row - top - keep) * (fork - top - keep) / std::max(1, kAbove - top - keep);
+                    for (int x = 0; x < y.w; ++x) v.px[(size_t)row * v.w + x] = y.px[(size_t)src * y.w + x];
+                }
+                g_Glyphs['V'] = v;
             }
-            Glyph v = blank(apex + 2);
-            for (int y = 0; y < H; ++y)
-                for (int x = 0; x < v.w; ++x) v.px[(size_t)y * v.w + x] = w.px[(size_t)y * w.w + x];
-            g_Glyphs['V'] = v;
+            LOG_WARNING("GameFont: V fork at " + ToStr(fork) + ", top " + ToStr(top));
         }
         if (acute.w > 0)
         {
@@ -490,7 +557,6 @@ namespace
         {
             Glyph dotTop = Crop(Rows(colon, colonParts[0].first, colonParts[0].second));
             Glyph dot = Shrink(dotTop, colonParts[0].first, colonParts[0].second, 65);
-            int capTop = TopRow(g_Glyphs['O']);
             int dy = (capTop - 2) - colonParts[0].second;
             // Ö: two dots over O
             Glyph o = g_Glyphs['O'];
@@ -500,7 +566,6 @@ namespace
             g_Glyphs[0x00D6] = o;
             // middle dot (between names): the colon's top dot at half height
             Glyph mdot = blank(dotTop.w + 8);
-            int capMid = (capTop + kAbove) / 2;
             int ddy = capMid - (colonParts[0].first + colonParts[0].second) / 2;
             g_Glyphs[0x00B7] = Combine(mdot, dotTop, 4, ddy);
         }
@@ -516,22 +581,14 @@ namespace
             if (py < u.h) g_Underline.px[y] = u.px[(size_t)py * u.w + ux];
         }
 
-        // Dash: a piece of the underline at half height of the capitals.
+        int underlineRows = 0;
+        for (uint32_t c : g_Underline.px) underlineRows += (c >> 24) != 0;
+        if (underlineRows == 0 && !bar.empty())
         {
-            Glyph dash = blank(18);
-            int capMid = (TopRow(g_Glyphs['O']) + kAbove) / 2;
-            int rows0 = -1, rows1 = -1;
-            for (int y = 0; y < kBelow; ++y) if (g_Underline.px[y] >> 24) { if (rows0 < 0) rows0 = y; rows1 = y; }
-            if (rows0 >= 0)
-            {
-                int top = capMid - (rows1 - rows0) / 2;
-                for (int y = rows0; y <= rows1; ++y)
-                    for (int x = 3; x < dash.w - 3; ++x)
-                        dash.px[(size_t)(top + y - rows0) * dash.w + x] = g_Underline.px[y];
-                g_Glyphs[0x2013] = dash;
-                g_Glyphs['-'] = dash;
-            }
+            for (int k = 0; k < (int)bar.size() && 2 + k < kBelow; ++k) g_Underline.px[2 + k] = bar[k];
+            underlineRows = -(int)bar.size();
         }
+        LOG_WARNING("GameFont: underline " + ToStr(underlineRows) + " rows (negative: made from the bar)");
 
         g_Ok = true;
         LOG_WARNING("GameFont: menu letters of the game ready (" + ToStr((int)g_Glyphs.size()) + ")");

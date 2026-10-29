@@ -13,12 +13,12 @@ namespace
     // The picture sits where the generated credits picture does (MENU.xml);
     // the title starts lower, under the CLAW logo, like on the other pages.
     const int kTopPad = 35;
-    const int kLabelPercent = 42;   // "OPENCLAW", "RECLAW"... against the menu buttons' size
-    const int kNamePercent = 58;    // the names
-    const int kFirstLabel = kTopPad + 60;     // baseline of the first label
-    const int kLabelToName = 15;    // baseline to baseline
-    const int kNameToName = 14;     // second line of names
-    const int kNameToLabel = 14;
+    const int kLabelPercent = 40;   // "OPENCLAW", "RECLAW"... against the menu buttons' size
+    const int kNamePercent = 55;    // the names
+    const int kFirstLabel = kTopPad + 58;     // baseline of the first label
+    const int kLabelToName = 17;    // baseline to baseline
+    const int kNameToName = 16;     // second line of names
+    const int kNameToLabel = 19;
 
     // Same texts as scripts/make_credits_image.py (no digits in the letters,
     // so the year of the original game is left out here).
