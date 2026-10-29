@@ -276,6 +276,39 @@ namespace
         return clean;
     }
 
+    // A smaller copy (percent) of a cropped mark whose pixels are in rows
+    // y0..y1; the bottom row stays where it was.
+    Glyph Shrink(const Glyph& g, int y0, int y1, int percent)
+    {
+        const int H = kAbove + kBelow;
+        int sh = y1 - y0 + 1;
+        int nw = std::max(1, (g.w * percent + 50) / 100), nh = std::max(1, (sh * percent + 50) / 100);
+        Glyph out;
+        out.w = nw;
+        out.px.assign((size_t)nw * H, 0);
+        for (int ny = 0; ny < nh; ++ny)
+            for (int nx = 0; nx < nw; ++nx)
+            {
+                // average of the source pixels this one covers
+                int sx0 = nx * g.w / nw, sx1 = std::max(sx0 + 1, (nx + 1) * g.w / nw);
+                int sy0 = ny * sh / nh, sy1 = std::max(sy0 + 1, (ny + 1) * sh / nh);
+                uint32_t r = 0, gg = 0, b = 0, a = 0, n = 0;
+                for (int sy = sy0; sy < sy1; ++sy)
+                    for (int sx = sx0; sx < sx1; ++sx)
+                    {
+                        uint32_t c = g.px[(size_t)(y0 + sy) * g.w + sx];
+                        uint32_t ca = c >> 24;
+                        r += (c & 0xFF) * ca; gg += ((c >> 8) & 0xFF) * ca; b += ((c >> 16) & 0xFF) * ca;
+                        a += ca; n++;
+                    }
+                if (a == 0) continue;
+                uint32_t oa = a / n;
+                out.px[(size_t)(y1 - nh + 1 + ny) * nw + nx] =
+                    (oa << 24) | ((b / a) << 16) | ((gg / a) << 8) | (r / a);
+            }
+        return out;
+    }
+
     int TopRow(const Glyph& g)
     {
         auto parts = RowParts(g);
@@ -341,7 +374,8 @@ namespace
             // Ż: the dot moved up to just above the capitals
             int capTop = TopRow(g_Glyphs['Z']);
             int dy = (capTop - 2) - colonParts[0].second;
-            g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dotTop, (g_Glyphs['Z'].w - dotTop.w) / 2, dy);
+            Glyph dot = Shrink(dotTop, colonParts[0].first, colonParts[0].second, 70);
+            g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dot, (g_Glyphs['Z'].w - dot.w) / 2, dy);
         }
 
         // Underline: one column from the middle of the original one.
