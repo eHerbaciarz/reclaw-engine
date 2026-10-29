@@ -1870,17 +1870,24 @@ void HumanView::WorldFinishedLoadingDelegate(IEventDataPtr pEventData)
 void HumanView::RenderLevelReveal(SDL_Renderer* pRenderer)
 {
     const uint32 kRevealMs = 1500;
+    // The reveal advances by at most 33 ms per frame, so the slow first frames
+    // of a level (pictures and sounds still loading) do not make it jump.
+    static uint32 s_LastTick = 0, s_Elapsed = 0;
+    const uint32 now = SDL_GetTicks();
     if (m_bLevelRevealPending)
     {
         m_bLevelRevealPending = false;
-        m_LevelRevealStart = SDL_GetTicks();
-        if (m_LevelRevealStart == 0) m_LevelRevealStart = 1;
+        m_LevelRevealStart = now ? now : 1;
+        s_LastTick = now;
+        s_Elapsed = 0;
     }
     if (m_LevelRevealStart == 0)
     {
         return;
     }
-    uint32 elapsed = SDL_GetTicks() - m_LevelRevealStart;
+    s_Elapsed += std::min<uint32>(now - s_LastTick, 33);
+    s_LastTick = now;
+    uint32 elapsed = s_Elapsed;
     if (elapsed >= kRevealMs)
     {
         m_LevelRevealStart = 0;

@@ -61,6 +61,8 @@ namespace
         return argb;
     }
 
+    std::vector<int> g_Channels;   // channels of the sounds started here
+
     // Plays a sound; returns its length in ms (0 if it does not play).
     Uint32 PlaySound(const char* path)
     {
@@ -69,7 +71,9 @@ namespace
         shared_ptr<Mix_Chunk> chunk = WavResourceLoader::LoadAndReturnSound(path);
         if (!chunk) return 0;
         s_Keep.push_back(chunk);
-        if (Mix_PlayChannel(-1, chunk.get(), 0) == -1) return 0;
+        int channel = Mix_PlayChannel(-1, chunk.get(), 0);
+        if (channel == -1) return 0;
+        g_Channels.push_back(channel);
         int freq = 0, channels = 0;
         Uint16 format = 0;
         if (!Mix_QuerySpec(&freq, &format, &channels) || freq <= 0 || channels <= 0) return 0;
@@ -297,6 +301,10 @@ namespace TitleScroll
             Uint32 spent = SDL_GetTicks() - frameStart;
             if (spent < 15) SDL_Delay(15 - spent);   // ~60 fps without vsync
         }
+
+        // The melody ends with the scroll (also when it was skipped).
+        for (int channel : g_Channels) Mix_FadeOutChannel(channel, 200);
+        g_Channels.clear();
 
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);

@@ -1,3 +1,4 @@
+#include <cstring>
 #include <map>
 #include <string>
 #include <SDL2/SDL.h>
@@ -121,8 +122,6 @@ void Actor::Destroy()
 }
 
 #ifdef OPENCLAW_STARTUP_TRACE
-// Trace builds: time per component type (reported with the fps).
-std::map<std::string, Uint64> g_PerfComponentTicks;
 int g_PerfActorUpdates = 0;
 #endif
 
@@ -130,18 +129,38 @@ void Actor::Update(uint32 msDiff)
 {
 #ifdef OPENCLAW_STARTUP_TRACE
     g_PerfActorUpdates++;
-    for (auto &component : _components)
-    {
-        Uint64 t0 = SDL_GetPerformanceCounter();
-        component.second->VUpdate(msDiff);
-        g_PerfComponentTicks[component.second->VGetName()] += SDL_GetPerformanceCounter() - t0;
-    }
-#else
-    for (auto &component : _components)
-    {
-        component.second->VUpdate(msDiff);
-    }
 #endif
+    for (auto &component : _components)
+    {
+        component.second->VUpdate(msDiff);
+    }
+}
+
+bool Actor::IsPausableWhenFar()
+{
+    if (_pausableWhenFar < 0)
+    {
+        // Components that only animate, sit still or wait to be touched.
+        // Anything else (enemies, elevators, spikes, sounds, Claw...) keeps
+        // running everywhere.
+        static const char* kPausable[] = {
+            "AnimationComponent", "ActorRenderComponent", "PositionComponent", "PhysicsComponent",
+            "TriggerComponent", "SoundTriggerComponent", "CollisionComponent", "PickupComponent",
+            "TreasurePickupComponent", "LifePickupComponent", "HealthPickupComponent", "AmmoPickupComponent",
+            "PowerupPickupComponent", "CheckpointComponent", "GlitterComponent", "LootComponent",
+            "DestroyableComponent", "ConcreteComponent",
+        };
+        bool ok = !_components.empty();
+        for (auto &component : _components)
+        {
+            bool found = false;
+            for (const char* name : kPausable)
+                if (strcmp(component.second->VGetName(), name) == 0) { found = true; break; }
+            if (!found) { ok = false; break; }
+        }
+        _pausableWhenFar = ok ? 1 : 0;
+    }
+    return _pausableWhenFar == 1;
 }
 
 std::string Actor::ToXML()

@@ -338,4 +338,4 @@ void ScreenElementHUD::BossFightEndedDelegate(IEventDataPtr pEvent)
         SDL_DestroyTexture(m_pBossBarTexture);
         m_pBossBarTexture = NULL;
     }
-}
+}

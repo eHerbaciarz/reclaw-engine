@@ -115,6 +115,10 @@ public:
 
     const ActorComponentsMap* GetComponents() { return &_components; }
 
+    // Scenery and pickups: actors made only of components that may pause while
+    // far from the screen (handhelds update only nearby ones; Actor.cpp).
+    bool IsPausableWhenFar();
+
     void AddComponent(StrongActorComponentPtr pComponent);
 
     void OnWorldFinishedLoading();
@@ -134,6 +138,7 @@ private:
     std::string _name;
 
     ActorComponentsMap _components;
+    int8_t _pausableWhenFar = -1;   // -1: not checked yet
 
     // Resource from which this actor was loaded
     std::string _resource;
@@ -146,4 +151,4 @@ private:
     shared_ptr<PhysicsComponent> m_pPhysicsComponent; // Cached because physics objects sync every frame
 };
 
-#endif
+#endif

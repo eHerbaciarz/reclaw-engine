@@ -1,4 +1,5 @@
 #include <map>
+#include <SDL2/SDL_ttf.h>
 #include <algorithm>
 #include "../Audio/Audio.h"
 #include "../UserInterface/Lang.h"
@@ -212,6 +213,55 @@ void BaseGameApp::OnAppEvent(const AppEvent &event) {
   }
 }
 
+
+// A plain loading screen while the game starts (the first start on handhelds
+// takes several seconds): "ReClaw" and a progress bar, straight on the screen.
+static void ShowStartupProgress(SDL_Renderer* r, int percent)
+{
+  if (!r) return;
+  SDL_Texture* prevTarget = SDL_GetRenderTarget(r);
+  float sx = 1.0f, sy = 1.0f;
+  SDL_RenderGetScale(r, &sx, &sy);
+  SDL_SetRenderTarget(r, NULL);
+  SDL_RenderSetScale(r, 1.0f, 1.0f);
+  int w = 0, h = 0;
+  SDL_GetRendererOutputSize(r, &w, &h);
+  SDL_SetRenderDrawColor(r, 14, 8, 4, 255);
+  SDL_RenderClear(r);
+
+  static SDL_Texture* s_pTitle = nullptr;
+  static int s_TitleW = 0, s_TitleH = 0;
+  if (!s_pTitle) {
+    if (!TTF_WasInit()) TTF_Init();
+    if (TTF_Font* font = TTF_OpenFont(Platform::SplashFont().c_str(), std::max(16, h / 12))) {
+      if (SDL_Surface* sf = TTF_RenderUTF8_Blended(font, "ReClaw", SDL_Color{ 236, 196, 98, 255 })) {
+        s_pTitle = SDL_CreateTextureFromSurface(r, sf);
+        s_TitleW = sf->w; s_TitleH = sf->h;
+        SDL_FreeSurface(sf);
+      }
+      TTF_CloseFont(font);
+    }
+  }
+  if (s_pTitle) {
+    SDL_Rect d = { (w - s_TitleW) / 2, h / 2 - s_TitleH, s_TitleW, s_TitleH };
+    SDL_RenderCopy(r, s_pTitle, NULL, &d);
+  }
+  int barW = w / 3, barH = std::max(3, h / 120);
+  SDL_Rect frame = { (w - barW) / 2, h / 2 + h / 12, barW, barH };
+  SDL_SetRenderDrawColor(r, 60, 36, 12, 255);
+  SDL_RenderFillRect(r, &frame);
+  SDL_Rect fill = frame;
+  fill.w = barW * std::max(0, std::min(100, percent)) / 100;
+  SDL_SetRenderDrawColor(r, 236, 196, 98, 255);
+  SDL_RenderFillRect(r, &fill);
+  SDL_RenderPresent(r);
+  SDL_PumpEvents();
+  if (percent >= 100 && s_pTitle) { SDL_DestroyTexture(s_pTitle); s_pTitle = nullptr; }
+
+  SDL_SetRenderTarget(r, prevTarget);
+  SDL_RenderSetScale(r, sx, sy);
+}
+
 bool BaseGameApp::Initialize(int argc, char **argv) {
   RegisterEngineEvents();
   VRegisterGameEvents();
@@ -232,6 +282,7 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // Dedication screen (only in builds made with a splash text); stays up
   // while the rest of the game loads.
   StartupSplash::Show(m_pRenderer);
+  ShowStartupProgress(m_pRenderer, 5);
 
   // 3DS bottom screen / Wii U GamePad: status screen.
   SecondScreen::Init();
@@ -248,12 +299,14 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     return false;
   }
 
+  ShowStartupProgress(m_pRenderer, 10);
   STARTUP_TRACE("begin InitializeResources");
   if (!InitializeResources(m_GameOptions)) {
     STARTUP_TRACE("FAILED InitializeResources");
     return false;
   }
 
+  ShowStartupProgress(m_pRenderer, 25);
   STARTUP_TRACE("begin InitializeLocalization");
   if (!InitializeLocalization(m_GameOptions)) {
     STARTUP_TRACE("FAILED InitializeLocalization");
@@ -302,19 +355,23 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // Lazy loading architecture: Only load critical assets initially
   // Menu and UI assets load first, level assets load on-demand
   LOG("Loading critical assets (menu/UI)...");
+  ShowStartupProgress(m_pRenderer, 40);
   STARTUP_TRACE("preload " "/STATES/MENU/*");
   m_pResourceMgr->VPreload("/STATES/MENU/*", NULL, ORIGINAL_RESOURCE);
+  ShowStartupProgress(m_pRenderer, 85);
   STARTUP_TRACE("preload " "/GAME/FONTS/*");
   m_pResourceMgr->VPreload("/GAME/FONTS/*", NULL, ORIGINAL_RESOURCE);
   STARTUP_TRACE("preload " "/GAME/IMAGES/MENU/*");
   m_pResourceMgr->VPreload("/GAME/IMAGES/MENU/*", NULL, ORIGINAL_RESOURCE);
 
   // Load custom assets
+  ShowStartupProgress(m_pRenderer, 92);
   STARTUP_TRACE("preload " "*");
   m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
 
   LOG("Critical assets loaded. Level assets will load on-demand.");
 
+  ShowStartupProgress(m_pRenderer, 100);
   STARTUP_TRACE("begin VPerformStartupTests");
   if (!VPerformStartupTests()) {
     LOG_ERROR("Failed to pass certain startup tests.");
@@ -604,21 +661,9 @@ void BaseGameApp::StepLoop() {
                    g_PerfLogicTicks[0] * perUpdate, g_PerfLogicTicks[1] * perUpdate, g_PerfLogicTicks[2] * perUpdate);
           g_PerfLogicTicks[0] = g_PerfLogicTicks[1] = g_PerfLogicTicks[2] = 0;
           STARTUP_TRACE(line);
-          // the slowest component types (ms per logic step) and actor updates per step
-          extern std::map<std::string, Uint64> g_PerfComponentTicks;
+          // actor updates per logic step
           extern int g_PerfActorUpdates;
-          std::vector<std::pair<Uint64, std::string>> comps;
-          for (auto& c : g_PerfComponentTicks) comps.push_back({ c.second, c.first });
-          std::sort(comps.rbegin(), comps.rend());
-          std::string top = "perf: " + std::to_string(g_PerfActorUpdates / std::max(1, s_perfUpdates)) + " actor updates/step;";
-          for (size_t i = 0; i < comps.size() && i < 6; ++i)
-          {
-            char part[96];
-            snprintf(part, sizeof(part), " %s %.2f", comps[i].second.c_str(), comps[i].first * perUpdate);
-            top += part;
-          }
-          snprintf(line, sizeof(line), "%s", top.c_str());
-          g_PerfComponentTicks.clear();
+          snprintf(line, sizeof(line), "perf: %d actor updates/step", g_PerfActorUpdates / std::max(1, s_perfUpdates));
           g_PerfActorUpdates = 0;
           STARTUP_TRACE(line);
           s_perfStart = perfT2; s_logicTicks = s_renderTicks = 0; s_perfFrames = s_perfUpdates = 0; s_worstMs = 0;

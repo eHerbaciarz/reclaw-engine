@@ -1,6 +1,7 @@
 #include <cstdio>
 #include "../Actor/ActorFactory.h"
 #include "../UserInterface/HumanView.h"
+#include "../Util/StartupTrace.h"
 #include "../Events/Events.h"
 #include "../Resource/Loaders/XmlLoader.h"
 #include "../Resource/Loaders/PalLoader.h"
@@ -460,9 +461,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     float loadingProgress = 0.0f;
     float lastProgress = 0.0f;
 
-    // Preload level resources
     std::string levelPath = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber()) + "/*";
-    g_pApp->GetResourceCache()->Preload(levelPath, NULL);
 
     // ============== LOADING SCREEN RENDERING ==============
 
@@ -480,6 +479,24 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     s_pLoadingScreenOverlay = LoadOriginalLoadingScreen(backgroundPath);
 
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
+
+    // Preload the level's pictures and sounds - after the loading screen is
+    // up (it used to happen before it: the menu froze for seconds on the
+    // handhelds), with the bar moving.
+    STARTUP_TRACE("level: preload");
+    {
+        std::vector<std::string> files = g_pApp->GetResourceCache()->Match(levelPath);
+        for (size_t i = 0; i < files.size(); ++i)
+        {
+            Resource resource(files[i]);
+            g_pApp->GetResourceCache()->GetHandle(&resource);
+            if (i % 40 == 0)
+            {
+                RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 10.0f * i / files.size());
+            }
+        }
+    }
+    STARTUP_TRACE("level: preload done");
 
     // ============== LEVEL LOADING ==============
 
@@ -1269,9 +1286,31 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
     }
     else if (msAccumulation >= 5)
     {
-        // Update all game actors
+        // Update all game actors. Handhelds: scenery and pickups far from the
+        // screen (more than a screen away) wait - most of a level's ~1700
+        // actors; updating them all cost the PS Vita a third of each step.
+#if defined(__vita__) || defined(__3DS__)
+        HumanView* pView = (m_GameState == GameState_IngameRunning) ? g_pApp->GetHumanView() : nullptr;
+        shared_ptr<CameraNode> pCam = pView ? pView->GetCamera() : nullptr;
+        SDL_Rect nearRect = { 0, 0, 0, 0 };
+        if (pCam)
+        {
+            nearRect = pCam->GetCameraRect();
+            nearRect.x -= nearRect.w; nearRect.y -= nearRect.h; nearRect.w *= 3; nearRect.h *= 3;
+        }
+#endif
         for (auto &actorIter : m_ActorMap)
         {
+#if defined(__vita__) || defined(__3DS__)
+            if (pCam && !Race::IsActive() && actorIter.second->IsPausableWhenFar())
+            {
+                if (shared_ptr<PositionComponent> pPos = actorIter.second->GetPositionComponent())
+                {
+                    const Point& p = pPos->GetPosition();
+                    if (p.x < nearRect.x || p.y < nearRect.y || p.x > nearRect.x + nearRect.w || p.y > nearRect.y + nearRect.h) continue;
+                }
+            }
+#endif
             actorIter.second->Update(msAccumulation);
         }
         msAccumulation = 0;
