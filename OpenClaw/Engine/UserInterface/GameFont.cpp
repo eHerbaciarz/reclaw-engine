@@ -856,4 +856,30 @@ namespace GameFont
             }
         }
     }
+
+    Pixels WithShadow(const Pixels& p, int dx, int dy, int alpha)
+    {
+        Pixels out;
+        out.w = p.w + dx + 1;
+        out.h = p.h + dy + 1;
+        out.px.assign((size_t)out.w * out.h, 0);
+        // shadow: the letters' alpha, blurred a little, dark brown
+        for (int y = 0; y < out.h; ++y)
+            for (int x = 0; x < out.w; ++x)
+            {
+                int sum = 0, n = 0;
+                for (int oy = -1; oy <= 1; ++oy)
+                    for (int ox = -1; ox <= 1; ++ox)
+                    {
+                        int sx = x - dx + ox, sy = y - dy + oy;
+                        int w = (ox == 0 && oy == 0) ? 4 : 1;
+                        n += w;
+                        if (sx >= 0 && sy >= 0 && sx < p.w && sy < p.h) sum += w * (int)(p.px[(size_t)sy * p.w + sx] >> 24);
+                    }
+                uint32_t a = (uint32_t)(sum / n * alpha / 255);
+                if (a) out.px[(size_t)y * out.w + x] = (a << 24) | (0x08u << 16) | (0x10u << 8) | 0x18u;
+            }
+        Paste(out, p, 0, 0);
+        return out;
+    }
 }

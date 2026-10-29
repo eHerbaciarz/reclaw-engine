@@ -55,13 +55,14 @@ namespace CreditsScreen
             if (!GameFont::RenderPixels(text, GameFont::Look::Normal, -1, p)) return;
             if (p.w * percent / 100 > kWidth - 10) percent = (kWidth - 10) * 100 / p.w;
             Pixels small = GameFont::Scale(p, percent);
-            GameFont::Paste(canvas, small, (kWidth - small.w) / 2, y - baseline * percent / 100);
+            int x = (kWidth - small.w) / 2;
+            GameFont::Paste(canvas, GameFont::WithShadow(small, 2, 2, 200), x, y - baseline * percent / 100);
         };
 
         // Title, full size, underlined like the original page titles.
         Pixels title;
         if (GameFont::RenderPixels("RECLAW – TWÓRCY", GameFont::Look::Normal, -2, title))
-            GameFont::Paste(canvas, title, (kWidth - title.w) / 2, kTopPad - GameFont::ExtraTop());
+            GameFont::Paste(canvas, GameFont::WithShadow(title, 3, 3, 170), (kWidth - title.w) / 2, kTopPad - GameFont::ExtraTop());
 
         int y = kFirstLabel;
         for (const Block& b : kBlocks)

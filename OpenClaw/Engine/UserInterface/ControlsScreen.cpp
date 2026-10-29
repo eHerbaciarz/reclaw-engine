@@ -113,7 +113,7 @@ namespace ControlsScreen
         Pixels title;
         if (GameFont::RenderPixels("STEROWANIE", GameFont::Look::Normal, -2, title))
         {
-            GameFont::Paste(canvas, title, (kWidth - title.w) / 2, -GameFont::ExtraTop());
+            GameFont::Paste(canvas, GameFont::WithShadow(title, 3, 3, 170), (kWidth - title.w) / 2, -GameFont::ExtraTop());
         }
 
         // Letters' baseline inside a GameFont picture.
@@ -154,7 +154,7 @@ namespace ControlsScreen
                     if (text.w * percent / 100 > room) percent = std::max(35, room * 100 / text.w);
                     Pixels small = GameFont::Scale(text, percent);
                     int base = baseline * percent / 100;
-                    GameFont::Paste(canvas, small, keyRight + kGap, cy + 6 - base);
+                    GameFont::Paste(canvas, GameFont::WithShadow(small, 2, 2, 200), keyRight + kGap, cy + 6 - base);
                 }
                 y += step;
             }

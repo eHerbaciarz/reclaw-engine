@@ -52,4 +52,8 @@ namespace GameFont
     // averaged) and drawing one picture over another.
     Pixels Scale(const Pixels& p, int percent);
     void Paste(Pixels& dst, const Pixels& src, int x, int y);
+    // A soft dark shadow under the letters, moved by (dx, dy), like the one
+    // in the original menu pictures (for small texts, where the letters'
+    // own shadow shrinks away). The picture grows by dx, dy.
+    Pixels WithShadow(const Pixels& p, int dx, int dy, int alpha);
 }
