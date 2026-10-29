@@ -264,6 +264,10 @@ void BaseGameLogic::VPlayCutscene(const std::string& videoSource)
     }
 }
 
+// Trace builds: time spent in game processes [0], physics [1], game views
+// and actors [2] (reported with the fps in BaseGameApp).
+Uint64 g_PerfLogicTicks[3] = { 0, 0, 0 };
+
 // The level's own 4:3 loading screen from CLAW.REZ (localized: Polish text in
 // the Polish release), drawn over the middle of the widescreen artwork from
 // ASSETS.ZIP so the side bars are filled with matching graphics.
@@ -1175,10 +1179,18 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
                 break;
             }
 
+#ifdef OPENCLAW_STARTUP_TRACE
+            Uint64 perfA = SDL_GetPerformanceCounter();
+#endif
             if (m_pProcessMgr)
             {
                 m_pProcessMgr->UpdateProcesses(msDiff);
             }
+#ifdef OPENCLAW_STARTUP_TRACE
+            Uint64 perfB = SDL_GetPerformanceCounter();
+            g_PerfLogicTicks[0] += perfB - perfA;
+            struct PhysicsTimer { Uint64 t0 = SDL_GetPerformanceCounter(); ~PhysicsTimer() { g_PerfLogicTicks[1] += SDL_GetPerformanceCounter() - t0; } } physicsTimer;
+#endif
             
             if (m_pPhysics)
             {
@@ -1237,6 +1249,10 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
         }
     }
 
+#ifdef OPENCLAW_STARTUP_TRACE
+    Uint64 perfViews = SDL_GetPerformanceCounter();
+    struct ViewsTimer { Uint64 t0; ~ViewsTimer() { g_PerfLogicTicks[2] += SDL_GetPerformanceCounter() - t0; } } viewsTimer{ perfViews };
+#endif
     // Update all game views
     for (auto &pGameView : m_GameViews)
     {

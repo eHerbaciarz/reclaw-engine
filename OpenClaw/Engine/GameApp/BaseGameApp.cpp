@@ -483,6 +483,13 @@ void BaseGameApp::StepLoop() {
 
     // Accumulate time for fixed timestep updates
     m_accumulator += frameTime;
+    // At most 3 logic steps per frame: a slow frame (loading a picture, a
+    // sound) must not pile up a dozen steps that make the next frames slow
+    // too (seen on the PS Vita: 15 steps, 3 fps). The game runs a little
+    // slower for that moment instead.
+    if (m_accumulator > 3 * m_fixedTimestep) {
+      m_accumulator = 3 * m_fixedTimestep;
+    }
 
 // Handle all input events
 #ifdef __EMSCRIPTEN__
@@ -585,10 +592,15 @@ void BaseGameApp::StepLoop() {
         s_worstMs = std::max(s_worstMs, (double)(perfT2 - perfT0) * 1000.0 / perfFreq);
         double secs = (double)(perfT2 - s_perfStart) / perfFreq;
         if (secs >= 5.0) {
-          char line[160];
-          snprintf(line, sizeof(line), "perf: %.1f fps, logic %.1f ms/frame (%.2f updates), render %.1f ms, worst %.0f ms",
+          extern Uint64 g_PerfLogicTicks[3];
+          char line[256];
+          const double perUpdate = 1000.0 / perfFreq / std::max(1, s_perfUpdates);
+          snprintf(line, sizeof(line), "perf: %.1f fps, logic %.1f ms/frame (%.2f updates), render %.1f ms, worst %.0f ms;"
+                   " per update: processes %.1f, physics %.1f, views+actors %.1f ms",
                    s_perfFrames / secs, (double)s_logicTicks * 1000.0 / perfFreq / s_perfFrames,
-                   (double)s_perfUpdates / s_perfFrames, (double)s_renderTicks * 1000.0 / perfFreq / s_perfFrames, s_worstMs);
+                   (double)s_perfUpdates / s_perfFrames, (double)s_renderTicks * 1000.0 / perfFreq / s_perfFrames, s_worstMs,
+                   g_PerfLogicTicks[0] * perUpdate, g_PerfLogicTicks[1] * perUpdate, g_PerfLogicTicks[2] * perUpdate);
+          g_PerfLogicTicks[0] = g_PerfLogicTicks[1] = g_PerfLogicTicks[2] = 0;
           STARTUP_TRACE(line);
           s_perfStart = perfT2; s_logicTicks = s_renderTicks = 0; s_perfFrames = s_perfUpdates = 0; s_worstMs = 0;
         }
