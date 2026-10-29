@@ -1,3 +1,4 @@
+#include "SecondScreen.h"
 #include "GameHUD.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../Resource/ResourceCache.h"
@@ -89,7 +90,11 @@ void ScreenElementHUD::VOnRender(uint32 msDiff)
     Point scale = g_pApp->GetScale();
     int cameraWidth = m_pCamera->GetWidth();
 
-    if (IsElementVisible("score"))
+    // 3DS: treasure, health, ammo, lives and the stopwatch are on the bottom
+    // screen (SecondScreen); the boss bar stays here.
+    const bool hudBelow = SecondScreen::ShowsHud();
+
+    if (!hudBelow && IsElementVisible("score"))
     {
         // Render score numbers
         for (int i = 0; i < SCORE_NUMBERS_COUNT; i++)
@@ -99,7 +104,7 @@ void ScreenElementHUD::VOnRender(uint32 msDiff)
         }
     }
 
-    if (IsElementVisible("health"))
+    if (!hudBelow && IsElementVisible("health"))
     {
         // Render health numbers
         for (int i = 0; i < HEALTH_NUMBERS_COUNT; i++)
@@ -113,7 +118,7 @@ void ScreenElementHUD::VOnRender(uint32 msDiff)
         }
     }
 
-    if (IsElementVisible("pistol") || IsElementVisible("dynamite") || IsElementVisible("magic"))
+    if (!hudBelow && (IsElementVisible("pistol") || IsElementVisible("dynamite") || IsElementVisible("magic")))
     {
         // Render ammo numbers
         for (int i = 0; i < AMMO_NUMBERS_COUNT; i++)
@@ -127,7 +132,7 @@ void ScreenElementHUD::VOnRender(uint32 msDiff)
         }
     }
 
-    if (IsElementVisible("lives"))
+    if (!hudBelow && IsElementVisible("lives"))
     {
         // Render lives numbers
         for (int i = 0; i < LIVES_NUMBERS_COUNT; i++)
@@ -141,7 +146,7 @@ void ScreenElementHUD::VOnRender(uint32 msDiff)
         }
     }
 
-    if (IsElementVisible("stopwatch"))
+    if (!hudBelow && IsElementVisible("stopwatch"))
     {
         // Render stopwatch numbers
         for (int i = 0; i < STOPWATCH_NUMBERS_COUNT; i++)

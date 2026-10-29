@@ -1,3 +1,4 @@
+#include "../UserInterface/SecondScreen.h"
 #include "Scene.h"
 #include "HUDSceneNode.h"
 #include "../Actor/Components/RenderComponent.h"
@@ -23,7 +24,8 @@ SDL2HUDSceneNode::~SDL2HUDSceneNode()
 
 void SDL2HUDSceneNode::VRender(Scene* pScene)
 {
-    if (!IsVisible(pScene))
+    // 3DS: the HUD is on the bottom screen
+    if (!IsVisible(pScene) || SecondScreen::ShowsHud())
     {
         return;
     }

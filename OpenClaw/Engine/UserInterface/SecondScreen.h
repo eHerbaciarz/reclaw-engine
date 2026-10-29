@@ -15,6 +15,9 @@ namespace SecondScreen
     void Init();
     void Shutdown();
     bool IsActive();
+    // 3DS: the level's HUD (treasure, health, lives, weapons) is shown here
+    // instead of on the top screen (less to draw there, 3D included).
+    bool ShowsHud();
 
     // Once per frame, after the main screen has been drawn.
     void Update();

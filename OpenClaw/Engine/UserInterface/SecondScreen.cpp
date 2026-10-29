@@ -20,6 +20,8 @@
 #include "../Resource/ResourceCache.h"
 #include "../Race/Race.h"
 #include "Lang.h"
+#include "../Graphics2D/Image.h"
+#include "../Resource/ResourceMgr.h"
 
 namespace
 {
@@ -51,6 +53,78 @@ namespace
         if (!surface) return;
         g_pBackground = SDL_CreateTextureFromSurface(g_pRenderer, surface);
         SDL_FreeSurface(surface);
+    }
+
+
+    // The game's own HUD pictures (from CLAW.REZ), as textures of this screen's
+    // renderer, in the current level's palette. Cleared when the level changes.
+    std::map<std::string, shared_ptr<Image>> g_HudImages;
+    int g_HudLevel = -1;
+
+    shared_ptr<Image> HudImage(const std::string& path)
+    {
+        auto it = g_HudImages.find(path);
+        if (it != g_HudImages.end()) return it->second;
+        shared_ptr<Image> img;
+        if (g_pApp && g_pApp->GetResourceCache())
+        {
+            Resource resource(path.c_str());
+            shared_ptr<ResourceHandle> h = g_pApp->GetResourceCache()->GetHandle(&resource);
+            if (h && h->GetDataBuffer())
+            {
+                std::vector<char> data(h->GetDataBuffer(), h->GetDataBuffer() + h->GetSize());
+                if (WapPid* pid = WAP_PidLoadFromData(data.data(), data.size(), g_pApp->GetCurrentPalette()))
+                {
+                    img.reset(Image::CreateImage(pid, g_pRenderer));
+                    WAP_PidDestroy(pid);
+                }
+            }
+        }
+        g_HudImages[path] = img;
+        return img;
+    }
+
+    // First picture of an animated HUD element (chest, heart, weapons...).
+    shared_ptr<Image> HudIcon(const std::string& folder)
+    {
+        auto it = g_HudImages.find(folder);
+        if (it != g_HudImages.end()) return it->second;
+        shared_ptr<Image> img;
+        if (g_pApp && g_pApp->GetResourceCache())
+        {
+            std::vector<std::string> files = g_pApp->GetResourceCache()->Match(folder + "*");
+            std::sort(files.begin(), files.end());
+            if (!files.empty()) img = HudImage(files.front());
+        }
+        g_HudImages[folder] = img;
+        return img;
+    }
+
+    // Draws a picture scaled, centred vertically on cy; returns its width.
+    int Draw(const shared_ptr<Image>& img, int x, int cy, double scale, Uint8 alpha = 255)
+    {
+        if (!img || !img->GetTexture()) return 0;
+        SDL_Rect dst = { x, cy - (int)(img->GetHeight() * scale) / 2,
+                         (int)(img->GetWidth() * scale), (int)(img->GetHeight() * scale) };
+        SDL_SetTextureAlphaMod(img->GetTexture(), alpha);
+        SDL_RenderCopy(g_pRenderer, img->GetTexture(), NULL, &dst);
+        SDL_SetTextureAlphaMod(img->GetTexture(), 255);
+        return dst.w;
+    }
+
+    // A number in the HUD's digit pictures ("scorenumbers", "healthnumbers",
+    // "smallnumbers"), with leading zeros to `digits`; returns the width.
+    int Digits(const char* set, int value, int digits, int x, int cy, double scale, Uint8 alpha = 255)
+    {
+        std::string s = std::to_string(std::max(0, value));
+        while ((int)s.size() < digits) s = "0" + s;
+        int w = 0;
+        for (char c : s)
+        {
+            shared_ptr<Image> d = HudImage(std::string("/game/images/interface/") + set + "/00" + c + ".pid");
+            w += Draw(d, x + w, cy, scale, alpha);
+        }
+        return w;
     }
 
     void Text(TTF_Font* font, const std::string& s, int x, int y, SDL_Color color, int align = -1)
@@ -124,6 +198,7 @@ namespace SecondScreen
         if (g_pBackground) SDL_DestroyTexture(g_pBackground);
         if (g_pFontBig) TTF_CloseFont(g_pFontBig);
         if (g_pFontSmall) TTF_CloseFont(g_pFontSmall);
+        g_HudImages.clear();
         if (g_pRenderer) SDL_DestroyRenderer(g_pRenderer);
         if (g_pWindow) SDL_DestroyWindow(g_pWindow);
         g_pBackground = nullptr;
@@ -133,6 +208,15 @@ namespace SecondScreen
     }
 
     bool IsActive() { return g_pRenderer != nullptr; }
+
+    bool ShowsHud()
+    {
+#if defined(__3DS__)
+        return g_pRenderer != nullptr;
+#else
+        return false;
+#endif
+    }
 
     void Update()
     {
@@ -192,44 +276,57 @@ namespace SecondScreen
 
         if (inGame)
         {
-            // Darkened panel for readability
+            // The game's HUD, moved here from the top screen (3DS): the same
+            // pictures as in the level, twice the size, on a darkened panel.
+            int levelNo = 0;
+            if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
+            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_HudLevel = levelNo; }
+
             SDL_SetRenderDrawBlendMode(g_pRenderer, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 120);
-            SDL_Rect panel = { g_Width / 16, g_Height / 10, g_Width - g_Width / 8, g_Height - g_Height / 5 };
+            SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 130);
+            SDL_Rect panel = { 10, 8, g_Width - 20, g_Height - 16 };
             SDL_RenderFillRect(g_pRenderer, &panel);
 
-            const int x0 = panel.x + g_Width / 20, x1 = panel.x + panel.w - g_Width / 20;
-            const int line = g_Height / 10;
-            int y = panel.y + line / 3;
-            Text(g_pFontBig, level, g_Width / 2, y, kGold, 0);
-            y += line + line / 3;
-            Text(g_pFontSmall, Lang::Tr("Skarby", "Treasure"), x0, y, kDim);
-            Text(g_pFontSmall, score, x1, y, kCream, 1);
-            y += line;
-            Text(g_pFontSmall, Lang::Tr("Zdrowie", "Health"), x0, y, kDim);
-            Text(g_pFontSmall, health, x1, y, kCream, 1);
-            y += line;
-            Text(g_pFontSmall, Lang::Tr("Życia", "Lives"), x0, y, kDim);
-            Text(g_pFontSmall, lives, x1, y, kCream, 1);
-            y += line;
-            const char* ammoNames[3] = { Lang::Tr("Pistolet", "Pistol"), Lang::Tr("Magia", "Magic"), Lang::Tr("Dynamit", "Dynamite") };
-            int colW = (x1 - x0) / 3;
+            const double k = g_Width >= 640 ? 2.5 : 1.5;   // GamePad / 3DS
+            const int left = panel.x + 10;
+            const int rowH = (int)(30 * k);
+            int cy = panel.y + g_Height / 14;
+            Text(g_pFontBig, level, g_Width / 2, cy - g_Height / 24, kGold, 0);
+            cy += (int)(26 * k);
+
+            int iconW = (int)(34 * k);
+            Draw(HudIcon("/game/images/interface/treasurechest/"), left, cy, k);
+            Digits("scorenumbers", atoi(score.c_str()), 8, left + iconW + 4, cy, k);
+            cy += rowH;
+
+            Draw(HudIcon("/game/images/interface/healthheart/"), left, cy, k);
+            int hx = left + iconW + 4;
+            hx += Digits("healthnumbers", atoi(health.c_str()), 3, hx, cy, k);
+            int lx = panel.x + panel.w - (int)(78 * k);
+            Draw(HudIcon("/game/images/interface/liveshead/"), lx, cy, k);
+            Digits("smallnumbers", atoi(lives.c_str()), 1, lx + (int)(30 * k), cy, k * 1.3);
+            cy += rowH;
+
+            // the three weapons; the selected one bright
+            const char* weapons[3] = { "pistol", "magic", "dynamite" };
+            int colW = (panel.w - 20) / 3;
             for (int i = 0; i < 3; ++i)
             {
-                SDL_Color c = (i == activeAmmo) ? kGold : kDim;
-                Text(g_pFontSmall, ammoNames[i], x0 + colW * i + colW / 2, y, c, 0);
-                Text(g_pFontSmall, ammo[i], x0 + colW * i + colW / 2, y + line * 3 / 4, i == activeAmmo ? kGold : kCream, 0);
+                Uint8 a = (i == activeAmmo) ? 255 : 110;
+                int wx = left + colW * i;
+                int iw = Draw(HudIcon(std::string("/game/images/interface/weapons/") + weapons[i] + "/"), wx, cy, k, a);
+                Digits("smallnumbers", atoi(ammo[i].c_str()), 2, wx + iw + 3, cy, k * 1.2, a);
             }
-            y += line * 2;
+            cy += rowH;
+
             if (!powerup.empty())
             {
-                Text(g_pFontSmall, Lang::Tr("Moc", "Power-up"), x0, y, kDim);
-                Text(g_pFontSmall, powerup, x1, y, kCream, 1);
-                y += line;
+                Draw(HudIcon("/game/images/interface/stopwatch/"), left, cy, k);
+                Digits("scorenumbers", atoi(powerup.c_str()), 3, left + iconW + 4, cy, k);
             }
             if (!race.empty())
             {
-                Text(g_pFontSmall, race, g_Width / 2, y, kGold, 0);
+                Text(g_pFontSmall, race, g_Width / 2, panel.y + panel.h - g_Height / 10, kGold, 0);
             }
         }
         SDL_RenderPresent(g_pRenderer);
