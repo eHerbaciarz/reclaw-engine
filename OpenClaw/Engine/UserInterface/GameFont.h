@@ -8,8 +8,9 @@
 // so menu items the port adds look like the original ones. Nothing from the
 // game is stored in the port: only where the letters are (GameFont.cpp).
 //
-// Letters available: A-Z without H Q V X, Ą Ć Ę Ó Ś Ź Ż Ń, digits none,
-// ':' '.' and space. Lower case is drawn as upper case.
+// Letters available: A-Z without Q X, Ą Ć Ę Ó Ś Ź Ż Ń, and for names
+// Í Ö Š Č; ':' '.' '·' '–' and space; no digits. Lower case is drawn as
+// upper case. L, H, V and the extra marks are put together from other letters.
 
 #include <cstdint>
 #include <memory>
@@ -46,4 +47,9 @@ namespace GameFont
     };
     bool RenderPixels(const std::string& utf8, Look look, int underline, Pixels& out);
     std::shared_ptr<Image> ToImage(Pixels& pixels);
+
+    // For composing screens: a smaller copy (percent of the size, pixels
+    // averaged) and drawing one picture over another.
+    Pixels Scale(const Pixels& p, int percent);
+    void Paste(Pixels& dst, const Pixels& src, int x, int y);
 }

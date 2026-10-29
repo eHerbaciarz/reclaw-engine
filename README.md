@@ -74,7 +74,7 @@ ReClaw would not exist without these projects (all GPL-3.0):
   (its original README: [docs/README-claw-web.md](docs/README-claw-web.md))
 - [ClawSwitch](https://github.com/djmuted/ClawSwitch) by djmuted – the first Switch port
 
-ReClaw: MK and Claude (Anthropic).
+ReClaw: Herbaciarz, made with the help of Claude (Anthropic).
 
 ## Building
 

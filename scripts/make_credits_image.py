@@ -23,7 +23,7 @@ TEXTS = {
         ("Pomoc przy OpenClaw", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
         ("Claw Web", "Arthur Boss"),
         ("ClawSwitch", "djmuted"),
-        ("ReClaw", "MK  i  Claude (Anthropic)"),
+        ("ReClaw", "Herbaciarz"),
     ]),
     "en": ("ReClaw – credits", [
         ("Original game", "Claw © 1997 Monolith Productions"),
@@ -31,7 +31,7 @@ TEXTS = {
         ("OpenClaw contributors", "RicoRodriges · Denis Papec · Bakasura · Greg V · Piotr Krzeminski"),
         ("Claw Web", "Arthur Boss"),
         ("ClawSwitch", "djmuted"),
-        ("ReClaw", "MK  and  Claude (Anthropic)"),
+        ("ReClaw", "Herbaciarz"),
     ]),
 }
 

@@ -2492,6 +2492,7 @@
             <Type>Text</Type>
             <State>Disabled</State>
             <DisabledImage>/CREDITS/credits_text_{lang}.png</DisabledImage>
+            <GameFontCredits />
             <Position x="20" y="105" />
         </MenuItem>
         <MenuItem>

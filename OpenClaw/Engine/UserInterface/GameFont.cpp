@@ -415,6 +415,96 @@ namespace
             g_Glyphs[0x017B] = Combine(g_Glyphs['Z'], dot, (g_Glyphs['Z'].w - dot.w) / 2, dy);
         }
 
+        // Letters for names (credits screen) the menus do not have.
+        const int H = kAbove + kBelow;
+        auto inkCount = [&](const Glyph& g, int x) { int n = 0; for (int y = 0; y < H; ++y) n += InkAt(g, x, y); return n; };
+        auto mirror = [&](const Glyph& g) {
+            Glyph m = g;
+            for (int y = 0; y < H; ++y)
+                for (int x = 0; x < g.w; ++x) m.px[(size_t)y * g.w + x] = g.px[(size_t)y * g.w + (g.w - 1 - x)];
+            return m;
+        };
+        auto blank = [&](int w) { Glyph g; g.w = w; g.px.assign((size_t)w * H, 0); return g; };
+        {
+            // H: two I stems joined by E's middle arm.
+            const Glyph& i = g_Glyphs['I'];
+            const Glyph& e = g_Glyphs['E'];
+            int s0 = LeftEdge(i), s1 = s0;
+            while (s1 + 1 < i.w && inkCount(i, s1 + 1) >= 12) s1++;
+            int es = LeftEdge(e), ee = es;
+            while (ee + 1 < e.w && inkCount(e, ee + 1) >= 12) ee++;
+            int probe = std::min(e.w - 1, ee + 3);
+            // runs of ink in that column: top arm, middle arm, bottom arm
+            std::vector<std::pair<int, int>> runs;
+            for (int y = 0, start = -1; y <= kAbove; ++y)
+            {
+                bool ink = y < kAbove + 1 && InkAt(e, probe, y);
+                if (ink && start < 0) start = y;
+                if (!ink && start >= 0) { runs.push_back({ start, y - 1 }); start = -1; }
+            }
+            if (runs.size() >= 3)
+            {
+                const int gap = 8;
+                Glyph h = blank(i.w * 2 + gap);
+                h = Combine(h, i, 0, 0);
+                h = Combine(h, i, i.w + gap, 0);
+                int from = s1 + 1, to = i.w + gap + s0 - 1;
+                for (int y = runs[1].first; y <= runs[1].second; ++y)
+                {
+                    uint32_t c = e.px[(size_t)y * e.w + probe];
+                    for (int x = from; x <= to; ++x) h.px[(size_t)y * h.w + x] = c;
+                }
+                g_Glyphs['H'] = h;
+            }
+        }
+        {
+            // V: the left half of W (W is two Vs side by side).
+            const Glyph& w = g_Glyphs['W'];
+            int apex = w.w / 2, best = H;
+            for (int x = w.w / 3; x <= 2 * w.w / 3; ++x)
+            {
+                int top = H;
+                for (int y = 0; y < H; ++y) if (InkAt(w, x, y)) { top = y; break; }
+                if (top < best) { best = top; apex = x; }
+            }
+            Glyph v = blank(apex + 2);
+            for (int y = 0; y < H; ++y)
+                for (int x = 0; x < v.w; ++x) v.px[(size_t)y * v.w + x] = w.px[(size_t)y * w.w + x];
+            g_Glyphs['V'] = v;
+        }
+        if (acute.w > 0)
+        {
+            // Í, and a caron (Š, Č) made of the accent and its mirror image.
+            g_Glyphs[0x00CD] = Combine(g_Glyphs['I'], acute, (g_Glyphs['I'].w - acute.w) / 2 + 1, 0);
+            Glyph caron = blank(acute.w * 2 - 2);
+            caron = Combine(caron, mirror(acute), 0, 0);
+            caron = Combine(caron, acute, acute.w - 2, 0);
+            int top = TopRow(acute), bottom = top;
+            auto parts = RowParts(acute);
+            if (!parts.empty()) bottom = parts.back().second;
+            caron = Crop(Shrink(caron, top, bottom, 75));
+            g_Glyphs[0x0160] = Combine(g_Glyphs['S'], caron, (g_Glyphs['S'].w - caron.w) / 2, 0);
+            g_Glyphs[0x010C] = Combine(g_Glyphs['C'], caron, (g_Glyphs['C'].w - caron.w) / 2 + 1, 0);
+        }
+        if (colonParts.size() >= 2)
+        {
+            Glyph dotTop = Crop(Rows(colon, colonParts[0].first, colonParts[0].second));
+            Glyph dot = Shrink(dotTop, colonParts[0].first, colonParts[0].second, 65);
+            int capTop = TopRow(g_Glyphs['O']);
+            int dy = (capTop - 2) - colonParts[0].second;
+            // Ö: two dots over O
+            Glyph o = g_Glyphs['O'];
+            int mid = o.w / 2;
+            o = Combine(o, dot, mid - dot.w - 2, dy);
+            o = Combine(o, dot, mid + 2, dy);
+            g_Glyphs[0x00D6] = o;
+            // middle dot (between names): the colon's top dot at half height
+            Glyph mdot = blank(dotTop.w + 8);
+            int capMid = (capTop + kAbove) / 2;
+            int ddy = capMid - (colonParts[0].first + colonParts[0].second) / 2;
+            g_Glyphs[0x00B7] = Combine(mdot, dotTop, 4, ddy);
+        }
+
         // Underline: one column from the middle of the original one.
         const Pic& u = g_Pics[kUnderlineSource];
         g_Underline.w = 1;
@@ -424,6 +514,23 @@ namespace
         {
             int py = u.baseline + y;
             if (py < u.h) g_Underline.px[y] = u.px[(size_t)py * u.w + ux];
+        }
+
+        // Dash: a piece of the underline at half height of the capitals.
+        {
+            Glyph dash = blank(18);
+            int capMid = (TopRow(g_Glyphs['O']) + kAbove) / 2;
+            int rows0 = -1, rows1 = -1;
+            for (int y = 0; y < kBelow; ++y) if (g_Underline.px[y] >> 24) { if (rows0 < 0) rows0 = y; rows1 = y; }
+            if (rows0 >= 0)
+            {
+                int top = capMid - (rows1 - rows0) / 2;
+                for (int y = rows0; y <= rows1; ++y)
+                    for (int x = 3; x < dash.w - 3; ++x)
+                        dash.px[(size_t)(top + y - rows0) * dash.w + x] = g_Underline.px[y];
+                g_Glyphs[0x2013] = dash;
+                g_Glyphs['-'] = dash;
+            }
         }
 
         g_Ok = true;
@@ -458,6 +565,10 @@ namespace
                 case 0x015B: cp = 0x015A; break;   // ś
                 case 0x017A: cp = 0x0179; break;   // ź
                 case 0x017C: cp = 0x017B; break;   // ż
+                case 0x00ED: cp = 0x00CD; break;   // í
+                case 0x00F6: cp = 0x00D6; break;   // ö
+                case 0x0161: cp = 0x0160; break;   // š
+                case 0x010D: cp = 0x010C; break;   // č
                 default: break;
             }
             out.push_back(cp);
@@ -634,5 +745,56 @@ namespace GameFont
         Pixels p;
         if (!RenderPixels(utf8, look, underline, p)) return nullptr;
         return ToImage(p);
+    }
+
+    Pixels Scale(const Pixels& p, int percent)
+    {
+        Pixels out;
+        out.w = std::max(1, p.w * percent / 100);
+        out.h = std::max(1, p.h * percent / 100);
+        out.px.assign((size_t)out.w * out.h, 0);
+        for (int y = 0; y < out.h; ++y)
+            for (int x = 0; x < out.w; ++x)
+            {
+                int sx0 = x * p.w / out.w, sx1 = std::max(sx0 + 1, (x + 1) * p.w / out.w);
+                int sy0 = y * p.h / out.h, sy1 = std::max(sy0 + 1, (y + 1) * p.h / out.h);
+                uint32_t r = 0, g = 0, b = 0, a = 0, n = 0;
+                for (int sy = sy0; sy < sy1; ++sy)
+                    for (int sx = sx0; sx < sx1; ++sx)
+                    {
+                        uint32_t c = p.px[(size_t)sy * p.w + sx], ca = c >> 24;
+                        r += (c & 0xFF) * ca; g += ((c >> 8) & 0xFF) * ca; b += ((c >> 16) & 0xFF) * ca;
+                        a += ca; n++;
+                    }
+                if (!a) continue;
+                out.px[(size_t)y * out.w + x] = ((a / n) << 24) | ((b / a) << 16) | ((g / a) << 8) | (r / a);
+            }
+        return out;
+    }
+
+    void Paste(Pixels& dst, const Pixels& src, int x0, int y0)
+    {
+        for (int y = 0; y < src.h; ++y)
+        {
+            int ty = y0 + y;
+            if (ty < 0 || ty >= dst.h) continue;
+            for (int x = 0; x < src.w; ++x)
+            {
+                int tx = x0 + x;
+                if (tx < 0 || tx >= dst.w) continue;
+                uint32_t c = src.px[(size_t)y * src.w + x];
+                uint32_t sa = c >> 24;
+                if (!sa) continue;
+                uint32_t& d = dst.px[(size_t)ty * dst.w + tx];
+                if (sa == 255 || !(d >> 24)) { d = c; continue; }
+                uint32_t o = 0xFF000000u;
+                for (int sh = 0; sh <= 16; sh += 8)
+                {
+                    uint32_t sc = (c >> sh) & 0xFF, dc = (d >> sh) & 0xFF;
+                    o |= ((sc * sa + dc * (255 - sa)) / 255) << sh;
+                }
+                d = o;
+            }
+        }
     }
 }

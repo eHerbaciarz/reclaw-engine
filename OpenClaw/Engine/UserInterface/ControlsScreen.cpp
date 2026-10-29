@@ -63,56 +63,6 @@ namespace
         return true;
     }
 
-    Pixels Shrink(const Pixels& p, int percent)
-    {
-        Pixels out;
-        out.w = std::max(1, p.w * percent / 100);
-        out.h = std::max(1, p.h * percent / 100);
-        out.px.assign((size_t)out.w * out.h, 0);
-        for (int y = 0; y < out.h; ++y)
-            for (int x = 0; x < out.w; ++x)
-            {
-                int sx0 = x * p.w / out.w, sx1 = std::max(sx0 + 1, (x + 1) * p.w / out.w);
-                int sy0 = y * p.h / out.h, sy1 = std::max(sy0 + 1, (y + 1) * p.h / out.h);
-                uint32_t r = 0, g = 0, b = 0, a = 0, n = 0;
-                for (int sy = sy0; sy < sy1; ++sy)
-                    for (int sx = sx0; sx < sx1; ++sx)
-                    {
-                        uint32_t c = p.px[(size_t)sy * p.w + sx], ca = c >> 24;
-                        r += (c & 0xFF) * ca; g += ((c >> 8) & 0xFF) * ca; b += ((c >> 16) & 0xFF) * ca;
-                        a += ca; n++;
-                    }
-                if (!a) continue;
-                out.px[(size_t)y * out.w + x] = ((a / n) << 24) | ((b / a) << 16) | ((g / a) << 8) | (r / a);
-            }
-        return out;
-    }
-
-    void Paste(Pixels& dst, const Pixels& src, int x0, int y0)
-    {
-        for (int y = 0; y < src.h; ++y)
-        {
-            int ty = y0 + y;
-            if (ty < 0 || ty >= dst.h) continue;
-            for (int x = 0; x < src.w; ++x)
-            {
-                int tx = x0 + x;
-                if (tx < 0 || tx >= dst.w) continue;
-                uint32_t c = src.px[(size_t)y * src.w + x];
-                uint32_t sa = c >> 24;
-                if (!sa) continue;
-                uint32_t& d = dst.px[(size_t)ty * dst.w + tx];
-                if (sa == 255 || !(d >> 24)) { d = c; continue; }
-                uint32_t o = 0xFF000000u;
-                for (int sh = 0; sh <= 16; sh += 8)
-                {
-                    uint32_t sc = (c >> sh) & 0xFF, dc = (d >> sh) & 0xFF;
-                    o |= ((sc * sa + dc * (255 - sa)) / 255) << sh;
-                }
-                d = o;
-            }
-        }
-    }
 }
 
 namespace ControlsScreen
@@ -163,7 +113,7 @@ namespace ControlsScreen
         Pixels title;
         if (GameFont::RenderPixels("STEROWANIE", GameFont::Look::Normal, -2, title))
         {
-            Paste(canvas, title, (kWidth - title.w) / 2, -GameFont::ExtraTop());
+            GameFont::Paste(canvas, title, (kWidth - title.w) / 2, -GameFont::ExtraTop());
         }
 
         // Letters' baseline inside a GameFont picture.
@@ -192,7 +142,7 @@ namespace ControlsScreen
                 int x = keyRight - keysW;
                 for (const Pixels& badge : badges)
                 {
-                    Paste(canvas, badge, x, cy - badge.h / 2);
+                    GameFont::Paste(canvas, badge, x, cy - badge.h / 2);
                     x += badge.w + 3;
                 }
                 // action, smaller when it would not fit the column
@@ -202,9 +152,9 @@ namespace ControlsScreen
                     int percent = kTextPercent;
                     int room = textRight - (keyRight + kGap);
                     if (text.w * percent / 100 > room) percent = std::max(35, room * 100 / text.w);
-                    Pixels small = Shrink(text, percent);
+                    Pixels small = GameFont::Scale(text, percent);
                     int base = baseline * percent / 100;
-                    Paste(canvas, small, keyRight + kGap, cy + 6 - base);
+                    GameFont::Paste(canvas, small, keyRight + kGap, cy + 6 - base);
                 }
                 y += step;
             }
