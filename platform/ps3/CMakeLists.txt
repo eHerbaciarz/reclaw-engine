@@ -25,6 +25,8 @@ set(PS3_TITLE     "ReClaw")
 
 openclaw_add_game(openclaw)
 target_include_directories(openclaw BEFORE PRIVATE "${CMAKE_CURRENT_LIST_DIR}/compat")
+# Startup steps and performance in save/reclaw.log (first builds on real hardware)
+target_compile_definitions(openclaw PRIVATE OPENCLAW_STARTUP_TRACE=1)
 target_compile_options(openclaw PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_LIST_DIR}/compat/ps3_cxx_compat.h>")
 openclaw_link_sdl(openclaw NO_GFX)
 # PSL1GHT system libraries used by SDL and the network race
