@@ -50,8 +50,8 @@ def main(only=None):
         if name.startswith("handheld-linux/"):
             # full screen at the screen's own size
             s = s.replace("<IsFullscreenDesktop>false</IsFullscreenDesktop>", "<IsFullscreenDesktop>true</IsFullscreenDesktop>")
-        if name == "android":
-            s = s.replace("<Enable>false</Enable>", "<Enable>true</Enable>")  # touch controls
+        # Android: the on-screen controls (UserInterface/TouchPad) replace the
+        # old touch gestures (<TouchScreen><Enable>), which stay off.
         if "/" in name:
             # platform/handheld-linux/config-<variant>.xml
             folder, variant = name.split("/")

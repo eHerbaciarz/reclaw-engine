@@ -63,6 +63,7 @@ static std::string ResolveBundledFile(const std::string& path)
 #else
 #include "../Platform/Video/Null/NullVideoPlatform.h"
 #include "../Platform/Input/SdlGamepadInput.h"
+#include "../UserInterface/TouchPad.h"
 #include "../Resource/LooseSoundFiles.h"
 #endif
 
@@ -575,10 +576,17 @@ void BaseGameApp::StepLoop() {
     while (SDL_PollEvent(&event)) {
       // Controllers go through the same AppEvent path as the browser build so
       // HumanView/ActorController handle pads identically on every platform.
+      // On-screen controls (touch screens) take the touches while playing.
+      if (TouchPad::HandleEvent(event)) {
+        continue;
+      }
       AppEvent padEvent;
       bool hasPadEvent = false;
       if (SdlGamepadInput::Translate(event, padEvent, hasPadEvent)) {
         if (hasPadEvent) {
+          if (padEvent.type == AppEventType::GamepadButtonDown) {
+            TouchPad::OnControllerUsed();
+          }
           OnAppEvent(padEvent);
         }
         continue;

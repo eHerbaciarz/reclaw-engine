@@ -273,6 +273,11 @@ namespace Platform
 #endif
         g_DataDir = g_RootDir + "save/";
 
+#if defined(__ANDROID__)
+        // The tilt sensor is not a controller (it would hide the touch controls).
+        SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+#endif
+
         // Nintendo consoles: SDL reports the buttons by their printed labels
         // (A = right); the menus swap A/B for that (see SdlGamepadInput).
 #ifdef SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS

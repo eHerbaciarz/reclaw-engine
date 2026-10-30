@@ -91,6 +91,12 @@ public:
     inline std::shared_ptr<Animation> GetCurrentAnimation() const { return _currentAnimation; }
     inline std::string GetCurrentAnimationName() const { return _currentAnimation->GetName(); }
     bool AddAnimation(const std::string &animName, std::shared_ptr<Animation> &pAnim);
+    // An animation by name, or nullptr (touch controls' icons)
+    std::shared_ptr<Animation> FindAnimation(const std::string& animName) const
+    {
+        auto it = _animationMap.find(animName);
+        return it != _animationMap.end() ? it->second : nullptr;
+    }
 
 private:
 

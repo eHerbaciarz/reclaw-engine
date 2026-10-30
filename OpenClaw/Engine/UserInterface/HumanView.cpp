@@ -33,6 +33,7 @@
 #include "../Platform/Platform.h"
 #include "../Race/RaceLobby.h"
 #include "../Scene/HUDSceneNode.h"
+#include "TouchPad.h"
 
 const uint32 g_InvalidGameViewId = 0xFFFFFFFF;
 
@@ -162,6 +163,9 @@ void HumanView::VOnRender(uint32 msDiff)
             // Subtitles / the cheat code's message, over the game and the menus
             Subtitles::Render(renderer);
 
+            // On-screen controls (touch screens), while playing
+            TouchPad::Render(renderer);
+
             // Lazy-load cursor frames on first render (resource cache is guaranteed ready by then)
             if (m_CursorFrames.empty())
             {
@@ -186,6 +190,10 @@ void HumanView::VOnRender(uint32 msDiff)
             // gamepad navigates without one — so show the cursor only for mouse.
             // Self-corrects: moving the mouse brings it back on hybrid setups.
             if (!g_pApp->WasLastInputMouse()) showCursor = false;
+    #endif
+    #if defined(__ANDROID__)
+            // A touch screen has no hovering pointer.
+            showCursor = false;
     #endif
             if (showCursor && !m_CursorFrames.empty())
             {
