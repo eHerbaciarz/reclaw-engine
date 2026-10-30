@@ -189,6 +189,9 @@ namespace Platform
         scePowerSetBusClockFrequency(222);
         scePowerSetGpuClockFrequency(222);
         scePowerSetGpuXbarClockFrequency(166);
+        // The rear touch pad is touched by accident while holding the Vita:
+        // SDL ignores it (read before SDL_Init).
+        SDL_setenv("VITA_DISABLE_TOUCH_BACK", "1", 1);
 #elif defined(__3DS__)
         // New 3DS / 2DS XL: 804 MHz and the L2 cache (no effect on old models).
         osSetSpeedupEnable(true);
