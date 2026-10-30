@@ -11,6 +11,7 @@ Building (Ubuntu 24.04):
       SigLevel = Optional TrustAll
       Server = https://pacman.mydedibox.fr/pacbrew/packages/
   sudo pacman -Sy ps4-openorbis ps4-openorbis-portlibs
-  put libc.prx and libSceFios2.prx into platform/ps4/sce_module/
+  (optional) libc.prx / libSceFios2.prx in platform/ps4/sce_module/; otherwise
+  the ones the OpenOrbis toolchain builds itself ($OPENORBIS/src/modules) are used
   source /opt/pacbrew/ps4/openorbis/ps4vars.sh
   openorbis-cmake -S platform/ps4 -B build-ps4 && cmake --build build-ps4 -j

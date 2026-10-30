@@ -1,3 +1,4 @@
+#include <cstdlib>  // before <cmath>: the PS4 libc++ needs ::abs declared
 #include <cmath>
 #include "SceneNodes.h"
 #include "Scene.h"
