@@ -72,12 +72,24 @@ ifeq ($(TRACE),1)
 DEFINES  += -DOPENCLAW_STARTUP_TRACE
 endif
 
+ifneq ($(RECLAW_FFMPEG),)
+DEFINES  += -DOPENCLAW_HAVE_FFMPEG=1
+INCLUDES += -I$(RECLAW_FFMPEG)/include
+endif
+
 CXXFLAGS := -g -O2 -ffunction-sections -fdata-sections $(ARCH) $(DEFINES) $(INCLUDES) \
             -std=gnu++17 -fpermissive -fexceptions -Wno-narrowing -w -MMD -MP
 
 LDFLAGS  := $(SPECS) -g $(ARCH) -Wl,--gc-sections -Wl,-Map,$(BUILD)/$(TARGET).map
 
 LIBS     := $(shell $(PKGCONFIG) --libs SDL2_mixer SDL2_image SDL2_ttf SDL2_gfx sdl2 zlib 2>/dev/null) -lnx
+
+# Remastered movies: movie_XX.mp4 needs a minimal FFmpeg
+# (scripts/build_ffmpeg_min.sh switch <prefix>; make RECLAW_FFMPEG=<prefix>).
+# Without it only movie_XX.mpg (MPEG-1) plays.
+ifneq ($(RECLAW_FFMPEG),)
+LIBS     := $(RECLAW_FFMPEG)/lib/libavformat.a $(RECLAW_FFMPEG)/lib/libavcodec.a $(RECLAW_FFMPEG)/lib/libavutil.a $(LIBS)
+endif
 
 #---------------------------------------------------------------------------------
 # Bundled read-only data (romfs). CLAW.REZ is NOT bundled: players copy their

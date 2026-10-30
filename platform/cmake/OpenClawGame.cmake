@@ -54,6 +54,23 @@ function(openclaw_add_game target)
     target_compile_options(${target} PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-fpermissive>
         -Wno-narrowing -w)
+    openclaw_link_ffmpeg(${target})
+endfunction()
+
+# Remastered movies: movies/movie_XX.mpg (MPEG-1, pl_mpeg) always; movie_XX.mp4
+# (H.264 + AAC) when RECLAW_FFMPEG points to a static FFmpeg made by
+# scripts/build_ffmpeg_min.sh (or the environment variable RECLAW_FFMPEG).
+set(RECLAW_FFMPEG "$ENV{RECLAW_FFMPEG}" CACHE PATH "prefix of a minimal static FFmpeg (optional)")
+function(openclaw_link_ffmpeg target)
+    if (RECLAW_FFMPEG AND EXISTS "${RECLAW_FFMPEG}/lib/libavcodec.a")
+        target_compile_definitions(${target} PRIVATE OPENCLAW_HAVE_FFMPEG=1)
+        target_include_directories(${target} PRIVATE "${RECLAW_FFMPEG}/include")
+        target_link_libraries(${target} PRIVATE
+            "${RECLAW_FFMPEG}/lib/libavformat.a" "${RECLAW_FFMPEG}/lib/libavcodec.a" "${RECLAW_FFMPEG}/lib/libavutil.a")
+        message(STATUS "Remastered movies: .mp4 (FFmpeg in ${RECLAW_FFMPEG}) and .mpg")
+    else()
+        message(STATUS "Remastered movies: .mpg only (no RECLAW_FFMPEG)")
+    endif()
 endfunction()
 
 # openclaw_link_sdl(<target> [NO_GFX])

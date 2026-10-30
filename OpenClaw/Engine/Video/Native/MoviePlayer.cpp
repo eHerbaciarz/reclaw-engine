@@ -12,6 +12,7 @@
 #include <cstring>
 #include <dirent.h>
 #include <map>
+#include <memory>
 #include <sys/stat.h>
 
 #include <tinyxml.h>
@@ -24,6 +25,8 @@ extern "C" {
 #include "../../Logger/Logger.h"
 #include "../../Platform/Input/BlockingInput.h"
 #include "../../UserInterface/Subtitles.h"
+#include "../../Platform/Platform.h"
+#include "RemasterDecoder.h"
 
 namespace
 {
@@ -457,14 +460,258 @@ namespace
         return skipped == AbortAll ? Aborted : (skipped == SkipOne ? Skipped : Played);
     }
 
+    //---------------------------------------------------------------- remastered movies
+    // <ReClaw folder>/movies/movie_XX.mp4 (H.264 + AAC, builds with FFmpeg)
+    // or movie_XX.mpg (MPEG-1 + MP2, everywhere) replace movie XX of CLAW.FEC.
+    // Guidelines: docs/FILMY.md. Not on Vita / 3DS (Platform::SupportsRemasteredMovies).
+    std::string RemasterPath(int index, bool* isMp4)
+    {
+        if (!Platform::SupportsRemasteredMovies()) return "";
+        std::string dir = Platform::RootDir() + "movies";
+        if (!IsDir(dir)) return "";
+        char name[32];
+        if (RemasterMovies::HasFfmpeg())
+        {
+            snprintf(name, sizeof(name), "movie_%02d.mp4", index);
+            std::string p = FindChild(dir, name);
+            if (!p.empty() && IsFile(p)) { *isMp4 = true; return p; }
+        }
+        snprintf(name, sizeof(name), "movie_%02d.mpg", index);
+        std::string p = FindChild(dir, name);
+        if (!p.empty() && IsFile(p)) { *isMp4 = false; return p; }
+        return "";
+    }
+
+    int RemasterCount()
+    {
+        int count = 0;
+        bool mp4 = false;
+        for (int i = 0; i < 64; ++i) if (!RemasterPath(i, &mp4).empty()) count = i + 1;
+        return count;
+    }
+
+    // YUV 4:2:0 -> ARGB for renderers without YUV textures.
+    void YuvToArgb(const RemasterMovies::Frame& f, std::vector<uint32_t>& out)
+    {
+        out.resize((size_t)f.width * f.height);
+        for (int y = 0; y < f.height; ++y)
+        {
+            const uint8_t* py = f.y + (size_t)y * f.yPitch;
+            const uint8_t* pu = f.u + (size_t)(y / 2) * f.uPitch;
+            const uint8_t* pv = f.v + (size_t)(y / 2) * f.vPitch;
+            uint32_t* d = &out[(size_t)y * f.width];
+            for (int x = 0; x < f.width; ++x)
+            {
+                int c = (py[x] - 16) * 298, u = pu[x / 2] - 128, v = pv[x / 2] - 128;
+                int r = (c + 409 * v + 128) >> 8, g = (c - 100 * u - 208 * v + 128) >> 8, b = (c + 516 * u + 128) >> 8;
+                r = r < 0 ? 0 : (r > 255 ? 255 : r);
+                g = g < 0 ? 0 : (g > 255 ? 255 : g);
+                b = b < 0 ? 0 : (b > 255 ? 255 : b);
+                d[x] = 0xFF000000u | (r << 16) | (g << 8) | b;
+            }
+        }
+    }
+
+    PlayResult PlayRemaster(SDL_Renderer* r, const std::string& path, bool isMp4, int index)
+    {
+        std::unique_ptr<RemasterMovies::Decoder> dec =
+            isMp4 ? RemasterMovies::CreateFfmpegDecoder() : RemasterMovies::CreateMpeg1Decoder();
+        if (!dec || !dec->Open(path))
+        {
+            LOG_WARNING("Could not open the remastered movie " + path);
+            return Missing;
+        }
+        LOG("Remastered movie: " + path);
+
+        SDL_Texture* pPrevTarget = SDL_GetRenderTarget(r);
+        SDL_SetRenderTarget(r, NULL);
+        SDL_Texture* tex = nullptr;
+        bool yuvTexture = true;
+        int texW = 0, texH = 0;
+        std::vector<uint32_t> rgb;
+
+        // Sound: as for the original movies, through an SDL_AudioStream fed
+        // out by an effect on a silent looping chunk on a channel of its own.
+        AudioCtx ctx;
+        Mix_Chunk* pSilence = nullptr;
+        static Uint8 s_Silence[4096];
+        int baseChannels = Mix_AllocateChannels(-1);
+        int movieChannel = -1;
+        bool hasAudio = dec->AudioRate() > 0 && dec->AudioChannels() > 0;
+        if (hasAudio)
+        {
+            int freq = 0, outCh = 0;
+            Uint16 fmt = 0;
+            if (Mix_QuerySpec(&freq, &fmt, &outCh))
+            {
+                ctx.stream = SDL_NewAudioStream(AUDIO_F32SYS, (Uint8)dec->AudioChannels(), dec->AudioRate(), fmt, outCh, freq);
+                ctx.mutex = SDL_CreateMutex();
+            }
+            if (!ctx.stream || !ctx.mutex) hasAudio = false;
+        }
+        const int audioChannels = dec->AudioChannels();
+        RemasterMovies::AudioSink sink = [&](const float* samples, int frames)
+        {
+            if (!hasAudio || frames <= 0) return;
+            if (SDL_LockMutex(ctx.mutex) == 0)
+            {
+                SDL_AudioStreamPut(ctx.stream, samples, frames * audioChannels * (int)sizeof(float));
+                SDL_UnlockMutex(ctx.mutex);
+            }
+        };
+
+        InitSkipInput();
+        SkipKind skipped = None;
+        RemasterMovies::Frame frame;
+        bool have = dec->NextFrame(frame, sink);
+
+        if (hasAudio)
+        {
+            pSilence = Mix_QuickLoad_RAW(s_Silence, sizeof(s_Silence));
+            if (pSilence && Mix_AllocateChannels(baseChannels + 1) == baseChannels + 1)
+            {
+                movieChannel = baseChannels;
+                Mix_Volume(movieChannel, MIX_MAX_VOLUME);
+                if (Mix_PlayChannel(movieChannel, pSilence, -1) == -1 ||
+                    !Mix_RegisterEffect(movieChannel, MovieAudioEffect, NULL, &ctx))
+                {
+                    LOG_WARNING("Movie audio unavailable: " + std::string(Mix_GetError()));
+                }
+            }
+        }
+
+        char trackName[32];
+        snprintf(trackName, sizeof(trackName), "movie_%02d", index);
+        Subtitles::StartTrack(trackName);
+
+        Uint32 start = SDL_GetTicks();
+        int late = 0, frames = 0;
+        while (have)
+        {
+            Uint32 due = start + (Uint32)(frame.time * 1000.0);
+            while ((Sint32)(SDL_GetTicks() - due) < 0)
+            {
+                if (!AppAlive()) { skipped = AbortAll; break; }
+                skipped = SkipRequested();
+                if (skipped != None) break;
+                SDL_Delay(1);
+            }
+            if (skipped) break;
+            ++frames;
+            // Counted for the log: pictures shown more than two frames late.
+            if ((Sint32)(SDL_GetTicks() - due) > 66) ++late;
+
+            if (!tex || texW != frame.width || texH != frame.height)
+            {
+                if (tex) SDL_DestroyTexture(tex);
+                texW = frame.width;
+                texH = frame.height;
+                tex = yuvTexture ? SDL_CreateTexture(r, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, texW, texH) : nullptr;
+                if (!tex)
+                {
+                    yuvTexture = false;
+                    tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, texW, texH);
+                }
+                if (tex) SDL_SetTextureScaleMode(tex, SDL_ScaleModeLinear);
+            }
+            if (tex)
+            {
+                if (yuvTexture)
+                {
+                    SDL_UpdateYUVTexture(tex, NULL, frame.y, frame.yPitch, frame.u, frame.uPitch, frame.v, frame.vPitch);
+                }
+                else
+                {
+                    YuvToArgb(frame, rgb);
+                    SDL_UpdateTexture(tex, NULL, rgb.data(), texW * 4);
+                }
+                int outW = 0, outH = 0;
+                SDL_GetRendererOutputSize(r, &outW, &outH);
+                double scale = std::min((double)outW / texW, (double)outH / texH);
+                SDL_Rect dst = { (int)((outW - texW * scale) / 2), (int)((outH - texH * scale) / 2),
+                                 (int)(texW * scale), (int)(texH * scale) };
+                SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+                SDL_RenderClear(r);
+                SDL_RenderCopy(r, tex, NULL, &dst);
+                Subtitles::Render(r);
+                SDL_RenderPresent(r);
+            }
+            have = dec->NextFrame(frame, sink);
+            // Too slow to decode: drop pictures until we catch up.
+            while (have && (Sint32)(SDL_GetTicks() - (start + (Uint32)(frame.time * 1000.0))) > 100)
+            {
+                have = dec->NextFrame(frame, sink);
+            }
+        }
+        if (frames > 0 && late * 10 > frames)
+        {
+            LOG_WARNING("Remastered movie played late in " + std::to_string(late) + " of " + std::to_string(frames) +
+                        " frames: too heavy for this console (try a smaller .mpg)");
+        }
+
+        if (!skipped && hasAudio)
+        {
+            Uint32 tailStart = SDL_GetTicks();
+            while (SDL_GetTicks() - tailStart < 1500 && AppAlive() && SkipRequested() == None)
+            {
+                int left = 0;
+                if (SDL_LockMutex(ctx.mutex) == 0)
+                {
+                    left = SDL_AudioStreamAvailable(ctx.stream);
+                    SDL_UnlockMutex(ctx.mutex);
+                }
+                if (left <= 0) break;
+                SDL_Delay(10);
+            }
+        }
+
+        if (movieChannel >= 0)
+        {
+            Mix_UnregisterEffect(movieChannel, MovieAudioEffect);
+            Mix_HaltChannel(movieChannel);
+            Mix_AllocateChannels(baseChannels);
+        }
+        if (pSilence) Mix_FreeChunk(pSilence);
+        if (ctx.stream) SDL_FreeAudioStream(ctx.stream);
+        if (ctx.mutex) SDL_DestroyMutex(ctx.mutex);
+
+        Subtitles::StopTrack();
+        if (tex) SDL_DestroyTexture(tex);
+        SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+        SDL_RenderClear(r);
+        SDL_RenderPresent(r);
+        SDL_SetRenderTarget(r, pPrevTarget);
+        FlushInput();
+        return skipped == AbortAll ? Aborted : (skipped == SkipOne ? Skipped : Played);
+    }
+
+    // A movie by index: the remastered file if there is one, else CLAW.FEC.
+    PlayResult PlayIndex(SDL_Renderer* r, int index)
+    {
+        bool isMp4 = false;
+        std::string remaster = RemasterPath(index, &isMp4);
+        if (!remaster.empty())
+        {
+            PlayResult res = PlayRemaster(r, remaster, isMp4, index);
+            if (res != Missing) return res;
+        }
+        if (index < 0 || index >= (int)g_Movies.size()) return Missing;
+        return PlaySource(r, g_Movies[index], index);
+    }
+
+    int MovieCount()
+    {
+        return std::max((int)g_Movies.size(), RemasterCount());
+    }
+
     // Plays a list of movies; B / + stops the rest of the list.
     void PlayList(SDL_Renderer* r, const std::vector<int>& list)
     {
         for (int index : list)
         {
-            if (!AppAlive() || index < 0 || index >= (int)g_Movies.size()) continue;
+            if (!AppAlive() || index < 0 || index >= MovieCount()) continue;
             LOG("Playing movie " + std::to_string(index));
-            if (PlaySource(r, g_Movies[index], index) == Aborted) break;
+            if (PlayIndex(r, index) == Aborted) break;
         }
     }
 }
@@ -482,13 +729,13 @@ namespace MoviePlayer
     bool IsAvailable()
     {
         BuildIndex();
-        return !g_Movies.empty();
+        return MovieCount() > 0;
     }
 
     int GetMovieCount()
     {
         BuildIndex();
-        return (int)g_Movies.size();
+        return MovieCount();
     }
 
     int PollSkipInput()
@@ -504,9 +751,9 @@ namespace MoviePlayer
     bool PlayMovie(SDL_Renderer* pRenderer, int index)
     {
         BuildIndex();
-        if (!pRenderer || index < 0 || index >= (int)g_Movies.size()) return false;
+        if (!pRenderer || index < 0 || index >= MovieCount()) return false;
         LOG("Playing movie " + std::to_string(index));
-        return PlaySource(pRenderer, g_Movies[index], index) != Missing;
+        return PlayIndex(pRenderer, index) != Missing;
     }
 
     void PlayStartupMovies(SDL_Renderer* pRenderer)

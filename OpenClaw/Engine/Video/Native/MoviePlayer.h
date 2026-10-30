@@ -6,6 +6,10 @@
 // ten Smacker files back to back. They are read straight from that file (or
 // from loose .SMK files in a MOVIES folder) - nothing is bundled with the port.
 //
+// Remastered movies replace them one by one: <ReClaw folder>/movies/movie_XX.mp4
+// (H.264 + AAC, builds with FFmpeg) or movie_XX.mpg (MPEG-1 + MP2, every
+// platform but Vita / 3DS); see docs/FILMY.md.
+//
 // Movies are referred to by their index inside CLAW.FEC (0-9, in file order).
 // Which movie plays when comes from a built-in table that can be overridden
 // with movies.xml in the user directory (see MoviePlayer.cpp).
