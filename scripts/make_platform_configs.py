@@ -5,7 +5,7 @@ Each platform differs in the screen size, where the bundled files are
 (romfs:/, app0:/, the app's folder), where CLAW.REZ is expected and how much
 memory the resource cache may use.
 
-    python3 scripts/make_platform_configs.py
+    python3 scripts/make_platform_configs.py [platform ...]
 """
 import os
 import re
@@ -25,14 +25,20 @@ PLATFORMS = {
                 "PS3: files in /dev_hdd0/game/RCLW00001/USRDIR/"),
     "ps4":     ("/app0/",     "/data/reclaw/data/CLAW.REZ",          (1920, 1080), "2.25", "200", "64", "48000",
                 "PS4: files in /data/reclaw/ (FTP / USB); the game renders 854x480, scaled to the TV"),
+    "handheld-linux/steamdeck": ("", "data/CLAW.REZ",               (1280, 800), "1",  "150", "64", "44100",
+                "Steam Deck: 1280x800 full screen; the game renders 768x480, scaled by 5/3"),
+    "handheld-linux/portmaster": ("", "data/CLAW.REZ",              (640, 480),  "1",  "96",  "32", "44100",
+                "PortMaster handhelds: full screen; the game renders 480 lines tall, as wide as the screen"),
     "android": ("",           "data/CLAW.REZ",                       (1280, 720), "1.5", "150", "64", "44100",
                 "Android: files in the app's folder (Android/data/<app>/files/)"),
 }
 
 
-def main():
+def main(only=None):
     base = open(BASE, encoding="utf-8").read().replace("\r\n", "\n")
     for name, (prefix, rez, (w, h), scale, cache, mixer, freq, comment) in PLATFORMS.items():
+        if only and name not in only:
+            continue
         s = base.replace("romfs:/", prefix)
         s = re.sub(r"<!-- Nintendo Switch:.*?-->", f"<!-- {comment} -->", s, flags=re.S)
         s = re.sub(r'<Size width="\d+" height="\d+" />', f'<Size width="{w}" height="{h}" />', s)
@@ -41,14 +47,23 @@ def main():
         s = re.sub(r"<ResourceCacheSize>[^<]*</ResourceCacheSize>", f"<ResourceCacheSize>{cache}</ResourceCacheSize>", s)
         s = re.sub(r"<MixingChannels>[^<]*</MixingChannels>", f"<MixingChannels>{mixer}</MixingChannels>", s)
         s = re.sub(r"<Frequency>[^<]*</Frequency>", f"<Frequency>{freq}</Frequency>", s)
+        if name.startswith("handheld-linux/"):
+            # full screen at the screen's own size
+            s = s.replace("<IsFullscreenDesktop>false</IsFullscreenDesktop>", "<IsFullscreenDesktop>true</IsFullscreenDesktop>")
         if name == "android":
             s = s.replace("<Enable>false</Enable>", "<Enable>true</Enable>")  # touch controls
-        out = os.path.join(REPO, "platform", name)
-        os.makedirs(out, exist_ok=True)
-        with open(os.path.join(out, "config.xml"), "w", encoding="utf-8") as f:
+        if "/" in name:
+            # platform/handheld-linux/config-<variant>.xml
+            folder, variant = name.split("/")
+            path = os.path.join(REPO, "platform", folder, f"config-{variant}.xml")
+        else:
+            path = os.path.join(REPO, "platform", name, "config.xml")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
             f.write(s)
-        print("wrote", os.path.join(out, "config.xml"))
+        print("wrote", path)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(sys.argv[1:] or None)

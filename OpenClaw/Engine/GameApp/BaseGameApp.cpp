@@ -1318,16 +1318,18 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 
   STARTUP_TRACE("renderer created");
 
-#if defined(__ANDROID__)
-  // Phones and tablets: the same 480 lines tall view as the other ports,
-  // as wide as the screen's aspect ratio.
+#if defined(__ANDROID__) || defined(OPENCLAW_PORTMASTER) || defined(OPENCLAW_STEAMDECK)
+  // Phones, tablets, Linux handhelds and the Steam Deck: the same 480 lines
+  // tall view as the other ports, as wide as the screen's aspect ratio
+  // (Steam Deck 1280x800: 768x480 scaled by 5/3; square or 4:3 screens:
+  // 640x480, letterboxed if needed).
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
     int outW = 0, outH = 0;
     SDL_GetRendererOutputSize(m_pRenderer, &outW, &outH);
     if (outW > 0 && outH > 0) {
       if (outH > outW) std::swap(outW, outH);   // landscape
       gameOptions.renderHeight = 480;
-      gameOptions.renderWidth = (480 * outW / outH) & ~1;
+      gameOptions.renderWidth = std::max(640, (480 * outW / outH) & ~1);
     }
   }
 #endif

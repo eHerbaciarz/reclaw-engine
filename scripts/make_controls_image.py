@@ -3,7 +3,7 @@
 
 One picture per controller style and language:
     Build_Release/ASSETS/CONTROLS/controls_<style>_<lang>.png
-styles: switch, 3ds, wiiu, playstation, xbox, pc   languages: pl, en
+styles: switch, 3ds, wiiu, playstation, xbox, steamdeck, handheld, pc   languages: pl, en
 (menu coordinates, 640x480 screen). The game picks the picture for its
 platform and language (MENU.xml: /CONTROLS/controls_{platform}_{lang}.png).
 Re-run after changing the button mapping in ActorController.
@@ -34,6 +34,8 @@ BUTTONS = {
     "wiiu":        ["B",     "A",     "Y",      "X",      "L",     "ZL",  "ZR",  "R",    "+",      "-",      "A",     "B"],
     "playstation": ["PS_X",  "PS_O",  "PS_SQ",  "PS_TRI", "L1",    "L2",  "R2",  "R1",   "START",  "SELECT", "PS_X",  "PS_O"],
     "xbox":        ["A",     "B",     "X",      "Y",      "LB",    "LT",  "RT",  "RB",   "START",  "BACK",   "A",     "B"],
+    "steamdeck":   ["A",     "B",     "X",      "Y",      "L1",    "L2",  "R2",  "R1",   "MENU",   "VIEW",   "A",     "B"],
+    "handheld":    ["A",     "B",     "X",      "Y",      "L1",    "L2",  "R2",  "R1",   "START",  "SELECT", "A",     "B"],
     "pc":          ["SPACE", "ALT",   "CTRL",   "Z",      "SHIFT", "F5",  "F8",  "F6",   "ESC",    "TAB",    "ENTER", "ESC"],
 }
 

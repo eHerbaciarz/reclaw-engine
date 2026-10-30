@@ -41,6 +41,11 @@ namespace
 #endif
         { "playstation", { "ps_x", "ps_o", "ps_sq", "ps_tri", "l1", "l2", "r2", "r1", "start", "select", "ps_x", "ps_o" } },
         { "xbox",        { "a", "b", "x", "y", "lb", "lt", "rt", "rb", "start", "back", "a", "b" } },
+        // Steam Deck: A bottom, B right; L1 / R1 bumpers, L2 / R2 triggers, the Menu and View buttons
+        { "steamdeck",   { "a", "b", "x", "y", "l1", "l2", "r2", "r1", "menu", "view", "a", "b" } },
+        // PortMaster handhelds: PortMaster's controller mapping follows the
+        // printed labels (SDL A = the button marked A, on the right)
+        { "handheld",    { "a", "b", "x", "y", "l1", "l2", "r2", "r1", "start", "select", "a", "b" } },
         { "pc",          { "spacja", "alt", "ctrl", "z", "shift", "f5", "f8", "f6", "esc", "tab", "enter", "esc" } },
     };
 

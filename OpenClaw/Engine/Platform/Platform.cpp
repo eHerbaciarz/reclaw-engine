@@ -175,6 +175,11 @@ namespace Platform
     {
 #if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
         return true;
+#elif defined(OPENCLAW_PORTMASTER) || defined(OPENCLAW_STEAMDECK)
+        // Linux handhelds and the Steam Deck: full screen, a gamepad, no
+        // desktop to show message boxes on (the console behaviour: the log in
+        // save/, errors on the game screen, config.xml seeded into save/).
+        return true;
 #else
         return false;
 #endif
@@ -402,6 +407,10 @@ namespace Platform
         return "wiiu";
 #elif defined(__vita__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
         return "playstation";
+#elif defined(OPENCLAW_STEAMDECK)
+        return "steamdeck";
+#elif defined(OPENCLAW_PORTMASTER)
+        return "handheld";
 #elif defined(__ANDROID__)
         return "xbox";
 #else

@@ -18,7 +18,12 @@
 namespace
 {
     typedef CheatCode::Key K;
+#if defined(OPENCLAW_PORTMASTER)
+    // PortMaster maps the buttons by their labels: "B, A" = shoot, jump
+    const K kCode[] = { K::Up, K::Up, K::Down, K::Down, K::Left, K::Right, K::Left, K::Right, K::Fire, K::Jump };
+#else
     const K kCode[] = { K::Up, K::Up, K::Down, K::Down, K::Left, K::Right, K::Left, K::Right, K::Jump, K::Fire };
+#endif
     const int kCodeLength = sizeof(kCode) / sizeof(kCode[0]);
     const Uint32 kMaxGapMs = 1500;   // between two presses
 
