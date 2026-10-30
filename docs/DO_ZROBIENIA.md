@@ -29,6 +29,12 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
 - Paczki `reclaw.vpk` / `reclaw.3dsx` do testów – zbudować dopiero na
   sygnał MK (po kolejnych poprawkach).
 
+## Android
+
+- APK do zbudowania przez GitHub Actions (`.github/workflows/ports.yml`, zadanie
+  `android`) po wypchnięciu do reclaw-engine – tu nie ma dostępu do SDK/NDK.
+  Sterowanie dotykowe (UserInterface/TouchPad) gotowe, nieprzetestowane.
+
 ## Języki
 
 - Zmiana języka działa po ponownym uruchomieniu gry. Na później:
