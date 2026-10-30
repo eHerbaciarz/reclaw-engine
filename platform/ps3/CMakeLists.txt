@@ -9,9 +9,10 @@
 # SDL2_mixer (016), zlib, libpng, freetype, plus SDL2_image and SDL2_ttf built
 # from source (platform/ps3/build-sdl-addons.sh). CI: .github/workflows/ps3.yml
 #
-# Install: reclaw.pkg (Package Manager on HEN/CFW) or the .self in RPCS3.
-# CLAW.REZ from your copy of the game goes to
-# /dev_hdd0/game/RCLW00001/USRDIR/CLAW.REZ (config, saves and log too).
+# Install: reclaw_hen.pkg (finalized, Package Manager on HEN/CFW), reclaw.pkg
+# (debug package) or the .self in RPCS3. The first run creates the folders in
+# /dev_hdd0/game/RCLW00001/USRDIR/: CLAW.REZ and CLAW.FEC from your copy of the
+# game go to data/pl/ (Polish) or data/en/ (English); saves and log in save/.
 
 cmake_minimum_required(VERSION 3.16)
 project(ClawPS3 C CXX)
@@ -23,14 +24,21 @@ set(PS3_CONTENTID "UP0001-${PS3_APPID}_00-0000000000000000")
 set(PS3_TITLE     "ReClaw")
 
 openclaw_add_game(openclaw)
+target_include_directories(openclaw BEFORE PRIVATE "${CMAKE_CURRENT_LIST_DIR}/compat")
+target_compile_options(openclaw PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_LIST_DIR}/compat/ps3_cxx_compat.h>")
 openclaw_link_sdl(openclaw NO_GFX)
 # PSL1GHT system libraries used by SDL and the network race
 target_link_libraries(openclaw PRIVATE
-    rsx gcm_sys io audio sysutil sysmodule net netctl rt lv2 m)
+    rsx gcm_sys io audio net netctl sysutil sysmodule rt lv2 m)
 set_target_properties(openclaw PROPERTIES OUTPUT_NAME "reclaw" SUFFIX ".elf")
 
 set(PKGDIR "${CMAKE_BINARY_DIR}/pkg")
 openclaw_stage_bundle(openclaw_bundle "${PKGDIR}/USRDIR" "${CMAKE_CURRENT_LIST_DIR}/config.xml")
+
+# Packaging tools: current PSL1GHT has C tools (sfo, pkg), older ones the .py scripts
+find_program(PS3_SFO NAMES sfo sfo.py HINTS "$ENV{PS3DEV}/bin" REQUIRED)
+find_program(PS3_PKG NAMES pkg pkg.py HINTS "$ENV{PS3DEV}/bin" REQUIRED)
+find_program(PS3_FINALIZE NAMES package_finalize HINTS "$ENV{PS3DEV}/bin")
 
 set(ELF "$<TARGET_FILE:openclaw>")
 set(STRIPPED "${CMAKE_BINARY_DIR}/reclaw_stripped.elf")
@@ -44,8 +52,11 @@ add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/reclaw.pkg" "${CMAKE_BINARY_DIR}/
     COMMAND make_self_npdrm "${STRIPPED}" "${PKGDIR}/USRDIR/EBOOT.BIN" "${PS3_CONTENTID}"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/ICON0.PNG" "${PKGDIR}/ICON0.PNG"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/PIC1.PNG" "${PKGDIR}/PIC1.PNG"
-    COMMAND sfo.py --title "${PS3_TITLE}" --appid "${PS3_APPID}" -f "${CMAKE_CURRENT_LIST_DIR}/sfo.xml" "${PKGDIR}/PARAM.SFO"
-    COMMAND pkg.py --contentid "${PS3_CONTENTID}" "${PKGDIR}/" "${CMAKE_BINARY_DIR}/reclaw.pkg"
+    COMMAND ${PS3_SFO} --title "${PS3_TITLE}" --appid "${PS3_APPID}" -f "${CMAKE_CURRENT_LIST_DIR}/sfo.xml" "${PKGDIR}/PARAM.SFO"
+    COMMAND ${PS3_PKG} --contentid "${PS3_CONTENTID}" "${PKGDIR}/" "${CMAKE_BINARY_DIR}/reclaw.pkg"
+    # retail-signed copy for HEN (installs from Package Manager without debug settings)
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/reclaw.pkg" "${CMAKE_BINARY_DIR}/reclaw_hen.pkg"
+    COMMAND ${PS3_FINALIZE} "${CMAKE_BINARY_DIR}/reclaw_hen.pkg"
     DEPENDS openclaw ${OPENCLAW_BUNDLE_FILES} sfo.xml ICON0.PNG PIC1.PNG
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     COMMENT "Packaging reclaw.pkg / reclaw.self"

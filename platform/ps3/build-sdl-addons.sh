@@ -2,35 +2,64 @@
 # Builds SDL2_image and SDL2_ttf for the PS3 into $PS3DEV/portlibs/ppu
 # (ps3libraries provides SDL2 and SDL2_mixer but not these two).
 # Versions that still build against the PSL1GHT SDL port (2.0.13).
+# Compiled directly (no autotools: their old generated scripts clash with
+# current libtool), with hand-written pkg-config files.
 set -e
 : "${PS3DEV:?set PS3DEV}"
 PSL1GHT="${PSL1GHT:-$PS3DEV}"
 PORTLIBS="$PS3DEV/portlibs/ppu"
 WORK="${1:-/tmp/ps3-sdl-addons}"
 export PATH="$PS3DEV/bin:$PS3DEV/ppu/bin:$PATH"
-export PKG_CONFIG_LIBDIR="$PORTLIBS/lib/pkgconfig"
-export PKG_CONFIG_PATH=""
-export CFLAGS="-O2 -mcpu=cell -I$PSL1GHT/ppu/include -I$PORTLIBS/include"
-export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-L$PSL1GHT/ppu/lib -L$PORTLIBS/lib -lrt -llv2"
+CC=powerpc64-ps3-elf-gcc
+AR=powerpc64-ps3-elf-ar
+CFLAGS="-O2 -mcpu=cell -I$PSL1GHT/ppu/include -I$PORTLIBS/include -I$PORTLIBS/include/SDL2"
 mkdir -p "$WORK" && cd "$WORK"
 
 fetch() { # repo tag dir
     [ -d "$3" ] || git clone -q --depth 1 -b "$2" "https://github.com/libsdl-org/$1" "$3"
 }
 
+# SDL2_image: BMP, PCX, PNG, TGA (the game uses PCX and PNG)
 fetch SDL_image release-2.0.5 SDL2_image
-(cd SDL2_image && ./configure --host=powerpc64-ps3-elf --prefix="$PORTLIBS" \
-    --disable-shared --enable-static --disable-sdltest \
-    --with-sdl-prefix="$PORTLIBS" \
-    --enable-png --disable-png-shared --disable-jpg --disable-tif --disable-webp \
-    --disable-jpg-shared --disable-tif-shared --disable-webp-shared \
-    && make -j"$(nproc)" && make install)
+(cd SDL2_image && rm -f *.o &&
+    for f in IMG.c IMG_bmp.c IMG_gif.c IMG_jpg.c IMG_lbm.c IMG_pcx.c IMG_png.c IMG_pnm.c \
+             IMG_svg.c IMG_tga.c IMG_tif.c IMG_webp.c IMG_xcf.c IMG_xpm.c IMG_xv.c IMG_xxx.c; do
+        $CC $CFLAGS -I"$PORTLIBS/include/libpng16" -DLOAD_BMP -DLOAD_PCX -DLOAD_PNG -DLOAD_TGA \
+            -c "$f" -o "${f%.c}.o"
+    done &&
+    $AR rcs libSDL2_image.a *.o &&
+    install -m644 libSDL2_image.a "$PORTLIBS/lib/" &&
+    install -m644 SDL_image.h "$PORTLIBS/include/SDL2/")
+[ -f "$PORTLIBS/lib/libpng16.a" ] || ln -sf libpng.a "$PORTLIBS/lib/libpng16.a"
+cat > "$PORTLIBS/lib/pkgconfig/SDL2_image.pc" <<EOF
+prefix=$PORTLIBS
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+Name: SDL2_image
+Description: image loading library for Simple DirectMedia Layer
+Version: 2.0.5
+Requires: sdl2 >= 2.0.8
+Libs: -L\${libdir} -lSDL2_image -lpng16 -lz
+Cflags: -I\${includedir}/SDL2
+EOF
 
+# SDL2_ttf (FreeType from portlibs)
 fetch SDL_ttf release-2.0.15 SDL2_ttf
-(cd SDL2_ttf && ./configure --host=powerpc64-ps3-elf --prefix="$PORTLIBS" \
-    --disable-shared --enable-static --disable-sdltest \
-    --with-sdl-prefix="$PORTLIBS" --with-freetype-prefix="$PORTLIBS" \
-    && make -j"$(nproc)" && make install)
+(cd SDL2_ttf &&
+    $CC $CFLAGS -I"$PORTLIBS/include/freetype2" -c SDL_ttf.c -o SDL_ttf.o &&
+    $AR rcs libSDL2_ttf.a SDL_ttf.o &&
+    install -m644 libSDL2_ttf.a "$PORTLIBS/lib/" &&
+    install -m644 SDL_ttf.h "$PORTLIBS/include/SDL2/")
+cat > "$PORTLIBS/lib/pkgconfig/SDL2_ttf.pc" <<EOF
+prefix=$PORTLIBS
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+Name: SDL2_ttf
+Description: ttf library for Simple DirectMedia Layer with FreeType 2 support
+Version: 2.0.15
+Requires: sdl2 >= 2.0.8 freetype2
+Libs: -L\${libdir} -lSDL2_ttf
+Cflags: -I\${includedir}/SDL2
+EOF
 
 echo "SDL2_image and SDL2_ttf installed to $PORTLIBS"
