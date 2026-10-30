@@ -22,4 +22,11 @@ fi
 if [ "$1" = "wiiu" ]; then
     clone https://github.com/devkitPro/SDL wiiu-sdl2-2.28 SDL-wiiu
 fi
+# ReClaw fixes on top of the upstream sources (applied once)
+for p in "$(dirname "$SRC")"/patches/SDL-*.patch; do
+    [ -f "$p" ] || continue
+    if git -C "$SRC/SDL" apply --check "$p" 2>/dev/null; then
+        git -C "$SRC/SDL" apply "$p"
+    fi
+done
 echo "sources ready in $SRC"

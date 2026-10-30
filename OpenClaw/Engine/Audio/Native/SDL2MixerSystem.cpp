@@ -4,6 +4,7 @@
 
 #include "../../Logger/Logger.h"
 #include "../../Util/StartupTrace.h"
+#include "../../Platform/Platform.h"
 
 #include <algorithm>
 #include <cstring>
@@ -70,6 +71,26 @@ bool SDL2MixerSystem::Initialize()
         return true;
     }
 
+#if defined(__3DS__)
+    // If the sound start crashed the previous launch (the marker file was left
+    // behind), start silently with SDL's dummy driver instead of crashing again.
+    const std::string audioMarker = Platform::DataDir() + "audio_start.flag";
+    bool silent = false;
+    if (FILE* f = fopen(audioMarker.c_str(), "rb"))
+    {
+        fclose(f);
+        silent = true;
+        remove(audioMarker.c_str());   // next launch tries the sound again
+        SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
+        LOG_WARNING("Sound start crashed last time - starting without sound");
+    }
+    else if (FILE* f = fopen(audioMarker.c_str(), "wb"))
+    {
+        fputs("sound start in progress\n", f);
+        fclose(f);
+    }
+#endif
+
     if (!SDL_WasInit(SDL_INIT_AUDIO) && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
     {
         LOG_ERROR("SDL audio subsystem unavailable: " + std::string(SDL_GetError()));
@@ -80,8 +101,21 @@ bool SDL2MixerSystem::Initialize()
     if (Mix_OpenAudio(m_Config.frequency, AUDIO_S16SYS, m_Config.outputChannels, m_Config.chunkSize) != 0)
     {
         LOG_ERROR("Mix_OpenAudio failed: " + std::string(Mix_GetError()));
+#if defined(__3DS__)
+        remove(audioMarker.c_str());
+#endif
         return false;
     }
+#if defined(__3DS__)
+    // Let the mixing thread run a moment: a crash there also leaves the marker.
+    if (!silent)
+    {
+        STARTUP_TRACE("audio running, checking");
+        SDL_Delay(400);
+        remove(audioMarker.c_str());
+    }
+    STARTUP_TRACE("audio ok");
+#endif
 
     Uint16 format = 0;
     if (!Mix_QuerySpec(&m_OutputFrequency, &format, &m_OutputChannels))

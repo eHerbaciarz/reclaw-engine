@@ -1,0 +1,53 @@
+diff --git a/src/audio/n3ds/SDL_n3dsaudio.c b/src/audio/n3ds/SDL_n3dsaudio.c
+index c577436..4f983ab 100644
+--- a/src/audio/n3ds/SDL_n3dsaudio.c
++++ b/src/audio/n3ds/SDL_n3dsaudio.c
+@@ -94,7 +94,9 @@ static int N3DSAUDIO_OpenDevice(_THIS, const char *devname)
+     }
+ 
+     /* Initialise the DSP service */
++    SDL_Log("n3ds audio: ndspInit");
+     ndsp_init_res = ndspInit();
++    SDL_Log("n3ds audio: ndspInit -> 0x%lX", ndsp_init_res);
+     if (R_FAILED(ndsp_init_res)) {
+         if ((R_SUMMARY(ndsp_init_res) == RS_NOTFOUND) && (R_MODULE(ndsp_init_res) == RM_DSP)) {
+             SDL_SetError("DSP init failed: dspfirm.cdc missing!");
+@@ -145,6 +147,7 @@ static int N3DSAUDIO_OpenDevice(_THIS, const char *devname)
+     this->hidden->channels = this->spec.channels;
+     this->hidden->samplerate = this->spec.freq;
+ 
++    SDL_Log("n3ds audio: %d Hz, %d ch, %u bytes x %d", this->spec.freq, this->spec.channels, (unsigned)this->hidden->mixlen, NUM_BUFFERS);
+     ndspChnReset(0);
+ 
+     ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
+@@ -168,6 +171,7 @@ static int N3DSAUDIO_OpenDevice(_THIS, const char *devname)
+     audio_device = this;
+     ndspSetCallback(AudioFrameFinished, this);
+     dspHook(&dsp_hook, N3DSAUD_DspHook);
++    SDL_Log("n3ds audio: device open");
+ 
+     return 0;
+ }
+diff --git a/src/thread/n3ds/SDL_systhread.c b/src/thread/n3ds/SDL_systhread.c
+index a202a7d..86c7dfe 100644
+--- a/src/thread/n3ds/SDL_systhread.c
++++ b/src/thread/n3ds/SDL_systhread.c
+@@ -25,6 +25,7 @@
+ /* Thread management routines for SDL */
+ 
+ #include "../SDL_systhread.h"
++#include "SDL_hints.h"
+ 
+ /* N3DS has very limited RAM (128MB), so we set a low default thread stack size. */
+ #define N3DS_THREAD_STACK_SIZE_DEFAULT (80 * 1024)
+@@ -55,7 +56,9 @@ int SDL_SYS_CreateThread(SDL_Thread *thread)
+     svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
+ 
+     /* prefer putting audio thread on system core */
+-    if (thread->name && (SDL_strncmp(thread->name, "SDLAudioP", 9) == 0) && R_SUCCEEDED(APT_SetAppCpuTimeLimit(30))) {
++    /* ReClaw: only with SDL_N3DS_AUDIO_SYSCORE=1 (the system core thread crashed at startup) */
++    if (thread->name && (SDL_strncmp(thread->name, "SDLAudioP", 9) == 0) &&
++        SDL_GetHintBoolean("SDL_N3DS_AUDIO_SYSCORE", SDL_FALSE) && R_SUCCEEDED(APT_SetAppCpuTimeLimit(30))) {
+         cpu = 1;
+     }
+ 
