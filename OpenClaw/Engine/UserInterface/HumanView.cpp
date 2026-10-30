@@ -242,22 +242,16 @@ void HumanView::VOnUpdate(uint32 msDiff)
 
 bool HumanView::VOnEvent(SDL_Event& evt)
 {
-    // Secret code in the pause menu: right Shift held + arrows.
-    if ((evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) && m_pIngameMenu && m_pIngameMenu->VIsVisible())
+    // Secret code (Konami) typed while playing: arrows, Space (jump), Alt
+    // (fire). The keys still do their normal job.
+    if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0 && !(m_pIngameMenu && m_pIngameMenu->VIsVisible()) &&
+        g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->GetGameState() == GameState_IngameRunning)
     {
         SDL_Keycode key = evt.key.keysym.sym;
-        if (key == SDLK_RSHIFT)
-        {
-            CheatCode::SetModifierHeld(evt.type == SDL_KEYDOWN);
-            return true;
-        }
-        if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0 && CheatCode::IsModifierHeld() &&
-            (key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT))
-        {
-            OnCheatDirection(key == SDLK_UP ? CheatCode::Dir::Up : key == SDLK_DOWN ? CheatCode::Dir::Down :
-                             key == SDLK_LEFT ? CheatCode::Dir::Left : CheatCode::Dir::Right);
-            return true;
-        }
+        OnCheatKey(key == SDLK_UP ? CheatCode::Key::Up : key == SDLK_DOWN ? CheatCode::Key::Down :
+                   key == SDLK_LEFT ? CheatCode::Key::Left : key == SDLK_RIGHT ? CheatCode::Key::Right :
+                   key == SDLK_SPACE ? CheatCode::Key::Jump :
+                   (key == SDLK_LALT || key == SDLK_RALT) ? CheatCode::Key::Fire : CheatCode::Key::Other);
     }
 
     // First let console try to eat this event
@@ -376,24 +370,18 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
                 return true;
             }
 
-            // Secret code in the pause menu: R held + D-pad.
-            if (m_pIngameMenu && m_pIngameMenu->VIsVisible())
+            // Secret code (Konami) typed while playing: D-pad, then the
+            // bottom (jump: B on Nintendo, Cross on PlayStation) and right
+            // (fire: A / Circle) buttons. The buttons still do their job.
+            if (gameState == GameState_IngameRunning && !menuActive)
             {
                 GamepadButton b = evt.gamepadButton.button;
-                if (b == GamepadButton::RightBumper)
-                {
-                    CheatCode::SetModifierHeld(true);
-                    return true;
-                }
-                if (CheatCode::IsModifierHeld() &&
-                    (b == GamepadButton::DPadUp || b == GamepadButton::DPadDown ||
-                     b == GamepadButton::DPadLeft || b == GamepadButton::DPadRight))
-                {
-                    OnCheatDirection(b == GamepadButton::DPadUp ? CheatCode::Dir::Up :
-                                     b == GamepadButton::DPadDown ? CheatCode::Dir::Down :
-                                     b == GamepadButton::DPadLeft ? CheatCode::Dir::Left : CheatCode::Dir::Right);
-                    return true;
-                }
+                OnCheatKey(b == GamepadButton::DPadUp ? CheatCode::Key::Up :
+                           b == GamepadButton::DPadDown ? CheatCode::Key::Down :
+                           b == GamepadButton::DPadLeft ? CheatCode::Key::Left :
+                           b == GamepadButton::DPadRight ? CheatCode::Key::Right :
+                           b == GamepadButton::A ? CheatCode::Key::Jump :
+                           b == GamepadButton::B ? CheatCode::Key::Fire : CheatCode::Key::Other);
             }
 
             // Handle gamepad input for menus (main menu, quick menu, or game-over)
@@ -497,10 +485,6 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
 
         case AppEventType::GamepadButtonUp:
         {
-            if (evt.gamepadButton.button == GamepadButton::RightBumper)
-            {
-                CheatCode::SetModifierHeld(false);
-            }
             // Always forward button-up (even while the menu is open) so a d-pad
             // direction released during the pause gets cleared — otherwise the
             // held-direction state sticks and the player moves on unpause. Mirrors
@@ -1496,6 +1480,7 @@ void HumanView::ResetSaveProgressDelegate(IEventDataPtr pEventData)
 #ifndef __EMSCRIPTEN__
     PersistSavesToFile();
 #endif
+    CheatCode::Lock();   // the cheats go with the saved games
 
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(
         new EventData_Menu_SwitchPage("MenuPage_SinglePlayer_NewGame")));
@@ -1525,6 +1510,7 @@ void HumanView::ResetSaveProgressFromManageSavesDelegate(IEventDataPtr pEventDat
 #ifndef __EMSCRIPTEN__
     PersistSavesToFile();
 #endif
+    CheatCode::Lock();   // the cheats go with the saved games
 
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(
         new EventData_Menu_SwitchPage("MenuPage_SinglePlayer_SaveData")));
@@ -1598,9 +1584,9 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
 }
 
-void HumanView::OnCheatDirection(CheatCode::Dir dir)
+void HumanView::OnCheatKey(CheatCode::Key key)
 {
-    if (CheatCode::FeedDirection(dir) && m_pIngameMenu)
+    if (CheatCode::Feed(key) && m_pIngameMenu)
     {
         m_pIngameMenu->SetMenuItemVisibleOnAllPages("CHEATS_BUTTON", true);
     }

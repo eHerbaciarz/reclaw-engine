@@ -17,13 +17,12 @@
 
 namespace
 {
-    const CheatCode::Dir kCode[] = { CheatCode::Dir::Down, CheatCode::Dir::Down, CheatCode::Dir::Left,
-                                     CheatCode::Dir::Right, CheatCode::Dir::Up };
+    typedef CheatCode::Key K;
+    const K kCode[] = { K::Up, K::Up, K::Down, K::Down, K::Left, K::Right, K::Left, K::Right, K::Jump, K::Fire };
     const int kCodeLength = sizeof(kCode) / sizeof(kCode[0]);
-    const Uint32 kMaxGapMs = 2000;   // between two presses
+    const Uint32 kMaxGapMs = 1500;   // between two presses
 
-    bool g_Held = false;
-    std::vector<CheatCode::Dir> g_Recent;   // last presses while R is held
+    std::vector<K> g_Recent;   // last presses
     Uint32 g_LastPress = 0;
 
     template <class T>
@@ -47,24 +46,19 @@ namespace CheatCode
         return PortSettings::GetBool("cheats_unlocked", false);
     }
 
-    void SetModifierHeld(bool held)
+    void Lock()
     {
-        g_Held = held;
-        if (!held) g_Recent.clear();
+        PortSettings::SetBool("cheats_unlocked", false);
     }
 
-    bool IsModifierHeld()
+    bool Feed(Key key)
     {
-        return g_Held;
-    }
-
-    bool FeedDirection(Dir dir)
-    {
+        if (IsUnlocked()) return false;
         Uint32 now = SDL_GetTicks();
         if (!g_Recent.empty() && now - g_LastPress > kMaxGapMs) g_Recent.clear();
         g_LastPress = now;
 
-        g_Recent.push_back(dir);
+        g_Recent.push_back(key);
         if ((int)g_Recent.size() > kCodeLength) g_Recent.erase(g_Recent.begin());
         if ((int)g_Recent.size() < kCodeLength) return false;
         for (int i = 0; i < kCodeLength; ++i)

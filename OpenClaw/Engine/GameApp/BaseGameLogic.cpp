@@ -2,6 +2,7 @@
 #include "../Actor/ActorFactory.h"
 #include "../UserInterface/HumanView.h"
 #include "../Util/StartupTrace.h"
+#include "../Util/PortSettings.h"
 #include "../Events/Events.h"
 #include "../Resource/Loaders/XmlLoader.h"
 #include "../Resource/Loaders/PalLoader.h"
@@ -149,6 +150,8 @@ bool BaseGameLogic::Initialize()
         {
             // First launch: no saves yet (the web build starts the same way).
             LOG_WARNING("No saves file at " + savesFilePath + ", starting a new game");
+            // The cheats menu stays unlocked only as long as the saves exist.
+            PortSettings::SetBool("cheats_unlocked", false);
         }
         else
         {

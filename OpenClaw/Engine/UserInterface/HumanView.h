@@ -128,7 +128,7 @@ protected:
     void RenderSplitScene(SDL_Renderer* pRenderer);
     void OpenCheatsDelegate(IEventDataPtr pEventData);
     void SetSubtitlesDelegate(IEventDataPtr pEventData);
-    void OnCheatDirection(CheatCode::Dir dir);
+    void OnCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);
     void BossModesDelegate(IEventDataPtr pEventData);
     void OpenLanguageDelegate(IEventDataPtr pEventData);
