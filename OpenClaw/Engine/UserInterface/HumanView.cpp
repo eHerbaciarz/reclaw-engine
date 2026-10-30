@@ -1608,6 +1608,19 @@ void HumanView::OnCheatDirection(CheatCode::Dir dir)
 
 void HumanView::OpenCheatsDelegate(IEventDataPtr pEventData)
 {
+    shared_ptr<EventData_Menu_Open_Cheats> pEvent = static_pointer_cast<EventData_Menu_Open_Cheats>(pEventData);
+    if (!pEvent->GetAction().empty())
+    {
+        // An item of the cheats page (its on / off pictures swap themselves).
+        CheatCode::Apply(pEvent->GetAction());
+        return;
+    }
+    // The pause menu's page in the game's letters; other releases keep the list.
+    if (GameFont::Available())
+    {
+        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Menu_SwitchPage("MenuPage_Cheats")));
+        return;
+    }
     CheatCode::RunCheatsScreen(g_pApp->GetRenderer());
 }
 

@@ -2403,14 +2403,21 @@ class EventData_Menu_Open_Cheats : public BaseEventData
 public:
     static const EventType sk_EventType;
 
-    EventData_Menu_Open_Cheats() { }
+    // action empty: open the cheats page; otherwise a cheat to toggle / use
+    // ("invincible", "ammo", "jump", "health", "fullammo", "life", "bosses",
+    // "experimental").
+    explicit EventData_Menu_Open_Cheats(const std::string& action = "") : m_Action(action) { }
 
     virtual const EventType& VGetEventType(void) const { return sk_EventType; }
-    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Open_Cheats()); }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Open_Cheats(m_Action)); }
+    const std::string& GetAction() const { return m_Action; }
     virtual void VSerialize(std::ostringstream& out) const { }
     virtual void VDeserialize(std::istringstream& in) { }
 
     virtual const char* GetName(void) const { return "EventData_Menu_Open_Cheats"; }
+
+private:
+    std::string m_Action;
 };
 
 //---------------------------------------------------------------------------------------------------------------------

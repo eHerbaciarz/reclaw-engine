@@ -70,6 +70,7 @@ std::map<std::string, MenuPage> g_StringToMenuPageEnumMap =
     { "MenuPage_Options_Controls",              MenuPage_Options_Controls },
     { "MenuPage_Options_Display",               MenuPage_Options_Display },
     { "MenuPage_Options_Language",              MenuPage_Options_Language },
+    { "MenuPage_Cheats",                        MenuPage_Cheats },
     { "MenuPage_Options_Audio",                 MenuPage_Options_Audio },
     { "MenuPage_Multiplayer_LevelRacing",       MenuPage_Multiplayer_LevelRacing },
     { "MenuPage_Multiplayer_EditMacros",        MenuPage_Multiplayer_EditMacros },
@@ -434,6 +435,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
     else if (eventType == "OpenCheats")
     {
         pEventData.reset(new EventData_Menu_Open_Cheats());
+    }
+    else if (eventType == "Cheat")
+    {
+        std::string action;
+        ParseValueFromXmlElem(&action, pElem->FirstChildElement("Action"));
+        pEventData.reset(new EventData_Menu_Open_Cheats(action));
     }
     else if (eventType == "SetSubtitles")
     {
@@ -2111,7 +2118,8 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             m_bVisible = (bool)EM_ASM_INT({ return window.forceOriginalAspect ? 1 : 0; });
 #endif
         }
-        else if (conditionTypeStr.compare(0, 18, "LanguageAvailable:") == 0)
+        else if (conditionTypeStr.compare(0, 18, "LanguageAvailable:") == 0 ||
+                 conditionTypeStr.compare(0, 5, "Cheat") == 0)
         {
             ReEvaluateVisibilityCondition();
         }
@@ -2480,6 +2488,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = CheatCode::IsUnlocked();
     else if (m_VisibilityConditionType == "Experimental")
         m_bVisible = PortSettings::GetBool("experimental", false);
+    else if (m_VisibilityConditionType.compare(0, 8, "CheatOn:") == 0)
+        m_bVisible = CheatCode::IsOn(m_VisibilityConditionType.substr(8));
+    else if (m_VisibilityConditionType.compare(0, 9, "CheatOff:") == 0)
+        m_bVisible = !CheatCode::IsOn(m_VisibilityConditionType.substr(9));
     else if (m_VisibilityConditionType.compare(0, 18, "LanguageAvailable:") == 0)
     {
         // Options > Language: one item per data/<code>/ folder

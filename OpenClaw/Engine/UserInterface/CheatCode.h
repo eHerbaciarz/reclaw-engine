@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 // Secret code in the pause menu: hold R (keyboard: right Shift) and press
 // Down, Down, Left, Right, Up. A subtitle answers ("Nie dość, że pirat to
@@ -24,4 +25,8 @@ namespace CheatCode
 
     // The "Cheats" screen: toggles and one-off cheats for the current game.
     void RunCheatsScreen(SDL_Renderer* pRenderer);
+    // Cheats page items: is a cheat on ("invincible", "ammo", "jump",
+    // "experimental"), and toggle / use one.
+    bool IsOn(const std::string& name);
+    void Apply(const std::string& action);
 }

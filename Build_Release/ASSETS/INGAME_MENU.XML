@@ -98,6 +98,367 @@
         </MenuItem>
     </MenuPage>
 
+    <!-- CHEATS PAGE (after the secret code; in the game's letters - other
+         releases get the list screen, HumanView::OpenCheatsDelegate) -->
+    <MenuPage>
+        <PageName>MenuPage_Cheats</PageName>
+        <KeyboardEvent>
+            <KeyType>Escape</KeyType>
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Main</PageName>
+            </GeneratedEvent>
+        </KeyboardEvent>
+        <MenuItem>
+            <Name>CHEATS_TITLE</Name>
+            <GameFontText en="CHEATS">KODY</GameFontText>
+            <GameFontUnderline>-2</GameFontUnderline>
+            <Type>Text</Type>
+            <State>Inactive</State>
+            <Position x="320" y="55" align="center" />
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_INVINCIBLE_ON</Name>
+            <GameFontText en="INVINCIBLE: ON">NIEŚMIERTELNOŚĆ: TAK</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOn:invincible</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="105" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>invincible</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_ON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_ON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_OFF</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_OFF</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_INVINCIBLE_OFF</Name>
+            <GameFontText en="INVINCIBLE: OFF">NIEŚMIERTELNOŚĆ: NIE</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Active</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOff:invincible</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="105" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>invincible</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_OFF</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_OFF</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_ON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_INVINCIBLE_ON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_AMMO_ON</Name>
+            <GameFontText en="INFINITE AMMO: ON">NIESKOŃCZONA AMUNICJA: TAK</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOn:ammo</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="137" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>ammo</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_AMMO_ON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_AMMO_ON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_AMMO_OFF</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_AMMO_OFF</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_AMMO_OFF</Name>
+            <GameFontText en="INFINITE AMMO: OFF">NIESKOŃCZONA AMUNICJA: NIE</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOff:ammo</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="137" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>ammo</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_AMMO_OFF</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_AMMO_OFF</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_AMMO_ON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_AMMO_ON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_JUMP_ON</Name>
+            <GameFontText en="UNLIMITED JUMP: ON">SKOK BEZ OGRANICZEŃ: TAK</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOn:jump</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="169" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>jump</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_JUMP_ON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_JUMP_ON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_JUMP_OFF</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_JUMP_OFF</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_JUMP_OFF</Name>
+            <GameFontText en="UNLIMITED JUMP: OFF">SKOK BEZ OGRANICZEŃ: NIE</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOff:jump</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="169" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>jump</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_JUMP_OFF</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_JUMP_OFF</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_JUMP_ON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_JUMP_ON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_HEALTH</Name>
+            <GameFontText en="FULL HEALTH">PEŁNE ZDROWIE</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <Position x="320" y="201" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>health</Action>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_FULLAMMO</Name>
+            <GameFontText en="FULL AMMO">PEŁNA AMUNICJA</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <Position x="320" y="233" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>fullammo</Action>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_LIFE</Name>
+            <GameFontText en="EXTRA LIFE">DODATKOWE ŻYCIE</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <Position x="320" y="265" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>life</Action>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_BOSSES</Name>
+            <GameFontText en="UNLOCK BOSSES AND PARRY AND THRUST">ODBLOKUJ BOSSÓW I PARUJ I KONTRUJ</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <Position x="320" y="297" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>bosses</Action>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_EXPERIMENTAL_ON</Name>
+            <GameFontText en="EXPERIMENTAL MODES: ON">TRYBY EKSPERYMENTALNE: TAK</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOn:experimental</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="329" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>experimental</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_ON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_ON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_OFF</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_OFF</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>CHEAT_EXPERIMENTAL_OFF</Name>
+            <GameFontText en="EXPERIMENTAL MODES: OFF">TRYBY EKSPERYMENTALNE: NIE</GameFontText>
+            <GameFontScale>80</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>CheatOff:experimental</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="329" align="center" />
+            <GeneratedEvent>
+                <Type>Cheat</Type>
+                <Action>experimental</Action>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_OFF</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_OFF</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_ON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>CHEAT_EXPERIMENTAL_ON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
+            <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
+            <Position x="320" y="379" align="center" />
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Main</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+    </MenuPage>
+
     <!-- END GAME PAGE -->
     <MenuPage>
         <PageName>MenuPage_EndGame</PageName>

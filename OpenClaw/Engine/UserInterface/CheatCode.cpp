@@ -79,6 +79,57 @@ namespace CheatCode
         return true;
     }
 
+    bool IsOn(const std::string& name)
+    {
+        const GameCheats* pCheats = g_pApp ? g_pApp->GetGameCheatsMutable() : nullptr;
+        if (name == "experimental") return PortSettings::GetBool("experimental", false);
+        if (!pCheats) return false;
+        if (name == "invincible") return pCheats->clawInvincible;
+        if (name == "ammo") return pCheats->clawInfiniteAmmo;
+        if (name == "jump") return pCheats->clawInfiniteJump;
+        return false;
+    }
+
+    void Apply(const std::string& action)
+    {
+        GameCheats* pCheats = g_pApp ? g_pApp->GetGameCheatsMutable() : nullptr;
+        if (!pCheats) return;
+        if (action == "invincible") pCheats->clawInvincible = !pCheats->clawInvincible;
+        else if (action == "ammo") pCheats->clawInfiniteAmmo = !pCheats->clawInfiniteAmmo;
+        else if (action == "jump") pCheats->clawInfiniteJump = !pCheats->clawInfiniteJump;
+        else if (action == "health")
+        {
+            if (auto p = ClawComponent<HealthComponent>(HealthComponent::g_Name)) p->SetMaxHealth();
+            Subtitles::ShowText(Lang::Tr("Pełne zdrowie", "Full health"), 1500);
+        }
+        else if (action == "fullammo")
+        {
+            if (auto p = ClawComponent<AmmoComponent>(AmmoComponent::g_Name))
+            {
+                p->SetAmmo(AmmoType_Pistol, 99);
+                p->SetAmmo(AmmoType_Magic, 99);
+                p->SetAmmo(AmmoType_Dynamite, 99);
+            }
+            Subtitles::ShowText(Lang::Tr("Pełna amunicja", "Full ammo"), 1500);
+        }
+        else if (action == "life")
+        {
+            if (auto p = ClawComponent<LifeComponent>(LifeComponent::g_Name)) p->AddLives(1);
+            Subtitles::ShowText(Lang::Tr("Dodatkowe życie", "Extra life"), 1500);
+        }
+        else if (action == "bosses")
+        {
+            BossModes::UnlockAll();
+            Subtitles::ShowText(Lang::Tr("Bossowie i Paruj i kontruj odblokowani", "Bosses and Parry & Thrust unlocked"), 2500);
+        }
+        else if (action == "experimental")
+        {
+            PortSettings::SetBool("experimental", !PortSettings::GetBool("experimental", false));
+            Subtitles::ShowText(Lang::Tr("Zmiana widoczna po powrocie do menu głównego",
+                                         "Applies when you are back in the main menu"), 3000);
+        }
+    }
+
     void RunCheatsScreen(SDL_Renderer* pRenderer)
     {
         if (!pRenderer || !g_pApp) return;
