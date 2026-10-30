@@ -365,7 +365,7 @@
         </MenuItem>
         <MenuItem>
             <Name>CHEAT_BOSSES</Name>
-            <GameFontText en="UNLOCK BOSSES AND PARRY AND THRUST">ODBLOKUJ BOSSÓW I PARUJ I KONTRUJ</GameFontText>
+            <GameFontText en="UNLOCK SPECIAL MODE">ODBLOKUJ TRYB SPECJALNY</GameFontText>
             <GameFontScale>80</GameFontScale>
             <Type>Button</Type>
             <State>Inactive</State>

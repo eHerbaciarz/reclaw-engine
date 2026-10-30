@@ -152,6 +152,7 @@ bool BaseGameLogic::Initialize()
             LOG_WARNING("No saves file at " + savesFilePath + ", starting a new game");
             // The cheats menu stays unlocked only as long as the saves exist.
             PortSettings::SetBool("cheats_unlocked", false);
+            PortSettings::SetBool("special_mode", false);
         }
         else
         {

@@ -409,9 +409,9 @@
             <!-- ReClaw: boss practice and Boss Rush (in place of the original,
                  never working "Upload Scores") -->
             <Name>BOSS_MODES_BUTTON</Name>
-            <!-- experimental (alpha): shown with experimental=1 in port_settings.txt -->
+            <!-- shown after "Odblokuj tryb specjalny" in the cheats -->
             <VisibilityCondition>
-                <ConditionType>Experimental</ConditionType>
+                <ConditionType>SpecialModeUnlocked</ConditionType>
             </VisibilityCondition>
             <GameFontText en="CROSS SWORDS AGAIN">SKRZYŻUJ SZPADY PONOWNIE</GameFontText>
             <Type>Button</Type>

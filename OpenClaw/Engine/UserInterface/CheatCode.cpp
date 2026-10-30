@@ -49,6 +49,7 @@ namespace CheatCode
     void Lock()
     {
         PortSettings::SetBool("cheats_unlocked", false);
+        PortSettings::SetBool("special_mode", false);
     }
 
     bool Feed(Key key)
@@ -113,8 +114,12 @@ namespace CheatCode
         }
         else if (action == "bosses")
         {
+            // The special mode: "Skrzyżuj szpady ponownie" in the main menu,
+            // with every boss and Parry & Thrust.
             BossModes::UnlockAll();
-            Subtitles::ShowText(Lang::Tr("Bossowie i Paruj i kontruj odblokowani", "Bosses and Parry & Thrust unlocked"), 2500);
+            PortSettings::SetBool("special_mode", true);
+            Subtitles::ShowText(Lang::Tr("Tryb specjalny odblokowany: Skrzyżuj szpady ponownie w menu głównym",
+                                         "Special mode unlocked: Cross Swords Again in the main menu"), 3500);
         }
         else if (action == "experimental")
         {
@@ -140,7 +145,7 @@ namespace CheatCode
                 Lang::Tr("Pełne zdrowie", "Full health"),
                 Lang::Tr("Pełna amunicja", "Full ammo"),
                 Lang::Tr("Dodatkowe życie", "Extra life"),
-                Lang::Tr("Odblokuj wszystkich bossów i Paruj i kontruj", "Unlock all bosses and Parry & Thrust"),
+                Lang::Tr("Odblokuj tryb specjalny", "Unlock special mode"),
                 std::string(Lang::Tr("Tryby eksperymentalne: ", "Experimental modes: ")) + OnOff(PortSettings::GetBool("experimental", false)),
                 Lang::Tr("Wróć", "Back"),
             };

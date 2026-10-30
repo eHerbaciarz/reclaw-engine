@@ -2119,7 +2119,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
 #endif
         }
         else if (conditionTypeStr.compare(0, 18, "LanguageAvailable:") == 0 ||
-                 conditionTypeStr.compare(0, 5, "Cheat") == 0)
+                 conditionTypeStr.compare(0, 5, "Cheat") == 0 || conditionTypeStr == "SpecialModeUnlocked")
         {
             ReEvaluateVisibilityCondition();
         }
@@ -2488,6 +2488,8 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = CheatCode::IsUnlocked();
     else if (m_VisibilityConditionType == "Experimental")
         m_bVisible = PortSettings::GetBool("experimental", false);
+    else if (m_VisibilityConditionType == "SpecialModeUnlocked")
+        m_bVisible = PortSettings::GetBool("special_mode", false);
     else if (m_VisibilityConditionType.compare(0, 8, "CheatOn:") == 0)
         m_bVisible = CheatCode::IsOn(m_VisibilityConditionType.substr(8));
     else if (m_VisibilityConditionType.compare(0, 9, "CheatOff:") == 0)
