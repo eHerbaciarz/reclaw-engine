@@ -35,6 +35,12 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
   na Switchu automatyczny restart przez Homebrew Menu (`envSetNextLoad`),
   ewentualnie zmiana od razu w menu (przeładowanie CLAW.REZ – ryzykowne).
 
+## Rozgrywka
+
+- **Rzucanie beczką** działa, ale fizyka lotu nie jest poprawna (zgłoszone
+  przez MK 30.10) – do porównania z oryginałem (tor, siła, odbicia).
+  Animacje noszenia beczki są tymczasowe.
+
 ## Wcześniej odłożone
 
 - Bossowie: Le Rauxe (2), Katherine (4), Wolvington (6) – własne zachowanie;
