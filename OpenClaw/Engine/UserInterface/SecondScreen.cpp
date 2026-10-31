@@ -39,7 +39,8 @@ namespace
     SDL_Texture* g_pMirror = nullptr;
     int g_MirrorW = 0, g_MirrorH = 0;
     std::vector<Uint32> g_MirrorPixels;
-    SDL_Rect g_MirrorRect = { 0, 0, 0, 0 };
+    SDL_Rect g_MirrorRect = { 0, 0, 0, 0 };   // where it is drawn here
+    SDL_Rect g_MirrorSrc = { 0, 0, 0, 0 };    // the part of the top screen shown
     bool g_MirrorShown = false;
 
     bool InMenu()
@@ -343,9 +344,12 @@ namespace SecondScreen
 
         LoadBackground();
         DrawBackground();
-        double fit = std::min(g_Width / (double)w, g_Height / (double)h);
-        g_MirrorRect = { (int)(g_Width - w * fit) / 2, (int)(g_Height - h * fit) / 2, (int)(w * fit), (int)(h * fit) };
-        SDL_RenderCopy(g_pRenderer, g_pMirror, NULL, &g_MirrorRect);
+        // The menu is laid out in 4:3 (640x480) in the middle of the top
+        // screen: that part, filling this 4:3 screen (the 3DS: 1:1).
+        int srcW = std::min(w, h * g_Width / g_Height);
+        g_MirrorSrc = { (w - srcW) / 2, 0, srcW, h };
+        g_MirrorRect = { 0, 0, g_Width, g_Height };
+        SDL_RenderCopy(g_pRenderer, g_pMirror, &g_MirrorSrc, &g_MirrorRect);
         SDL_RenderPresent(g_pRenderer);
         g_MirrorShown = true;
         return true;
@@ -476,8 +480,8 @@ namespace SecondScreen
         // Only the menu on the bottom screen takes touches.
         if (!g_MirrorShown || !InMenu() || g_MirrorRect.w <= 0 || !g_pApp->GetWindow()) return true;
         int px = (int)(evt.tfinger.x * g_Width), py = (int)(evt.tfinger.y * g_Height);
-        int wx = (px - g_MirrorRect.x) * g_MirrorW / g_MirrorRect.w;
-        int wy = (py - g_MirrorRect.y) * g_MirrorH / g_MirrorRect.h;
+        int wx = g_MirrorSrc.x + (px - g_MirrorRect.x) * g_MirrorSrc.w / g_MirrorRect.w;
+        int wy = g_MirrorSrc.y + (py - g_MirrorRect.y) * g_MirrorSrc.h / g_MirrorRect.h;
         if (wx < 0 || wy < 0 || wx >= g_MirrorW || wy >= g_MirrorH) return true;
         SDL_Window* top = g_pApp->GetWindow();
         SDL_WarpMouseInWindow(top, wx, wy);   // the sword cursor follows the finger
