@@ -1243,7 +1243,7 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
         mouseX = g_pApp->GetPointerX();
         mouseY = g_pApp->GetPointerY();
 #else
-        SDL_GetMouseState(&mouseX, &mouseY);
+        g_pApp->GetMouseState(&mouseX, &mouseY);
 #endif
 
         // While a slider is grabbed, drag updates its volume from the pointer X.
@@ -1299,7 +1299,7 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
             mouseX = g_pApp->GetPointerX();
             mouseY = g_pApp->GetPointerY();
 #else
-            SDL_GetMouseState(&mouseX, &mouseY);
+            g_pApp->GetMouseState(&mouseX, &mouseY);
 #endif
 
             SDL_Rect clickPoint;

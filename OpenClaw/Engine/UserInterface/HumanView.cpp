@@ -202,7 +202,7 @@ void HumanView::VOnRender(uint32 msDiff)
                 mouseX = g_pApp->GetPointerX();
                 mouseY = g_pApp->GetPointerY();
     #else
-                SDL_GetMouseState(&mouseX, &mouseY);
+                g_pApp->GetMouseState(&mouseX, &mouseY);
     #endif
 
                 shared_ptr<Image> pCursor = m_CursorFrames[m_CursorFrameIdx];

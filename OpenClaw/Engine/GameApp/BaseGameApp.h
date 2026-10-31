@@ -308,6 +308,9 @@ public:
   SDL_Window *GetWindow() const { return m_pWindow; }
   Point GetWindowSize() { return m_WindowSize; }
   // Presents the frame; with a RenderSize target it is first scaled to the window.
+  // The pointer in the game's coordinates (the render target's when the game
+  // renders at its own size, e.g. 3DS 480x288 shown on 400x240).
+  void GetMouseState(int *x, int *y);
   void PresentFrame(bool present = true);  // false: only puts the frame on the window (3DS right eye)
   void SetWindowSize(int width, int height, double scale);
 

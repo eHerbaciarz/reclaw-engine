@@ -1194,6 +1194,24 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
   return true;
 }
 
+void BaseGameApp::GetMouseState(int *x, int *y) {
+  int mx = 0, my = 0;
+  SDL_GetMouseState(&mx, &my);
+  if (m_pRenderTarget && m_pWindow) {
+    int ww = 0, wh = 0;
+    SDL_GetWindowSize(m_pWindow, &ww, &wh);
+    if (ww > 0 && wh > 0 && (ww != m_GameOptions.renderWidth || wh != m_GameOptions.renderHeight)) {
+      // the frame is shown fitted (letterboxed) in the window, see PresentFrame
+      double fit = std::min((double)ww / m_GameOptions.renderWidth, (double)wh / m_GameOptions.renderHeight);
+      double ox = (ww - m_GameOptions.renderWidth * fit) / 2, oy = (wh - m_GameOptions.renderHeight * fit) / 2;
+      mx = (int)((mx - ox) / fit);
+      my = (int)((my - oy) / fit);
+    }
+  }
+  if (x) *x = mx;
+  if (y) *y = my;
+}
+
 void BaseGameApp::PresentFrame(bool present) {
   if (!m_pRenderTarget) {
     if (present) SDL_RenderPresent(m_pRenderer);
@@ -1356,9 +1374,12 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 #if defined(__3DS__)
   // 3DS: the game draws into an ARGB8888 frame (SDL's fast software blits
   // need it; the screen itself is RGBA8888), converted once per frame.
+  // The game sees 480x288 (1.2x the 400x240 screen, 44% more of the level),
+  // shrunk to the screen once per frame; <RenderSize> in config.xml
+  // overrides it (400x240 = 1:1, fastest).
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
-    gameOptions.renderWidth = gameOptions.windowWidth;
-    gameOptions.renderHeight = gameOptions.windowHeight;
+    gameOptions.renderWidth = 480;
+    gameOptions.renderHeight = 288;
   }
   const Uint32 renderTargetFormat = SDL_PIXELFORMAT_ARGB8888;
 #else

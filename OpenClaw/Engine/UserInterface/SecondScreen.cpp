@@ -362,56 +362,100 @@ namespace SecondScreen
         if (inGame)
         {
             // The game's HUD, moved here from the top screen (3DS): the same
-            // pictures as in the level, twice the size, on a darkened panel.
+            // pictures as in the level, at their own size, in tidy rows on a
+            // dark panel (the menu picture's plates would show through).
             int levelNo = 0;
             if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
             if (levelNo != g_HudLevel) { g_HudImages.clear(); g_HudLevel = levelNo; }
 
+            const bool big = g_Width >= 640;               // Wii U GamePad
+            const double k = big ? 2.0 : 1.0;              // pictures
+            const double kNum = big ? 2.4 : 1.2;           // small numbers
+            const int pad = big ? 24 : 8;
+
             SDL_SetRenderDrawBlendMode(g_pRenderer, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 130);
-            SDL_Rect panel = { 10, 8, g_Width - 20, g_Height - 16 };
+            SDL_SetRenderDrawColor(g_pRenderer, 8, 4, 0, 205);
+            SDL_Rect panel = { pad, pad, g_Width - 2 * pad, g_Height - 2 * pad };
             SDL_RenderFillRect(g_pRenderer, &panel);
+            SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 150);
+            SDL_RenderDrawRect(g_pRenderer, &panel);
 
-            const double k = g_Width >= 640 ? 2.5 : 1.5;   // GamePad / 3DS
-            const int left = panel.x + 10;
-            const int rowH = (int)(30 * k);
-            int cy = panel.y + g_Height / 14;
-            Text(g_pFontBig, level, g_Width / 2, cy - g_Height / 24, kGold, 0);
-            cy += (int)(26 * k);
+            auto imgW = [](const shared_ptr<Image>& img, double s) { return img ? (int)(img->GetWidth() * s) : 0; };
+            auto digitsW = [&](const char* set, int digits, double s) {
+                shared_ptr<Image> d = HudImage(std::string("/game/images/interface/") + set + "/000.pid");
+                return d ? (int)(d->GetWidth() * s) * digits : 0;
+            };
+            auto line = [&](int y) {
+                SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 70);
+                SDL_RenderDrawLine(g_pRenderer, panel.x + pad, y, panel.x + panel.w - pad, y);
+            };
 
-            int iconW = (int)(34 * k);
-            Draw(HudIcon("/game/images/interface/treasurechest/"), left, cy, k);
-            Digits("scorenumbers", atoi(score.c_str()), 8, left + iconW + 4, cy, k);
-            cy += rowH;
+            // rows: title | score | health, lives | weapons | stopwatch / race
+            const int top = panel.y, h = panel.h;
+            const int yTitle = top + h * 10 / 100, yScore = top + h * 29 / 100, yHealth = top + h * 50 / 100,
+                      yWeapons = top + h * 71 / 100, yExtra = top + h * 90 / 100;
 
-            Draw(HudIcon("/game/images/interface/healthheart/"), left, cy, k);
-            int hx = left + iconW + 4;
-            hx += Digits("healthnumbers", atoi(health.c_str()), 3, hx, cy, k);
-            int lx = panel.x + panel.w - (int)(78 * k);
-            Draw(HudIcon("/game/images/interface/liveshead/"), lx, cy, k);
-            Digits("smallnumbers", atoi(lives.c_str()), 1, lx + (int)(30 * k), cy, k * 1.3);
-            cy += rowH;
+            Text(g_pFontBig, level, g_Width / 2, yTitle - TTF_FontHeight(g_pFontBig) / 2, kGold, 0);
+            line(top + h * 19 / 100);
 
-            // the three weapons; the selected one bright
+            // treasure: chest + score, centred
+            shared_ptr<Image> chest = HudIcon("/game/images/interface/treasurechest/");
+            int scoreDigits = 8, gap = big ? 10 : 5;
+            int rowW = imgW(chest, k) + gap + digitsW("scorenumbers", scoreDigits, k);
+            int x = (g_Width - rowW) / 2;
+            x += Draw(chest, x, yScore, k) + gap;
+            Digits("scorenumbers", atoi(score.c_str()), scoreDigits, x, yScore, k);
+            line(top + h * 39 / 100);
+
+            // health on the left half, lives on the right half
+            shared_ptr<Image> heart = HudIcon("/game/images/interface/healthheart/");
+            rowW = imgW(heart, k) + gap + digitsW("healthnumbers", 3, k);
+            x = panel.x + (panel.w / 2 - rowW) / 2;
+            x += Draw(heart, x, yHealth, k) + gap;
+            Digits("healthnumbers", atoi(health.c_str()), 3, x, yHealth, k);
+
+            shared_ptr<Image> head = HudIcon("/game/images/interface/liveshead/");
+            rowW = imgW(head, k) + gap + digitsW("smallnumbers", 1, kNum);
+            x = panel.x + panel.w / 2 + (panel.w / 2 - rowW) / 2;
+            x += Draw(head, x, yHealth, k) + gap;
+            Digits("smallnumbers", atoi(lives.c_str()), 1, x, yHealth, kNum);
+            line(top + h * 61 / 100);
+
+            // the three weapons in equal columns; the selected one framed
             const char* weapons[3] = { "pistol", "magic", "dynamite" };
-            int colW = (panel.w - 20) / 3;
+            const int colW = (panel.w - 2 * pad) / 3;
             for (int i = 0; i < 3; ++i)
             {
-                Uint8 a = (i == activeAmmo) ? 255 : 110;
-                int wx = left + colW * i;
-                int iw = Draw(HudIcon(std::string("/game/images/interface/weapons/") + weapons[i] + "/"), wx, cy, k, a);
-                Digits("smallnumbers", atoi(ammo[i].c_str()), 2, wx + iw + 3, cy, k * 1.2, a);
+                shared_ptr<Image> icon = HudIcon(std::string("/game/images/interface/weapons/") + weapons[i] + "/");
+                Uint8 a = (i == activeAmmo) ? 255 : 120;
+                rowW = imgW(icon, k) + gap + digitsW("smallnumbers", 2, kNum);
+                int cx = panel.x + pad + colW * i;
+                if (i == activeAmmo)
+                {
+                    int bh = std::max(icon ? (int)(icon->GetHeight() * k) : 0, (int)(h * 0.16)) + 4;
+                    SDL_Rect sel = { cx + 2, yWeapons - bh / 2, colW - 4, bh };
+                    SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 60);
+                    SDL_RenderFillRect(g_pRenderer, &sel);
+                    SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 200);
+                    SDL_RenderDrawRect(g_pRenderer, &sel);
+                }
+                x = cx + (colW - rowW) / 2;
+                x += Draw(icon, x, yWeapons, k, a) + gap;
+                Digits("smallnumbers", atoi(ammo[i].c_str()), 2, x, yWeapons, kNum, a);
             }
-            cy += rowH;
 
+            // power-up time left, or the race
             if (!powerup.empty())
             {
-                Draw(HudIcon("/game/images/interface/stopwatch/"), left, cy, k);
-                Digits("scorenumbers", atoi(powerup.c_str()), 3, left + iconW + 4, cy, k);
+                shared_ptr<Image> watch = HudIcon("/game/images/interface/stopwatch/");
+                rowW = imgW(watch, k) + gap + digitsW("scorenumbers", 3, k);
+                x = (g_Width - rowW) / 2;
+                x += Draw(watch, x, yExtra, k) + gap;
+                Digits("scorenumbers", atoi(powerup.c_str()), 3, x, yExtra, k);
             }
-            if (!race.empty())
+            else if (!race.empty())
             {
-                Text(g_pFontSmall, race, g_Width / 2, panel.y + panel.h - g_Height / 10, kGold, 0);
+                Text(g_pFontSmall, race, g_Width / 2, yExtra - TTF_FontHeight(g_pFontSmall) / 2, kGold, 0);
             }
         }
         SDL_RenderPresent(g_pRenderer);
@@ -428,7 +472,11 @@ namespace SecondScreen
         int wy = g_MirrorSrc.y + (py - g_MirrorRect.y) * g_MirrorSrc.h / g_MirrorRect.h;
         if (wx < 0 || wy < 0 || wx >= g_MirrorW || wy >= g_MirrorH) return true;
         SDL_Window* top = g_pApp->GetWindow();
-        SDL_WarpMouseInWindow(top, wx, wy);   // the sword cursor follows the finger
+        // the frame (g_MirrorW x g_MirrorH) is shown shrunk to the top window
+        int winW = 0, winH = 0;
+        SDL_GetWindowSize(top, &winW, &winH);
+        if (winW <= 0 || winH <= 0) { winW = g_MirrorW; winH = g_MirrorH; }
+        SDL_WarpMouseInWindow(top, wx * winW / g_MirrorW, wy * winH / g_MirrorH);   // the sword cursor follows the finger
         if (evt.type != SDL_FINGERMOTION)
         {
             SDL_Event e;
