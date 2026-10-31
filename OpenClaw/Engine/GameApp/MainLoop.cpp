@@ -4,6 +4,7 @@
 #include "../Resource/ResourceDirectory.h"
 #include "../Platform/Platform.h"
 #include "../Platform/Input/BlockingInput.h"
+#include "../UserInterface/SecondScreen.h"
 #include <fstream>
 #include "GameLanguages.h"
 #include <sys/stat.h>
@@ -254,7 +255,18 @@ int RunGameEngine(int argc, char** argv)
 
     STARTUP_TRACE("entering main loop");
     // Run the game
+#if defined(__3DS__)
+    // 3DS: shut SDL down (sound, both screens) before the program ends; left
+    // running, its threads crashed the console on the way back to HOME.
+    int result = g_pApp->Run();
+    STARTUP_TRACE("main loop left, shutting SDL down");
+    SecondScreen::Shutdown();
+    SDL_Quit();
+    STARTUP_TRACE("SDL shut down");
+    return result;
+#else
     return g_pApp->Run();
+#endif
 }
 
 bool TryToFindFile(const char *path) {
