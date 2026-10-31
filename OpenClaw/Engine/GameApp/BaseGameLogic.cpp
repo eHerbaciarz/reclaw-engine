@@ -27,6 +27,7 @@
 
 #include "GameSaves.h"
 #include "BaseGameLogic.h"
+#include "../UserInterface/SecondScreen.h"
 #include "GameSaves.h"
 #include "HapticFeedback.h"
 #ifdef __EMSCRIPTEN__
@@ -1431,6 +1432,8 @@ void BaseGameLogic::VChangeState(GameState newState)
     }
     else if (newState == GameState_LoadingLevel)
     {
+        // The bottom screen (3DS): just the map while the level loads.
+        SecondScreen::ShowBackgroundOnly();
         // In case of debugging
         if (m_pCurrentLevel == nullptr)
         {

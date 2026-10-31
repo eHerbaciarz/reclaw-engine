@@ -14,6 +14,8 @@ BASE = __file__.rsplit("/", 2)[0] + "/platform/3ds/cia/banner_base.cgfx"
 IMAG = 0x14F8                        # the IMAG block (vertex/index buffers, texture) follows DATA
 PTRS_INTO_IMAG = (0xE14, 0xE4C, 0x1054)   # index buffer, vertex buffer, texture data
 FACE_CULL_FIELD, FACE_CULL_PARAM = 0x9C4, 0x9C8
+BONE_FLAGS = 0xF30                   # bone "banner": its flags (GfxBoneFlags)
+BONE_IS_ROTATION_ZERO = 1 << 2       # set = the rotation is skipped, animated or not
 
 HOLD, TURN = 150, 90                 # frames (60 per second): front, then one turn
 FRAMES = HOLD + TURN
@@ -52,6 +54,11 @@ def build(png, out):
     # Both faces drawn (GfxFaceCulling.Never, PICA cull mode 0).
     struct.pack_into("<I", data, FACE_CULL_FIELD, 3)
     struct.pack_into("<I", data, FACE_CULL_PARAM, 0)
+    # The bone turns: drop its "rotation is zero" flag (bannertool's plane
+    # never moves, so its bone said the rotation could be skipped).
+    flags = struct.unpack_from("<I", data, BONE_FLAGS)[0]
+    assert flags == 0x1DC, hex(flags)
+    struct.pack_into("<I", data, BONE_FLAGS, flags & ~BONE_IS_ROTATION_ZERO)
 
     B = Blob(IMAG); L = {}
     def dict1(name, target):

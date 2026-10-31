@@ -24,6 +24,9 @@ namespace SecondScreen
     // Once per frame, after the main screen has been drawn.
     void Update();
 
+    // Just the map picture (while a level loads).
+    void ShowBackgroundOnly();
+
     // 3DS: in the menus the bottom screen shows the menu too, and touching it
     // works like the mouse on the menu (moves the sword cursor, picks the
     // item). Takes the touch screen's finger events; true = used.

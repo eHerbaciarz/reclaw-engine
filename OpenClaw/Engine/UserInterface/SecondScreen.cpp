@@ -77,7 +77,26 @@ namespace
     // The game's own HUD pictures (from CLAW.REZ), as textures of this screen's
     // renderer, in the current level's palette. Cleared when the level changes.
     std::map<std::string, shared_ptr<Image>> g_HudImages;
+    std::map<const Image*, int> g_BarEnd;   // where the parchment bar of a HUD picture ends (px), -1 none
     int g_HudLevel = -1;
+
+    // The HUD pictures are a parchment bar with the icon over its right end;
+    // the bar runs from the left up to the icon. Measured on the middle row.
+    int MeasureBarEnd(const WapPid* pid)
+    {
+        if (!pid || pid->width < 8 || pid->height < 4) return -1;
+        const int y = pid->height / 2;
+        auto pale = [&](int x) {
+            const WAP_ColorRGBA& c = pid->colors[y * pid->width + x];
+            int mx = std::max(c.r, std::max(c.g, c.b)), mn = std::min(c.r, std::min(c.g, c.b));
+            return c.a > 128 && (c.r + c.g + c.b) / 3 > 165 && mx - mn < 110;
+        };
+        int x = 0;
+        while (x < pid->width / 2 && !pale(x)) ++x;          // the bar's dark edge
+        int start = x;
+        while (x < pid->width && pale(x)) ++x;
+        return (x - start) >= pid->width / 4 ? x : -1;        // a real bar, not a light spot
+    }
 
     shared_ptr<Image> HudImage(const std::string& path)
     {
@@ -94,6 +113,7 @@ namespace
                 if (WapPid* pid = WAP_PidLoadFromData(data.data(), data.size(), g_pApp->GetCurrentPalette()))
                 {
                     img.reset(Image::CreateImage(pid, g_pRenderer));
+                    if (img) g_BarEnd[img.get()] = MeasureBarEnd(pid);
                     WAP_PidDestroy(pid);
                 }
             }
@@ -217,6 +237,7 @@ namespace SecondScreen
         if (g_pFontBig) TTF_CloseFont(g_pFontBig);
         if (g_pFontSmall) TTF_CloseFont(g_pFontSmall);
         g_HudImages.clear();
+        g_BarEnd.clear();
         if (g_pMirror) SDL_DestroyTexture(g_pMirror);
         g_pMirror = nullptr;
         if (g_pRenderer) SDL_DestroyRenderer(g_pRenderer);
@@ -302,9 +323,28 @@ namespace SecondScreen
 #endif
     }
 
+    void ShowBackgroundOnly()
+    {
+        if (!g_pRenderer) return;
+        LoadBackground();
+        DrawBackground();
+        SDL_RenderPresent(g_pRenderer);
+        g_MirrorShown = false;
+        g_LastState = "background";
+    }
+
     void Update()
     {
         if (!g_pRenderer) return;
+        if (g_pApp && g_pApp->GetGameLogic())
+        {
+            GameState st = g_pApp->GetGameLogic()->GetGameState();
+            if (st == GameState_LoadingLevel || st == GameState_LoadingMenu || st == GameState_LoadingScoreScreen)
+            {
+                if (g_LastState != "background") ShowBackgroundOnly();
+                return;
+            }
+        }
         if (UpdateMirror()) return;
         // A few times per second is plenty for a status screen.
         if (SDL_GetTicks() - g_LastDraw < 200) return;
@@ -366,7 +406,7 @@ namespace SecondScreen
             // dark panel (the menu picture's plates would show through).
             int levelNo = 0;
             if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
-            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_HudLevel = levelNo; }
+            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_BarEnd.clear(); g_HudLevel = levelNo; }
 
             const bool big = g_Width >= 640;               // Wii U GamePad
             const double k = big ? 2.0 : 1.0;              // pictures
@@ -407,18 +447,32 @@ namespace SecondScreen
             Digits("scorenumbers", atoi(score.c_str()), scoreDigits, x, yScore, k);
             line(top + h * 39 / 100);
 
-            // health on the left half, lives on the right half
-            shared_ptr<Image> heart = HudIcon("/game/images/interface/healthheart/");
-            rowW = imgW(heart, k) + gap + digitsW("healthnumbers", 3, k);
-            x = panel.x + (panel.w / 2 - rowW) / 2;
-            x += Draw(heart, x, yHealth, k) + gap;
-            Digits("healthnumbers", atoi(health.c_str()), 3, x, yHealth, k);
+            // A HUD picture with its number on the bar, left of the icon
+            // (centred on cx); returns nothing.
+            auto barred = [&](const shared_ptr<Image>& img, const char* set, int value, int digits,
+                              double ks, int cx, int cy, Uint8 alpha) {
+                int w = imgW(img, k);
+                int x0 = cx - w / 2;
+                int dw = digitsW(set, digits, ks);
+                int barEnd = -1;
+                if (img) { auto it = g_BarEnd.find(img.get()); if (it != g_BarEnd.end()) barEnd = it->second; }
+                if (barEnd < 0)
+                {
+                    // no bar: the number just left of the picture
+                    x0 = cx - (w + gap + dw) / 2;
+                    Digits(set, value, digits, x0, cy, ks, alpha);
+                    Draw(img, x0 + dw + gap, cy, k, alpha);
+                    return;
+                }
+                Draw(img, x0, cy, k, alpha);
+                Digits(set, value, digits, x0 + (int)(barEnd * k) - dw - (big ? 6 : 3), cy, ks, alpha);
+            };
 
-            shared_ptr<Image> head = HudIcon("/game/images/interface/liveshead/");
-            rowW = imgW(head, k) + gap + digitsW("smallnumbers", 1, kNum);
-            x = panel.x + panel.w / 2 + (panel.w / 2 - rowW) / 2;
-            x += Draw(head, x, yHealth, k) + gap;
-            Digits("smallnumbers", atoi(lives.c_str()), 1, x, yHealth, kNum);
+            // health on the left half, lives on the right half
+            barred(HudIcon("/game/images/interface/healthheart/"), "healthnumbers", atoi(health.c_str()), 3, k,
+                   panel.x + panel.w / 4, yHealth, 255);
+            barred(HudIcon("/game/images/interface/liveshead/"), "smallnumbers", atoi(lives.c_str()), 1, kNum,
+                   panel.x + panel.w * 3 / 4, yHealth, 255);
             line(top + h * 61 / 100);
 
             // the three weapons in equal columns; the selected one framed
@@ -428,7 +482,6 @@ namespace SecondScreen
             {
                 shared_ptr<Image> icon = HudIcon(std::string("/game/images/interface/weapons/") + weapons[i] + "/");
                 Uint8 a = (i == activeAmmo) ? 255 : 120;
-                rowW = imgW(icon, k) + gap + digitsW("smallnumbers", 2, kNum);
                 int cx = panel.x + pad + colW * i;
                 if (i == activeAmmo)
                 {
@@ -439,9 +492,7 @@ namespace SecondScreen
                     SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 200);
                     SDL_RenderDrawRect(g_pRenderer, &sel);
                 }
-                x = cx + (colW - rowW) / 2;
-                x += Draw(icon, x, yWeapons, k, a) + gap;
-                Digits("smallnumbers", atoi(ammo[i].c_str()), 2, x, yWeapons, kNum, a);
+                barred(icon, "smallnumbers", atoi(ammo[i].c_str()), 2, kNum, cx + colW / 2, yWeapons, a);
             }
 
             // power-up time left, or the race
