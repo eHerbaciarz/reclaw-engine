@@ -45,6 +45,20 @@ target_link_libraries(openclaw PRIVATE
     SceNet_stub SceNetCtl_stub SceSysmodule_stub SceAppUtil_stub SceAppMgr_stub
     SceCommonDialog_stub ScePower_stub pthread m)
 
+# vita-elf-create puts its import/export tables at the end of the code
+# segment; the default linker script starts the data segment at the next
+# 64 KB boundary, which can leave less room than they need ("Cannot allocate
+# N bytes for SCE data at end of segment 0; segment 1 overlaps", depending on
+# the code size). The same script with at least 16 KB in between:
+set(_vita_gap_ld "${CMAKE_BINARY_DIR}/vita-gap.ld")
+execute_process(COMMAND sh -c "\"$VITASDK/bin/arm-vita-eabi-ld\" --verbose | sed -n '/^=====/,/^=====/p' | sed '1d;$d' | sed -e 's/\\. = DATA_SEGMENT_ALIGN ([^;]*;/. = ALIGN(. + 0x4000, 0x10000);/' -e 's/\\. = DATA_SEGMENT_RELRO_END[^;]*;//' -e 's/\\. = DATA_SEGMENT_END[^;]*;//' > \"${_vita_gap_ld}\"")
+file(READ "${_vita_gap_ld}" _vita_ld)
+if (_vita_ld MATCHES "ALIGN\\(\\. \\+ 0x4000, 0x10000\\)")
+    target_link_options(openclaw PRIVATE "-Wl,-T,${_vita_gap_ld}")
+else()
+    message(WARNING "Could not adapt the Vita linker script; the default one is used")
+endif()
+
 vita_create_self(eboot.bin openclaw UNSAFE)
 
 set(BUNDLE "${CMAKE_BINARY_DIR}/bundle")
