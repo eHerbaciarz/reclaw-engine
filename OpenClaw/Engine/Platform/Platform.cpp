@@ -214,6 +214,9 @@ namespace Platform
         // memory. Write what happened to the log and stop the sound first.
         std::set_terminate([]()
         {
+            static bool s_once = false;   // the handler itself may run out of memory
+            if (s_once) std::abort();
+            s_once = true;
             const char* what = "unknown";
             std::string text;
             try

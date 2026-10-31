@@ -369,8 +369,11 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
 
   // Load custom assets
   ShowStartupProgress(m_pRenderer, 92);
+#if !defined(__3DS__)
+  // (3DS: not all 12 MB of ASSETS.ZIP up front - too little memory)
   STARTUP_TRACE("preload " "*");
   m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
+#endif
 
   LOG("Critical assets loaded. Level assets will load on-demand.");
 
@@ -980,6 +983,10 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
     DO_AND_CHECK(ParseValueFromXmlElem(
         &m_GameOptions.resourceCacheSize,
         assetsElem->FirstChildElement("ResourceCacheSize")));
+#if defined(__3DS__)
+    // Also for config.xml files written by older versions (24 MB)
+    m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 16u);
+#endif
     ParseValueFromXmlElem(&m_GameOptions.tempDir,
                           assetsElem->FirstChildElement("TempDir"));
     DO_AND_CHECK(ParseValueFromXmlElem(
@@ -1466,7 +1473,14 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 
   IResourceFile *pCustomArchive = new ResourceZipArchive(customArchivePath);
   std::shared_ptr<ResourceCache> pCustomCache{
-      new ResourceCache(50, pCustomArchive, CUSTOM_RESOURCE)};
+      new ResourceCache(
+#if defined(__3DS__)
+          // 3DS: little memory; the port's own files are read when needed
+          8,
+#else
+          50,
+#endif
+          pCustomArchive, CUSTOM_RESOURCE)};
   if (!pCustomCache->Init()) {
     LOG_ERROR("Failed to initialize resource cachce from resource file: " +
               customArchivePath);

@@ -26,7 +26,7 @@
     <AssetsFolder></AssetsFolder>
     <RezArchive>sdmc:/3ds/reclaw/data/CLAW.REZ</RezArchive>
     <CustomArchive>romfs:/ASSETS.ZIP</CustomArchive>
-    <ResourceCacheSize>24</ResourceCacheSize>
+    <ResourceCacheSize>16</ResourceCacheSize>
     <TempDir></TempDir>
     <SavesFile>SAVES.XML</SavesFile>
   </Assets>
