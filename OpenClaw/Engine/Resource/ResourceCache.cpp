@@ -4,6 +4,29 @@
 #include <libwap.h>
 
 #include "ResourceCache.h"
+
+#if defined(__3DS__)
+#include <3ds.h>
+// 3DS: the normal heap is at most 96 MB (its address range), the rest of
+// the memory goes to the linear heap (Platform.cpp sets its size). The
+// cached files live there, leaving the normal heap to the game.
+extern "C" { extern u32 __ctru_linear_heap, __ctru_linear_heap_size; }
+static char* CacheAlloc(uint32 size)
+{
+    if (char* p = (char*)linearAlloc(size ? size : 1)) return p;
+    return new char[size];
+}
+static void CacheFree(char* p)
+{
+    if (!p) return;
+    u32 a = (u32)p;
+    if (a >= __ctru_linear_heap && a < __ctru_linear_heap + __ctru_linear_heap_size) linearFree(p);
+    else delete[] p;
+}
+#else
+static char* CacheAlloc(uint32 size) { return new char[size]; }
+static void CacheFree(char* p) { delete[] p; }
+#endif
 #include "../Util/StringUtil.h"
 
 //
@@ -229,7 +252,8 @@ ResourceHandle::ResourceHandle(Resource& resource, char* buffer, uint32 size, Re
 
 ResourceHandle::~ResourceHandle()
 {
-    SAFE_DELETE_ARRAY(_buffer);
+    CacheFree(_buffer);
+    _buffer = NULL;
 
     _resourceCache->MemoryHasBeenFreed(_size);
 }
@@ -399,7 +423,7 @@ char* ResourceCache::Allocate(uint32 size)
         return NULL;
     }
 
-    char* mem = new /*(std::nothrow)*/ char[size];
+    char* mem = CacheAlloc(size);
     if (mem)
     {
         _allocated += size;

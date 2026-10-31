@@ -20,10 +20,11 @@
 #include <psp2/io/stat.h>
 #elif defined(__3DS__)
 #include <3ds.h>
-// Memory: libctru gives the linear heap (GPU / DSP memory) 32 MB by default,
-// but the game draws in software and uses only ~2 MB of it. 8 MB leaves the
-// rest (~24 MB more) to the normal heap, which ran out loading a level.
-extern "C" { u32 __ctru_linear_heap_size = 8 * 1024 * 1024; }
+// Memory: the normal heap can be at most 96 MB (its address range); the
+// linear heap gets the rest (~24 MB on the New 3DS). The game draws in
+// software and needs only ~2 MB of linear memory for the screens and the
+// sound, so the resource caches keep their files there (ResourceCache.cpp).
+extern "C" { u32 __ctru_linear_heap_size = 24 * 1024 * 1024; }
 #elif defined(__WIIU__)
 #include <coreinit/debug.h>
 #elif defined(__PS3__) || defined(__PSL1GHT__)

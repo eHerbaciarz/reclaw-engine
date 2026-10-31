@@ -450,6 +450,8 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
     SDL_RenderSetScale(pRenderer, savedScaleX, savedScaleY);
 }
 
+#include "../Resource/ResourceMgr.h"
+
 #ifdef OPENCLAW_STARTUP_TRACE
 #include <malloc.h>
 #if defined(__3DS__)
@@ -485,6 +487,13 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 
     m_pPhysics.reset(CreateClawPhysics());
 
+#if defined(__3DS__)
+    // 3DS memory: the menu's images and files (and the decoded pictures they
+    // keep) leave the resource caches before the level is built.
+    g_pApp->GetResourceMgr()->VFlush();
+    TraceLevel("caches flushed");
+#endif
+
     float loadingProgress = 0.0f;
     float lastProgress = 0.0f;
 
@@ -511,6 +520,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     // up (it used to happen before it: the menu froze for seconds on the
     // handhelds), with the bar moving.
     STARTUP_TRACE("level: preload");
+#if !defined(__3DS__)
+    // (3DS: the level does not fit the small cache anyway - no preload)
     {
         std::vector<std::string> files = g_pApp->GetResourceCache()->Match(levelPath);
         for (size_t i = 0; i < files.size(); ++i)
@@ -523,6 +534,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             }
         }
     }
+#endif
     TraceLevel("preload done");
 
     // ============== LEVEL LOADING ==============
@@ -658,10 +670,11 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     g_pApp->SetCurrentPalette(PalResourceLoader::LoadAndReturnPal(palettePath.c_str()));
 
     uint32 clawId = -1;
-    for (TiXmlElement* pActorElem = pXmlLevelRoot->FirstChildElement("Actor"); 
+    for (TiXmlElement* pActorElem = pXmlLevelRoot->FirstChildElement("Actor"), *pNextActorElem = nullptr;
         pActorElem != NULL;
-        pActorElem = pActorElem->NextSiblingElement("Actor"))
+        pActorElem = pNextActorElem)
     {
+        pNextActorElem = pActorElem->NextSiblingElement("Actor");
         //LOG("Creating actor: " + std::string(pActorElem->Attribute("Type")));
         //if (std::string(pActorElem->Attribute("Type")) != "Plane") break;
         StrongActorPtr pActor = VCreateActor(pActorElem, NULL);
@@ -692,6 +705,12 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         {
             return false;
         }
+
+#if defined(__3DS__)
+        // 3DS memory: the actor's XML is not needed once it exists (the
+        // level's XML is ~20 MB, more than is left for the actors).
+        pXmlLevelRoot->RemoveChild(pActorElem);
+#endif
 
         loadingProgress += actorToPercent;
         if ((loadingProgress - lastProgress) > 1.0f)
