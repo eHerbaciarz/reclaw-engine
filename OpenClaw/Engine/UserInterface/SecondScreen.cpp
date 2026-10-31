@@ -54,61 +54,6 @@ namespace
     const SDL_Color kDim = { 190, 170, 130, 255 };
     const SDL_Color kEdge = { 30, 15, 2, 255 };
 
-    // The menu picture without the blue-silver CLAW title at its top: those
-    // pixels (bluish or grey, where the parchment is orange-brown) are filled
-    // with parchment taken from nearby, so the texture goes on.
-    void RemoveLogo(SDL_Surface* s)
-    {
-        const int w = s->w, h = s->h;
-        const int y1 = h * 32 / 100, x0 = w * 12 / 100, x1 = w * 88 / 100;
-        auto px = [&](int x, int y) -> Uint32& { return ((Uint32*)((Uint8*)s->pixels + y * s->pitch))[x]; };
-        std::vector<Uint8> mask((size_t)w * y1, 0);
-        for (int y = 0; y < y1; ++y)
-            for (int x = x0; x < x1; ++x)
-            {
-                Uint32 c = px(x, y);
-                int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
-                if (b + 12 >= r) mask[(size_t)y * w + x] = 1;   // not orange-brown
-            }
-        // grow by 3 pixels: the letters' soft edges
-        for (int pass = 0; pass < 3; ++pass)
-        {
-            std::vector<Uint8> grown(mask);
-            for (int y = 0; y < y1; ++y)
-                for (int x = 1; x < w - 1; ++x)
-                {
-                    if (mask[(size_t)y * w + x]) continue;
-                    if (mask[(size_t)y * w + x - 1] || mask[(size_t)y * w + x + 1] ||
-                        (y > 0 && mask[(size_t)(y - 1) * w + x]) || (y + 1 < y1 && mask[(size_t)(y + 1) * w + x]))
-                        grown[(size_t)y * w + x] = 1;
-                }
-            mask.swap(grown);
-        }
-        // fill: a random parchment pixel from the nearest ring around it
-        Uint32 seed = 12345;
-        auto rnd = [&]() { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) & 0x7fff); };
-        for (int y = 0; y < y1; ++y)
-            for (int x = 0; x < w; ++x)
-            {
-                if (!mask[(size_t)y * w + x]) continue;
-                for (int r = 2; r < 200; r += 2)
-                {
-                    int found = 0;
-                    Uint32 pick = 0;
-                    for (int t = 0; t < 12; ++t)
-                    {
-                        int sx = x + rnd() % (2 * r + 1) - r, sy = y + rnd() % (2 * r + 1) - r;
-                        if (sx < 0 || sx >= w || sy < 0 || sy >= h) continue;
-                        if (sy < y1 && mask[(size_t)sy * w + sx]) continue;
-                        pick = px(sx, sy);
-                        ++found;
-                        break;
-                    }
-                    if (found) { px(x, y) = pick; break; }
-                }
-            }
-    }
-
     // The main menu's background (the map) from the game data, as a texture
     // of this screen's renderer.
     void LoadBackground()
@@ -124,7 +69,6 @@ namespace
         SDL_Surface* surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
         SDL_FreeSurface(loaded);
         if (!surface) return;
-        RemoveLogo(surface);
         g_pBackground = SDL_CreateTextureFromSurface(g_pRenderer, surface);
         SDL_FreeSurface(surface);
     }
