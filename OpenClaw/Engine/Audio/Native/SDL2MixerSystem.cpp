@@ -160,6 +160,14 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
 
     tsf *pFont = nullptr;
     std::string usedPath;
+#if defined(__3DS__)
+    // The 3DS has too little memory for the soundfont (TinySoundFont decodes
+    // all its samples into RAM: tens of MB); trying crashed the game.
+    // No level music on the 3DS for now.
+    self->m_Config.soundFontPaths.clear();
+    LOG_WARNING("3DS: level music (soundfont) disabled - not enough memory");
+#endif
+    std::vector<Sint64> failedSizes;   // the same file under another path: not again
     for (const std::string &path : self->m_Config.soundFontPaths)
     {
         // Read through SDL_RWops so platform-specific paths (e.g. Switch romfs:/)
@@ -170,6 +178,11 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
             continue;
         }
         Sint64 size = SDL_RWsize(rw);
+        if (std::find(failedSizes.begin(), failedSizes.end(), size) != failedSizes.end())
+        {
+            SDL_RWclose(rw);
+            continue;
+        }
         std::vector<char> bytes(size > 0 ? (size_t)size : 0);
         size_t read = bytes.empty() ? 0 : SDL_RWread(rw, bytes.data(), 1, bytes.size());
         SDL_RWclose(rw);
@@ -185,6 +198,7 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
             break;
         }
         LOG_WARNING("Failed to parse soundfont: " + path);
+        failedSizes.push_back(size);
     }
 
     {

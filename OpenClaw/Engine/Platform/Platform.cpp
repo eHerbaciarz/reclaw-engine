@@ -337,6 +337,8 @@ namespace Platform
                 {
                     fclose(flag);
                     SDL_Log("ndsp probe skipped (the sound start crashed last time)");
+                    // Silent start: SDL picks its audio driver in SDL_Init, so here.
+                    SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
                 }
                 else
                 {
