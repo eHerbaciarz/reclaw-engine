@@ -1374,7 +1374,12 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
         if (pCam)
         {
             nearRect = pCam->GetCameraRect();
+#if defined(__3DS__)
+            // 3DS: half a screen around the view (the CPU is the limit)
+            nearRect.x -= nearRect.w / 2; nearRect.y -= nearRect.h / 2; nearRect.w *= 2; nearRect.h *= 2;
+#else
             nearRect.x -= nearRect.w; nearRect.y -= nearRect.h; nearRect.w *= 3; nearRect.h *= 3;
+#endif
         }
 #endif
         for (auto &actorIter : m_ActorMap)

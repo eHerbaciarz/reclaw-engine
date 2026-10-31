@@ -28,6 +28,7 @@
 #include "../Graphics2D/Stereo3D.h"
 #include "../GameApp/GameLanguages.h"
 #include "Minimap.h"
+#include "SecondScreen.h"
 #include "Subtitles.h"
 #include "CheatCode.h"
 #include "../Platform/Platform.h"
@@ -145,7 +146,8 @@ void HumanView::VOnRender(uint32 msDiff)
                     {
                         Point scale = g_pApp->GetScale();
                         SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
-                        Minimap::Render(renderer, full, m_ActorId);
+                        // 3DS: the map is on the bottom screen (SecondScreen)
+                        if (!SecondScreen::ShowsHud()) Minimap::Render(renderer, full, m_ActorId);
                         Race::RenderOverlay(renderer, 0, full);
                         BossModes::RenderOverlay(renderer, full);
                     }

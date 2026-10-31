@@ -169,6 +169,7 @@ bool Actor::IsPausableWhenFar()
             "TreasurePickupComponent", "LifePickupComponent", "HealthPickupComponent", "AmmoPickupComponent",
             "PowerupPickupComponent", "CheckpointComponent", "GlitterComponent", "LootComponent",
             "DestroyableComponent", "ConcreteComponent",
+            "HealthComponent", "SingleAnimationComponent",   // statues, barrels, one-shot effects
         };
         bool ok = !_components.empty();
         for (auto &component : _components)

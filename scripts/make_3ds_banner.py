@@ -17,6 +17,7 @@ FACE_CULL_FIELD, FACE_CULL_PARAM = 0x9C4, 0x9C8
 BONE_FLAGS = 0xF30                   # bone "banner": its flags (GfxBoneFlags)
 BONE_IS_ROTATION_ZERO = 1 << 2       # set = the rotation is skipped, animated or not
 
+CAMERA_Z = 42.0                      # distance: the plane about as wide as the flat banner
 HOLD, TURN = 150, 90                 # frames (60 per second): front, then one turn
 FRAMES = HOLD + TURN
 
@@ -66,6 +67,21 @@ def build(png, out):
         B.u32(0xFFFFFFFF); B.b += struct.pack("<HH", 1, 0); B.u32(0); B.u32(0)
         B.u32(patricia_ref(name.encode())); B.b += struct.pack("<HH", 0, 1)
         B.ptr("s:" + name); B.ptr(target)
+    # A camera like the HOME menu's own view of a banner (perspective, from
+    # the front); 3D banners carry one, bannertool's flat banner does not.
+    L["camdict"] = B.pos(); dict1("camera1", "ccam")
+    L["ccam"] = B.pos()
+    B.u32(0x4000000A); B.b += b"CCAM"; B.u32(0x06000000); B.ptr("s:camera1"); B.u32(0); B.u32(0)
+    B.u32(1); B.u32(1); B.u32(0); B.u32(0)          # flags, branch visible, no children
+    B.u32(0); B.u32(0)                              # no animation groups
+    for v in (1, 1, 1, 0, 0, 0, 0, 0, CAMERA_Z): B.f32(v)   # scale, rotation, translation
+    for _ in range(2):                              # local and world matrices (3x4)
+        for v in (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0): B.f32(v)
+    B.u32(2); B.u32(0)                              # view: rotate; projection: perspective
+    B.ptr("camview"); B.ptr("camproj"); B.f32(0)    # WScale
+    L["camview"] = B.pos(); B.u32(0x20000000); B.u32(0); B.f32(0); B.f32(0); B.f32(0)
+    L["camproj"] = B.pos(); B.u32(0x20000000); B.f32(0.01); B.f32(1000); B.f32(1.5); B.f32(math.radians(37.85))
+
     L["animdict"] = B.pos(); dict1("COMMON", "canm")
     # CANM: skeletal animation "COMMON", looped
     L["canm"] = B.pos()
@@ -85,12 +101,15 @@ def build(png, out):
     keys = [(0, 0.0, 0.0), (HOLD, 0.0, 0.0), (FRAMES, 2 * math.pi, 0.0)]
     B.f32(0); B.f32(FRAMES); B.u32(0x68); B.u32(len(keys)); B.f32(1.0 / FRAMES)  # unified Hermite (frame, value, slope)
     for f, v, s in keys: B.f32(f); B.f32(v); B.f32(s)
-    for s in ("COMMON", "SkeletalAnimation", "banner"):
+    for s in ("COMMON", "SkeletalAnimation", "banner", "camera1"):
         L["s:" + s] = B.pos(); B.b += s.encode() + b"\0"
     while len(B.b) % 0x80: B.b += b"\0"          # keeps the texture 128-byte aligned
     B.resolve(L); n = len(B.b)
 
-    # Point DATA entry 9 (skeletal animations) at the new dictionary.
+    # DATA entry 5 (cameras) and 9 (skeletal animations): the new dictionaries.
+    e5 = 0x14 + 8 + 5 * 8
+    struct.pack_into("<I", data, e5, 1)
+    struct.pack_into("<I", data, e5 + 4, L["camdict"] - (e5 + 4))
     e9 = 0x14 + 8 + 9 * 8
     struct.pack_into("<I", data, e9, 1)
     struct.pack_into("<I", data, e9 + 4, L["animdict"] - (e9 + 4))

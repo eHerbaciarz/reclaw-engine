@@ -47,6 +47,7 @@ static std::string ResolveBundledFile(const std::string& path)
 
 
 #include "BaseGameApp.h"
+#include "../Util/PortSettings.h"
 #include "../Util/StartupTrace.h"
 
 #include "../Platform/Events/AppEvent.h"
@@ -391,6 +392,16 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     LOG_WARNING("Invalid gameLogicFps value, using default 60 FPS");
     m_fixedTimestep = 1.0 / 60.0;
   }
+#if defined(__3DS__)
+  // 3DS: the game logic (physics, actors) runs 30 times a second - half the
+  // work for the same game speed; logic_hz=60 in port_settings.txt for 60.
+  {
+    int hz = PortSettings::GetInt("logic_hz", 30);
+    if (hz < 20 || hz > 60) hz = 30;
+    m_fixedTimestep = 1.0 / hz;
+    LOG("3DS: game logic at " + ToStr(hz) + " Hz");
+  }
+#endif
 
   STARTUP_TRACE("Initialize done");
   m_IsRunning = true;
@@ -1437,7 +1448,12 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     if (m_pRenderTarget) {
       // Smooth final upscale (like the browser scaling its canvas); the game's
       // own sprites keep nearest-neighbour sampling inside the target.
+#if defined(__3DS__)
+      // 3DS (software): plain sampling, the smooth one costs several ms a frame
+      SDL_SetTextureScaleMode(m_pRenderTarget, SDL_ScaleModeNearest);
+#else
       SDL_SetTextureScaleMode(m_pRenderTarget, SDL_ScaleModeLinear);
+#endif
     }
 #endif
     if (m_pRenderTarget && SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget) == 0) {

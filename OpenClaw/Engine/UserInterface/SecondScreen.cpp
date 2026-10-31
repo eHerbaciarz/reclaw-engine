@@ -23,6 +23,7 @@
 #include "Lang.h"
 #include "../Graphics2D/Image.h"
 #include "../Resource/ResourceMgr.h"
+#include "Minimap.h"
 
 namespace
 {
@@ -77,25 +78,46 @@ namespace
     // The game's own HUD pictures (from CLAW.REZ), as textures of this screen's
     // renderer, in the current level's palette. Cleared when the level changes.
     std::map<std::string, shared_ptr<Image>> g_HudImages;
-    std::map<const Image*, int> g_BarEnd;   // where the parchment bar of a HUD picture ends (px), -1 none
+    // The parchment bar of a HUD picture (the icon sits over its right end):
+    // its columns and rows, measured on the picture's pixels.
+    struct Bar { int x0 = -1, x1 = -1, y0 = 0, y1 = 0; };
+    std::map<const Image*, Bar> g_Bars;
     int g_HudLevel = -1;
 
-    // The HUD pictures are a parchment bar with the icon over its right end;
-    // the bar runs from the left up to the icon. Measured on the middle row.
-    int MeasureBarEnd(const WapPid* pid)
+    Bar MeasureBar(const WapPid* pid)
     {
-        if (!pid || pid->width < 8 || pid->height < 4) return -1;
-        const int y = pid->height / 2;
-        auto pale = [&](int x) {
+        Bar best;
+        if (!pid || pid->width < 8 || pid->height < 4) return best;
+        auto pale = [&](int x, int y) {
             const WAP_ColorRGBA& c = pid->colors[y * pid->width + x];
             int mx = std::max(c.r, std::max(c.g, c.b)), mn = std::min(c.r, std::min(c.g, c.b));
-            return c.a > 128 && (c.r + c.g + c.b) / 3 > 165 && mx - mn < 110;
+            return c.a > 128 && (c.r + c.g + c.b) / 3 > 150 && mx - mn < 120;
         };
-        int x = 0;
-        while (x < pid->width / 2 && !pale(x)) ++x;          // the bar's dark edge
-        int start = x;
-        while (x < pid->width && pale(x)) ++x;
-        return (x - start) >= pid->width / 4 ? x : -1;        // a real bar, not a light spot
+        // the longest light run starting in the left half, on any row
+        int bestLen = 0;
+        std::vector<int> rowEnd(pid->height, -1), rowStart(pid->height, -1);
+        for (int y = 0; y < pid->height; ++y)
+        {
+            int x = 0;
+            while (x < pid->width / 2 && !pale(x, y)) ++x;
+            if (x >= pid->width / 2) continue;
+            int start = x;
+            while (x < pid->width && pale(x, y)) ++x;
+            rowStart[y] = start; rowEnd[y] = x;
+            if (x - start > bestLen) { bestLen = x - start; best.x0 = start; best.x1 = x; }
+        }
+        if (bestLen < pid->width / 4) return Bar();
+        // the rows that belong to that bar (runs at least half as long)
+        best.y0 = pid->height; best.y1 = -1;
+        for (int y = 0; y < pid->height; ++y)
+        {
+            if (rowEnd[y] - rowStart[y] >= bestLen / 2)
+            {
+                best.y0 = std::min(best.y0, y);
+                best.y1 = std::max(best.y1, y + 1);
+            }
+        }
+        return best;
     }
 
     shared_ptr<Image> HudImage(const std::string& path)
@@ -113,7 +135,7 @@ namespace
                 if (WapPid* pid = WAP_PidLoadFromData(data.data(), data.size(), g_pApp->GetCurrentPalette()))
                 {
                     img.reset(Image::CreateImage(pid, g_pRenderer));
-                    if (img) g_BarEnd[img.get()] = MeasureBarEnd(pid);
+                    if (img) g_Bars[img.get()] = MeasureBar(pid);
                     WAP_PidDestroy(pid);
                 }
             }
@@ -189,6 +211,18 @@ namespace
         if (front) SDL_FreeSurface(front);
     }
 
+    // The level's name as on its loading screen.
+    std::string LevelTitle(LevelData& level)
+    {
+        static const char* kNames[] = { "La Roca", "Battlements", "Thief's Forest", "Dark Woods", "Town",
+                                         "Puerto De Lobo", "Docks", "Shipyards", "Pirate's Cove", "Cliffs",
+                                         "Caverns", "Undersea Caves", "Tiger Island", "Temple" };
+        int n = (int)level.GetLevelNumber();
+        if (!level.IsCustomLevel() && n >= 1 && n <= 14) return kNames[n - 1];
+        std::string name = level.GetLevelName();
+        return name.empty() || name == "Unknown" ? std::string(Lang::Tr("Poziom ", "Level ")) + ToStr(n) : name;
+    }
+
     template <class T>
     shared_ptr<T> Component(const StrongActorPtr& actor, const char* name)
     {
@@ -237,7 +271,7 @@ namespace SecondScreen
         if (g_pFontBig) TTF_CloseFont(g_pFontBig);
         if (g_pFontSmall) TTF_CloseFont(g_pFontSmall);
         g_HudImages.clear();
-        g_BarEnd.clear();
+        g_Bars.clear();
         if (g_pMirror) SDL_DestroyTexture(g_pMirror);
         g_pMirror = nullptr;
         if (g_pRenderer) SDL_DestroyRenderer(g_pRenderer);
@@ -355,6 +389,22 @@ namespace SecondScreen
         StrongActorPtr pClaw = pLogic ? pLogic->GetClawActor() : nullptr;
         const bool inGame = pLogic && pClaw && pLogic->GetGameState() == GameState_IngameRunning;
 
+#if defined(__3DS__)
+        // The level map (Select) is drawn here, over the map picture.
+        if (inGame && Minimap::IsVisible())
+        {
+            static Uint32 s_lastMap = 0;
+            if (SDL_GetTicks() - s_lastMap < 100) return;
+            s_lastMap = SDL_GetTicks();
+            DrawBackground();
+            SDL_Rect full = { 0, 0, g_Width, g_Height };
+            Minimap::Render(g_pRenderer, full, pClaw->GetGUID());
+            SDL_RenderPresent(g_pRenderer);
+            g_LastState = "map";
+            return;
+        }
+#endif
+
         // Gather what is shown; redraw only when it changed.
         std::string level, health, lives, score, ammo[3], powerup, race;
         int activeAmmo = -1;
@@ -362,7 +412,7 @@ namespace SecondScreen
         {
             if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData())
             {
-                level = std::string(Lang::Tr("Poziom ", "Level ")) + ToStr((int)pLevel->GetLevelNumber());
+                level = LevelTitle(*pLevel);
             }
             if (auto p = Component<HealthComponent>(pClaw, HealthComponent::g_Name)) health = ToStr(std::max(0, (int)p->GetHealth()));
             if (auto p = Component<LifeComponent>(pClaw, LifeComponent::g_Name)) lives = ToStr(p->GetLives());
@@ -406,7 +456,7 @@ namespace SecondScreen
             // dark panel (the menu picture's plates would show through).
             int levelNo = 0;
             if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
-            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_BarEnd.clear(); g_HudLevel = levelNo; }
+            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_Bars.clear(); g_HudLevel = levelNo; }
 
             const bool big = g_Width >= 640;               // Wii U GamePad
             const double k = big ? 2.0 : 1.0;              // pictures
@@ -454,9 +504,9 @@ namespace SecondScreen
                 int w = imgW(img, k);
                 int x0 = cx - w / 2;
                 int dw = digitsW(set, digits, ks);
-                int barEnd = -1;
-                if (img) { auto it = g_BarEnd.find(img.get()); if (it != g_BarEnd.end()) barEnd = it->second; }
-                if (barEnd < 0)
+                Bar bar;
+                if (img) { auto it = g_Bars.find(img.get()); if (it != g_Bars.end()) bar = it->second; }
+                if (bar.x1 < 0)
                 {
                     // no bar: the number just left of the picture
                     x0 = cx - (w + gap + dw) / 2;
@@ -465,7 +515,11 @@ namespace SecondScreen
                     return;
                 }
                 Draw(img, x0, cy, k, alpha);
-                Digits(set, value, digits, x0 + (int)(barEnd * k) - dw - (big ? 6 : 3), cy, ks, alpha);
+                // on the parchment: centred on the bar's free part (up to the icon)
+                int top = cy - (int)(img->GetHeight() * k) / 2;
+                int bx0 = x0 + (int)(bar.x0 * k), bx1 = x0 + (int)(bar.x1 * k);
+                int by = top + (int)((bar.y0 + bar.y1) * k / 2);
+                Digits(set, value, digits, bx0 + std::max(0, (bx1 - bx0 - dw) / 2), by, ks, alpha);
             };
 
             // health on the left half, lives on the right half
