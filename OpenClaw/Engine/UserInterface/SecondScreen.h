@@ -9,6 +9,8 @@
 // Drawn with its own window and renderer; redrawn only when something on it
 // changes (the 3DS renders in software).
 
+#include <SDL2/SDL.h>
+
 namespace SecondScreen
 {
     // Creates the window when the platform has a second screen.
@@ -21,4 +23,9 @@ namespace SecondScreen
 
     // Once per frame, after the main screen has been drawn.
     void Update();
+
+    // 3DS: in the menus the bottom screen shows the menu too, and touching it
+    // works like the mouse on the menu (moves the sword cursor, picks the
+    // item). Takes the touch screen's finger events; true = used.
+    bool HandleTouch(const SDL_Event& evt);
 }

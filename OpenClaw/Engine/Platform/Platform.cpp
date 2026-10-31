@@ -208,6 +208,10 @@ namespace Platform
 #elif defined(__3DS__)
         // New 3DS / 2DS XL: 804 MHz and the L2 cache (no effect on old models).
         osSetSpeedupEnable(true);
+        // The touch screen is the bottom screen: SecondScreen turns touches
+        // into mouse clicks on the menu itself (SDL would map them onto the
+        // top screen's coordinates).
+        SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
 #if defined(__3DS__) || defined(__vita__)
         // An uncaught exception (e.g. out of memory) ends the program without

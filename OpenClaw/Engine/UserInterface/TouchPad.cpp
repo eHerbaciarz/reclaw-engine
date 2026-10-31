@@ -60,12 +60,15 @@ namespace
     SDL_Renderer* g_CircleRenderer = nullptr;
     int g_LastW = 0, g_LastH = 0;           // size of the game image (render target)
 
+    // On-screen controls only on Android (the 3DS touch screen works the menu,
+    // SecondScreen; a Steam Deck has its own buttons).
     bool HasTouch()
     {
 #if defined(__ANDROID__)
         return true;
 #else
-        return g_TouchSeen;
+        (void)g_TouchSeen;
+        return false;
 #endif
     }
 

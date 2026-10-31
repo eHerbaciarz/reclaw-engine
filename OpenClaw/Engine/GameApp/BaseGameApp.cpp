@@ -579,6 +579,10 @@ void BaseGameApp::StepLoop() {
     while (SDL_PollEvent(&event)) {
       // Controllers go through the same AppEvent path as the browser build so
       // HumanView/ActorController handle pads identically on every platform.
+      // 3DS: the touch screen works the menu shown on it.
+      if (SecondScreen::HandleTouch(event)) {
+        continue;
+      }
       // On-screen controls (touch screens) take the touches while playing.
       if (TouchPad::HandleEvent(event)) {
         continue;
