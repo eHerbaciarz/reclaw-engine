@@ -118,6 +118,10 @@ public:
     // Scenery and pickups: actors made only of components that may pause while
     // far from the screen (handhelds update only nearby ones; Actor.cpp).
     bool IsPausableWhenFar();
+    // An ordinary enemy (not a boss): on the 3DS it also waits while far from
+    // the screen, with its physics body switched off (BaseGameLogic).
+    bool IsEnemyPausableWhenFar();
+    bool m_bPausedFar = false;
 
     void AddComponent(StrongActorComponentPtr pComponent);
 
@@ -139,6 +143,7 @@ private:
 
     ActorComponentsMap _components;
     int8_t _pausableWhenFar = -1;   // -1: not checked yet
+    int8_t _enemyPausableWhenFar = -1;
 
     // Resource from which this actor was loaded
     std::string _resource;

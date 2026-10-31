@@ -183,6 +183,22 @@ bool Actor::IsPausableWhenFar()
     return _pausableWhenFar == 1;
 }
 
+bool Actor::IsEnemyPausableWhenFar()
+{
+    if (_enemyPausableWhenFar < 0)
+    {
+        bool enemy = false, boss = false;
+        for (auto &component : _components)
+        {
+            const char* name = component.second->VGetName();
+            if (strcmp(name, "EnemyAIComponent") == 0) enemy = true;
+            if (strstr(name, "Boss")) boss = true;
+        }
+        _enemyPausableWhenFar = (enemy && !boss) ? 1 : 0;
+    }
+    return _enemyPausableWhenFar == 1;
+}
+
 std::string Actor::ToXML()
 {
     TiXmlDocument outXml;

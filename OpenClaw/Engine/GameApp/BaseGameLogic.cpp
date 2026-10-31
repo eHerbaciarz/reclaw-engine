@@ -1388,6 +1388,28 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
                 }
             }
 #endif
+#if defined(__3DS__)
+            // 3DS: ordinary enemies far from the screen wait too, their bodies
+            // switched off (otherwise a walking one would keep sliding);
+            // back within reach they carry on where they were.
+            if (pCam && !Race::IsActive() && actorIter.second->IsEnemyPausableWhenFar())
+            {
+                Actor* pActor = actorIter.second.get();
+                bool far = false;
+                if (shared_ptr<PositionComponent> pPos = pActor->GetPositionComponent())
+                {
+                    const Point& p = pPos->GetPosition();
+                    far = p.x < nearRect.x || p.y < nearRect.y || p.x > nearRect.x + nearRect.w || p.y > nearRect.y + nearRect.h;
+                }
+                if (far != pActor->m_bPausedFar && m_pPhysics)
+                {
+                    if (far) m_pPhysics->VDeactivate(pActor->GetGUID());
+                    else m_pPhysics->VActivate(pActor->GetGUID());
+                    pActor->m_bPausedFar = far;
+                }
+                if (far) continue;
+            }
+#endif
             actorIter.second->Update(msAccumulation);
         }
         msAccumulation = 0;
