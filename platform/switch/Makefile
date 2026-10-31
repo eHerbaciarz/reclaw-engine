@@ -24,7 +24,7 @@ endif
 TARGET      := reclaw
 APP_TITLE   := ReClaw
 APP_AUTHOR  := OpenClaw, claw-web and ClawSwitch contributors
-APP_VERSION := 1.0.0
+APP_VERSION := 0.1
 ICON        := icon.jpg
 
 #---------------------------------------------------------------------------------

@@ -12,6 +12,6 @@ C="$REPO/platform/3ds/cia"
 "$BANNERTOOL" makebanner -i "$C/banner.png" -a "$C/banner.wav" -o "$B/banner.bnr" > /dev/null
 "$MAKEROM" -f cia -o "$B/reclaw.cia" -target t -exefslogo \
     -elf "$B/openclaw.elf" -rsf "$C/reclaw.rsf" \
-    -icon "$B/reclaw.smdh" -banner "$B/banner.bnr" \
+    -icon "$B/reclaw.smdh" -banner "$B/banner.bnr" -major 0 -minor 1 -micro 0 \
     -DAPP_ROMFS="$B/romfs"
 echo "wrote $B/reclaw.cia"

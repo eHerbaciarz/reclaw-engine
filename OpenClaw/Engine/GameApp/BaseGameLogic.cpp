@@ -453,14 +453,20 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
 #include "../Resource/ResourceMgr.h"
 
 #ifdef OPENCLAW_STARTUP_TRACE
+#if !defined(__PS4__)
 #include <malloc.h>
+#endif
 #if defined(__3DS__)
 #include <3ds.h>
 #endif
 // Level loading steps with the memory in use (3DS / Vita: is it running out?)
 static void TraceLevel(const char* step)
 {
+#if defined(__PS4__)
+    struct { int uordblks; } mi = { 0 };   // (no mallinfo in the PS4 libc)
+#else
     struct mallinfo mi = mallinfo();
+#endif
     char line[200];
 #if defined(__3DS__)
     snprintf(line, sizeof(line), "level: %s (heap used %d KB, free in app region %lu KB, linear free %lu KB)", step,

@@ -9,5 +9,5 @@
 	<value name="SOUND_FORMAT" type="integer">279</value>
 	<value name="TITLE" type="string">ReClaw</value>
 	<value name="TITLE_ID" type="string">RCLW00001</value>
-	<value name="VERSION" type="string">01.00</value>
+	<value name="VERSION" type="string">00.10</value>
 </sfo>

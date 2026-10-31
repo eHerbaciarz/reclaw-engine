@@ -22,7 +22,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../cmake/OpenClawGame.cmake")
 
 set(PS4_TITLE_ID "RCLW00002")
 set(PS4_TITLE    "ReClaw")
-set(PS4_VERSION  "01.00")
+set(PS4_VERSION  "00.10")
 
 # PacBrew's static SDL2, SDL2_image, SDL2_mixer and SDL2_ttf (pkg-config)
 openclaw_add_game(openclaw)

@@ -1,1 +1,32 @@
-IDI_ICON1 ICON "reclaw.ico"
+#include <winver.h>
+
+1 ICON "reclaw.ico"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     0,1,0,0
+PRODUCTVERSION  0,1,0,0
+FILEFLAGSMASK   0x3fL
+FILEFLAGS       0x0L
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041504b0"
+        BEGIN
+            VALUE "CompanyName",      "Herbaciarz"
+            VALUE "FileDescription",  "ReClaw - silnik do gry Claw (1997)"
+            VALUE "FileVersion",      "0.1"
+            VALUE "InternalName",     "ReClaw"
+            VALUE "OriginalFilename", "ReClaw.exe"
+            VALUE "ProductName",      "ReClaw"
+            VALUE "ProductVersion",   "0.1 alfa"
+            VALUE "LegalCopyright",   "Unofficial fan-made engine; not affiliated with Monolith or Warner Bros."
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x415, 1200
+    END
+END

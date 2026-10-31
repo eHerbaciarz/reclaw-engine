@@ -27,7 +27,7 @@ include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 set(VITA_APP_NAME "ReClaw")
 set(VITA_TITLEID  "RCLW00001")
-set(VITA_VERSION  "01.00")
+set(VITA_VERSION  "00.10")
 # Memory for the game (newlib heap) is set in Engine/Platform/Platform.cpp.
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12")   # extended RAM mode
 

@@ -251,7 +251,7 @@ namespace
                 float dx = x + 0.5f - n / 2.0f, dy = y + 0.5f - n / 2.0f;
                 float d = std::sqrt(dx * dx + dy * dy) / (n / 2.0f);   // 0 centre .. 1 edge
                 float fill = d < 1.0f ? 0.55f : 0.0f;
-                float ring = std::max(0.0f, 1.0f - std::fabs(d - 0.95f) / 0.05f);   // light rim
+                float ring = std::max(0.0f, 1.0f - (float)std::fabs(d - 0.95f) / 0.05f);   // light rim
                 float edge = std::min(1.0f, std::max(0.0f, (1.0f - d) * n / 2.0f)); // antialias
                 float a = std::max(fill, ring) * edge;
                 Uint8 c = (Uint8)(ring > fill ? 235 : 20);
