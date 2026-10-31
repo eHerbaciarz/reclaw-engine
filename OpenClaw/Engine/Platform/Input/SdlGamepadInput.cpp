@@ -21,7 +21,8 @@ namespace
     {
         SDL_GameController *pController = nullptr;
         int playerIndex = 0;
-        bool nintendoLayout = false;
+        bool nintendoLayout = false;   // Nintendo menus: the right face button confirms
+        bool labelLayout = false;      // SDL's A/B/X/Y are the printed labels (not positions)
         float leftX = 0.0f, leftY = 0.0f;
         bool leftTriggerDown = false, rightTriggerDown = false;
     };
@@ -61,6 +62,24 @@ namespace
 #endif
     }
 
+    // Does SDL name the face buttons by their labels on this controller?
+    // 3DS / Wii U: yes (their SDL mappings follow the labels). Switch:
+    // devkitPro's SDL 2.28 maps the console's pad by position like an Xbox
+    // pad (a = bottom "B", b = right "A", x = left "Y", y = top "X").
+    bool UsesButtonLabels(SDL_GameController *pController, bool nintendo)
+    {
+#if defined(__SWITCH__)
+        (void)pController; (void)nintendo;
+        return false;
+#elif defined(__3DS__) || defined(__WIIU__)
+        (void)pController; (void)nintendo;
+        return true;
+#else
+        (void)pController;
+        return nintendo;
+#endif
+    }
+
     void OpenDevice(int deviceIndex)
     {
         if (!SDL_IsGameController(deviceIndex))
@@ -87,6 +106,7 @@ namespace
         entry.pController = pController;
         entry.playerIndex = (int)g_Controllers.size();
         entry.nintendoLayout = IsNintendoController(pController);
+        entry.labelLayout = UsesButtonLabels(pController, entry.nintendoLayout);
         g_Controllers[id] = entry;
         if (g_LastUsed < 0)
         {
@@ -114,10 +134,10 @@ namespace
         {
             // Face buttons. SDL's A/B/X/Y follow the Xbox layout by position on
             // non-Nintendo pads, and the printed labels on Nintendo pads.
-            case SDL_CONTROLLER_BUTTON_A: out = c.nintendoLayout ? GamepadButton::B : GamepadButton::A; break;
-            case SDL_CONTROLLER_BUTTON_B: out = c.nintendoLayout ? GamepadButton::A : GamepadButton::B; break;
-            case SDL_CONTROLLER_BUTTON_X: out = c.nintendoLayout ? GamepadButton::Y : GamepadButton::X; break;
-            case SDL_CONTROLLER_BUTTON_Y: out = c.nintendoLayout ? GamepadButton::X : GamepadButton::Y; break;
+            case SDL_CONTROLLER_BUTTON_A: out = c.labelLayout ? GamepadButton::B : GamepadButton::A; break;
+            case SDL_CONTROLLER_BUTTON_B: out = c.labelLayout ? GamepadButton::A : GamepadButton::B; break;
+            case SDL_CONTROLLER_BUTTON_X: out = c.labelLayout ? GamepadButton::Y : GamepadButton::X; break;
+            case SDL_CONTROLLER_BUTTON_Y: out = c.labelLayout ? GamepadButton::X : GamepadButton::Y; break;
 
             case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:  out = GamepadButton::LeftBumper; break;
             case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: out = GamepadButton::RightBumper; break;

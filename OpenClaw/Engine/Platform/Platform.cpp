@@ -205,6 +205,10 @@ namespace Platform
         // The rear touch pad is touched by accident while holding the Vita:
         // SDL ignores it (read before SDL_Init).
         SDL_setenv("VITA_DISABLE_TOUCH_BACK", "1", 1);
+#elif defined(__SWITCH__)
+        // The touch screen works the menus as a mouse; BaseGameApp turns the
+        // touches into mouse events itself (SDL's own ones were unreliable).
+        SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #elif defined(__3DS__)
         // New 3DS / 2DS XL: 804 MHz and the L2 cache (no effect on old models).
         osSetSpeedupEnable(true);

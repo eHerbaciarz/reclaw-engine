@@ -583,6 +583,49 @@ void BaseGameApp::StepLoop() {
       if (SecondScreen::HandleTouch(event)) {
         continue;
       }
+#if defined(__SWITCH__)
+      // Switch: the first finger on the touch screen is the mouse (the sword
+      // cursor follows it, a tap clicks), on the window's own pixels.
+      if (event.type == SDL_FINGERDOWN || event.type == SDL_FINGERUP || event.type == SDL_FINGERMOTION) {
+        static SDL_FingerID s_Finger = -1;
+        static bool s_Logged = false;
+        if (!s_Logged) { s_Logged = true; LOG("Touch screen: first touch"); }
+        if (event.type == SDL_FINGERDOWN && s_Finger == -1) s_Finger = event.tfinger.fingerId;
+        if (event.tfinger.fingerId == s_Finger && m_pWindow) {
+          int ww = 0, wh = 0;
+          SDL_GetWindowSize(m_pWindow, &ww, &wh);
+          int x = (int)(event.tfinger.x * ww), y = (int)(event.tfinger.y * wh);
+          SDL_WarpMouseInWindow(m_pWindow, x, y);
+          SDL_Event m;
+          SDL_zero(m);
+          if (event.type == SDL_FINGERMOTION) {
+            m.type = SDL_MOUSEMOTION;
+            m.motion.windowID = SDL_GetWindowID(m_pWindow);
+            m.motion.x = x; m.motion.y = y;
+            m.motion.state = SDL_BUTTON_LMASK;
+          } else {
+            m.type = event.type == SDL_FINGERDOWN ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+            m.button.windowID = SDL_GetWindowID(m_pWindow);
+            m.button.button = SDL_BUTTON_LEFT;
+            m.button.state = event.type == SDL_FINGERDOWN ? SDL_PRESSED : SDL_RELEASED;
+            m.button.clicks = 1;
+            m.button.x = x; m.button.y = y;
+            if (event.type == SDL_FINGERUP) s_Finger = -1;
+          }
+          if (event.type == SDL_FINGERDOWN) {
+            // the cursor moves there first, so the click lands on that item
+            SDL_Event mv;
+            SDL_zero(mv);
+            mv.type = SDL_MOUSEMOTION;
+            mv.motion.windowID = SDL_GetWindowID(m_pWindow);
+            mv.motion.x = x; mv.motion.y = y;
+            OnEvent(mv);
+          }
+          OnEvent(m);
+        }
+        continue;
+      }
+#endif
       // On-screen controls (touch screens) take the touches while playing.
       if (TouchPad::HandleEvent(event)) {
         continue;
