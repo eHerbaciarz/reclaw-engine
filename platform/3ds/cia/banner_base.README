@@ -1,0 +1,5 @@
+banner_base.cgfx is the CGFX header of bannertool's default banner model
+(BANNER_CGFX_HEADER in bannertool's source/3ds/data.h, MIT licence,
+Copyright (C) 2015-2017 Steveice10): a flat plane with a 256x128 RGBA4444
+texture and a one-bone skeleton ("banner"). scripts/make_3ds_banner.py adds
+ReClaw's own skeletal animation (the plane turning around) and the texture.
