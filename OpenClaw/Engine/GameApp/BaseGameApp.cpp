@@ -1349,9 +1349,20 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   }
 #endif
 
+#if defined(__3DS__)
+  // 3DS: the game draws into an ARGB8888 frame (SDL's fast software blits
+  // need it; the screen itself is RGBA8888), converted once per frame.
+  if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
+    gameOptions.renderWidth = gameOptions.windowWidth;
+    gameOptions.renderHeight = gameOptions.windowHeight;
+  }
+  const Uint32 renderTargetFormat = SDL_PIXELFORMAT_ARGB8888;
+#else
+  const Uint32 renderTargetFormat = SDL_PIXELFORMAT_RGBA8888;
+#endif
 #ifndef __EMSCRIPTEN__
   if (gameOptions.renderWidth > 0 && gameOptions.renderHeight > 0) {
-    m_pRenderTarget = SDL_CreateTexture(m_pRenderer, SDL_PIXELFORMAT_RGBA8888,
+    m_pRenderTarget = SDL_CreateTexture(m_pRenderer, renderTargetFormat,
                                         SDL_TEXTUREACCESS_TARGET,
                                         gameOptions.renderWidth, gameOptions.renderHeight);
 #if SDL_VERSION_ATLEAST(2, 0, 12)

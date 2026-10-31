@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <assert.h>
 #include <SDL2/SDL_image.h>
 #include "Image.h"
@@ -84,6 +85,27 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
     uint32_t width = pid->width;
     uint32_t height = pid->height;
 
+#if defined(__3DS__)
+    // 3DS (software rendering): ARGB8888 like the frame the game draws into,
+    // so SDL blits with its fast paths; images without transparent pixels
+    // (most tiles) are copied without blending.
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_ARGB8888);
+    assert(surface != NULL);
+    bool opaque = true;
+    {
+        uint32_t colorsCount = std::min<uint32_t>(pid->colorsCount, width * height);
+        for (uint32_t i = 0; i < colorsCount; i++)
+        {
+            WAP_ColorRGBA c = pid->colors[i];
+            if (c.a != 255) opaque = false;
+            Uint32* row = (Uint32*)((Uint8*)surface->pixels + (i / width) * surface->pitch);
+            row[i % width] = ((Uint32)c.a << 24) | ((Uint32)c.r << 16) | ((Uint32)c.g << 8) | c.b;
+        }
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    assert(texture != NULL);
+    if (texture && opaque) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
+#else
     SDL_Surface* surface = Util::CreateRGBSurface(0, width, height, 32);
     assert(surface != NULL);
 
@@ -100,6 +122,7 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
 
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     assert(texture != NULL);
+#endif
 
     SDL_FreeSurface(surface);
 
