@@ -450,6 +450,29 @@ void RenderLoadingScreen(shared_ptr<Image> pBackground, SDL_Rect& renderRect, Po
     SDL_RenderSetScale(pRenderer, savedScaleX, savedScaleY);
 }
 
+#ifdef OPENCLAW_STARTUP_TRACE
+#include <malloc.h>
+#if defined(__3DS__)
+#include <3ds.h>
+#endif
+// Level loading steps with the memory in use (3DS / Vita: is it running out?)
+static void TraceLevel(const char* step)
+{
+    struct mallinfo mi = mallinfo();
+    char line[200];
+#if defined(__3DS__)
+    snprintf(line, sizeof(line), "level: %s (heap used %d KB, free in app region %lu KB, linear free %lu KB)", step,
+             (int)(mi.uordblks / 1024), (unsigned long)(osGetMemRegionFree(MEMREGION_APPLICATION) / 1024),
+             (unsigned long)(linearSpaceFree() / 1024));
+#else
+    snprintf(line, sizeof(line), "level: %s (heap used %d KB)", step, (int)(mi.uordblks / 1024));
+#endif
+    STARTUP_TRACE(line);
+}
+#else
+#define TraceLevel(step) do {} while (0)
+#endif
+
 bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 {
     // Save states belong to one level session.
@@ -500,7 +523,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             }
         }
     }
-    STARTUP_TRACE("level: preload done");
+    TraceLevel("preload done");
 
     // ============== LEVEL LOADING ==============
 
@@ -532,8 +555,10 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         pWwd = WwdResourceLoader::LoadAndReturnWwd(xmlLevelResource);
     }
     assert(pWwd != NULL);
+    TraceLevel(pWwd ? "WWD loaded" : "WWD FAILED");
 
     TiXmlElement* pXmlLevelRoot = WwdToXml(pWwd, m_pCurrentLevel->GetLevelNumber());
+    TraceLevel("WWD converted");
     if (pXmlLevelRoot == NULL)
     {
         LOG_ERROR("Could not load level resource file: " + std::string(xmlLevelResource));
@@ -616,6 +641,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     }
 
     loadingProgress = 10.0f;
+    TraceLevel("tiles described");
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
 
     // Get number of actors to estimate loading progress
@@ -639,6 +665,17 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         //LOG("Creating actor: " + std::string(pActorElem->Attribute("Type")));
         //if (std::string(pActorElem->Attribute("Type")) != "Plane") break;
         StrongActorPtr pActor = VCreateActor(pActorElem, NULL);
+#ifdef OPENCLAW_STARTUP_TRACE
+        {
+            static int s_created = 0;
+            if (++s_created % 250 == 0)
+            {
+                char step[64];
+                snprintf(step, sizeof(step), "%d actors", s_created);
+                TraceLevel(step);
+            }
+        }
+#endif
         if (pActor)
         {
             shared_ptr<EventData_New_Actor> pNewActorEvent(new EventData_New_Actor(pActor->GetGUID()));
@@ -684,6 +721,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     assert(pCheckpointSave != NULL);
 
     loadingProgress = 95.0f;
+    TraceLevel("actors created");
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
 
     // Load claw stats: Score, Health, Lives, Ammo: Bullets, Magic, Dynamite
@@ -793,7 +831,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         m_pCurrentLevel->m_TotalPickupsMap[PickupType_Treasure_Rings_Green];
     LOG("Rings count: " + ToStr(Rings));*/
 
+    TraceLevel("loaded, starting the world");
     pEventMgr->VTriggerEvent(IEventDataPtr(new EventData_World_Finished_Loading()));
+    TraceLevel("world started");
 
     SAFE_DELETE(pXmlLevelRoot);
 
