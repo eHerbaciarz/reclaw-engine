@@ -5,6 +5,9 @@
 #include <SDL2/SDL.h>
 
 #include <algorithm>
+#include <exception>
+#include <new>
+#include <string>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -204,6 +207,29 @@ namespace Platform
 #elif defined(__3DS__)
         // New 3DS / 2DS XL: 804 MHz and the L2 cache (no effect on old models).
         osSetSpeedupEnable(true);
+#endif
+#if defined(__3DS__) || defined(__vita__)
+        // An uncaught exception (e.g. out of memory) ends the program without
+        // a word, and on the 3DS the sound thread then crashes on the freed
+        // memory. Write what happened to the log and stop the sound first.
+        std::set_terminate([]()
+        {
+            const char* what = "unknown";
+            std::string text;
+            try
+            {
+                std::exception_ptr e = std::current_exception();
+                if (e) std::rethrow_exception(e);
+                what = "no exception (std::terminate called)";
+            }
+            catch (const std::bad_alloc&) { what = "out of memory (std::bad_alloc)"; }
+            catch (const std::exception& ex) { text = ex.what(); what = text.c_str(); }
+            catch (...) { }
+            SDL_Log("FATAL: uncaught exception: %s", what);
+            if (g_pLogFile) fflush(g_pLogFile);
+            SDL_QuitSubSystem(SDL_INIT_AUDIO);
+            std::abort();
+        });
 #endif
         // Folder of the binary (desktop builds look for their files there).
         if (char* base = SDL_GetBasePath())
