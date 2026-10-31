@@ -54,4 +54,5 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
   `boss_survey.txt` jest (28.10); przydadzą się filmy z walk.
 - Poziom 14: Omar, kameleony, tygrysy, lawa (dane z `level_survey.txt`). Poziom 10: checkpointy poprawione 28.10.
 - Wersja przeglądarkowa (Emscripten) – zbudować i sprawdzić przed PR-ami do claw-web.
-- Ikony portów: postać z ikony zastąpić własną grafiką (znak towarowy).
+- Ikony portów: gotowe (31.10) – ikona Herbaciarza (pazur na mapie), `platform/icon/reclaw-icon.png`, `scripts/make_platform_icons.py`.
+- 3DS: obracająca się mapa jako baner 3D w menu HOME (wymaga modelu CGFX).
