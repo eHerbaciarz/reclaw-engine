@@ -56,6 +56,12 @@ AccessControlInfo:
   OtherUserSaveDataId2          : 0x00000
   OtherUserSaveDataId3          : 0x00000
   ExtSaveDataId                 : 0x00000
+  # DSP memory: ndsp (sound) writes to it; without the mapping the first
+  # write after ndspInit crashed (data abort at 0x1FF5xxxx)
+  IORegisterMapping:
+   - 1ff00000-1ff7ffff
+  MemoryMapping:
+   - 1f000000-1f5fffff:r
   SystemCallAccess:
     ControlMemory: 1
     QueryMemory: 2

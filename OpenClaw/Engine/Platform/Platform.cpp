@@ -311,6 +311,50 @@ namespace Platform
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
             SDL_Log("ReClaw " RECLAW_VERSION " " RECLAW_STAGE_EN " for %s - log started", Name());
+#if defined(__3DS__)
+            // Diagnostics for the sound start (crash in ndspInit): the DSP
+            // firmware file, then ndsp alone, before SDL touches anything.
+            // Skipped after a crash (audio_start.flag, see SDL2MixerSystem).
+            {
+                FILE* fw = fopen("sdmc:/3ds/dspfirm.cdc", "rb");
+                if (fw)
+                {
+                    unsigned char hdr[0x110] = {};
+                    size_t got = fread(hdr, 1, sizeof(hdr), fw);
+                    fseek(fw, 0, SEEK_END);
+                    long size = ftell(fw);
+                    fclose(fw);
+                    SDL_Log("dspfirm.cdc: %ld bytes, magic '%.4s' (should be DSP1), header size %u",
+                            size, got >= 0x104 ? (const char*)hdr + 0x100 : "?",
+                            got >= 0x108 ? (unsigned)(hdr[0x104] | hdr[0x105] << 8 | hdr[0x106] << 16 | hdr[0x107] << 24) : 0u);
+                }
+                else
+                {
+                    SDL_Log("dspfirm.cdc: not found");
+                }
+                FILE* flag = fopen((g_DataDir + "audio_start.flag").c_str(), "rb");
+                if (flag)
+                {
+                    fclose(flag);
+                    SDL_Log("ndsp probe skipped (the sound start crashed last time)");
+                }
+                else
+                {
+                    if (FILE* f = fopen((g_DataDir + "audio_start.flag").c_str(), "wb")) { fputs("ndsp probe\n", f); fclose(f); }
+                    SDL_Log("ndsp probe: ndspInit");
+                    Result rc = ndspInit();
+                    SDL_Log("ndsp probe: ndspInit -> 0x%08lX", (unsigned long)rc);
+                    if (R_SUCCEEDED(rc))
+                    {
+                        svcSleepThread(200 * 1000 * 1000LL);   // let the DSP thread run a moment
+                        SDL_Log("ndsp probe: ndspExit");
+                        ndspExit();
+                    }
+                    SDL_Log("ndsp probe: done");
+                    remove((g_DataDir + "audio_start.flag").c_str());
+                }
+            }
+#endif
         }
         else
         {
