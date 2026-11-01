@@ -73,13 +73,29 @@ namespace BlockingInput
             static unsigned s_prev[MAX_PORT_NUM] = {};
             if (!s_init) { ioPadInit(7); s_init = true; }
             padInfo info;
-            if (ioPadGetInfo(&info) == 0)
+            static Uint32 s_lastDiag = 0;
+            const bool diag = SDL_GetTicks() - s_lastDiag > 1000;
+            if (diag) s_lastDiag = SDL_GetTicks();
+            int infoRet = ioPadGetInfo(&info);
+            if (diag)
+            {
+                SDL_Log("pad diag: getinfo %d, max %u, connected %u, info 0x%x, status %u %u %u %u",
+                        infoRet, (unsigned)info.max, (unsigned)info.connected, (unsigned)info.info,
+                        (unsigned)info.status[0], (unsigned)info.status[1], (unsigned)info.status[2], (unsigned)info.status[3]);
+            }
+            if (infoRet == 0)
             {
                 for (int i = 0; i < MAX_PORT_NUM; ++i)
                 {
                     if (!info.status[i]) continue;
                     padData d;
-                    if (ioPadGetData(i, &d) != 0 || d.len == 0) continue;
+                    int ret = ioPadGetData(i, &d);
+                    if (diag || (ret == 0 && d.len > 0))
+                    {
+                        SDL_Log("pad diag: port %d: getdata %d, len %d, buttons %04x %04x", i, ret, (int)d.len,
+                                (unsigned)d.button[2], (unsigned)d.button[3]);
+                    }
+                    if (ret != 0 || d.len == 0) continue;
                     unsigned now = (d.BTN_CROSS ? 1u : 0u) | (d.BTN_CIRCLE ? 2u : 0u) | (d.BTN_START ? 4u : 0u) |
                                    (d.BTN_UP ? 8u : 0u) | (d.BTN_DOWN ? 16u : 0u) | (d.BTN_SELECT ? 32u : 0u);
                     unsigned pressed = now & ~s_prev[i];
