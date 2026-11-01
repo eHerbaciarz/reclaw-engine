@@ -33,6 +33,9 @@ openclaw_link_sdl(openclaw NO_GFX)
 target_link_libraries(openclaw PRIVATE
     rsx gcm_sys io audio net netctl sysutil sysmodule rt lv2 m)
 set_target_properties(openclaw PROPERTIES OUTPUT_NAME "reclaw" SUFFIX ".elf")
+# Our copy of PSL1GHT's linker script (gcc's -T lv2.ld%s finds it first):
+# libstdc++'s stream set-up must run after PSL1GHT's own (ld/lv2.ld)
+target_link_options(openclaw PRIVATE "-B${CMAKE_CURRENT_LIST_DIR}/ld/")
 
 set(PKGDIR "${CMAKE_BINARY_DIR}/pkg")
 openclaw_stage_bundle(openclaw_bundle "${PKGDIR}/USRDIR" "${CMAKE_CURRENT_LIST_DIR}/config.xml")
