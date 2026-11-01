@@ -32,6 +32,23 @@ extern "C" { u32 __ctru_linear_heap_size = 24 * 1024 * 1024; }
 #include <sys/process.h>
 // Main thread priority and a 1 MB stack (the default is small).
 SYS_PROCESS_PARAM(1001, 0x100000);
+
+// Start-up breadcrumbs in /dev_hdd0/tmp/reclaw_boot.txt (written before the
+// game's own folders and log exist; a hang shows the last step reached).
+extern "C" void ReclawBootMark(const char* step)
+{
+    static bool first = true;
+    if (FILE* f = fopen("/dev_hdd0/tmp/reclaw_boot.txt", first ? "w" : "a"))
+    {
+        fprintf(f, "%s\n", step);
+        fclose(f);
+    }
+    first = false;
+}
+__attribute__((constructor(101))) static void ReclawBootFirst() { ReclawBootMark("1 static init begins"); }
+#define BOOT_MARK(s) ReclawBootMark(s)
+#else
+#define BOOT_MARK(s) ((void)0)
 #endif
 
 #if !defined(_WIN32)
@@ -195,6 +212,7 @@ namespace Platform
 
     void Init(int argc, char** argv)
     {
+        BOOT_MARK("4 Platform::Init");
 #if defined(__vita__)
         // Applications start at 333 MHz; the game needs the full speed of the
         // CPU (444 MHz) and the faster bus and GPU clocks, like other ports.
@@ -243,6 +261,7 @@ namespace Platform
             std::abort();
         });
 #endif
+        BOOT_MARK("5 SDL_GetBasePath");
         // Folder of the binary (desktop builds look for their files there).
         if (char* base = SDL_GetBasePath())
         {
@@ -342,7 +361,9 @@ namespace Platform
                 "lang/pl/subtitles/movies/", "lang/pl/subtitles/dialogue/", "lang/pl/menu/",
                 "lang/en/subtitles/movies/", "lang/en/subtitles/dialogue/", "lang/en/menu/",
             };
+            BOOT_MARK("6 creating the folders");
             for (const char* d : kDirs) MakeDirs(g_RootDir + d);
+            BOOT_MARK("7 folders created");
         }
 #endif
 
@@ -350,6 +371,7 @@ namespace Platform
         {
             MakeDirs(g_DataDir);
             g_pLogFile = fopen((g_DataDir + "reclaw.log").c_str(), "w");
+            BOOT_MARK(g_pLogFile ? "8 log open (the rest is in save/reclaw.log)" : "8 log could NOT be opened");
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
             SDL_Log("ReClaw " RECLAW_VERSION " " RECLAW_STAGE_EN " for %s - log started", Name());

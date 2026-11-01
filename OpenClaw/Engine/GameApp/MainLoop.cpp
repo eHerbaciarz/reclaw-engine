@@ -155,8 +155,15 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
 }
 #endif
 
+#if defined(__PS3__) || defined(__PSL1GHT__)
+extern "C" void ReclawBootMark(const char* step);
+#endif
+
 int RunGameEngine(int argc, char** argv)
 {
+#if defined(__PS3__) || defined(__PSL1GHT__)
+    ReclawBootMark("3 RunGameEngine");
+#endif
     if (SDL_SetThreadPriority(SDL_THREAD_PRIORITY_HIGH) != 0)
     {
         LOG_WARNING("Failed to set high priority class to this process");

@@ -13,8 +13,15 @@ int main(int argc, char* argv[]);
 // Android: SDL's Java activity loads libmain.so and calls SDL_main, which
 // <SDL2/SDL_main.h> (included through SDL.h) makes of the main() below.
 
+#if defined(__PS3__) || defined(__PSL1GHT__)
+extern "C" void ReclawBootMark(const char* step);
+#endif
+
 int main(int argc, char* argv[])
 {
+#if defined(__PS3__) || defined(__PSL1GHT__)
+    ReclawBootMark("2 main");
+#endif
 #ifdef _CRTDBG_MAP_ALLOC
     _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
     _CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDOUT );
