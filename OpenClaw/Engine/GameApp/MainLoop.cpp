@@ -110,9 +110,20 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
     TTF_Font* pFont = TTF_OpenFont(Platform::BundlePath("clacon.ttf").c_str(), fontSize);
 
     BlockingInput::Reset();
+    Uint32 frames = 0, lastLog = SDL_GetTicks();
     while (BlockingInput::AppAlive())
     {
         int in = BlockingInput::Poll();
+        ++frames;
+        if (SDL_GetTicks() - lastLog > 3000)
+        {
+            lastLog = SDL_GetTicks();
+            SDL_Log("error screen: %u frames shown, %d controller(s)", (unsigned)frames, SDL_NumJoysticks());
+        }
+        if (in)
+        {
+            SDL_Log("error screen: input %d", in);
+        }
         if (in & (BlockingInput::Accept | BlockingInput::Back | BlockingInput::Start | BlockingInput::Quit))
         {
             break;

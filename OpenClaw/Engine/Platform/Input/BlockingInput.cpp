@@ -10,6 +10,9 @@
 #ifdef __3DS__
 #include <3ds.h>
 #endif
+#ifdef __PSL1GHT__
+#include <io/pad.h>
+#endif
 
 namespace
 {
@@ -61,6 +64,34 @@ namespace BlockingInput
         // everywhere, whatever SDL reports for the Nintendo labels).
         if (down & HidNpadButton_StickLUp) result |= Up;
         if (down & HidNpadButton_StickLDown) result |= Down;
+#endif
+#ifdef __PSL1GHT__
+        // PS3: the pads read directly too (the "CLAW.REZ not found" screen
+        // could not be left with SDL's controller events alone).
+        {
+            static bool s_init = false;
+            static unsigned s_prev[MAX_PORT_NUM] = {};
+            if (!s_init) { ioPadInit(7); s_init = true; }
+            padInfo info;
+            if (ioPadGetInfo(&info) == 0)
+            {
+                for (int i = 0; i < MAX_PORT_NUM; ++i)
+                {
+                    if (!info.status[i]) continue;
+                    padData d;
+                    if (ioPadGetData(i, &d) != 0 || d.len == 0) continue;
+                    unsigned now = (d.BTN_CROSS ? 1u : 0u) | (d.BTN_CIRCLE ? 2u : 0u) | (d.BTN_START ? 4u : 0u) |
+                                   (d.BTN_UP ? 8u : 0u) | (d.BTN_DOWN ? 16u : 0u) | (d.BTN_SELECT ? 32u : 0u);
+                    unsigned pressed = now & ~s_prev[i];
+                    s_prev[i] = now;
+                    if (pressed & 1u) result |= Accept;
+                    if (pressed & (2u | 32u)) result |= Back;
+                    if (pressed & 4u) result |= Start;
+                    if (pressed & 8u) result |= Up;
+                    if (pressed & 16u) result |= Down;
+                }
+            }
+        }
 #endif
         EnsureControllers();
         SDL_PumpEvents();

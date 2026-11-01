@@ -1426,10 +1426,13 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 #endif
 
 #if defined(__PSL1GHT__) || defined(__PS3__)
-  // PS3: the game draws 854x480 in software (platform/ps3/compat/ps3_sdl_screen.cpp)
+  // PS3: the game draws in software at the size of its frame (960x540 on
+  // a 1080p TV, 854x480 otherwise; platform/ps3/compat/ps3_sdl_screen.cpp)
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
-    gameOptions.renderWidth = 854;
-    gameOptions.renderHeight = 480;
+    int outW = 854, outH = 480;
+    SDL_GetRendererOutputSize(m_pRenderer, &outW, &outH);
+    gameOptions.renderWidth = outW;
+    gameOptions.renderHeight = outH;
   }
 #endif
 #if defined(__3DS__)
