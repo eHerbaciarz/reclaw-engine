@@ -362,6 +362,8 @@
         </MenuItem>
         <MenuItem>
             <Name>LOAD_GAME_BUTTON</Name>
+            <!-- Polish: all three states in the game's letters (the disabled picture is English) -->
+            <GameFontText>WCZYTAJ GRĘ</GameFontText>
             <Type>Button</Type>
             <State>Disabled</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/SINGLEPLAYER/003_LOADGAME.PCX</InactiveImage>

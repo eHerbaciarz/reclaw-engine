@@ -47,7 +47,8 @@ extern "C" void ReclawBootMark(const char* step)
 }
 __attribute__((constructor(101))) static void ReclawBootFirst() { ReclawBootMark("1 static init begins"); }
 #define BOOT_MARK(s) ReclawBootMark(s)
-#else
+#endif
+#ifndef BOOT_MARK
 #define BOOT_MARK(s) ((void)0)
 #endif
 
