@@ -107,16 +107,19 @@ namespace
             if (x - start > bestLen) { bestLen = x - start; best.x0 = start; best.x1 = x; }
         }
         if (bestLen < pid->width / 4) return Bar();
-        // the rows that belong to that bar (runs at least half as long)
+        // the rows that belong to that bar (runs nearly as long, starting
+        // about where the longest one does)
         best.y0 = pid->height; best.y1 = -1;
         for (int y = 0; y < pid->height; ++y)
         {
-            if (rowEnd[y] - rowStart[y] >= bestLen / 2)
+            if (rowEnd[y] - rowStart[y] >= bestLen * 85 / 100 && std::abs(rowStart[y] - best.x0) <= 3)
             {
                 best.y0 = std::min(best.y0, y);
                 best.y1 = std::max(best.y1, y + 1);
             }
         }
+        LOG("HUD bar " + ToStr(pid->width) + "x" + ToStr(pid->height) + ": x " + ToStr(best.x0) + "-" + ToStr(best.x1) +
+            ", y " + ToStr(best.y0) + "-" + ToStr(best.y1));
         return best;
     }
 

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Minimap.h"
 
 #include <algorithm>
@@ -135,8 +136,12 @@ namespace Minimap
                 case CollisionType_Death:  SDL_SetRenderDrawColor(r, 230, 60, 40, 170); break;
                 default: continue;
             }
-            SDL_Rect d = { (int)(ox + g.x / kScale), (int)(oy + g.y / kScale),
-                           std::max(1, (int)(g.w / kScale + 0.5)), std::max(1, (int)(g.h / kScale + 0.5)) };
+            // Edges rounded the same way for every rectangle, so tiles next to
+            // each other neither overlap (a darker line where both are drawn)
+            // nor leave a gap.
+            int x0 = (int)std::floor(ox + g.x / kScale), x1 = (int)std::floor(ox + (g.x + g.w) / kScale);
+            int y0 = (int)std::floor(oy + g.y / kScale), y1 = (int)std::floor(oy + (g.y + g.h) / kScale);
+            SDL_Rect d = { x0, y0, std::max(1, x1 - x0), std::max(1, y1 - y0) };
             // Platforms you can jump through are thin lines in the original
             // too; keep them at least one pixel high.
             SDL_RenderFillRect(r, &d);
