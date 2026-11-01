@@ -113,6 +113,33 @@ struct ZipFile::TZipDirFileHeader
 
 #pragma pack()
 
+// ZIP headers are little-endian; big-endian consoles (PS3, Wii U) turn
+// them around after reading.
+static inline bool BigEndianHost()
+{
+    const uint16 one = 1;
+    return *(const unsigned char*)&one == 0;
+}
+static inline void Le(uint16& v) { if (BigEndianHost()) v = (uint16)((v >> 8) | (v << 8)); }
+static inline void Le(uint32& v) { if (BigEndianHost()) v = __builtin_bswap32(v); }
+
+static void FixEndian(ZipFile::TZipDirHeader& h)
+{
+    Le(h.sig); Le(h.nDisk); Le(h.nStartDisk); Le(h.nDirEntries); Le(h.totalDirEntries);
+    Le(h.dirSize); Le(h.dirOffset); Le(h.cmntLen);
+}
+static void FixEndian(ZipFile::TZipDirFileHeader& h)
+{
+    Le(h.sig); Le(h.verMade); Le(h.verNeeded); Le(h.flag); Le(h.compression); Le(h.modTime); Le(h.modDate);
+    Le(h.crc32); Le(h.cSize); Le(h.ucSize); Le(h.fnameLen); Le(h.xtraLen); Le(h.cmntLen); Le(h.diskStart);
+    Le(h.intAttr); Le(h.extAttr); Le(h.hdrOffset);
+}
+static void FixEndian(ZipFile::TZipLocalHeader& h)
+{
+    Le(h.sig); Le(h.version); Le(h.flag); Le(h.compression); Le(h.modTime); Le(h.modDate);
+    Le(h.crc32); Le(h.cSize); Le(h.ucSize); Le(h.fnameLen); Le(h.xtraLen);
+}
+
 static bool IsZipDir(const std::string& node)
 {
     return node.back() == '/';
@@ -151,6 +178,7 @@ bool ZipFile::Init(const std::string &resFileName)
     memset(&dh, 0, sizeof(dh));
     if (fread(&dh, sizeof(dh), 1, m_pFile) != 1)
         return false;
+    FixEndian(dh);
 
     // Check
     if (dh.sig != TZipDirHeader::SIGNATURE)
@@ -179,6 +207,7 @@ bool ZipFile::Init(const std::string &resFileName)
     for (int i = 0; i < dh.nDirEntries && success; i++)
     {
         TZipDirFileHeader &fh = *(TZipDirFileHeader*)pfh;
+        FixEndian(fh);   // in place: m_papDir keeps the host's byte order
 
         // Store the address of nth file for quicker access.
         m_papDir[i] = &fh;
@@ -339,6 +368,7 @@ bool ZipFile::ReadFile(int i, void *pBuf)
     memset(&h, 0, sizeof(h));
     if (fread(&h, sizeof(h), 1, m_pFile) != 1)
         return false;
+    FixEndian(h);
     if (h.sig != TZipLocalHeader::SIGNATURE)
         return false;
 
@@ -415,6 +445,7 @@ bool ZipFile::ReadLargeFile(int i, void *pBuf, void(*progressCallback)(int, bool
     memset(&h, 0, sizeof(h));
     if (fread(&h, sizeof(h), 1, m_pFile) != 1)
         return false;
+    FixEndian(h);
     if (h.sig != TZipLocalHeader::SIGNATURE)
         return false;
 

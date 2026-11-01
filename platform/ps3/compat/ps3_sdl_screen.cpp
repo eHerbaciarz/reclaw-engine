@@ -91,3 +91,9 @@ extern "C" void ReclawPS3_RenderPresent(SDL_Renderer* renderer)
     SDL_RenderCopy(g_Screen, g_Tv, &all, &all);
     SDL_RenderPresent(g_Screen);
 }
+
+extern "C" void ReclawPS3_GameSize(int* w, int* h)
+{
+    if (w) *w = g_W;
+    if (h) *h = g_H;
+}

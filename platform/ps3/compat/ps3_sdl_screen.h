@@ -12,6 +12,8 @@ struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Renderer* ReclawPS3_CreateRenderer(struct SDL_Window* window, int index, unsigned int flags);
 void ReclawPS3_RenderPresent(struct SDL_Renderer* renderer);
+/* The size the game draws at (960x540 on a 1080p TV, 854x480 otherwise). */
+void ReclawPS3_GameSize(int* w, int* h);
 #ifdef __cplusplus
 }
 #endif

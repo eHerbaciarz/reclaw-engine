@@ -1430,7 +1430,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   // a 1080p TV, 854x480 otherwise; platform/ps3/compat/ps3_sdl_screen.cpp)
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
     int outW = 854, outH = 480;
-    SDL_GetRendererOutputSize(m_pRenderer, &outW, &outH);
+    ReclawPS3_GameSize(&outW, &outH);
     gameOptions.renderWidth = outW;
     gameOptions.renderHeight = outH;
   }

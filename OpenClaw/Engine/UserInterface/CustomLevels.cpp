@@ -128,6 +128,8 @@ namespace
             for (int i = 0; i < 4 && !e.baseLevel; ++i) e.baseLevel = LevelFromPath(c + 884 + 128 * i, 128);
         memcpy(&e.startX, h + 720, 4);
         memcpy(&e.startY, h + 724, 4);
+        e.startX = (decltype(e.startX))SDL_SwapLE32((Uint32)e.startX);   // little-endian in the file
+        e.startY = (decltype(e.startY))SDL_SwapLE32((Uint32)e.startY);
         return true;
     }
 

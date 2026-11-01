@@ -29,6 +29,10 @@ typedef std::map<std::string, FileList> DirToFileListMap;
 class ZipFile
 {
 public:
+    // the ZIP headers (public for the byte-order helpers in ZipFile.cpp)
+    struct TZipDirHeader;
+    struct TZipDirFileHeader;
+    struct TZipLocalHeader;
     ZipFile() { m_nEntries = 0; m_pFile = NULL; m_pDirData = NULL; }
     virtual ~ZipFile() { End(); fclose(m_pFile); }
 
@@ -50,9 +54,6 @@ public:
     DirToFileListMap m_DirToFileListMap;
 
 private:
-    struct TZipDirHeader;
-    struct TZipDirFileHeader;
-    struct TZipLocalHeader;
 
     FILE *m_pFile;        // Zip file
     char *m_pDirData;    // Raw data buffer.
