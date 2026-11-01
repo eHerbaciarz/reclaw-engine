@@ -29,9 +29,9 @@ extern "C" { u32 __ctru_linear_heap_size = 24 * 1024 * 1024; }
 #include <coreinit/debug.h>
 #elif defined(__PS3__) || defined(__PSL1GHT__)
 #include <sys/file.h>
-#include <sys/process.h>
-// Main thread priority and a 1 MB stack (the default is small).
-SYS_PROCESS_PARAM(1001, 0x100000);
+// No SYS_PROCESS_PARAM: with it the program froze before main() on real
+// hardware (tested on Evilnat 4.92); the game runs in its own thread with a
+// 1 MB stack instead (main.cpp).
 
 // Start-up breadcrumbs in /dev_hdd0/tmp/reclaw_boot.txt (written before the
 // game's own folders and log exist; a hang shows the last step reached).
@@ -45,7 +45,6 @@ extern "C" void ReclawBootMark(const char* step)
     }
     first = false;
 }
-__attribute__((constructor(101))) static void ReclawBootFirst() { ReclawBootMark("1 static init begins"); }
 #define BOOT_MARK(s) ReclawBootMark(s)
 #endif
 #ifndef BOOT_MARK
