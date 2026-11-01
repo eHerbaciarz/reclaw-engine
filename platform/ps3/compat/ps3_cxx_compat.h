@@ -2,6 +2,7 @@
 // standard C++11 functions are missing. Force-included in C++ files
 // (platform/ps3/CMakeLists.txt) to fill them in.
 #pragma once
+#include "ps3_sdl_screen.h"
 #ifdef __cplusplus
 #include <cmath>
 #include <cstdlib>

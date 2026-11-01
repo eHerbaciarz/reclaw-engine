@@ -1425,6 +1425,13 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   }
 #endif
 
+#if defined(__PSL1GHT__) || defined(__PS3__)
+  // PS3: the game draws 854x480 in software (platform/ps3/compat/ps3_sdl_screen.cpp)
+  if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
+    gameOptions.renderWidth = 854;
+    gameOptions.renderHeight = 480;
+  }
+#endif
 #if defined(__3DS__)
   // 3DS: the game draws into an ARGB8888 frame (SDL's fast software blits
   // need it; the screen itself is RGBA8888), converted once per frame.

@@ -24,6 +24,8 @@ set(PS3_CONTENTID "UP0001-${PS3_APPID}_00-0000000000000000")
 set(PS3_TITLE     "ReClaw")
 
 openclaw_add_game(openclaw)
+# the game draws in software, the PSL1GHT renderer only shows the frame
+target_sources(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/compat/ps3_sdl_screen.cpp")
 target_include_directories(openclaw BEFORE PRIVATE "${CMAKE_CURRENT_LIST_DIR}/compat")
 # Startup steps and performance in save/reclaw.log (first builds on real hardware)
 target_compile_definitions(openclaw PRIVATE OPENCLAW_STARTUP_TRACE=1)
