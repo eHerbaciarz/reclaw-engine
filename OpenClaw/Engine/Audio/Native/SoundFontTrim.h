@@ -12,6 +12,7 @@
 // the samples are decoded one at a time, so writing it needs little memory.
 // Later starts load that file directly.
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,11 @@ namespace SoundFontTrim
     // Loader thread: waits (at most timeoutMs) for CollectUsage, then writes the
     // small soundfont. True when it exists afterwards.
     bool MakeSmall(const std::string& fullPath, int timeoutMs);
+
+    // Main thread, right after CollectUsage: makes the small soundfont now
+    // (first start, with a progress screen), if it has to be made.
+    // progress(done, total) is called before each sample.
+    bool MakeSmallNow(const std::function<void(int, int)>& progress);
 }
 
 #endif

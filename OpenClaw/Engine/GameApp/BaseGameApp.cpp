@@ -47,6 +47,7 @@ static std::string ResolveBundledFile(const std::string& path)
 
 
 #include "BaseGameApp.h"
+#include "../Race/RaceUi.h"
 #if !defined(__EMSCRIPTEN__)
 #include "../Audio/Native/SoundFontTrim.h"
 #endif
@@ -1726,6 +1727,29 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 #if (defined(__PSL1GHT__) || defined(__3DS__)) && !defined(__EMSCRIPTEN__)
   // First start: which instruments the game's music uses (for the small soundfont).
   SoundFontTrim::CollectUsage();
+  {
+    // First start: the small soundfont made now, with a progress screen
+    // (in the background it took the game's CPU time on the 3DS).
+    Uint32 lastDraw = 0;
+    SoundFontTrim::MakeSmallNow([this, &lastDraw](int done, int total) {
+      SDL_PumpEvents();
+      const Uint32 now = SDL_GetTicks();
+      if (lastDraw && now - lastDraw < 250) return;
+      lastDraw = now;
+      if (m_pRenderTarget) SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
+      SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+      SDL_RenderClear(m_pRenderer);
+      const Point size = GetWindowSize();
+      const int px = std::max(12, (int)(size.y / 16));
+      const int pct = total > 0 ? done * 100 / total : 0;
+      RaceUi::DrawText(m_pRenderer, Lang::Tr("Przygotowanie muzyki", "Preparing the music"), px, (int)size.x / 2, (int)size.y / 2 - px * 2, 0);
+      RaceUi::DrawText(m_pRenderer, std::to_string(pct) + "%", px, (int)size.x / 2, (int)size.y / 2, 0);
+      RaceUi::DrawText(m_pRenderer, Lang::Tr("tylko przy pierwszym uruchomieniu", "only at the first start"), std::max(10, px * 2 / 3),
+                       (int)size.x / 2, (int)size.y / 2 + px * 2, 0);
+      PresentFrame(true);
+    });
+    RaceUi::FreeTextCache();
+  }
 #endif
 
   LOG("Resource cache successfully initialized");

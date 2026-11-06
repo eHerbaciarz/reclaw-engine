@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 
 #include <algorithm>
+#include <functional>
 #include <cstdio>
 #include <cstdlib>
 #include <bitset>
@@ -300,7 +301,7 @@ namespace SoundFontTrim
             if (data.size() & 1) v.push_back(0);
         }
 
-        bool Trim(const std::string& fullPath, const std::string& smallPath)
+        bool Trim(const std::string& fullPath, const std::string& smallPath, const std::function<void(int, int)>& progress)
         {
             SDL_RWops* rw = SDL_RWFromFile(fullPath.c_str(), "rb");
             if (!rw) return false;
@@ -377,9 +378,11 @@ namespace SoundFontTrim
             Uint32 pos = 0;
             std::vector<short> pcm;
             std::vector<unsigned char> bytes;
+            int doneSamples = 0;
             for (int s : samples)
             {
                 if (!ok) break;
+                if (progress) progress(doneSamples++, (int)samples.size());
                 unsigned ls = 0, le = 0;
                 if (!ReadSample(rw, f, f.shdr[s], pcm, ls, le) || pcm.empty()) continue;
                 Shdr h = f.shdr[s];
@@ -411,9 +414,6 @@ namespace SoundFontTrim
                         h.rate = (unsigned)((double)h.rate * (double)(le - ls) * r / origLoop + 0.5);
                 }
                 if (pcm.empty()) continue;
-#if defined(__3DS__)
-                SDL_Delay(1);   // let the game run (the same CPU core)
-#endif
                 bytes.clear();
                 bytes.reserve((pcm.size() + 46) * 2);
                 for (short v : pcm) P16(bytes, (unsigned short)v);
@@ -655,12 +655,29 @@ namespace SoundFontTrim
     bool MakeSmall(const std::string& fullPath, int timeoutMs)
     {
         if (SmallIsValid(fullPath)) return true;
-        for (int waited = 0; SDL_AtomicGet(&g_UsageState) == 0 && waited < timeoutMs; waited += 100) SDL_Delay(100);
+        // 0: not yet, 3: the main thread is making it (MakeSmallNow)
+        for (int waited = 0; (SDL_AtomicGet(&g_UsageState) == 0 || SDL_AtomicGet(&g_UsageState) == 3) && waited < timeoutMs; waited += 100)
+            SDL_Delay(100);
+        if (SmallIsValid(fullPath)) return true;
         if (SDL_AtomicGet(&g_UsageState) != 1) return false;
         if (!g_UsageFor.empty() && g_UsageFor != fullPath) return false;
         TRIM_LOG("Soundfont trim: making " + SmallPath(fullPath) + " from " + fullPath + " (first start)");
-        return Trim(fullPath, SmallPath(fullPath));
+        return Trim(fullPath, SmallPath(fullPath), nullptr);
     }
+
+#ifndef SOUNDFONT_TRIM_STANDALONE
+    bool MakeSmallNow(const std::function<void(int, int)>& progress)
+    {
+        if (SDL_AtomicGet(&g_UsageState) != 1 || g_UsageFor.empty()) return false;
+        SDL_AtomicSet(&g_UsageState, 3);
+        TRIM_LOG("Soundfont trim: making " + SmallPath(g_UsageFor) + " from " + g_UsageFor + " (first start)");
+        const Uint32 t0 = SDL_GetTicks();
+        bool ok = Trim(g_UsageFor, SmallPath(g_UsageFor), progress);
+        TRIM_LOG("Soundfont trim: " + std::string(ok ? "done" : "failed") + " in " + std::to_string(SDL_GetTicks() - t0) + " ms");
+        SDL_AtomicSet(&g_UsageState, 2);   // the loader finds the file (or nothing to do)
+        return ok;
+    }
+#endif
 
 #ifdef SOUNDFONT_TRIM_STANDALONE
     // Test tool: the usage of the given MIDI files, then the small soundfont.
@@ -669,7 +686,7 @@ namespace SoundFontTrim
         g_Usage.clear();
         for (const std::string& m : midis)
             if (tml_message* msgs = tml_load_filename(m.c_str())) { AddMidiUsage(msgs); tml_free(msgs); }
-        return Trim(fullPath, outPath);
+        return Trim(fullPath, outPath, nullptr);
     }
 #endif
 }
