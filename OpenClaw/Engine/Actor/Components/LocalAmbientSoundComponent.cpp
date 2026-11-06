@@ -122,6 +122,9 @@ void LocalAmbientSoundComponent::PlayAmbientSound()
 
     int globalVolume = (int)((((float)g_pApp->GetAudio()->GetSoundVolume()) / 100.0f) * (float)MIX_MAX_VOLUME);
     int chunkVolume = (int)((((float)m_Properties.volume) / 100.0f) * (float)globalVolume);
+#if defined(__PSL1GHT__) || defined(__3DS__)
+    chunkVolume = (int)(chunkVolume * 0.5f + 0.5f);   // the mixer's headroom (SDL2MixerSystem)
+#endif
     Mix_VolumeChunk(pSound.get(), chunkVolume);
 
     m_SoundChannel = Mix_PlayChannel(m_SoundChannel, pSound.get(), -1);
@@ -140,6 +143,9 @@ void LocalAmbientSoundComponent::StopAmbientSound()
     }
 
     Mix_HaltChannel(m_SoundChannel);
+#if defined(__PSL1GHT__) || defined(__3DS__)
+    Mix_Volume(m_SoundChannel, MIX_MAX_VOLUME);   // the channel is shared with other sounds
+#endif
     m_SoundChannel = -1;
 }
 
@@ -172,7 +178,15 @@ void LocalAmbientSoundComponent::UpdateAmbientSound()
     }
     m_LastDistance = sdlDistance;
     m_LastDistanceTick = now;
+#if defined(__PSL1GHT__) || defined(__3DS__)
+    // The channel's volume instead of SDL_mixer's distance effect: no lock
+    // on the mixer (the game thread waited for the audio thread and the
+    // other way round - the sound crackled near ambient sounds) and no extra
+    // pass over the samples. The same fall-off as Mix_SetDistance.
+    Mix_Volume(m_SoundChannel, MIX_MAX_VOLUME * (255 - sdlDistance) / 255);
+#else
     Mix_SetDistance(m_SoundChannel, sdlDistance);
+#endif
 
     /*LOG("Distance ratio: " + ToStr(distanceRatio));
     LOG("Distance: " + ToStr(distance));*/
