@@ -85,8 +85,8 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
     uint32_t width = pid->width;
     uint32_t height = pid->height;
 
-#if defined(__3DS__)
-    // 3DS (software rendering): ARGB8888 like the frame the game draws into,
+#if defined(__3DS__) || defined(__PSL1GHT__)
+    // 3DS, PS3 (software rendering): ARGB8888 like the frame the game draws into,
     // so SDL blits with its fast paths; images without transparent pixels
     // (most tiles) are copied without blending.
     SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_ARGB8888);

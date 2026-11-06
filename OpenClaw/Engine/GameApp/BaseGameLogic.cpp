@@ -531,8 +531,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     // up (it used to happen before it: the menu froze for seconds on the
     // handhelds), with the bar moving.
     STARTUP_TRACE("level: preload");
-#if !defined(__3DS__)
-    // (3DS: the level does not fit the small cache anyway - no preload)
+#if !defined(__3DS__) && !defined(__PSL1GHT__)
+    // (3DS: the level does not fit the small cache anyway - no preload;
+    // PS3: all of the level's pictures took 73 MB - the game ran out of memory)
     {
         std::vector<std::string> files = g_pApp->GetResourceCache()->Match(levelPath);
         for (size_t i = 0; i < files.size(); ++i)

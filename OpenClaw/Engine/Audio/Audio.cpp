@@ -60,8 +60,8 @@ bool Audio::Initialize(const GameOptions& config)
     // Native: SDL_mixer for effects, TinySoundFont for XMI level music.
     SDL2MixerConfig mixerConfig;
     mixerConfig.frequency = (int)config.frequency;
-#if defined(__vita__) || defined(__3DS__)
-    // Handhelds mix at 22 kHz (the game's own sounds are 22 kHz): half the
+#if defined(__vita__) || defined(__3DS__) || defined(__PSL1GHT__)
+    // Handhelds (and the PS3, short of memory) mix at 22 kHz (the game's own sounds are 22 kHz): half the
     // work for the mixer and the music synth, no crackling in busy levels.
     // Also for configs written by older versions (44100).
     mixerConfig.frequency = std::min(mixerConfig.frequency, 22050);

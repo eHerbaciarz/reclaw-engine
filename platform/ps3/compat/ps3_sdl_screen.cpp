@@ -12,6 +12,8 @@
 #include <rsx/rsx.h>
 #include <rsx/gcm_sys.h>
 #include <unistd.h>
+#include <malloc.h>
+#include "../../../OpenClaw/Engine/Util/PortSettings.h"
 
 namespace
 {
@@ -24,6 +26,81 @@ namespace
     Uint32 g_Pitch = 0;
     int g_Current = 0;
     bool g_FirstFlip = true;
+
+    // RSX present (default; port_settings.txt "ps3_rsx_present=0" for the CPU
+    // copy): the game draws into one of two frames in main memory the RSX can
+    // read; the RSX scales it into the display buffer itself. The CPU does not
+    // copy the 8 MB of a 1080p picture and does not wait for the TV.
+    bool g_Rsx = false;
+    Uint32* g_Main[2] = { nullptr, nullptr };
+    u32 g_MainOffset[2] = { 0, 0 };
+    u32 g_MainSeq[2] = { 0, 0 };
+    int g_MainIdx = 0;
+    u32 g_DisplayOffset[2] = { 0, 0 };
+    const u8 kLabel = 200;   // labels 200, 201: transfer of frame 0, 1 done
+
+    void Flip(int buffer);
+    volatile u32* Label(int i) { return (volatile u32*)gcmGetLabelAddress((u8)(kLabel + i)); }
+
+    bool InitRsxFrames()
+    {
+        const size_t bytes = (size_t)g_W * g_H * 4;
+        const size_t size = (bytes + 0xFFFFF) & ~(size_t)0xFFFFF;   // mapped in 1 MB pieces
+        for (int i = 0; i < 2; ++i)
+        {
+            g_Main[i] = (Uint32*)memalign(1 << 20, size);
+            if (!g_Main[i]) return false;
+            SDL_memset(g_Main[i], 0, size);
+            if (gcmMapMainMemory(g_Main[i], (u32)size, &g_MainOffset[i]) != 0) return false;
+            *Label(i) = 0;
+            g_MainSeq[i] = 0;
+        }
+        return true;
+    }
+
+    void RsxPresent()
+    {
+        const int i = g_MainIdx;
+        gcmTransferScale scale;
+        SDL_memset(&scale, 0, sizeof(scale));
+        const bool exact = (g_TvW % g_W) == 0 && (g_TvH % g_H) == 0 && g_TvW / g_W == g_TvH / g_H;
+        // Fit with the picture's own proportions (black bars if needed).
+        double fit = SDL_min((double)g_TvW / g_W, (double)g_TvH / g_H);
+        int outW = (int)(g_W * fit), outH = (int)(g_H * fit);
+        int outX = (g_TvW - outW) / 2, outY = (g_TvH - outH) / 2;
+        scale.conversion = GCM_TRANSFER_CONVERSION_TRUNCATE;
+        scale.format = GCM_TRANSFER_SCALE_FORMAT_A8R8G8B8;
+        scale.operation = GCM_TRANSFER_OPERATION_SRCCOPY;
+        scale.clipX = (s16)outX; scale.clipY = (s16)outY;
+        scale.clipW = (u16)outW; scale.clipH = (u16)outH;
+        scale.outX = (s16)outX; scale.outY = (s16)outY;
+        scale.outW = (u16)outW; scale.outH = (u16)outH;
+        scale.ratioX = (s32)(((long long)g_W << 20) / outW);
+        scale.ratioY = (s32)(((long long)g_H << 20) / outH);
+        scale.inW = (u16)g_W; scale.inH = (u16)g_H;
+        scale.pitch = (u16)(g_W * 4);
+        scale.origin = GCM_TRANSFER_ORIGIN_CORNER;
+        scale.interp = exact ? GCM_TRANSFER_INTERPOLATOR_NEAREST : GCM_TRANSFER_INTERPOLATOR_LINEAR;
+        scale.offset = g_MainOffset[i];
+        scale.inX = 0; scale.inY = 0;
+        gcmTransferSurface surface;
+        SDL_memset(&surface, 0, sizeof(surface));
+        surface.format = GCM_TRANSFER_SURFACE_FORMAT_A8R8G8B8;
+        surface.pitch = (u16)g_Pitch;
+        surface.offset = g_DisplayOffset[g_Current];
+
+        rsxSetTransferScaleMode(gGcmContext, GCM_TRANSFER_MAIN_TO_LOCAL, GCM_TRANSFER_SURFACE);
+        rsxSetTransferScaleSurface(gGcmContext, &scale, &surface);
+        rsxSetWriteBackendLabel(gGcmContext, (u8)(kLabel + i), ++g_MainSeq[i]);
+        Flip(g_Current);   // flip, then the RSX waits for it before the next transfer
+        g_Current ^= 1;
+
+        // Draw the next frame into the other one, once the RSX has read it.
+        g_MainIdx ^= 1;
+        const int n = g_MainIdx;
+        for (int spins = 0; *Label(n) != g_MainSeq[n] && spins < 200000; ++spins) usleep(50);
+        g_Surface->pixels = g_Main[n];
+    }
 
     void WaitFlip()
     {
@@ -50,6 +127,7 @@ namespace
             SDL_memset(g_Buffer[i], 0, (size_t)g_Pitch * g_TvH);
             u32 offset = 0;
             if (rsxAddressToOffset(g_Buffer[i], &offset) != 0) return false;
+            g_DisplayOffset[i] = offset;
             if (gcmSetDisplayBuffer((u8)i, offset, g_Pitch, (u32)g_TvW, (u32)g_TvH) != 0) return false;
         }
         gcmResetFlipStatus();
@@ -92,14 +170,19 @@ extern "C" SDL_Renderer* ReclawPS3_CreateRenderer(SDL_Window* window, int index,
         SDL_Log("PS3 screen: no display buffers");
         return nullptr;
     }
-    g_Surface = SDL_CreateRGBSurfaceWithFormat(0, g_W, g_H, 32, SDL_PIXELFORMAT_ARGB8888);
+    g_Rsx = PortSettings::GetInt("ps3_rsx_present", 1) != 0 && InitRsxFrames();
+    if (g_Rsx)
+        g_Surface = SDL_CreateRGBSurfaceWithFormatFrom(g_Main[0], g_W, g_H, 32, g_W * 4, SDL_PIXELFORMAT_ARGB8888);
+    else
+        g_Surface = SDL_CreateRGBSurfaceWithFormat(0, g_W, g_H, 32, SDL_PIXELFORMAT_ARGB8888);
     g_Soft = g_Surface ? SDL_CreateSoftwareRenderer(g_Surface) : nullptr;
     if (!g_Soft)
     {
         SDL_Log("PS3 screen: %s", SDL_GetError());
         return nullptr;
     }
-    SDL_Log("PS3 screen: TV %dx%d, the game draws %dx%d in software (own gcm display buffers)", g_TvW, g_TvH, g_W, g_H);
+    SDL_Log("PS3 screen: TV %dx%d, the game draws %dx%d in software (own gcm display buffers, %s)", g_TvW, g_TvH, g_W, g_H,
+            g_Rsx ? "scaled by the RSX" : "copied by the CPU");
     return g_Soft;
 }
 
@@ -108,6 +191,11 @@ extern "C" void ReclawPS3_RenderPresent(SDL_Renderer* renderer)
     if (renderer != g_Soft || !g_Soft)
     {
         SDL_RenderPresent(renderer);
+        return;
+    }
+    if (g_Rsx)
+    {
+        RsxPresent();
         return;
     }
     // the buffer we write into must not be on the screen any more
