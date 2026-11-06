@@ -232,6 +232,10 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
 {
     SDL2MixerSystem *self = static_cast<SDL2MixerSystem *>(userData);
     STARTUP_TRACE("soundfont loader started");
+#if defined(__3DS__)
+    // The game's own core: making the small soundfont must not take its time.
+    SDL_SetThreadPriority(SDL_THREAD_PRIORITY_LOW);
+#endif
 
     tsf *pFont = nullptr;
     std::string usedPath;

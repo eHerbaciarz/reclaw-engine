@@ -40,7 +40,7 @@
 #include "../../Resource/Loaders/MidiLoader.h"
 #include "../../Logger/Logger.h"
 #include "../../Platform/Platform.h"
-#define TRIM_LOG(msg) LOG(msg)
+#define TRIM_LOG(msg) LOG_WARNING(msg)   // (warnings reach reclaw.log)
 #define TRIM_WARN(msg) LOG_WARNING(msg)
 #else
 #include <cstdio>
@@ -52,7 +52,8 @@ namespace SoundFontTrim
 {
     namespace
     {
-        const char* kSignature = "reclaw-trim 1 src=";
+        const unsigned kMaxRate = 22050;
+        const char* kSignature = "reclaw-trim 2 src=";   // 2: samples at most 22050 Hz
 
         // What the music plays: per selected (drums, bank, program) the keys.
         struct Selection
@@ -381,12 +382,43 @@ namespace SoundFontTrim
                 if (!ok) break;
                 unsigned ls = 0, le = 0;
                 if (!ReadSample(rw, f, f.shdr[s], pcm, ls, le) || pcm.empty()) continue;
+                Shdr h = f.shdr[s];
+                // The game mixes at 22050 Hz: a sample recorded faster only
+                // takes memory. Averaged down to 22050 Hz (pitch unchanged:
+                // the sample's rate says how fast it plays).
+                const unsigned origLoop = le > ls ? le - ls : 0;
+                if (h.rate > kMaxRate + kMaxRate / 8)
+                {
+                    const double r = (double)h.rate / kMaxRate;
+                    const size_t n = (size_t)(pcm.size() / r);
+                    std::vector<short> down(n);
+                    for (size_t i = 0; i < n; ++i)
+                    {
+                        size_t a = (size_t)(i * r), b = std::max(a + 1, std::min(pcm.size(), (size_t)((i + 1) * r)));
+                        long sum = 0;
+                        for (size_t k = a; k < b; ++k) sum += pcm[k];
+                        down[i] = (short)(sum / (long)(b - a));
+                    }
+                    pcm.swap(down);
+                    ls = std::min((unsigned)pcm.size(), (unsigned)(ls / r + 0.5));
+                    le = std::min((unsigned)pcm.size(), (unsigned)(le / r + 0.5));
+                    if (ls > le) ls = le;
+                    // The rate that keeps a loop exactly as long as before
+                    // (a loop of a few hundred samples rounded by half a
+                    // sample would be out of tune).
+                    h.rate = kMaxRate;
+                    if (le > ls && origLoop > 0)
+                        h.rate = (unsigned)((double)h.rate * (double)(le - ls) * r / origLoop + 0.5);
+                }
+                if (pcm.empty()) continue;
+#if defined(__3DS__)
+                SDL_Delay(1);   // let the game run (the same CPU core)
+#endif
                 bytes.clear();
                 bytes.reserve((pcm.size() + 46) * 2);
                 for (short v : pcm) P16(bytes, (unsigned short)v);
                 for (int z = 0; z < 46; ++z) P16(bytes, 0);   // the zero points the format wants after each sample
                 ok = WriteAll(out, bytes);
-                Shdr h = f.shdr[s];
                 h.start = pos;
                 h.end = pos + (Uint32)pcm.size();
                 h.loopStart = pos + ls;
@@ -614,7 +646,7 @@ namespace SoundFontTrim
         }
         size_t keys = 0;
         for (const auto& u : g_Usage) keys += u.second.count();
-        LOG("Soundfont trim: " + std::to_string(songs) + " songs of the game use " + std::to_string(g_Usage.size()) +
+        LOG_WARNING("Soundfont trim: " + std::to_string(songs) + " songs of the game use " + std::to_string(g_Usage.size()) +
             " instruments, " + std::to_string(keys) + " notes");
         SDL_AtomicSet(&g_UsageState, songs > 0 ? 1 : 2);
     }
