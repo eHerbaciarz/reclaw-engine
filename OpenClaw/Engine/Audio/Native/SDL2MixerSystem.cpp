@@ -54,6 +54,13 @@ namespace
     // Headroom for the synth so dense passages do not clip against effects.
     // Applied through tsf_set_volume (which overrides tsf_set_output's gain).
     const float kSynthHeadroom = 0.25f; // about -12 dB
+#if defined(__PSL1GHT__)
+    // PS3: everything a bit quieter (about -4.4 dB): many sounds at once
+    // summed past the maximum and crackled (clipped samples in the log).
+    const float kMasterHeadroom = 0.6f;
+#else
+    const float kMasterHeadroom = 1.0f;
+#endif
     // Group tag upstream OpenClaw uses for LocalAmbientSoundComponent.
     const int kAmbientGroupTag = 1;
     const int kAmbientReservedChannels = 16;
@@ -76,12 +83,12 @@ namespace
     {
         v = std::max(0.0f, std::min(1.0f, v));
         // tsf_set_volume divides by the volume; keep it strictly positive.
-        return std::max(0.00001f, v * kSynthHeadroom);
+        return std::max(0.00001f, v * kSynthHeadroom * kMasterHeadroom);
     }
 
     int ToMixVolume(float v)
     {
-        v = std::max(0.0f, std::min(1.0f, v));
+        v = std::max(0.0f, std::min(1.0f, v)) * kMasterHeadroom;
         return (int)(v * MIX_MAX_VOLUME + 0.5f);
     }
 }
