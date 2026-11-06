@@ -55,9 +55,9 @@ namespace
     // Applied through tsf_set_volume (which overrides tsf_set_output's gain).
     const float kSynthHeadroom = 0.25f; // about -12 dB
 #if defined(__PSL1GHT__)
-    // PS3: everything a bit quieter (about -4.4 dB): many sounds at once
+    // PS3: everything quieter (-6 dB): many sounds at once
     // summed past the maximum and crackled (clipped samples in the log).
-    const float kMasterHeadroom = 0.6f;
+    const float kMasterHeadroom = 0.5f;
 #else
     const float kMasterHeadroom = 1.0f;
 #endif

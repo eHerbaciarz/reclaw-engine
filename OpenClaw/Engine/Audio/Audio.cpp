@@ -345,7 +345,7 @@ bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
     int chunkVolume = (int)((soundProperties.volume / 100.0f) * (m_SoundVolume / 100.0f) * MIX_MAX_VOLUME);
 #if defined(__PSL1GHT__)
     // the same headroom as SDL2MixerSystem's (many sounds at once clipped)
-    chunkVolume = (int)(chunkVolume * 0.6f + 0.5f);
+    chunkVolume = (int)(chunkVolume * 0.5f + 0.5f);
 #endif
     Mix_VolumeChunk(sound, chunkVolume);
 
