@@ -24,7 +24,7 @@ W, H = 600, 240
 GOLD = (246, 205, 86, 255)
 CREAM = (250, 236, 200, 255)
 DARK = (20, 10, 0, 255)
-PS_COLORS = {"PS_X": (120, 160, 255), "PS_O": (255, 110, 110), "PS_SQ": (240, 140, 220), "PS_TRI": (90, 220, 170)}
+PS_COLORS = {"PS_X": (125, 165, 255), "PS_O": (255, 95, 95), "PS_SQ": (245, 135, 215), "PS_TRI": (70, 215, 140)}
 
 # Buttons of each action per controller style.
 BUTTONS = {
@@ -84,18 +84,24 @@ def badge(draw, x, cy, label, fnt):
     draw.rounded_rectangle(box, radius=h / 2, fill=(40, 24, 8, 235), outline=GOLD, width=2 * S)
     cx, r = x + w / 2, 5.5 * S
     if label in ("<", ">", "^", "v"):
-        # The font has no arrow glyphs: draw a triangle.
-        pts = {
-            "^": [(cx, cy - r), (cx + r, cy + r * 0.7), (cx - r, cy + r * 0.7)],
-            "v": [(cx, cy + r), (cx + r, cy - r * 0.7), (cx - r, cy - r * 0.7)],
-            "<": [(cx - r, cy), (cx + r * 0.7, cy - r), (cx + r * 0.7, cy + r)],
-            ">": [(cx + r, cy), (cx - r * 0.7, cy - r), (cx - r * 0.7, cy + r)],
+        # A D-pad (cross) with the pressed arm lit, so it does not look like
+        # a face button (PlayStation's triangle).
+        R = 7.5 * S          # arm length from the centre
+        t = 2.6 * S          # half the arm width
+        dim = (120, 95, 60, 255)
+        draw.rectangle([cx - R, cy - t, cx + R, cy + t], fill=dim)
+        draw.rectangle([cx - t, cy - R, cx + t, cy + R], fill=dim)
+        arm = {
+            "^": [cx - t, cy - R, cx + t, cy - t],
+            "v": [cx - t, cy + t, cx + t, cy + R],
+            "<": [cx - R, cy - t, cx - t, cy + t],
+            ">": [cx + t, cy - t, cx + R, cy + t],
         }[label]
-        draw.polygon(pts, fill=CREAM)
+        draw.rectangle(arm, fill=CREAM)
     elif label in PS_COLORS:
         # PlayStation face button symbols
         col = PS_COLORS[label] + (255,)
-        lw = int(1.8 * S)
+        lw = int(2.4 * S)
         if label == "PS_X":
             draw.line([(cx - r, cy - r), (cx + r, cy + r)], fill=col, width=lw)
             draw.line([(cx - r, cy + r), (cx + r, cy - r)], fill=col, width=lw)

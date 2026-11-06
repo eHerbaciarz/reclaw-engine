@@ -1,6 +1,7 @@
 #include "GameFont.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <map>
@@ -909,16 +910,90 @@ namespace GameFont
         return true;
     }
 
+    // A copy at w x h: smooth (bilinear) when bigger, averaged when smaller.
+    Pixels Resize(const Pixels& p, int w, int h)
+    {
+        Pixels out;
+        out.w = std::max(1, w);
+        out.h = std::max(1, h);
+        out.px.assign((size_t)out.w * out.h, 0);
+        if (out.w <= p.w && out.h <= p.h)
+        {
+            for (int y = 0; y < out.h; ++y)
+                for (int x = 0; x < out.w; ++x)
+                {
+                    int sx0 = x * p.w / out.w, sx1 = std::max(sx0 + 1, (x + 1) * p.w / out.w);
+                    int sy0 = y * p.h / out.h, sy1 = std::max(sy0 + 1, (y + 1) * p.h / out.h);
+                    uint32_t r = 0, g = 0, b = 0, a = 0, n = 0;
+                    for (int sy = sy0; sy < sy1; ++sy)
+                        for (int sx = sx0; sx < sx1; ++sx)
+                        {
+                            uint32_t c = p.px[(size_t)sy * p.w + sx], ca = c >> 24;
+                            r += (c & 0xFF) * ca; g += ((c >> 8) & 0xFF) * ca; b += ((c >> 16) & 0xFF) * ca;
+                            a += ca; n++;
+                        }
+                    if (!a) continue;
+                    out.px[(size_t)y * out.w + x] = ((a / n) << 24) | ((b / a) << 16) | ((g / a) << 8) | (r / a);
+                }
+            return out;
+        }
+        for (int y = 0; y < out.h; ++y)
+        {
+            float fy = (y + 0.5f) * p.h / out.h - 0.5f;
+            int y0 = std::max(0, std::min(p.h - 1, (int)std::floor(fy))), y1 = std::min(p.h - 1, y0 + 1);
+            float ty = std::max(0.0f, std::min(1.0f, fy - y0));
+            for (int x = 0; x < out.w; ++x)
+            {
+                float fx = (x + 0.5f) * p.w / out.w - 0.5f;
+                int x0 = std::max(0, std::min(p.w - 1, (int)std::floor(fx))), x1 = std::min(p.w - 1, x0 + 1);
+                float tx = std::max(0.0f, std::min(1.0f, fx - x0));
+                const uint32_t c[4] = { p.px[(size_t)y0 * p.w + x0], p.px[(size_t)y0 * p.w + x1],
+                                        p.px[(size_t)y1 * p.w + x0], p.px[(size_t)y1 * p.w + x1] };
+                const float wgt[4] = { (1 - tx) * (1 - ty), tx * (1 - ty), (1 - tx) * ty, tx * ty };
+                float r = 0, g = 0, b = 0, a = 0;
+                for (int k = 0; k < 4; ++k)
+                {
+                    float ca = (float)(c[k] >> 24) * wgt[k];
+                    r += (c[k] & 0xFF) * ca; g += ((c[k] >> 8) & 0xFF) * ca; b += ((c[k] >> 16) & 0xFF) * ca;
+                    a += ca;
+                }
+                if (a < 0.5f) continue;
+                uint32_t A = (uint32_t)std::min(255.0f, a + 0.5f);
+                out.px[(size_t)y * out.w + x] = (A << 24) | ((uint32_t)(b / a + 0.5f) << 16) |
+                                                ((uint32_t)(g / a + 0.5f) << 8) | (uint32_t)(r / a + 0.5f);
+            }
+        }
+        return out;
+    }
+
     std::shared_ptr<Image> ToImage(Pixels& p)
     {
+        Pixels* src = &p;
+#if defined(__PSL1GHT__) || defined(__3DS__)
+        // Software rendering scales the menu's pictures with plain sampling
+        // (blocky letters at the PS3's 1.125x, the 3DS's 0.6x): the texture is
+        // made at the size it is drawn at, smoothly, and placed by its own size.
+        Pixels scaled;
+        const double s = g_pApp ? g_pApp->GetWindowSize().y / 480.0 : 1.0;
+        const bool rescale = s > 0.1 && (s < 0.99 || s > 1.01);
+        if (rescale)
+        {
+            scaled = Resize(p, (int)(p.w * s), (int)(p.h * s));
+            src = &scaled;
+        }
+#endif
         // RGBA bytes (R first) -> texture
-        SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(p.px.data(), p.w, p.h, 32, p.w * 4, SDL_PIXELFORMAT_ABGR8888);
+        SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(src->px.data(), src->w, src->h, 32, src->w * 4, SDL_PIXELFORMAT_ABGR8888);
         if (!surface) return nullptr;
         SDL_Texture* texture = SDL_CreateTextureFromSurface(g_pApp->GetRenderer(), surface);
         SDL_FreeSurface(surface);
         if (!texture) return nullptr;
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-        return std::shared_ptr<Image>(new Image(texture));
+        std::shared_ptr<Image> image(new Image(texture));
+#if defined(__PSL1GHT__) || defined(__3DS__)
+        if (rescale) image->SetLogicalSize(p.w, p.h);
+#endif
+        return image;
     }
 
     std::shared_ptr<Image> Render(const std::string& utf8, Look look, int underline)

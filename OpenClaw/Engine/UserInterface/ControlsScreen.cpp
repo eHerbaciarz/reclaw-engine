@@ -99,7 +99,7 @@ namespace ControlsScreen
         };
         std::vector<Row> right = {
             { { b[3] }, Lang::Tr("PODNOSZENIE I RZUT", "PICK UP AND THROW") },
-            { { b[3] }, Lang::Tr("TRZYMAJ: DALEKI RZUT", "HOLD: FAR THROW") },
+            { { b[3] }, Lang::Tr("PRZYTRZYMAJ DO DALEKIEGO RZUTU", "HOLD FOR A FAR THROW") },
             { { b[4] }, Lang::Tr("ZMIEŃ BROŃ", "CHANGE WEAPON") },
             { { b[8] }, Lang::Tr("PAUZA I MENU", "PAUSE AND MENU") },
             { { b[9] }, Lang::Tr("MAPA POZIOMU", "LEVEL MAP") },
@@ -108,9 +108,9 @@ namespace ControlsScreen
         {
             right.push_back({ { b[5] }, Lang::Tr("SZYBKI ZAPIS", "QUICK SAVE") });
             right.push_back({ { b[6] }, Lang::Tr("SZYBKIE WCZYTANIE", "QUICK LOAD") });
-            right.push_back({ { b[7] }, Lang::Tr("TRZYMAJ: COFANIE CZASU", "HOLD: REWIND") });
+            right.push_back({ { b[7] }, Lang::Tr("PRZYTRZYMAJ DO COFANIA CZASU", "HOLD TO REWIND") });
         }
-        right.push_back({ { b[10], b[11] }, Lang::Tr("MENU: WYBÓR I POWRÓT", "MENU: SELECT AND BACK") });
+        right.push_back({ { b[10], b[11] }, Lang::Tr("WYBÓR I POWRÓT W MENU", "SELECT AND BACK IN MENUS") });
 
         const int rowsMax = (int)std::max(left.size(), right.size());
         const int step = rowsMax > 7 ? 21 : 25;
@@ -170,7 +170,7 @@ namespace ControlsScreen
             }
         };
         drawColumn(left, kLeftKeys, kRightKeys - 46);
-        drawColumn(right, kRightKeys, kWidth);
+        drawColumn(right, kRightKeys, kWidth - 8);
         return GameFont::ToImage(canvas);
     }
 }

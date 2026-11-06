@@ -29,6 +29,9 @@ public:
     inline int GetOffsetY() { return m_OffsetY; }
 
     void SetOffset(int x, int y) { m_OffsetX = x; m_OffsetY = y; }
+    // The size the game places the picture by, when its texture is made
+    // bigger or smaller than that (already at the size it is drawn at).
+    void SetLogicalSize(int w, int h) { m_Width = w; m_Height = h; }
 
     SDL_Rect GetPositonRect(int32_t x, int32_t y);
 

@@ -52,6 +52,7 @@ namespace GameFont
     // For composing screens: a smaller copy (percent of the size, pixels
     // averaged) and drawing one picture over another.
     Pixels Scale(const Pixels& p, int percent);
+    Pixels Resize(const Pixels& p, int w, int h);
     void Paste(Pixels& dst, const Pixels& src, int x, int y);
     // A soft dark shadow under the letters, moved by (dx, dy), like the one
     // in the original menu pictures (for small texts, where the letters'
