@@ -191,7 +191,9 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
             continue;
         }
 
+        STARTUP_TRACE("soundfont: read " + path + " (" + std::to_string((long long)size / 1024) + " KB), parsing");
         pFont = tsf_load_memory(bytes.data(), (int)bytes.size());
+        STARTUP_TRACE(pFont ? "soundfont: parsed" : "soundfont: parse failed");
         if (pFont)
         {
             usedPath = path;
