@@ -1,3 +1,4 @@
+#include "../Util/StartupTrace.h"
 #include "HumanView.h"
 #include "../Video/Native/MoviePlayer.h"
 #include "CustomLevels.h"
@@ -45,18 +46,21 @@ HumanView::HumanView(SDL_Renderer* renderer)
     m_CursorFrameIdx(0),
     m_CursorAccumMs(0)
 {
+    STARTUP_TRACE("HumanView: begin");
     SDL_ShowCursor(SDL_DISABLE);
     m_pProcessMgr = new ProcessMgr();
 
     m_ViewId = INVALID_GAME_VIEW_ID;
 
     RegisterAllDelegates();
+    STARTUP_TRACE("HumanView: delegates");
 
     if (renderer)
     {
         m_pScene.reset(new ScreenElementScene(renderer));
         m_pCamera.reset(new CameraNode(Point(0, 0), 0, 0));
         m_pHUD.reset(new ScreenElementHUD());
+        STARTUP_TRACE("HumanView: scene");
 
         m_pScene->AddChild(INVALID_ACTOR_ID, m_pCamera);
         m_pScene->SetCamera(m_pCamera);
@@ -65,6 +69,7 @@ HumanView::HumanView(SDL_Renderer* renderer)
             //g_pApp->GetConsoleFont(), renderer, "console02.tga"));
 
         m_pConsole = unique_ptr<Console>(new Console(g_pApp->GetConsoleConfig(), renderer, g_pApp->GetWindow()));
+        STARTUP_TRACE("HumanView: console");
     }
 }
 

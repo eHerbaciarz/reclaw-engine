@@ -235,7 +235,7 @@ namespace Platform
         // top screen's coordinates).
         SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
-#if defined(__3DS__) || defined(__vita__)
+#if defined(__3DS__) || defined(__vita__) || defined(__PSL1GHT__)
         // An uncaught exception (e.g. out of memory) ends the program without
         // a word, and on the 3DS the sound thread then crashes on the freed
         // memory. Write what happened to the log and stop the sound first.

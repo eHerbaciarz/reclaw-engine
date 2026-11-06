@@ -152,8 +152,10 @@ bool BaseGameLogic::Initialize()
             // First launch: no saves yet (the web build starts the same way).
             LOG_WARNING("No saves file at " + savesFilePath + ", starting a new game");
             // The cheats menu stays unlocked only as long as the saves exist.
+            STARTUP_TRACE("saves: port settings");
             PortSettings::SetBool("cheats_unlocked", false);
             PortSettings::SetBool("special_mode", false);
+            STARTUP_TRACE("saves: port settings written");
         }
         else
         {
@@ -179,12 +181,14 @@ bool BaseGameLogic::Initialize()
             return m_pGameSaveMgr->Initialize(nullptr);
         }
         m_pGameSaveMgr->ResetToNewGame();
+        STARTUP_TRACE("saves: new game");
         TiXmlDocument newSaves;
         newSaves.LinkEndChild(m_pGameSaveMgr->ToXml());
         if (!newSaves.SaveFile(savesFilePath.c_str()))
         {
             LOG_WARNING("Could not create " + savesFilePath + " - progress will not be saved");
         }
+        STARTUP_TRACE("saves: file written");
     }
 
     return true;
