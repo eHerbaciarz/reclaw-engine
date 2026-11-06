@@ -21,7 +21,7 @@ PLATFORMS = {
                 "3DS: top screen 400x240 (the game view), bottom screen = status (SecondScreen)"),
     "wiiu":    ("fs:/vol/content/",    "fs:/vol/external01/wiiu/apps/reclaw/data/CLAW.REZ", (1280, 720), "1.5", "150", "64", "44100",
                 "Wii U: 1280x720 on the TV, the GamePad shows the status screen"),
-    "ps3":     ("",           "data/CLAW.REZ",                       (1280, 720), "1.5", "150", "64", "44100",
+    "ps3":     ("",           "data/CLAW.REZ",                       (1280, 720), "1.5", "64", "64", "44100",
                 "PS3: files in /dev_hdd0/game/RCLW00001/USRDIR/"),
     "ps4":     ("/app0/",     "/data/reclaw/data/CLAW.REZ",          (1920, 1080), "2.25", "200", "64", "48000",
                 "PS4: files in /data/reclaw/ (FTP / USB); the game renders 854x480, scaled to the TV"),

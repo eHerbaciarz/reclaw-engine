@@ -26,7 +26,7 @@
     <AssetsFolder></AssetsFolder>
     <RezArchive>data/CLAW.REZ</RezArchive>
     <CustomArchive>ASSETS.ZIP</CustomArchive>
-    <ResourceCacheSize>150</ResourceCacheSize>
+    <ResourceCacheSize>64</ResourceCacheSize>
     <TempDir></TempDir>
     <SavesFile>SAVES.XML</SavesFile>
   </Assets>

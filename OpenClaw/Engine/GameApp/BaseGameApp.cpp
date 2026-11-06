@@ -370,8 +370,8 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
 
   // Load custom assets
   ShowStartupProgress(m_pRenderer, 92);
-#if !defined(__3DS__)
-  // (3DS: not all 12 MB of ASSETS.ZIP up front - too little memory)
+#if !defined(__3DS__) && !defined(__PSL1GHT__)
+  // (3DS, PS3: not all 12 MB of ASSETS.ZIP up front - too little memory)
   STARTUP_TRACE("preload " "*");
   m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
 #endif
@@ -1044,6 +1044,9 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
 #if defined(__3DS__)
     // Also for config.xml files written by older versions (24 MB)
     m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 16u);
+#elif defined(__PSL1GHT__)
+    // PS3: ~200 MB for everything (150 MB of cache left no room for the music)
+    m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 64u);
 #endif
     ParseValueFromXmlElem(&m_GameOptions.tempDir,
                           assetsElem->FirstChildElement("TempDir"));
@@ -1583,6 +1586,8 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 #if defined(__3DS__)
           // 3DS: little memory; the port's own files are read when needed
           8,
+#elif defined(__PSL1GHT__)
+          24,
 #else
           50,
 #endif
