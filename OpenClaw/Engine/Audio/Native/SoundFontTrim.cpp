@@ -656,7 +656,9 @@ namespace SoundFontTrim
     {
         if (SmallIsValid(fullPath)) return true;
         // 0: not yet, 3: the main thread is making it (MakeSmallNow)
-        for (int waited = 0; (SDL_AtomicGet(&g_UsageState) == 0 || SDL_AtomicGet(&g_UsageState) == 3) && waited < timeoutMs; waited += 100)
+        // (while the main thread is making it - state 3 - as long as it takes:
+        // on the 3DS that is a few minutes)
+        for (int waited = 0; SDL_AtomicGet(&g_UsageState) == 3 || (SDL_AtomicGet(&g_UsageState) == 0 && waited < timeoutMs); waited += 100)
             SDL_Delay(100);
         if (SmallIsValid(fullPath)) return true;
         if (SDL_AtomicGet(&g_UsageState) != 1) return false;
