@@ -234,6 +234,20 @@ namespace Platform
 #elif defined(__3DS__)
         // New 3DS / 2DS XL: 804 MHz and the L2 cache (no effect on old models).
         osSetSpeedupEnable(true);
+        {
+            // Is it really faster? A timed loop of known length (2 cycles a
+            // turn on the ARM11) gives the clock: ~268 MHz or ~804 MHz.
+            bool isNew = false;
+            APT_CheckNew3DS(&isNew);
+            const u32 turns = 20000000;
+            const u64 t0 = svcGetSystemTick();
+            u32 n = turns;
+            __asm__ volatile("1: subs %0, %0, #1\n bne 1b" : "+r"(n) : : "cc");
+            const u64 ticks = svcGetSystemTick() - t0;   // SYSCLOCK_ARM11 ticks (268 MHz)
+            const double mhz = ticks ? 2.0 * turns / ((double)ticks / SYSCLOCK_ARM11) / 1e6 : 0;
+            SDL_Log("3DS: %s, CPU about %.0f MHz (%s)", isNew ? "New 3DS / 2DS XL" : "old 3DS / 2DS", mhz,
+                    mhz > 500 ? "804 MHz mode on" : (isNew ? "804 MHz mode OFF" : "268 MHz, the most an old model has"));
+        }
         // The touch screen is the bottom screen: SecondScreen turns touches
         // into mouse clicks on the menu itself (SDL would map them onto the
         // top screen's coordinates).
