@@ -1522,10 +1522,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   // The game sees 480x288 (1.2x the 400x240 screen, 44% more of the level),
   // shrunk to the screen once per frame; <RenderSize> in config.xml
   // overrides it (400x240 = 1:1, fastest).
-  // Drawn at 75% (port_settings.txt "render_scale=" 50..100 in percent):
-  // the frame is 360x216 at scale 0.75 - the same 480x288 of the level,
-  // ~44% fewer pixels to draw - stretched to the screen. Tiles are 48 px.
-  int renderPct3DS = std::max(50, std::min(100, PortSettings::GetInt("render_scale", 75)));
+  // Full resolution (480x288). port_settings.txt "render_scale=" 50..99
+  // draws smaller (e.g. 75: 360x216 at scale 0.75 - the same view of the
+  // level, fewer pixels - stretched to the screen).
+  int renderPct3DS = std::max(50, std::min(100, PortSettings::GetInt("render_scale", 100)));
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
     gameOptions.renderWidth = 480 * renderPct3DS / 100;
     gameOptions.renderHeight = 288 * renderPct3DS / 100;
