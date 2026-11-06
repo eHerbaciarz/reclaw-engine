@@ -419,6 +419,10 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   return true;
 }
 
+#if defined(__3DS__)
+extern "C" void (*__stdio_exit_handler)(void);
+#endif
+
 void BaseGameApp::Terminate() {
   STARTUP_TRACE("Terminate");
   LOG("Terminating...");
@@ -461,6 +465,12 @@ void BaseGameApp::Terminate() {
   m_ActorXmlPrototypeMap.clear();
 
   SaveGameOptions();
+#if defined(__3DS__)
+  // exit() closes every FILE still open; one of them was on a file system
+  // already shut down (romfs), and closing it crashed the 3DS (Luma3DS dump:
+  // _lseek_r in fclose in exit). The files are closed with the process.
+  __stdio_exit_handler = nullptr;
+#endif
 }
 
 #define STARTUP_TEST(condition, error)                                         \
