@@ -103,7 +103,8 @@ namespace
     {
         v = std::max(0.0f, std::min(1.0f, v));
         // tsf_set_volume divides by the volume; keep it strictly positive.
-        return std::max(0.00001f, v * kSynthHeadroom * kMasterHeadroom);
+        // (music without the mixer headroom: it was too quiet next to the sounds)
+        return std::max(0.00001f, v * kSynthHeadroom);
     }
 
     int ToMixVolume(float v)
