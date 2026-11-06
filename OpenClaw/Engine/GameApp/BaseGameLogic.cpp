@@ -498,8 +498,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 
     m_pPhysics.reset(CreateClawPhysics());
 
-#if defined(__3DS__)
-    // 3DS memory: the menu's images and files (and the decoded pictures they
+#if defined(__3DS__) || defined(__PSL1GHT__)
+    // 3DS, PS3 memory: the menu's images and files (and the decoded pictures they
     // keep) leave the resource caches before the level is built.
     g_pApp->GetResourceMgr()->VFlush();
     TraceLevel("caches flushed");

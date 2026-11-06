@@ -121,7 +121,13 @@ bool SDL2MixerSystem::Initialize()
     }
 
     STARTUP_TRACE("Mix_OpenAudio");
+#if defined(__PSL1GHT__)
+    // PS3: exactly the asked format (the system's own is 8 channels: every
+    // decoded sound would take 4x the memory); SDL converts at the end.
+    if (Mix_OpenAudioDevice(m_Config.frequency, AUDIO_S16SYS, m_Config.outputChannels, m_Config.chunkSize, NULL, 0) != 0)
+#else
     if (Mix_OpenAudio(m_Config.frequency, AUDIO_S16SYS, m_Config.outputChannels, m_Config.chunkSize) != 0)
+#endif
     {
         LOG_ERROR("Mix_OpenAudio failed: " + std::string(Mix_GetError()));
 #if defined(__3DS__)
@@ -146,6 +152,8 @@ bool SDL2MixerSystem::Initialize()
         m_OutputFrequency = m_Config.frequency;
         m_OutputChannels = m_Config.outputChannels;
     }
+    STARTUP_TRACE("audio out: " + std::to_string(m_OutputFrequency) + " Hz, " + std::to_string(m_OutputChannels) +
+                  " channels, format 0x" + [](unsigned f) { char b[8]; snprintf(b, sizeof(b), "%x", f); return std::string(b); }(format));
 
     // At least 64: 17 are reserved (ambient group + music), effects need the rest.
     Mix_AllocateChannels(std::max(m_Config.mixingChannels, 64));

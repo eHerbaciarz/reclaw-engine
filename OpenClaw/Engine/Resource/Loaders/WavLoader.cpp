@@ -1,3 +1,5 @@
+#include <cstring>
+#include "../../Util/StartupTrace.h"
 #include "WavLoader.h"
 
 #include "../../GameApp/BaseGameApp.h"
@@ -37,6 +39,32 @@ void WavResourceExtraData::LoadWavSound(char* rawBuffer, uint32 size)
     if (pChunk == NULL)
     {
         LOG_ERROR("Mix_LoadWAV_RW failed: " + std::string(Mix_GetError()));
+#ifdef OPENCLAW_STARTUP_TRACE
+        {
+            // What kind of WAV it is (format tag, channels, rate, bits).
+            std::string info = "sound failed (" + std::to_string(size) + " bytes";
+            const unsigned char* b = (const unsigned char*)rawBuffer;
+            for (uint32 i = 12; i + 24 <= size; ++i)
+            {
+                if (memcmp(b + i, "fmt ", 4) == 0)
+                {
+                    auto u16 = [&](uint32 o) { return (unsigned)(b[o] | (b[o + 1] << 8)); };
+                    auto u32 = [&](uint32 o) { return (unsigned)(b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | ((unsigned)b[o + 3] << 24)); };
+                    info += ", fmt size " + std::to_string(u32(i + 4)) + ", tag " + std::to_string(u16(i + 8)) +
+                            ", ch " + std::to_string(u16(i + 10)) + ", rate " + std::to_string(u32(i + 12)) +
+                            ", bits " + std::to_string(u16(i + 22));
+                    break;
+                }
+            }
+            for (uint32 i = 12; i + 8 <= size; ++i)
+                if (memcmp(b + i, "data", 4) == 0)
+                {
+                    info += ", data " + std::to_string((unsigned)(b[i + 4] | (b[i + 5] << 8) | (b[i + 6] << 16) | ((unsigned)b[i + 7] << 24)));
+                    break;
+                }
+            STARTUP_TRACE(info + ")");
+        }
+#endif
         _sound = nullptr;
         return;
     }

@@ -363,8 +363,12 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // Menu and UI assets load first, level assets load on-demand
   LOG("Loading critical assets (menu/UI)...");
   ShowStartupProgress(m_pRenderer, 40);
+#if !defined(__PSL1GHT__)
+  // (PS3: the menu's pictures load when shown - all of them up front took
+  // ~57 MB, and the level then ran out of memory)
   STARTUP_TRACE("preload " "/STATES/MENU/*");
   m_pResourceMgr->VPreload("/STATES/MENU/*", NULL, ORIGINAL_RESOURCE);
+#endif
   ShowStartupProgress(m_pRenderer, 85);
   STARTUP_TRACE("preload " "/GAME/FONTS/*");
   m_pResourceMgr->VPreload("/GAME/FONTS/*", NULL, ORIGINAL_RESOURCE);
