@@ -8,6 +8,51 @@
 
 #include <cmath>
 #include <map>
+#include <cstring>
+
+#ifdef __PSL1GHT__
+#include "Ps3Pad.h"
+
+namespace Ps3Pad
+{
+    namespace
+    {
+        bool g_Init = false;
+        padData g_Last[MAX_PORT_NUM];
+        bool g_Have[MAX_PORT_NUM] = {};
+        Uint32 g_ReadAt = 0;
+        padInfo g_Info;
+        bool g_InfoOk = false;
+    }
+
+    bool State(int port, padData& out)
+    {
+        if (port < 0 || port >= MAX_PORT_NUM) return false;
+        if (!g_Init)
+        {
+            ioPadInit(7);
+            g_Init = true;
+            memset(g_Last, 0, sizeof(g_Last));
+        }
+        // Read at most once per millisecond tick: both readers see the same data.
+        const Uint32 now = SDL_GetTicks();
+        if (now != g_ReadAt || !g_InfoOk)
+        {
+            g_ReadAt = now;
+            g_InfoOk = ioPadGetInfo(&g_Info) == 0;
+            for (int i = 0; g_InfoOk && i < MAX_PORT_NUM; ++i)
+            {
+                if (!g_Info.status[i]) { g_Have[i] = false; continue; }
+                padData d;
+                if (ioPadGetData(i, &d) == 0 && d.len > 0) { g_Last[i] = d; g_Have[i] = true; }
+            }
+        }
+        if (!g_InfoOk || !g_Info.status[port] || !g_Have[port]) return false;
+        out = g_Last[port];
+        return true;
+    }
+}
+#endif
 
 namespace
 {
@@ -198,6 +243,10 @@ namespace SdlGamepadInput
 {
     void Initialize()
     {
+#ifdef __PSL1GHT__
+        // PS3: the pads are read directly (PollDirect), not through SDL.
+        return;
+#endif
         if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0)
         {
             if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) != 0)
@@ -250,6 +299,10 @@ namespace SdlGamepadInput
 
     bool HasController()
     {
+#ifdef __PSL1GHT__
+        padData d;
+        return Ps3Pad::State(0, d);
+#endif
         return !g_Controllers.empty();
     }
 
@@ -396,6 +449,103 @@ namespace SdlGamepadInput
                 return false;
         }
     }
+
+#ifdef __PSL1GHT__
+    void PollDirect(void (*emit)(const AppEvent &, void *), void *ctx)
+    {
+        struct Port { unsigned buttons = 0; float x = 0, y = 0; bool l2 = false, r2 = false; };
+        static Port s_Ports[2];
+        static std::map<std::pair<int, int>, GamepadButton> s_Pressed;
+        OpenController c;   // PlayStation pads: positional (cross = A)
+        for (int port = 0; port < 2; ++port)
+        {
+            padData d;
+            if (!Ps3Pad::State(port, d)) continue;
+            Port &p = s_Ports[port];
+            const struct { unsigned bit; int sdl; } kButtons[] = {
+                { (unsigned)d.BTN_CROSS, SDL_CONTROLLER_BUTTON_A },
+                { (unsigned)d.BTN_CIRCLE, SDL_CONTROLLER_BUTTON_B },
+                { (unsigned)d.BTN_SQUARE, SDL_CONTROLLER_BUTTON_X },
+                { (unsigned)d.BTN_TRIANGLE, SDL_CONTROLLER_BUTTON_Y },
+                { (unsigned)d.BTN_L1, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
+                { (unsigned)d.BTN_R1, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+                { (unsigned)d.BTN_SELECT, SDL_CONTROLLER_BUTTON_BACK },
+                { (unsigned)d.BTN_START, SDL_CONTROLLER_BUTTON_START },
+                { (unsigned)d.BTN_L3, SDL_CONTROLLER_BUTTON_LEFTSTICK },
+                { (unsigned)d.BTN_R3, SDL_CONTROLLER_BUTTON_RIGHTSTICK },
+                { (unsigned)d.BTN_UP, SDL_CONTROLLER_BUTTON_DPAD_UP },
+                { (unsigned)d.BTN_DOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
+                { (unsigned)d.BTN_LEFT, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
+                { (unsigned)d.BTN_RIGHT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
+            };
+            c.playerIndex = port;
+            unsigned now = 0;
+            for (int i = 0; i < (int)(sizeof(kButtons) / sizeof(kButtons[0])); ++i)
+            {
+                if (kButtons[i].bit) now |= 1u << i;
+                const bool was = (p.buttons >> i) & 1u, is = kButtons[i].bit != 0;
+                if (was == is) continue;
+                const auto key = std::make_pair(port, kButtons[i].sdl);
+                GamepadButton button;
+                if (is)
+                {
+                    if (!MapButton(c, kButtons[i].sdl, IsMenuContext(), button)) continue;
+                    s_Pressed[key] = button;
+                    MarkGamepadActive(-(port + 2));
+                }
+                else
+                {
+                    auto it = s_Pressed.find(key);
+                    if (it == s_Pressed.end()) continue;
+                    button = it->second;
+                    s_Pressed.erase(it);
+                }
+                AppEvent e;
+                e.type = is ? AppEventType::GamepadButtonDown : AppEventType::GamepadButtonUp;
+                e.gamepadButton.gamepadIndex = port;
+                e.gamepadButton.button = button;
+                e.gamepadButton.value = is ? 1.0f : 0.0f;
+                emit(e, ctx);
+            }
+            p.buttons = now;
+
+            const bool triggers[2] = { d.BTN_L2 != 0, d.BTN_R2 != 0 };
+            bool *states[2] = { &p.l2, &p.r2 };
+            for (int t = 0; t < 2; ++t)
+            {
+                if (triggers[t] == *states[t]) continue;
+                *states[t] = triggers[t];
+                if (triggers[t]) MarkGamepadActive(-(port + 2));
+                AppEvent e;
+                e.type = triggers[t] ? AppEventType::GamepadButtonDown : AppEventType::GamepadButtonUp;
+                e.gamepadButton.gamepadIndex = port;
+                e.gamepadButton.button = t == 0 ? GamepadButton::LeftTrigger : GamepadButton::RightTrigger;
+                e.gamepadButton.value = triggers[t] ? 1.0f : 0.0f;
+                emit(e, ctx);
+            }
+
+            // Left stick (0..255, 128 in the middle).
+            float x = ((int)d.ANA_L_H - 128) / 127.0f, y = ((int)d.ANA_L_V - 128) / 127.0f;
+            x = std::max(-1.0f, std::min(1.0f, x));
+            y = std::max(-1.0f, std::min(1.0f, y));
+            ApplyDeadzone(x, y);
+            const float values[2] = { x, y };
+            float *prev[2] = { &p.x, &p.y };
+            for (int a = 0; a < 2; ++a)
+            {
+                if (values[a] == *prev[a]) continue;
+                *prev[a] = values[a];
+                if (values[a] > 0.2f || values[a] < -0.2f) MarkGamepadActive(-(port + 2));
+                AppEvent e;
+                e.type = AppEventType::GamepadAxis;
+                e.gamepadAxis.gamepadIndex = port;
+                e.gamepadAxis.axis = a == 0 ? GamepadAxis::LeftStickX : GamepadAxis::LeftStickY;
+                e.gamepadAxis.value = values[a];
+                emit(e, ctx);
+            }
+        }
+    }
+#endif
 
     void Rumble(int durationMs, float weakMagnitude, float strongMagnitude)
     {

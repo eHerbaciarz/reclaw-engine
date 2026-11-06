@@ -37,6 +37,11 @@ namespace SdlGamepadInput
     // Rumble on the most recently used controller.
     void Rumble(int durationMs, float weakMagnitude, float strongMagnitude);
 
+#ifdef __PSL1GHT__
+    // PS3: the pads' changes as AppEvents (once per frame, from the event loop).
+    void PollDirect(void (*emit)(const AppEvent &, void *), void *ctx);
+#endif
+
     // True once any controller has been opened.
     bool HasController();
 }

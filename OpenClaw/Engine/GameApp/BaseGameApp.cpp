@@ -658,6 +658,13 @@ void BaseGameApp::StepLoop() {
       OnEvent(event);
     }
 #endif
+#ifdef __PSL1GHT__
+    // PS3: the pads straight from ioPad.
+    SdlGamepadInput::PollDirect([](const AppEvent &e, void *self) {
+      if (e.type == AppEventType::GamepadButtonDown) TouchPad::OnControllerUsed();
+      static_cast<BaseGameApp *>(self)->OnAppEvent(e);
+    }, this);
+#endif
 
     // Handle all touch events
     if (m_pTouchManager) {
