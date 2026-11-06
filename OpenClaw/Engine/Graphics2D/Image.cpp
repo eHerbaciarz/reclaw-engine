@@ -27,10 +27,56 @@ Image::Image(SDL_Texture* pSDLTexture)
 
 Image::~Image()
 {
+    if (m_pMirrored) {
+        SDL_DestroyTexture(m_pMirrored);
+        m_pMirrored = NULL;
+    }
     if (m_pTexture) {
         SDL_DestroyTexture(m_pTexture);
         m_pTexture = NULL;
     }
+}
+
+SDL_Texture* Image::GetMirroredTexture(SDL_Renderer* pRenderer)
+{
+    if (m_pMirrored || !m_pTexture || !pRenderer) return m_pMirrored;
+    Uint32 format = 0;
+    int w = 0, h = 0;
+    if (SDL_QueryTexture(m_pTexture, &format, NULL, &w, &h) != 0 || w <= 0 || h <= 0) return NULL;
+    SDL_Texture* mirrored = SDL_CreateTexture(pRenderer, format, SDL_TEXTUREACCESS_TARGET, w, h);
+    if (!mirrored) return NULL;
+
+    SDL_BlendMode blend = SDL_BLENDMODE_BLEND;
+    Uint8 alpha = 255, r = 255, g = 255, b = 255;
+    SDL_GetTextureBlendMode(m_pTexture, &blend);
+    SDL_GetTextureAlphaMod(m_pTexture, &alpha);
+    SDL_GetTextureColorMod(m_pTexture, &r, &g, &b);
+    SDL_Texture* previous = SDL_GetRenderTarget(pRenderer);
+    SDL_Rect viewport, clip;
+    SDL_RenderGetViewport(pRenderer, &viewport);
+    const SDL_bool clipped = SDL_RenderIsClipEnabled(pRenderer);
+    SDL_RenderGetClipRect(pRenderer, &clip);
+    float scaleX = 1.0f, scaleY = 1.0f;
+    SDL_RenderGetScale(pRenderer, &scaleX, &scaleY);
+
+    // the pixels as they are (alpha included), mirrored, into the new texture
+    SDL_SetRenderTarget(pRenderer, mirrored);
+    SDL_SetTextureBlendMode(m_pTexture, SDL_BLENDMODE_NONE);
+    SDL_SetTextureAlphaMod(m_pTexture, 255);
+    SDL_SetTextureColorMod(m_pTexture, 255, 255, 255);
+    SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
+    SDL_RenderCopyEx(pRenderer, m_pTexture, NULL, NULL, 0, NULL, SDL_FLIP_HORIZONTAL);
+    SDL_SetRenderTarget(pRenderer, previous);
+    SDL_RenderSetScale(pRenderer, scaleX, scaleY);
+    SDL_RenderSetViewport(pRenderer, &viewport);
+    SDL_RenderSetClipRect(pRenderer, clipped ? &clip : NULL);
+
+    SDL_SetTextureBlendMode(m_pTexture, blend);
+    SDL_SetTextureAlphaMod(m_pTexture, alpha);
+    SDL_SetTextureColorMod(m_pTexture, r, g, b);
+    SDL_SetTextureBlendMode(mirrored, blend);
+    m_pMirrored = mirrored;
+    return m_pMirrored;
 }
 
 SDL_Rect Image::GetPositonRect(int32_t x, int32_t y)

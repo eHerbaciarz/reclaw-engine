@@ -73,6 +73,33 @@ void SDL2HUDSceneNode::VRender(Scene* pScene)
     };
 
     SDL_Renderer* renderer = pScene->GetRenderer();
+#if defined(__3DS__) || defined(__PSL1GHT__)
+    // SDL's software renderer: SDL_RenderCopyEx makes and rotates a temporary
+    // copy of the picture on every call, even unflipped. A plain copy, of the
+    // mirrored picture (made once) when mirrored.
+    if (!hrc->IsInverted())
+    {
+        SDL_Texture* tex = actorImage->GetTexture();
+        if (hrc->IsMirrored())
+        {
+            if (SDL_Texture* m = actorImage->GetMirroredTexture(renderer))
+            {
+                Uint8 a = 255, cr = 255, cg = 255, cb = 255;
+                SDL_GetTextureAlphaMod(tex, &a);
+                SDL_GetTextureColorMod(tex, &cr, &cg, &cb);
+                SDL_SetTextureAlphaMod(m, a);
+                SDL_SetTextureColorMod(m, cr, cg, cb);
+                tex = m;
+            }
+            else tex = NULL;
+        }
+        if (tex)
+        {
+            SDL_RenderCopy(renderer, tex, NULL, &renderRect);
+            return;
+        }
+    }
+#endif
     SDL_RenderCopyEx(renderer, actorImage->GetTexture(), NULL, &renderRect, 0, NULL,
         hrc->IsMirrored() ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 }

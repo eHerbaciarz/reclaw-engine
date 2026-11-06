@@ -35,11 +35,17 @@ public:
 
     SDL_Rect GetPositonRect(int32_t x, int32_t y);
 
+    // The picture mirrored left-right, made once on first use. With SDL's
+    // software renderer (3DS, PS3) a flipped SDL_RenderCopyEx builds and
+    // rotates a temporary copy on every call; this is a plain copy.
+    SDL_Texture* GetMirroredTexture(SDL_Renderer* pRenderer);
+
 private:
     bool Initialize(WapPid* pid, SDL_Renderer* renderer);
     bool Initialize(SDL_Texture* pTexture);
 
     SDL_Texture* m_pTexture;
+    SDL_Texture* m_pMirrored = nullptr;
     int m_Width;
     int m_Height;
     int m_OffsetX;
