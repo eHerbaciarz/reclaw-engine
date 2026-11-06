@@ -6,6 +6,7 @@
 
 #include "../GameApp/BaseGameApp.h"
 #include "../Resource/ResourceCache.h"
+#include "../Resource/ResourceMgr.h"
 
 #include "../Platform/Platform.h"
 
@@ -124,9 +125,27 @@ namespace Lang
             return;
         }
 
-        // TODO: fingerprint of the Polish / English REZ (rez_lang_probe.py
-        // results from MK). Until then the Polish release is assumed.
+        // "auto": the release of the game data. The folder (data/pl/,
+        // data/en/) says it; otherwise the menu picture "DIFFICULTY" does
+        // (Polish "POZIOM TRUDNOSCI" is 363 px wide, English 220).
+        const std::string rez = g_pApp ? g_pApp->GetGameConfig()->rezArchive : std::string();
+        std::string lower = rez;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        if (lower.find("/pl/") != std::string::npos) { g_Language = Polish; LOG("Language: Polish (data/pl)"); return; }
+        if (lower.find("/en/") != std::string::npos) { g_Language = English; LOG("Language: English (data/en)"); return; }
+        if (g_pApp && g_pApp->GetResourceMgr())
+        {
+            Resource res("/STATES/MENU/IMAGES/MAIN/OPTIONS/003_DIFFICULTY.PCX");
+            shared_ptr<ResourceHandle> h = g_pApp->GetResourceMgr()->VGetHandle(&res);
+            if (h && h->GetDataBuffer() && h->GetSize() > 12)
+            {
+                const unsigned char* d = (const unsigned char*)h->GetDataBuffer();
+                int w = (d[8] | (d[9] << 8)) - (d[4] | (d[5] << 8)) + 1;   // PCX header, little-endian
+                if (w == 220) { g_Language = English; LOG_WARNING("Language: English (menu pictures of the English release)"); return; }
+                if (w == 363) { g_Language = Polish; LOG_WARNING("Language: Polish (menu pictures of the Polish release)"); return; }
+            }
+        }
         g_Language = Polish;
-        LOG("Language: Polish (default, REZ not identified yet)");
+        LOG_WARNING("Language: Polish (default, release not identified)");
     }
 }

@@ -2180,6 +2180,31 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
                 }
             }
         }
+        else if (fontText && m_Images.empty())
+        {
+            // The game's letters could not be made (an unknown release of
+            // the game): the text in an ordinary font, so the menu still works.
+            static TTF_Font* s_pFallback = TTF_OpenFont(Platform::BundlePath("subtitles.ttf").c_str(), 30);
+            if (!s_pFallback) s_pFallback = TTF_OpenFont(Platform::SplashFont().c_str(), 30);
+            const std::pair<MenuItemState, SDL_Color> looks[] = {
+                { MenuItemState_Inactive, SDL_Color{ 230, 190, 90, 255 } },
+                { MenuItemState_Active, SDL_Color{ 255, 255, 255, 255 } },
+                { MenuItemState_Disabled, SDL_Color{ 120, 110, 90, 255 } },
+            };
+            for (const auto& l : looks)
+            {
+                if (!s_pFallback) break;
+                if (SDL_Surface* surface = TTF_RenderUTF8_Blended(s_pFallback, fontText, l.second))
+                {
+                    if (SDL_Texture* texture = SDL_CreateTextureFromSurface(g_pApp->GetRenderer(), surface))
+                    {
+                        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+                        m_Images[l.first] = shared_ptr<Image>(new Image(texture));
+                    }
+                    SDL_FreeSurface(surface);
+                }
+            }
+        }
     }
 
     // <GameFontCredits />: the credits screen in the game's menu letters.

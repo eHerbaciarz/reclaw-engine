@@ -13,6 +13,14 @@
 
 // TinySoundFont reads Ogg-compressed SF3 samples through stb_vorbis when the
 // stb_vorbis declarations are visible before tsf.h is compiled.
+// stb_vorbis has its own uint32/int32 typedefs; SharedDefines.h has others
+// (uint32_t is "unsigned long" on the 3DS), so stb_vorbis gets its own names.
+#define uint8 stbv_uint8
+#define int8 stbv_int8
+#define uint16 stbv_uint16
+#define int16 stbv_int16
+#define uint32 stbv_uint32
+#define int32 stbv_int32
 #define STB_VORBIS_HEADER_ONLY
 #include "../../../../ThirdParty/TinySoundFont/stb_vorbis.c"
 #define TSF_IMPLEMENTATION
@@ -21,6 +29,12 @@
 #include "../../../../ThirdParty/TinySoundFont/tml.h"
 #undef STB_VORBIS_HEADER_ONLY
 #include "../../../../ThirdParty/TinySoundFont/stb_vorbis.c"
+#undef uint8
+#undef int8
+#undef uint16
+#undef int16
+#undef uint32
+#undef int32
 
 namespace
 {
