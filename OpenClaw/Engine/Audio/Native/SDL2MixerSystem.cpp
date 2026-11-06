@@ -6,6 +6,7 @@
 #include "../../Logger/Logger.h"
 #include "../../Util/StartupTrace.h"
 #include "../../Platform/Platform.h"
+#include "SoundFontTrim.h"
 
 #include <algorithm>
 #include <cstring>
@@ -23,6 +24,13 @@
 #define int32 stbv_int32
 #define STB_VORBIS_HEADER_ONLY
 #include "../../../../ThirdParty/TinySoundFont/stb_vorbis.c"
+#if defined(__PSL1GHT__) || defined(__3DS__)
+// Little memory: the music uses a soundfont trimmed to the game's
+// instruments (SoundFontTrim), with its samples kept in 16 bits.
+// TODO: the other platforms too, once tested on these two.
+#define RECLAW_SMALL_SOUNDFONT 1
+#define TSF_SAMPLES_INT16
+#endif
 #define TSF_IMPLEMENTATION
 #include "../../../../ThirdParty/TinySoundFont/tsf.h"
 #define TML_IMPLEMENTATION
@@ -148,6 +156,9 @@ bool SDL2MixerSystem::Initialize()
     Mix_GroupChannels(0, kAmbientReservedChannels - 1, kAmbientGroupTag);
 
     m_pSynthMutex = SDL_CreateMutex();
+#ifdef RECLAW_SMALL_SOUNDFONT
+    SoundFontTrim::SetFullPaths(m_Config.soundFontPaths);
+#endif
 
     // Decoding the SF3 soundfont (Ogg samples) takes a while on handheld CPUs,
     // so it happens in the background; music requested earlier starts as soon
@@ -175,21 +186,35 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
 
     tsf *pFont = nullptr;
     std::string usedPath;
-#if defined(__3DS__)
-    // The 3DS has too little memory for the soundfont (TinySoundFont decodes
-    // all its samples into RAM: tens of MB); trying crashed the game.
-    // No level music on the 3DS for now.
-    self->m_Config.soundFontPaths.clear();
-    LOG_WARNING("3DS: level music (soundfont) disabled - not enough memory");
-#endif
 #if defined(__PSL1GHT__)
     // PS3: wait until the menu is loaded, so the memory check below sees
     // what the game itself needs (both at once ran out of memory).
     for (int i = 0; i < 300 && (!g_pApp || !g_pApp->GetGameLogic()); ++i) SDL_Delay(100);
     SDL_Delay(3000);
 #endif
+    std::vector<std::string> paths = self->m_Config.soundFontPaths;
+#ifdef RECLAW_SMALL_SOUNDFONT
+    // The small soundfont (made at the first start from the full one) instead.
+    {
+        std::vector<std::string> small;
+        for (const std::string &path : paths)
+        {
+            SDL_RWops *rw = SDL_RWFromFile(path.c_str(), "rb");
+            if (!rw) continue;
+            SDL_RWclose(rw);
+            STARTUP_TRACE("soundfont: small soundfont of " + path);
+            if (SoundFontTrim::MakeSmall(path, 120000)) small.push_back(SoundFontTrim::SmallPath(path));
+            break;
+        }
+#if defined(__3DS__)
+        paths = small;   // the full one does not fit the 3DS at all
+#else
+        paths.insert(paths.begin(), small.begin(), small.end());
+#endif
+    }
+#endif
     std::vector<Sint64> failedSizes;   // the same file under another path: not again
-    for (const std::string &path : self->m_Config.soundFontPaths)
+    for (const std::string &path : paths)
     {
         // Read through SDL_RWops so platform-specific paths (e.g. Switch romfs:/)
         // work the same as regular files.
@@ -199,16 +224,9 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
             continue;
         }
         Sint64 size = SDL_RWsize(rw);
-        if (std::find(failedSizes.begin(), failedSizes.end(), size) != failedSizes.end())
+        if (size <= 0 || std::find(failedSizes.begin(), failedSizes.end(), size) != failedSizes.end())
         {
             SDL_RWclose(rw);
-            continue;
-        }
-        std::vector<char> bytes(size > 0 ? (size_t)size : 0);
-        size_t read = bytes.empty() ? 0 : SDL_RWread(rw, bytes.data(), 1, bytes.size());
-        SDL_RWclose(rw);
-        if (read != bytes.size() || bytes.empty())
-        {
             continue;
         }
 
@@ -218,9 +236,14 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
         {
             long freeKB = Platform::FreeMemoryKB();
             bool sf3 = path.size() > 4 && (path.compare(path.size() - 4, 4, ".sf3") == 0 || path.compare(path.size() - 4, 4, ".SF3") == 0);
+#ifdef TSF_SAMPLES_INT16
+            long needKB = (long)(size / 1024) * (sf3 ? 8 : 1) + (sf3 ? 8 : 2) * 1024;
+#else
             long needKB = (long)(size / 1024) * (sf3 ? 16 : 3) + 8 * 1024;
+#endif
             if (freeKB >= 0 && freeKB < needKB)
             {
+                SDL_RWclose(rw);
                 LOG_WARNING("Soundfont " + path + " needs about " + std::to_string(needKB / 1024) + " MB, only " +
                             std::to_string(freeKB / 1024) + " MB free - skipped (a smaller .sf2 soundfont would fit)");
                 failedSizes.push_back(size);
@@ -228,7 +251,16 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
             }
         }
         STARTUP_TRACE("soundfont: read " + path + " (" + std::to_string((long long)size / 1024) + " KB), parsing");
-        pFont = tsf_load_memory(bytes.data(), (int)bytes.size());
+        {
+            // Read straight from the file: no second copy of it in memory.
+            struct tsf_stream stream = {
+                rw,
+                [](void *data, void *ptr, unsigned int n) -> int { return (int)SDL_RWread((SDL_RWops *)data, ptr, 1, n); },
+                [](void *data, unsigned int n) -> int { return SDL_RWseek((SDL_RWops *)data, n, RW_SEEK_CUR) >= 0 ? 1 : 0; },
+            };
+            pFont = tsf_load(&stream);
+            SDL_RWclose(rw);
+        }
         STARTUP_TRACE(pFont ? "soundfont: parsed" : "soundfont: parse failed");
         if (pFont)
         {

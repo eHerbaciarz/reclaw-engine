@@ -29,6 +29,16 @@ Pomysły i poprawki odłożone na później – do decyzji MK.
 - Paczki `reclaw.vpk` / `reclaw.3dsx` do testów – zbudować dopiero na
   sygnał MK (po kolejnych poprawkach).
 
+- **Mały soundfont i próbki 16-bitowe (6.11, na razie tylko PS3 i 3DS).**
+  Przy pierwszym uruchomieniu gra czyta muzykę z REZ (wszystkie .XMI),
+  zapisuje, których instrumentów i nut używa, i robi z `music/soundfont.sf3`
+  mały `music/soundfont_small.sf2` (próbki dekodowane po jednej,
+  `Audio/Native/SoundFontTrim.cpp`). TinySoundFont trzyma próbki w 16 bitach
+  (`TSF_SAMPLES_INT16`) zamiast w floatach. Gdy sprawdzi się na PS3 i 3DS –
+  włączyć też na pozostałych (Vita, Switch, PS4, PortMaster…): wystarczy
+  dopisać platformę w `RECLAW_SMALL_SOUNDFONT` (SDL2MixerSystem.cpp)
+  i przy `SoundFontTrim::CollectUsage()` (BaseGameApp.cpp).
+
 ## Android
 
 - APK do zbudowania przez GitHub Actions (`.github/workflows/ports.yml`, zadanie

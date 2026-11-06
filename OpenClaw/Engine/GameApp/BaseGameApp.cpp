@@ -47,6 +47,9 @@ static std::string ResolveBundledFile(const std::string& path)
 
 
 #include "BaseGameApp.h"
+#if !defined(__EMSCRIPTEN__)
+#include "../Audio/Native/SoundFontTrim.h"
+#endif
 #include "../Util/PortSettings.h"
 #include "../Util/StartupTrace.h"
 
@@ -1648,6 +1651,11 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 
   // Language of the port's own texts follows the REZ (or the config).
   Lang::Detect(gameOptions.language);
+
+#if (defined(__PSL1GHT__) || defined(__3DS__)) && !defined(__EMSCRIPTEN__)
+  // First start: which instruments the game's music uses (for the small soundfont).
+  SoundFontTrim::CollectUsage();
+#endif
 
   LOG("Resource cache successfully initialized");
 
