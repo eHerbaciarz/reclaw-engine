@@ -12,7 +12,8 @@ namespace
     float g_Slider = 0.0f;
     bool g_3DOn = false;
     // Largest move at full slider, in pixels (the top screen is 400 wide).
-    const float kMaxShift = 6.0f;
+    // (6 was hardly visible; 14 at full slider)
+    const float kMaxShift = 14.0f;
 }
 
 namespace Stereo3D

@@ -44,7 +44,7 @@
 #undef uint32
 #undef int32
 
-#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+#if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
 namespace { void PostMixDiag(void *userData, Uint8 *stream, int len); }
 #endif
 namespace
@@ -54,8 +54,8 @@ namespace
     // Headroom for the synth so dense passages do not clip against effects.
     // Applied through tsf_set_volume (which overrides tsf_set_output's gain).
     const float kSynthHeadroom = 0.25f; // about -12 dB
-#if defined(__PSL1GHT__)
-    // PS3: everything quieter (-6 dB): many sounds at once
+#if defined(__PSL1GHT__) || defined(__3DS__)
+    // PS3, 3DS: everything quieter (-6 dB): many sounds at once
     // summed past the maximum and crackled (clipped samples in the log).
     const float kMasterHeadroom = 0.5f;
 #else
@@ -174,7 +174,7 @@ bool SDL2MixerSystem::Initialize()
     Mix_GroupChannels(0, kAmbientReservedChannels - 1, kAmbientGroupTag);
 
     m_pSynthMutex = SDL_CreateMutex();
-#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+#if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
     Mix_SetPostMix(PostMixDiag, this);
 #endif
 #ifdef RECLAW_SMALL_SOUNDFONT
@@ -693,7 +693,7 @@ void SDL2MixerSystem::ResetSynthChannels()
     tsf_set_volume(m_pSoundFont, ToSynthVolume(m_MusicEnabled ? m_MusicVolume : 0.0f));
 }
 
-#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+#if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
 namespace
 {
     // PS3 sound diagnostics (every ~5 s): clipped samples after mixing, late
@@ -740,10 +740,10 @@ namespace
 
 void SDL2MixerSystem::MusicHook(void *userData, Uint8 *stream, int len)
 {
-#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+#if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
     g_MixStart = SDL_GetPerformanceCounter();
 #endif
-#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+#if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
     // PS3: is the music still running (log every ~10 s)?
     static Uint32 s_Last = 0;
     static unsigned s_Calls = 0;
