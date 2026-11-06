@@ -1,3 +1,4 @@
+#include "../Util/StartupTrace.h"
 #include "TitleScroll.h"
 
 #ifndef __EMSCRIPTEN__
@@ -177,14 +178,19 @@ namespace
 
         // The rolls turn as paper comes off them (opposite directions).
         double turn = kScreenW / 2.0 - edge;
+        static int s_traced = 0;
+        if (s_traced < 1) STARTUP_TRACE("title scroll: map and shadows drawn");
         UpdateRoll(left, paper, turn);
         UpdateRoll(right, paper, -turn);
+        if (s_traced < 1) STARTUP_TRACE("title scroll: rolls updated");
         int lx = edge - kRollD / 2, rx = kScreenW - edge - kRollD / 2;
         SDL_Rect l = { mapX(lx), mapY(-kRollOverhang), mapX(lx + kRollD) - mapX(lx), mapY(kScreenH + kRollOverhang) - mapY(-kRollOverhang) };
         SDL_Rect rr = { mapX(rx), l.y, mapX(rx + kRollD) - mapX(rx), l.h };
         SDL_RenderCopy(r, left.tex, NULL, &l);
         SDL_RenderCopyEx(r, right.tex, NULL, &rr, 0.0, NULL, SDL_FLIP_HORIZONTAL);
+        if (s_traced < 1) STARTUP_TRACE("title scroll: rolls drawn");
         SDL_RenderPresent(r);
+        if (s_traced < 1) { ++s_traced; STARTUP_TRACE("title scroll: presented"); }
     }
 }
 
@@ -194,8 +200,11 @@ namespace TitleScroll
     {
         if (!r || !HasResource(kTitlePath) || !HasResource(kPaperPath)) return;
 
+        STARTUP_TRACE("title scroll: begin");
         shared_ptr<Image> pTitle = PcxResourceLoader::LoadAndReturnImage(kTitlePath);
+        STARTUP_TRACE("title scroll: title picture");
         SDL_Surface* paper = LoadPaperSurface();
+        STARTUP_TRACE("title scroll: paper");
         if (!pTitle || !pTitle->GetTexture() || !paper || paper->w <= 0 || paper->h <= 0)
         {
             if (paper) SDL_FreeSurface(paper);
@@ -213,6 +222,7 @@ namespace TitleScroll
             if (roll->tex) SDL_SetTextureScaleMode(roll->tex, SDL_ScaleModeLinear);
         }
         SDL_SetTextureScaleMode(pTitle->GetTexture(), SDL_ScaleModeLinear);
+        STARTUP_TRACE("title scroll: roll textures");
 
         int outW = 0, outH = 0;
         SDL_GetRendererOutputSize(r, &outW, &outH);
@@ -230,6 +240,7 @@ namespace TitleScroll
             SDL_RenderCopy(r, pTitle->GetTexture(), NULL, NULL);
             SDL_SetRenderTarget(r, NULL);
         }
+        STARTUP_TRACE("title scroll: scaled title");
         else if (scaledTitle)
         {
             SDL_DestroyTexture(scaledTitle);
@@ -248,7 +259,10 @@ namespace TitleScroll
         Uint32 phaseStart = SDL_GetTicks();
         double half = 0;
         Uint32 holdMs = kHoldMs;
+        STARTUP_TRACE("title scroll: unroll sound");
         PlaySound(kUnrollSound);
+        STARTUP_TRACE("title scroll: unroll sound started");
+        int traceFrames = 0;
 
         while (phase != Done && left.tex && right.tex)
         {
@@ -270,7 +284,9 @@ namespace TitleScroll
                         if (phase == Hold)
                         {
                             // Stay open for the title melody, roll up as it ends.
+                            STARTUP_TRACE("title scroll: melody");
                             Uint32 melodyMs = PlaySound(kTitleSound);
+                            STARTUP_TRACE("title scroll: melody started");
                             if (melodyMs > 0)
                                 holdMs = std::max(kMinHoldMs, melodyMs > kRollUpBeforeEndMs ? melodyMs - kRollUpBeforeEndMs : 0);
                         }
@@ -297,7 +313,9 @@ namespace TitleScroll
                     break;
             }
             Uint32 frameStart = SDL_GetTicks();
+            if (traceFrames < 3) STARTUP_TRACE("title scroll: drawing a frame");
             DrawFrame(r, v, scaledTitle, left, right, paper, half);
+            if (traceFrames < 3) { ++traceFrames; STARTUP_TRACE("title scroll: frame drawn"); }
             Uint32 spent = SDL_GetTicks() - frameStart;
             if (spent < 15) SDL_Delay(15 - spent);   // ~60 fps without vsync
         }
@@ -315,6 +333,7 @@ namespace TitleScroll
         SDL_FreeSurface(paper);
         SDL_SetRenderTarget(r, pPrevTarget);
         MoviePlayer::FlushSkipInput();
+        STARTUP_TRACE("title scroll: done");
     }
 }
 
