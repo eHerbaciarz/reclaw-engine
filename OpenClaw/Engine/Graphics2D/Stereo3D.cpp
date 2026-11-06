@@ -28,6 +28,10 @@ namespace Stereo3D
             gfxSet3D(want);
             g_3DOn = want;
         }
+#if defined(RECLAW_3DS_GPU)
+        // the first pass is the right eye (see StoreRightEye)
+        if (want && ReclawGpu_Active()) ReclawGpu_SetEye(1);
+#endif
         return want;
 #else
         (void)inLevel;
@@ -47,6 +51,11 @@ namespace Stereo3D
 
     void StoreRightEye(SDL_Window* pWindow)
     {
+#if defined(RECLAW_3DS_GPU)
+        // the GPU drew the first pass into the right eye's screen; the
+        // second one goes to the left
+        if (ReclawGpu_Active()) { ReclawGpu_SetEye(0); return; }
+#endif
 #ifdef __3DS__
         SDL_Surface* s = pWindow ? SDL_GetWindowSurface(pWindow) : nullptr;
         if (!s || s->format->BytesPerPixel != 4) return;

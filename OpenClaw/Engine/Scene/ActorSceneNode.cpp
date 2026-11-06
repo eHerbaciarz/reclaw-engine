@@ -79,7 +79,7 @@ void SDL2ActorSceneNode::VRender(Scene* pScene)
     SDL_SetTextureColorMod(actorImage->GetTexture(), colorMod.r, colorMod.g, colorMod.b);
 
     SDL_Renderer* renderer = pScene->GetRenderer();
-#if defined(__3DS__) || defined(__PSL1GHT__)
+#if defined(__PSL1GHT__) || (defined(__3DS__) && !defined(RECLAW_3DS_GPU))
     // SDL's software renderer: SDL_RenderCopyEx makes and rotates a temporary
     // copy of the picture on every call, even unflipped. A plain copy, of the
     // mirrored picture (made once) when mirrored.

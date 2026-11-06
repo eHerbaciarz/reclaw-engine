@@ -1526,6 +1526,18 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   // draws smaller (e.g. 75: 360x216 at scale 0.75 - the same view of the
   // level, fewer pixels - stretched to the screen).
   int renderPct3DS = std::max(50, std::min(100, PortSettings::GetInt("render_scale", 100)));
+#if defined(RECLAW_3DS_GPU)
+  if (ReclawGpu_Active()) {
+    // The GPU draws: no frame in memory, the game draws straight onto the
+    // 400x240 screen at scale 400/480 (the same 480x288 of the level; the
+    // GPU scales every picture).
+    gameOptions.renderWidth = 0;
+    gameOptions.renderHeight = 0;
+    gameOptions.scale = 400.0 / 480.0;
+    renderPct3DS = 100;
+    LOG_WARNING("3DS: drawing with the GPU, the level at 480x288 on the 400x240 screen");
+  } else
+#endif
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
     gameOptions.renderWidth = 480 * renderPct3DS / 100;
     gameOptions.renderHeight = 288 * renderPct3DS / 100;
