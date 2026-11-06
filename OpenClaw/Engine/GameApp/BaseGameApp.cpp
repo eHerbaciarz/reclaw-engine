@@ -1522,9 +1522,13 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   // The game sees 480x288 (1.2x the 400x240 screen, 44% more of the level),
   // shrunk to the screen once per frame; <RenderSize> in config.xml
   // overrides it (400x240 = 1:1, fastest).
+  // Half resolution (port_settings.txt "half_res=0" turns it off): the
+  // frame is 240x144 at scale 0.5 - the same 480x288 of the level, a
+  // quarter of the pixels to draw - stretched to the screen.
+  const bool halfRes3DS = PortSettings::GetInt("half_res", 1) != 0;
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
-    gameOptions.renderWidth = 480;
-    gameOptions.renderHeight = 288;
+    gameOptions.renderWidth = halfRes3DS ? 240 : 480;
+    gameOptions.renderHeight = halfRes3DS ? 144 : 288;
   }
   const Uint32 renderTargetFormat = SDL_PIXELFORMAT_ARGB8888;
 #elif defined(__PSL1GHT__)
@@ -1558,6 +1562,12 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     if (m_pRenderTarget && SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget) == 0) {
       // From now on the engine sees a window of RenderSize at scale 1.
       gameOptions.scale = 1.0;
+#if defined(__3DS__)
+      if (halfRes3DS) {
+        gameOptions.scale = 0.5;   // the level at half size
+        Image::SetHalfSizeRenderer(m_pRenderer);
+      }
+#endif
       m_WindowSize.Set(gameOptions.renderWidth, gameOptions.renderHeight);
       LOG_WARNING("Rendering at " + ToStr(gameOptions.renderWidth) + "x" +
                   ToStr(gameOptions.renderHeight) + ", scaled to the window");
@@ -1736,6 +1746,9 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 
 #if (defined(__PSL1GHT__) || defined(__3DS__)) && !defined(__EMSCRIPTEN__)
   // First start: which instruments the game's music uses (for the small soundfont).
+#if defined(__3DS__)
+  if (PortSettings::GetInt("music", 0) != 0)
+#endif
   SoundFontTrim::CollectUsage();
   {
     // First start: the small soundfont made now, with a progress screen

@@ -123,6 +123,13 @@ static void PutPixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
     }
 }
 
+static SDL_Renderer* g_HalfSizeRenderer = NULL;
+
+void Image::SetHalfSizeRenderer(SDL_Renderer* renderer)
+{
+    g_HalfSizeRenderer = renderer;
+}
+
 SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
 {
     assert(pid != NULL);
@@ -146,6 +153,37 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
             if (c.a != 255) opaque = false;
             Uint32* row = (Uint32*)((Uint8*)surface->pixels + (i / width) * surface->pitch);
             row[i % width] = ((Uint32)c.a << 24) | ((Uint32)c.r << 16) | ((Uint32)c.g << 8) | c.b;
+        }
+    }
+    if (renderer == g_HalfSizeRenderer && width >= 2 && height >= 2)
+    {
+        // half size: each pixel the alpha-weighted average of 2x2 (so the
+        // transparent ones do not darken the edges)
+        const int hw = (int)width / 2, hh = (int)height / 2;
+        if (SDL_Surface* half = SDL_CreateRGBSurfaceWithFormat(0, hw, hh, 32, SDL_PIXELFORMAT_ARGB8888))
+        {
+            for (int y = 0; y < hh; ++y)
+            {
+                const Uint32* r0 = (const Uint32*)((const Uint8*)surface->pixels + (2 * y) * surface->pitch);
+                const Uint32* r1 = (const Uint32*)((const Uint8*)surface->pixels + (2 * y + 1) * surface->pitch);
+                Uint32* out = (Uint32*)((Uint8*)half->pixels + y * half->pitch);
+                for (int x = 0; x < hw; ++x)
+                {
+                    const Uint32 p[4] = { r0[2 * x], r0[2 * x + 1], r1[2 * x], r1[2 * x + 1] };
+                    Uint32 a = 0, r = 0, g = 0, b = 0;
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        const Uint32 pa = p[k] >> 24;
+                        a += pa;
+                        r += ((p[k] >> 16) & 0xFF) * pa;
+                        g += ((p[k] >> 8) & 0xFF) * pa;
+                        b += (p[k] & 0xFF) * pa;
+                    }
+                    out[x] = a ? (((a + 2) / 4) << 24) | ((r / a) << 16) | ((g / a) << 8) | (b / a) : 0;
+                }
+            }
+            SDL_FreeSurface(surface);
+            surface = half;
         }
     }
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);

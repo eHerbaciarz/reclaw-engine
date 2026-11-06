@@ -13,6 +13,11 @@ public:
     ~Image();
 
     static SDL_Texture* GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer);
+    // 3DS: the game draws at half resolution (renderer scale 0.5); its
+    // pictures are stored at half size for that renderer, so every copy is
+    // an unscaled one (and takes a quarter of the memory). Their size for
+    // the game (GetWidth/GetHeight) stays the original one.
+    static void SetHalfSizeRenderer(SDL_Renderer* renderer);
     static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer);
     // Pass as colorKey: use the image's top-left pixel as the transparent colour.
     // Menu texts are drawn on a solid background that differs between releases
