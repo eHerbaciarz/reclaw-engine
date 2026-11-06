@@ -40,6 +40,7 @@ namespace
     const u8 kLabel = 200;   // labels 200, 201: transfer of frame 0, 1 done
 
     void Flip(int buffer);
+    void WaitFlip();
     volatile u32* Label(int i) { return (volatile u32*)gcmGetLabelAddress((u8)(kLabel + i)); }
 
     bool InitRsxFrames()
@@ -60,6 +61,10 @@ namespace
 
     void RsxPresent()
     {
+        // As in PSL1GHT's samples: the last flip done before the next is
+        // queued (the display buffer written now is then off the screen).
+        if (!g_FirstFlip) WaitFlip();
+        g_FirstFlip = false;
         const int i = g_MainIdx;
         gcmTransferScale scale;
         SDL_memset(&scale, 0, sizeof(scale));
@@ -98,7 +103,13 @@ namespace
         // Draw the next frame into the other one, once the RSX has read it.
         g_MainIdx ^= 1;
         const int n = g_MainIdx;
-        for (int spins = 0; *Label(n) != g_MainSeq[n] && spins < 200000; ++spins) usleep(50);
+        const Uint32 t0 = SDL_GetTicks();
+        while (*Label(n) != g_MainSeq[n] && SDL_GetTicks() - t0 < 200) usleep(100);
+        static int s_Frames = 0, s_Late = 0;
+        if (*Label(n) != g_MainSeq[n] && s_Late++ < 5)
+            SDL_Log("PS3 screen: frame %d: the RSX has not read frame %d (label %u, want %u)", s_Frames, n,
+                    (unsigned)*Label(n), (unsigned)g_MainSeq[n]);
+        if (++s_Frames % 600 == 0) SDL_Log("PS3 screen: %d frames shown", s_Frames);
         g_Surface->pixels = g_Main[n];
     }
 

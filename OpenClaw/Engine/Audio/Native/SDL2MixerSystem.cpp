@@ -682,6 +682,14 @@ void SDL2MixerSystem::ResetSynthChannels()
 
 void SDL2MixerSystem::MusicHook(void *userData, Uint8 *stream, int len)
 {
+#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+    // PS3: is the music still running (log every ~10 s)?
+    static Uint32 s_Last = 0;
+    static unsigned s_Calls = 0;
+    ++s_Calls;
+    const Uint32 t0 = SDL_GetTicks();
+    if (t0 - s_Last > 10000) { s_Last = t0; SDL_Log("music synth: %u blocks", s_Calls); }
+#endif
     static_cast<SDL2MixerSystem *>(userData)->RenderMidi(stream, len);
 }
 
