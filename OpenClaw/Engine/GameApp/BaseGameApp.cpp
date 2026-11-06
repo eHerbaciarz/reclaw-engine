@@ -1063,8 +1063,9 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
     for (TiXmlElement *fontElem = fontRootElem->FirstChildElement("Font");
          fontElem != NULL; fontElem = fontElem->NextSiblingElement("Font")) {
       if (fontElem->GetText()) {
-        std::string fontPath =
-            m_GameOptions.assetsFolder + std::string(fontElem->GetText());
+        // next to the game or in its bundle (PS3: no working folder)
+        std::string fontPath = ResolveBundledFile(
+            m_GameOptions.assetsFolder + std::string(fontElem->GetText()));
         m_GameOptions.fontNames.push_back(fontPath.c_str());
       }
     }
@@ -1074,7 +1075,7 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
     if (consoleFontElem) {
       consoleFontElem->Attribute("size", (int *)&m_GameOptions.consoleFontSize);
       if (const char *fontName = consoleFontElem->Attribute("font")) {
-        m_GameOptions.consoleFontName = m_GameOptions.assetsFolder + fontName;
+        m_GameOptions.consoleFontName = ResolveBundledFile(m_GameOptions.assetsFolder + fontName);
       }
     }
   }
@@ -1122,11 +1123,11 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
     ParseValueFromXmlElem(&m_GameOptions.consoleConfig.fontPath,
                           pConsoleRootElem->FirstChildElement("FontPath"));
 
-    m_GameOptions.consoleConfig.backgroundImagePath =
+    m_GameOptions.consoleConfig.backgroundImagePath = ResolveBundledFile(
         m_GameOptions.assetsFolder +
-        m_GameOptions.consoleConfig.backgroundImagePath;
-    m_GameOptions.consoleConfig.fontPath =
-        m_GameOptions.assetsFolder + m_GameOptions.consoleConfig.fontPath;
+        m_GameOptions.consoleConfig.backgroundImagePath);
+    m_GameOptions.consoleConfig.fontPath = ResolveBundledFile(
+        m_GameOptions.assetsFolder + m_GameOptions.consoleConfig.fontPath);
   } else {
     LOG_ERROR("Console configuration is missing.");
     return false;

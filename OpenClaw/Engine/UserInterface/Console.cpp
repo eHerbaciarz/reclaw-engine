@@ -1,3 +1,5 @@
+#include "../Logger/Logger.h"
+#include "../Platform/Platform.h"
 #include "Console.h"
 #include <algorithm>
 #include <assert.h>
@@ -345,15 +347,20 @@ Console::Console(const ConsoleConfig* const pConsoleConfig, SDL_Renderer* pRende
     m_ConsosleToggleSpeed = pConsoleConfig->consoleAnimationSpeed;
 
     _font = TTF_OpenFont(pConsoleConfig->fontPath.c_str(), pConsoleConfig->fontHeight);
-    assert(_font != NULL);
+    if (!_font)
+    {
+        // without the console font the game still runs (the console is a tool)
+        LOG_WARNING("Console font " + pConsoleConfig->fontPath + " could not be opened: " + std::string(TTF_GetError()));
+        _font = TTF_OpenFont(Platform::SplashFont().c_str(), pConsoleConfig->fontHeight);
+    }
 
     _backgroundTexture = IMG_LoadTexture(pRenderer, pConsoleConfig->backgroundImagePath.c_str());
 
     _totalHeight = _height + m_LineSeparatorHeight + m_CommandPromptOffsetY;
     _animationOffsetY = _totalHeight;
 
-    int w, h;
-    TTF_SizeText(_font, _commandPrompt.c_str(), &w, &h);
+    int w = 8, h = 16;
+    if (_font) TTF_SizeText(_font, _commandPrompt.c_str(), &w, &h);
     _commandLeftOffset = w + _leftOffset;
     _lineHeight = h;
 }
