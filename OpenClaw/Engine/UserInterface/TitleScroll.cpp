@@ -240,12 +240,12 @@ namespace TitleScroll
             SDL_RenderCopy(r, pTitle->GetTexture(), NULL, NULL);
             SDL_SetRenderTarget(r, NULL);
         }
-        STARTUP_TRACE("title scroll: scaled title");
         else if (scaledTitle)
         {
             SDL_DestroyTexture(scaledTitle);
             scaledTitle = nullptr;
         }
+        STARTUP_TRACE("title scroll: scaled title");
         if (!scaledTitle)
         {
             if (left.tex) SDL_DestroyTexture(left.tex);
