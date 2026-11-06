@@ -1,5 +1,6 @@
 #ifndef __EMSCRIPTEN__
 
+#include "../../GameApp/BaseGameApp.h"
 #include "SDL2MixerSystem.h"
 
 #include "../../Logger/Logger.h"
@@ -167,6 +168,12 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
     self->m_Config.soundFontPaths.clear();
     LOG_WARNING("3DS: level music (soundfont) disabled - not enough memory");
 #endif
+#if defined(__PSL1GHT__)
+    // PS3: wait until the menu is loaded, so the memory check below sees
+    // what the game itself needs (both at once ran out of memory).
+    for (int i = 0; i < 300 && (!g_pApp || !g_pApp->GetGameLogic()); ++i) SDL_Delay(100);
+    SDL_Delay(3000);
+#endif
     std::vector<Sint64> failedSizes;   // the same file under another path: not again
     for (const std::string &path : self->m_Config.soundFontPaths)
     {
@@ -191,6 +198,21 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
             continue;
         }
 
+        // TinySoundFont decodes every sample into RAM as floats: about 16x a
+        // compressed .sf3, 2x an .sf2. Not trying it without the memory
+        // (on the PS3 the attempt ran the whole game out of memory).
+        {
+            long freeKB = Platform::FreeMemoryKB();
+            bool sf3 = path.size() > 4 && (path.compare(path.size() - 4, 4, ".sf3") == 0 || path.compare(path.size() - 4, 4, ".SF3") == 0);
+            long needKB = (long)(size / 1024) * (sf3 ? 16 : 3) + 8 * 1024;
+            if (freeKB >= 0 && freeKB < needKB)
+            {
+                LOG_WARNING("Soundfont " + path + " needs about " + std::to_string(needKB / 1024) + " MB, only " +
+                            std::to_string(freeKB / 1024) + " MB free - skipped (a smaller .sf2 soundfont would fit)");
+                failedSizes.push_back(size);
+                continue;
+            }
+        }
         STARTUP_TRACE("soundfont: read " + path + " (" + std::to_string((long long)size / 1024) + " KB), parsing");
         pFont = tsf_load_memory(bytes.data(), (int)bytes.size());
         STARTUP_TRACE(pFont ? "soundfont: parsed" : "soundfont: parse failed");

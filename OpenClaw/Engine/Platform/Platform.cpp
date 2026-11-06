@@ -1,3 +1,7 @@
+#if defined(__PSL1GHT__)
+#include <ppu-lv2.h>
+#include <malloc.h>
+#endif
 #include "Platform.h"
 #include "../GameApp/ReclawVersion.h"
 #include "../Util/PortSettings.h"
@@ -530,6 +534,18 @@ namespace Platform
         return "xbox";
 #else
         return "pc";
+#endif
+    }
+
+    long FreeMemoryKB()
+    {
+#if defined(__PSL1GHT__)
+        struct { u32 total, available; } info = { 0, 0 };
+        lv2syscall1(352, (u64)&info);   // sys_memory_get_user_memory_size
+        // plus what the heap already holds but is not using
+        return (long)(info.available / 1024) + (long)((mallinfo().fordblks) / 1024);
+#else
+        return -1;
 #endif
     }
 

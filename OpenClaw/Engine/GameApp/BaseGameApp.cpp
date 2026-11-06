@@ -1046,7 +1046,7 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
     m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 16u);
 #elif defined(__PSL1GHT__)
     // PS3: ~200 MB for everything (150 MB of cache left no room for the music)
-    m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 64u);
+    m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 40u);
 #endif
     ParseValueFromXmlElem(&m_GameOptions.tempDir,
                           assetsElem->FirstChildElement("TempDir"));

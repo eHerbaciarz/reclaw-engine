@@ -77,6 +77,9 @@ namespace Platform
     // 3DS bottom screen / Wii U GamePad.
     bool HasSecondScreen();
 
+    // Memory the system can still give the game, in KB (-1: unknown).
+    long FreeMemoryKB();
+
     // Remastered movies (movies/): not on PS Vita and 3DS - too weak to
     // decode them. Those platforms keep the original movies from CLAW.FEC.
     bool SupportsRemasteredMovies();
