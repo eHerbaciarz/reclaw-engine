@@ -1,3 +1,4 @@
+#include <map>
 #include <cstdio>
 #include "../Actor/ActorFactory.h"
 #include "../UserInterface/HumanView.h"
@@ -279,6 +280,8 @@ void BaseGameLogic::VPlayCutscene(const std::string& videoSource)
 Uint64 g_PerfLogicTicks[4] = { 0, 0, 0, 0 };
 Uint64 g_PerfRenderTicks[12] = { 0 };   // render parts (BaseGameApp's perf line)
 int g_PerfTilesDrawn = 0;
+std::map<std::string, int> g_PerfSoundPlays;
+Uint64 g_PerfEventTicks = 0;   // event queue time   // sounds played (BaseGameApp's perf line)
 
 // The level's own 4:3 loading screen from CLAW.REZ (localized: Polish text in
 // the Polish release), drawn over the middle of the widescreen artwork from

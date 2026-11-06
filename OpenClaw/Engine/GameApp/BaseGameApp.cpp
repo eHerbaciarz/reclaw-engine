@@ -693,8 +693,15 @@ void BaseGameApp::StepLoop() {
         s_perfUpdates++;
 #endif
         // PROFILE_CPU("ONLY GAME UPDATE");
+#ifdef OPENCLAW_STARTUP_TRACE
+        extern Uint64 g_PerfEventTicks;
+        const Uint64 perfEv0 = SDL_GetPerformanceCounter();
+#endif
         IEventMgr::Get()->VUpdate(
             20); // Allow event queue to process for up to 20 ms
+#ifdef OPENCLAW_STARTUP_TRACE
+        g_PerfEventTicks += SDL_GetPerformanceCounter() - perfEv0;
+#endif
 
         // Advance the logic-tick counter. Scene nodes stamp this when their
         // position changes, so rendering only interpolates actors that actually
@@ -762,6 +769,21 @@ void BaseGameApp::StepLoop() {
             for (int k = 0; k < 12; ++k) g_PerfRenderTicks[k] = 0;
             g_PerfTilesDrawn = 0;
             STARTUP_TRACE(parts);
+            // the sounds played in these 5 s (most often first)
+            extern std::map<std::string, int> g_PerfSoundPlays;
+            std::vector<std::pair<int, std::string>> plays;
+            int total = 0;
+            for (const auto &sp : g_PerfSoundPlays) { plays.push_back({ sp.second, sp.first }); total += sp.second; }
+            std::sort(plays.rbegin(), plays.rend());
+            extern Uint64 g_PerfEventTicks;
+            char evs[64];
+            snprintf(evs, sizeof(evs), "events %.2f ms/frame; ", g_PerfEventTicks * 1000.0 / perfFreq / std::max(1, s_perfFrames));
+            g_PerfEventTicks = 0;
+            std::string sounds = std::string("perf sounds: ") + evs + std::to_string(total) + " played;";
+            for (size_t k = 0; k < plays.size() && k < 6; ++k)
+              sounds += " " + plays[k].second + " x" + std::to_string(plays[k].first);
+            g_PerfSoundPlays.clear();
+            STARTUP_TRACE(sounds);
           }
           // actor updates per logic step, the slowest component types and actors
           extern int g_PerfActorUpdates;

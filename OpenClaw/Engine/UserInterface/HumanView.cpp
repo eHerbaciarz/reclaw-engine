@@ -1,3 +1,4 @@
+#include <map>
 #include "../Util/StartupTrace.h"
 #include "HumanView.h"
 #include "../Video/Native/MoviePlayer.h"
@@ -1052,6 +1053,10 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
         if (!pSoundInfo->isMusic)
         {
             Subtitles::OnSoundPlayed(pSoundInfo->soundToPlay);
+#ifdef OPENCLAW_STARTUP_TRACE
+            extern std::map<std::string, int> g_PerfSoundPlays;
+            g_PerfSoundPlays[pSoundInfo->soundToPlay]++;
+#endif
         }
 
         if (pSoundInfo->isMusic) // Background music - instrumental
