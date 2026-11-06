@@ -117,6 +117,10 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
                 SDL_Rect tileRect = { x, y, srcRect.w, srcRect.h };
 
                 SDL_RenderCopy(renderer, image->GetTexture(), &srcRect, &tileRect);
+#ifdef OPENCLAW_STARTUP_TRACE
+                extern int g_PerfTilesDrawn;
+                ++g_PerfTilesDrawn;
+#endif
             }
         }
     }

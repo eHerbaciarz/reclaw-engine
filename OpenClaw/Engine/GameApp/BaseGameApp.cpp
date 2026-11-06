@@ -747,6 +747,22 @@ void BaseGameApp::StepLoop() {
                    g_PerfLogicTicks[3] * perUpdate);
           g_PerfLogicTicks[0] = g_PerfLogicTicks[1] = g_PerfLogicTicks[2] = g_PerfLogicTicks[3] = 0;
           STARTUP_TRACE(line);
+          {
+            // where the render time goes (ms per frame)
+            extern Uint64 g_PerfRenderTicks[12];
+            extern int g_PerfTilesDrawn;
+            const double perFrame = 1000.0 / perfFreq / std::max(1, s_perfFrames);
+            char parts[400];
+            snprintf(parts, sizeof(parts), "perf render: clear %.1f, background %.1f, action %.1f, actors %.1f, foreground %.1f,"
+                     " HUD %.1f, other screen parts %.1f, frame copy %.1f, screen (flip) %.1f ms; %d tiles/frame",
+                     g_PerfRenderTicks[0] * perFrame, g_PerfRenderTicks[1] * perFrame, g_PerfRenderTicks[2] * perFrame,
+                     g_PerfRenderTicks[3] * perFrame, g_PerfRenderTicks[4] * perFrame, g_PerfRenderTicks[5] * perFrame,
+                     g_PerfRenderTicks[6] * perFrame, g_PerfRenderTicks[7] * perFrame, g_PerfRenderTicks[8] * perFrame,
+                     g_PerfTilesDrawn / std::max(1, s_perfFrames));
+            for (int k = 0; k < 12; ++k) g_PerfRenderTicks[k] = 0;
+            g_PerfTilesDrawn = 0;
+            STARTUP_TRACE(parts);
+          }
           // actor updates per logic step, the slowest component types and actors
           extern int g_PerfActorUpdates;
           extern int g_PerfSampledSteps;
@@ -1304,10 +1320,24 @@ void BaseGameApp::PresentFrame(bool present) {
   dst.h = (int)(m_GameOptions.renderHeight * fit + 0.5);
   dst.x = (outW - dst.w) / 2;
   dst.y = (outH - dst.h) / 2;
-  SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
-  SDL_RenderClear(m_pRenderer);
+#ifdef OPENCLAW_STARTUP_TRACE
+  extern Uint64 g_PerfRenderTicks[12];
+  const Uint64 pf0 = SDL_GetPerformanceCounter();
+#endif
+  // (the frame covers the whole screen: nothing to clear around it)
+  if (dst.x > 0 || dst.y > 0 || dst.w < outW || dst.h < outH) {
+    SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+    SDL_RenderClear(m_pRenderer);
+  }
   SDL_RenderCopy(m_pRenderer, m_pRenderTarget, NULL, &dst);
+#ifdef OPENCLAW_STARTUP_TRACE
+  const Uint64 pf1 = SDL_GetPerformanceCounter();
+  g_PerfRenderTicks[7] += pf1 - pf0;
+#endif
   if (present) SDL_RenderPresent(m_pRenderer);
+#ifdef OPENCLAW_STARTUP_TRACE
+  g_PerfRenderTicks[8] += SDL_GetPerformanceCounter() - pf1;
+#endif
 
   SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
   SDL_RenderSetScale(m_pRenderer, scaleX, scaleY);
@@ -1464,6 +1494,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     gameOptions.renderHeight = 288;
   }
   const Uint32 renderTargetFormat = SDL_PIXELFORMAT_ARGB8888;
+#elif defined(__PSL1GHT__)
+  // PS3 (software): the frame's own format, so the pictures (ARGB8888) and the
+  // copy of the whole frame to the screen use SDL's fast blits.
+  const Uint32 renderTargetFormat = SDL_PIXELFORMAT_ARGB8888;
 #else
   const Uint32 renderTargetFormat = SDL_PIXELFORMAT_RGBA8888;
 #endif
@@ -1476,9 +1510,13 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     if (m_pRenderTarget) {
       // Smooth final upscale (like the browser scaling its canvas); the game's
       // own sprites keep nearest-neighbour sampling inside the target.
-#if defined(__3DS__)
-      // 3DS (software): plain sampling, the smooth one costs several ms a frame
+#if defined(__3DS__) || defined(__PSL1GHT__)
+      // 3DS, PS3 (software): plain sampling, the smooth one costs several ms a frame
       SDL_SetTextureScaleMode(m_pRenderTarget, SDL_ScaleModeNearest);
+#if defined(__PSL1GHT__)
+      // copied without blending (the frame is opaque anyway)
+      SDL_SetTextureBlendMode(m_pRenderTarget, SDL_BLENDMODE_NONE);
+#endif
 #else
       SDL_SetTextureScaleMode(m_pRenderTarget, SDL_ScaleModeLinear);
 #endif

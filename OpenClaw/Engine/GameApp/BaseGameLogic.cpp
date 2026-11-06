@@ -277,6 +277,8 @@ void BaseGameLogic::VPlayCutscene(const std::string& videoSource)
 // Trace builds: time spent in game processes [0], physics [1], game views
 // and actors [2] (reported with the fps in BaseGameApp).
 Uint64 g_PerfLogicTicks[4] = { 0, 0, 0, 0 };
+Uint64 g_PerfRenderTicks[12] = { 0 };   // render parts (BaseGameApp's perf line)
+int g_PerfTilesDrawn = 0;
 
 // The level's own 4:3 loading screen from CLAW.REZ (localized: Polish text in
 // the Polish release), drawn over the middle of the widescreen artwork from

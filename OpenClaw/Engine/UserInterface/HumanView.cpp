@@ -123,7 +123,16 @@ void HumanView::VOnRender(uint32 msDiff)
             // If we render out of bounds, render it as black color
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
+#ifdef OPENCLAW_STARTUP_TRACE
+            extern Uint64 g_PerfRenderTicks[12];
+            const Uint64 hv0 = SDL_GetPerformanceCounter();
+#endif
             SDL_RenderClear(renderer);
+#ifdef OPENCLAW_STARTUP_TRACE
+            g_PerfRenderTicks[0] += SDL_GetPerformanceCounter() - hv0;
+            const Uint64 hv1 = SDL_GetPerformanceCounter();
+            const Uint64 scene0 = g_PerfRenderTicks[1] + g_PerfRenderTicks[2] + g_PerfRenderTicks[3] + g_PerfRenderTicks[4] + g_PerfRenderTicks[5];
+#endif
 
             // Sort screen elements
             m_ScreenElements.sort(SortBy_SharedPtr_Content<IScreenElement>());
@@ -217,6 +226,12 @@ void HumanView::VOnRender(uint32 msDiff)
                 SDL_RenderCopy(renderer, pCursor->GetTexture(), NULL, &destRect);
             }
 
+#ifdef OPENCLAW_STARTUP_TRACE
+            {
+                const Uint64 scene1 = g_PerfRenderTicks[1] + g_PerfRenderTicks[2] + g_PerfRenderTicks[3] + g_PerfRenderTicks[4] + g_PerfRenderTicks[5];
+                g_PerfRenderTicks[6] += (SDL_GetPerformanceCounter() - hv1) - (scene1 - scene0);
+            }
+#endif
             if (eyes == 2 && pass == 0)
             {
                 g_pApp->PresentFrame(false);

@@ -225,6 +225,15 @@ void RootNode::VRenderChildren(Scene* pScene)
 {
     for (uint16 pass = RenderPass_0; pass < RenderPass_Last; ++pass)
     {
+#ifdef OPENCLAW_STARTUP_TRACE
+        extern Uint64 g_PerfRenderTicks[12];
+        struct PassTimer
+        {
+            int slot; Uint64 t0;
+            ~PassTimer() { if (slot >= 0) g_PerfRenderTicks[slot] += SDL_GetPerformanceCounter() - t0; }
+        } timer{ pass == RenderPass_Background ? 1 : pass == RenderPass_Action ? 2 : pass == RenderPass_Actor ? 3 :
+                 pass == RenderPass_Foreground ? 4 : pass == RenderPass_HUD ? 5 : -1, SDL_GetPerformanceCounter() };
+#endif
         switch (pass)
         {
             case RenderPass_Background:
