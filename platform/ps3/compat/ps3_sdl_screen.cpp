@@ -59,12 +59,40 @@ namespace
         return true;
     }
 
+    // The RSX command buffer back to its start, every frame: it is only 64 KB
+    // (SDL's setup) and running past its end froze the console after a few
+    // hundred frames (as SDL's own PSL1GHT renderer did). Called when the RSX
+    // has run everything written so far.
+    void ResetCommandBuffer()
+    {
+        gcmContextData* c = gGcmContext;
+        gcmControlRegister* ctrl = gcmGetControlRegister();
+        u32 begin = 0;
+        if (!c || !ctrl || rsxAddressToOffset(c->begin, &begin) != 0) return;
+        rsxFlushBuffer(c);
+        Uint32 t0 = SDL_GetTicks();
+        while (ctrl->get != ctrl->put && SDL_GetTicks() - t0 < 100) usleep(20);
+        if (ctrl->get != ctrl->put)
+        {
+            static int s_Logged = 0;
+            if (s_Logged++ < 5) SDL_Log("PS3 screen: the RSX is still busy (get %x, put %x)", (unsigned)ctrl->get, (unsigned)ctrl->put);
+            return;
+        }
+        rsxSetJumpCommand(c, begin);   // at the end of what was written: back to the start
+        __asm__ volatile("sync" ::: "memory");
+        ctrl->put = begin;             // the RSX runs the jump and stops at the start
+        t0 = SDL_GetTicks();
+        while (ctrl->get != begin && SDL_GetTicks() - t0 < 100) usleep(20);
+        c->current = c->begin;
+    }
+
     void RsxPresent()
     {
         // As in PSL1GHT's samples: the last flip done before the next is
         // queued (the display buffer written now is then off the screen).
         if (!g_FirstFlip) WaitFlip();
         g_FirstFlip = false;
+        ResetCommandBuffer();
         const int i = g_MainIdx;
         gcmTransferScale scale;
         SDL_memset(&scale, 0, sizeof(scale));
@@ -115,7 +143,14 @@ namespace
 
     void WaitFlip()
     {
-        while (gcmGetFlipStatus() != 0) usleep(200);
+        const Uint32 t0 = SDL_GetTicks();
+        while (gcmGetFlipStatus() != 0 && SDL_GetTicks() - t0 < 1000) usleep(200);
+        if (gcmGetFlipStatus() != 0)
+        {
+            static int s_Logged = 0;
+            gcmControlRegister* ctrl = gcmGetControlRegister();
+            if (s_Logged++ < 5) SDL_Log("PS3 screen: no flip for 1 s (RSX get %x, put %x)", ctrl ? (unsigned)ctrl->get : 0u, ctrl ? (unsigned)ctrl->put : 0u);
+        }
         gcmResetFlipStatus();
     }
 
