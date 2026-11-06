@@ -82,6 +82,10 @@ namespace
     // its columns and rows, measured on the picture's pixels.
     struct Bar { int x0 = -1, x1 = -1, y0 = 0, y1 = 0; };
     std::map<const Image*, Bar> g_Bars;
+    // The rows of a picture that are not transparent (digits sit in a
+    // bigger picture: centring the picture put them off the bar).
+    struct Rows { int y0 = 0, y1 = 0; };
+    std::map<const Image*, Rows> g_Rows;
     int g_HudLevel = -1;
 
     Bar MeasureBar(const WapPid* pid)
@@ -118,7 +122,7 @@ namespace
                 best.y1 = std::max(best.y1, y + 1);
             }
         }
-        LOG("HUD bar " + ToStr(pid->width) + "x" + ToStr(pid->height) + ": x " + ToStr(best.x0) + "-" + ToStr(best.x1) +
+        LOG_WARNING("HUD bar " + ToStr(pid->width) + "x" + ToStr(pid->height) + ": x " + ToStr(best.x0) + "-" + ToStr(best.x1) +
             ", y " + ToStr(best.y0) + "-" + ToStr(best.y1));
         return best;
     }
@@ -138,7 +142,16 @@ namespace
                 if (WapPid* pid = WAP_PidLoadFromData(data.data(), data.size(), g_pApp->GetCurrentPalette()))
                 {
                     img.reset(Image::CreateImage(pid, g_pRenderer));
-                    if (img) g_Bars[img.get()] = MeasureBar(pid);
+                    if (img)
+                    {
+                        g_Bars[img.get()] = MeasureBar(pid);
+                        Rows r; r.y0 = pid->height; r.y1 = 0;
+                        for (int y = 0; y < (int)pid->height; ++y)
+                            for (int x = 0; x < (int)pid->width; ++x)
+                                if (pid->colors[y * pid->width + x].a > 128) { r.y0 = std::min(r.y0, y); r.y1 = std::max(r.y1, y + 1); break; }
+                        if (r.y1 <= r.y0) { r.y0 = 0; r.y1 = pid->height; }
+                        g_Rows[img.get()] = r;
+                    }
                     WAP_PidDestroy(pid);
                 }
             }
@@ -185,7 +198,13 @@ namespace
         for (char c : s)
         {
             shared_ptr<Image> d = HudImage(std::string("/game/images/interface/") + set + "/00" + c + ".pid");
-            w += Draw(d, x + w, cy, scale, alpha);
+            if (!d) continue;
+            // the visible rows centred on cy (not the whole picture)
+            int shift = 0;
+            auto it = g_Rows.find(d.get());
+            if (it != g_Rows.end())
+                shift = (int)((d->GetHeight() / 2.0 - (it->second.y0 + it->second.y1) / 2.0) * scale);
+            w += Draw(d, x + w, cy + shift, scale, alpha);
         }
         return w;
     }
@@ -459,7 +478,7 @@ namespace SecondScreen
             // dark panel (the menu picture's plates would show through).
             int levelNo = 0;
             if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
-            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_Bars.clear(); g_HudLevel = levelNo; }
+            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_Bars.clear(); g_Rows.clear(); g_HudLevel = levelNo; }
 
             const bool big = g_Width >= 640;               // Wii U GamePad
             const double k = big ? 2.0 : 1.0;              // pictures
@@ -518,6 +537,18 @@ namespace SecondScreen
                     return;
                 }
                 Draw(img, x0, cy, k, alpha);
+                // small numbers as tall as most of the bar
+                if (ks != k)
+                {
+                    shared_ptr<Image> d0 = HudImage(std::string("/game/images/interface/") + set + "/000.pid");
+                    auto it = d0 ? g_Rows.find(d0.get()) : g_Rows.end();
+                    if (it != g_Rows.end() && it->second.y1 > it->second.y0)
+                    {
+                        double want = (bar.y1 - bar.y0) * k * 0.8 / (it->second.y1 - it->second.y0);
+                        ks = std::max(k, std::min(k * 2.5, want));
+                        dw = digitsW(set, digits, ks);
+                    }
+                }
                 // on the parchment: centred on the bar's free part (up to the icon)
                 int top = cy - (int)(img->GetHeight() * k) / 2;
                 int bx0 = x0 + (int)(bar.x0 * k), bx1 = x0 + (int)(bar.x1 * k);
