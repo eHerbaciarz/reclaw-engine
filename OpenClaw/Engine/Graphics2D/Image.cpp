@@ -123,12 +123,58 @@ static void PutPixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
     }
 }
 
-static SDL_Renderer* g_HalfSizeRenderer = NULL;
+static SDL_Renderer* g_ScaledRenderer = NULL;
+static float g_TextureScale = 1.0f;
 
-void Image::SetHalfSizeRenderer(SDL_Renderer* renderer)
+void Image::SetScaledRenderer(SDL_Renderer* renderer, float scale)
 {
-    g_HalfSizeRenderer = renderer;
+    g_ScaledRenderer = renderer;
+    g_TextureScale = scale;
 }
+
+#if defined(__3DS__) || defined(__PSL1GHT__)
+// The picture at `scale` (below 1): each new pixel the alpha-weighted average
+// of the source area it covers (transparent pixels do not darken the edges).
+// The size is the one SDL draws it at: (int)(w * scale).
+static SDL_Surface* ScaleDown(SDL_Surface* src, float scale)
+{
+    const int dw = (int)(src->w * scale), dh = (int)(src->h * scale);
+    if (dw < 1 || dh < 1) return NULL;
+    SDL_Surface* dst = SDL_CreateRGBSurfaceWithFormat(0, dw, dh, 32, SDL_PIXELFORMAT_ARGB8888);
+    if (!dst) return NULL;
+    const float inv = 1.0f / scale;
+    for (int y = 0; y < dh; ++y)
+    {
+        const float sy0 = y * inv, sy1 = std::min((float)src->h, (y + 1) * inv);
+        Uint32* out = (Uint32*)((Uint8*)dst->pixels + y * dst->pitch);
+        for (int x = 0; x < dw; ++x)
+        {
+            const float sx0 = x * inv, sx1 = std::min((float)src->w, (x + 1) * inv);
+            float a = 0, r = 0, g = 0, b = 0, area = 0;
+            for (int yy = (int)sy0; yy < sy1; ++yy)
+            {
+                const float wy = std::min(sy1, (float)(yy + 1)) - std::max(sy0, (float)yy);
+                const Uint32* row = (const Uint32*)((const Uint8*)src->pixels + yy * src->pitch);
+                for (int xx = (int)sx0; xx < sx1; ++xx)
+                {
+                    const float w = wy * (std::min(sx1, (float)(xx + 1)) - std::max(sx0, (float)xx));
+                    const Uint32 p = row[xx];
+                    const float pa = (float)(p >> 24) * w;
+                    a += pa;
+                    r += ((p >> 16) & 0xFF) * pa;
+                    g += ((p >> 8) & 0xFF) * pa;
+                    b += (p & 0xFF) * pa;
+                    area += w;
+                }
+            }
+            if (a <= 0.0f || area <= 0.0f) { out[x] = 0; continue; }
+            const Uint32 A = (Uint32)std::min(255.0f, a / area + 0.5f);
+            out[x] = (A << 24) | ((Uint32)(r / a + 0.5f) << 16) | ((Uint32)(g / a + 0.5f) << 8) | (Uint32)(b / a + 0.5f);
+        }
+    }
+    return dst;
+}
+#endif
 
 SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
 {
@@ -155,35 +201,12 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
             row[i % width] = ((Uint32)c.a << 24) | ((Uint32)c.r << 16) | ((Uint32)c.g << 8) | c.b;
         }
     }
-    if (renderer == g_HalfSizeRenderer && width >= 2 && height >= 2)
+    if (renderer == g_ScaledRenderer && g_TextureScale < 0.99f)
     {
-        // half size: each pixel the alpha-weighted average of 2x2 (so the
-        // transparent ones do not darken the edges)
-        const int hw = (int)width / 2, hh = (int)height / 2;
-        if (SDL_Surface* half = SDL_CreateRGBSurfaceWithFormat(0, hw, hh, 32, SDL_PIXELFORMAT_ARGB8888))
+        if (SDL_Surface* scaled = ScaleDown(surface, g_TextureScale))
         {
-            for (int y = 0; y < hh; ++y)
-            {
-                const Uint32* r0 = (const Uint32*)((const Uint8*)surface->pixels + (2 * y) * surface->pitch);
-                const Uint32* r1 = (const Uint32*)((const Uint8*)surface->pixels + (2 * y + 1) * surface->pitch);
-                Uint32* out = (Uint32*)((Uint8*)half->pixels + y * half->pitch);
-                for (int x = 0; x < hw; ++x)
-                {
-                    const Uint32 p[4] = { r0[2 * x], r0[2 * x + 1], r1[2 * x], r1[2 * x + 1] };
-                    Uint32 a = 0, r = 0, g = 0, b = 0;
-                    for (int k = 0; k < 4; ++k)
-                    {
-                        const Uint32 pa = p[k] >> 24;
-                        a += pa;
-                        r += ((p[k] >> 16) & 0xFF) * pa;
-                        g += ((p[k] >> 8) & 0xFF) * pa;
-                        b += (p[k] & 0xFF) * pa;
-                    }
-                    out[x] = a ? (((a + 2) / 4) << 24) | ((r / a) << 16) | ((g / a) << 8) | (b / a) : 0;
-                }
-            }
             SDL_FreeSurface(surface);
-            surface = half;
+            surface = scaled;
         }
     }
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
