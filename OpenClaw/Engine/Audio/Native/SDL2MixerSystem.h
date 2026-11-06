@@ -78,6 +78,9 @@ public:
     bool IsInitialized() const override { return m_Initialized; }
     bool IsMusicPlaying() const override;
 
+    int OutputFrequency() const { return m_OutputFrequency; }
+    int OutputChannels() const { return m_OutputChannels; }
+
 private:
     static void MusicHook(void *userData, Uint8 *stream, int len);
     static int SoundFontLoaderThread(void *userData);

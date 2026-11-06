@@ -44,6 +44,9 @@
 #undef uint32
 #undef int32
 
+#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+namespace { void PostMixDiag(void *userData, Uint8 *stream, int len); }
+#endif
 namespace
 {
     // MIDI channel 10 (index 9) is the General MIDI percussion channel.
@@ -164,6 +167,9 @@ bool SDL2MixerSystem::Initialize()
     Mix_GroupChannels(0, kAmbientReservedChannels - 1, kAmbientGroupTag);
 
     m_pSynthMutex = SDL_CreateMutex();
+#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+    Mix_SetPostMix(PostMixDiag, this);
+#endif
 #ifdef RECLAW_SMALL_SOUNDFONT
     SoundFontTrim::SetFullPaths(m_Config.soundFontPaths);
 #endif
@@ -680,8 +686,56 @@ void SDL2MixerSystem::ResetSynthChannels()
     tsf_set_volume(m_pSoundFont, ToSynthVolume(m_MusicEnabled ? m_MusicVolume : 0.0f));
 }
 
+#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+namespace
+{
+    // PS3 sound diagnostics (every ~5 s): clipped samples after mixing, late
+    // mixer calls (the gap since the last one longer than 1.5x its length),
+    // and the time the mixing itself takes.
+    Uint64 g_MixStart = 0;
+    void PostMixDiag(void *userData, Uint8 *stream, int len)
+    {
+        SDL2MixerSystem *self = static_cast<SDL2MixerSystem *>(userData);
+        static Uint64 s_Last = 0, s_WindowStart = 0, s_MixTicks = 0, s_MaxMix = 0;
+        static unsigned s_Calls = 0, s_Late = 0, s_Clipped = 0, s_Samples = 0;
+        static int s_Peak = 0;
+        const Uint64 now = SDL_GetPerformanceCounter(), freq = SDL_GetPerformanceFrequency();
+        const Sint16 *p = (const Sint16 *)stream;
+        const int n = len / 2;
+        for (int i = 0; i < n; ++i)
+        {
+            const int v = p[i] < 0 ? -p[i] : p[i];
+            if (v > s_Peak) s_Peak = v;
+            if (v >= 32700) ++s_Clipped;
+        }
+        s_Samples += n;
+        const double bufferSecs = (double)n / std::max(1, self->OutputChannels()) / std::max(1, self->OutputFrequency());
+        if (s_Last && (double)(now - s_Last) / freq > bufferSecs * 1.5) ++s_Late;
+        s_Last = now;
+        if (g_MixStart)
+        {
+            s_MixTicks += now - g_MixStart;
+            s_MaxMix = std::max(s_MaxMix, now - g_MixStart);
+        }
+        ++s_Calls;
+        if (!s_WindowStart) s_WindowStart = now;
+        if ((double)(now - s_WindowStart) / freq >= 5.0)
+        {
+            SDL_Log("sound mix: %u calls (%.1f ms each), %u late, peak %d, %u of %u samples clipped, mixing %.2f ms avg %.2f ms max",
+                    s_Calls, bufferSecs * 1000.0, s_Late, s_Peak, s_Clipped, s_Samples,
+                    s_MixTicks * 1000.0 / freq / std::max(1u, s_Calls), s_MaxMix * 1000.0 / freq);
+            s_WindowStart = now; s_Calls = s_Late = s_Clipped = s_Samples = 0; s_Peak = 0; s_MixTicks = s_MaxMix = 0;
+        }
+        g_MixStart = 0;
+    }
+}
+#endif
+
 void SDL2MixerSystem::MusicHook(void *userData, Uint8 *stream, int len)
 {
+#if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
+    g_MixStart = SDL_GetPerformanceCounter();
+#endif
 #if defined(__PSL1GHT__) && defined(OPENCLAW_STARTUP_TRACE)
     // PS3: is the music still running (log every ~10 s)?
     static Uint32 s_Last = 0;
