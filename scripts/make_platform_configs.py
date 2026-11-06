@@ -47,6 +47,10 @@ def main(only=None):
         s = re.sub(r"<ResourceCacheSize>[^<]*</ResourceCacheSize>", f"<ResourceCacheSize>{cache}</ResourceCacheSize>", s)
         s = re.sub(r"<MixingChannels>[^<]*</MixingChannels>", f"<MixingChannels>{mixer}</MixingChannels>", s)
         s = re.sub(r"<Frequency>[^<]*</Frequency>", f"<Frequency>{freq}</Frequency>", s)
+        if name == "ps3":
+            # PS3: short mixer calls; SDL's PSL1GHT audio driver has only
+            # 8 blocks of 5 ms, a long mixing call made the sound crackle
+            s = re.sub(r"<ChunkSize>[^<]*</ChunkSize>", "<ChunkSize>512</ChunkSize>", s)
         if name.startswith("handheld-linux/"):
             # full screen at the screen's own size
             s = s.replace("<IsFullscreenDesktop>false</IsFullscreenDesktop>", "<IsFullscreenDesktop>true</IsFullscreenDesktop>")

@@ -132,6 +132,12 @@ bool SDL2MixerSystem::Initialize()
 
     STARTUP_TRACE("Mix_OpenAudio");
 #if defined(__PSL1GHT__)
+    // PS3: short mixer calls. SDL's PSL1GHT audio driver keeps only 8 blocks
+    // of 5 ms; mixing 93 ms at once (2048 samples) with many sounds took up
+    // to 18 ms in one go and the sound crackled now and then.
+    if (m_Config.chunkSize > 512) m_Config.chunkSize = 512;
+#endif
+#if defined(__PSL1GHT__)
     // PS3: exactly the asked format (the system's own is 8 channels: every
     // decoded sound would take 4x the memory); SDL converts at the end.
     if (Mix_OpenAudioDevice(m_Config.frequency, AUDIO_S16SYS, m_Config.outputChannels, m_Config.chunkSize, NULL, 0) != 0)
