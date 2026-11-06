@@ -572,6 +572,17 @@ namespace Platform
 #endif
     }
 
+    bool LevelMusicOn()
+    {
+#if defined(__3DS__)
+        bool isNew = false;
+        const int def = (R_SUCCEEDED(APT_CheckNew3DS(&isNew)) && isNew) ? 1 : 0;
+        return PortSettings::GetInt("music", def) != 0;
+#else
+        return true;
+#endif
+    }
+
     bool SupportsRemasteredMovies()
     {
 #if defined(__vita__) || defined(__3DS__)

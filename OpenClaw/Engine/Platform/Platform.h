@@ -84,6 +84,10 @@ namespace Platform
     // decode them. Those platforms keep the original movies from CLAW.FEC.
     bool SupportsRemasteredMovies();
 
+    // 3DS: level music on by default only on a New 3DS (its synthesizer runs
+    // on the third core there); port_settings.txt "music=" overrides it.
+    bool LevelMusicOn();
+
     // Save states (ZL/ZR) and rewind (hold R). On for now everywhere; to be
     // checked on PS Vita and 3DS and turned off there if they are too slow.
     bool SupportsSaveStates();

@@ -248,9 +248,10 @@ int SDL2MixerSystem::SoundFontLoaderThread(void *userData)
 #endif
     std::vector<std::string> paths = self->m_Config.soundFontPaths;
 #if defined(__3DS__)
-    // The synthesizer took ~20% of the 3DS's CPU: level music off unless
-    // port_settings.txt says "music=1".
-    if (PortSettings::GetInt("music", 0) == 0)
+    // The synthesizer takes ~20% of a core: level music only on a New 3DS
+    // (the audio thread is on its third core) unless port_settings.txt says
+    // otherwise (music=0 / music=1).
+    if (!Platform::LevelMusicOn())
     {
         paths.clear();
         LOG_WARNING("3DS: level music off (port_settings.txt: music=1 turns it on)");

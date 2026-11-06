@@ -29,7 +29,7 @@ index c577436..4f983ab 100644
      return 0;
  }
 diff --git a/src/thread/n3ds/SDL_systhread.c b/src/thread/n3ds/SDL_systhread.c
-index a202a7d..86c7dfe 100644
+index a202a7d..e0b6a11 100644
 --- a/src/thread/n3ds/SDL_systhread.c
 +++ b/src/thread/n3ds/SDL_systhread.c
 @@ -25,6 +25,7 @@
@@ -40,9 +40,22 @@ index a202a7d..86c7dfe 100644
  
  /* N3DS has very limited RAM (128MB), so we set a low default thread stack size. */
  #define N3DS_THREAD_STACK_SIZE_DEFAULT (80 * 1024)
-@@ -55,7 +56,9 @@ int SDL_SYS_CreateThread(SDL_Thread *thread)
+@@ -54,8 +55,22 @@ int SDL_SYS_CreateThread(SDL_Thread *thread)
+ 
      svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
  
++    /* ReClaw: on a New 3DS the audio thread (mixing and the music
++     * synthesizer) runs on the third core, which the game does not use
++     * (SDL_N3DS_AUDIO_CORE2=0 keeps it on the game's core). */
++    {
++        bool isNew3DS = false;
++        if (thread->name && (SDL_strncmp(thread->name, "SDLAudioP", 9) == 0) &&
++            SDL_GetHintBoolean("SDL_N3DS_AUDIO_CORE2", SDL_TRUE) &&
++            R_SUCCEEDED(APT_CheckNew3DS(&isNew3DS)) && isNew3DS) {
++            cpu = 2;
++        }
++    }
++
      /* prefer putting audio thread on system core */
 -    if (thread->name && (SDL_strncmp(thread->name, "SDLAudioP", 9) == 0) && R_SUCCEEDED(APT_SetAppCpuTimeLimit(30))) {
 +    /* ReClaw: only with SDL_N3DS_AUDIO_SYSCORE=1 (the system core thread crashed at startup) */
@@ -51,3 +64,19 @@ index a202a7d..86c7dfe 100644
          cpu = 1;
      }
  
+@@ -66,6 +81,15 @@ int SDL_SYS_CreateThread(SDL_Thread *thread)
+                                   cpu,
+                                   false);
+ 
++    if (!thread->handle && cpu == 2) {
++        /* the third core is not available: the default one */
++        cpu = -1;
++        thread->handle = threadCreate(ThreadEntry, thread, stack_size, priority, cpu, false);
++    }
++    if (thread->handle && thread->name && SDL_strncmp(thread->name, "SDLAudioP", 9) == 0) {
++        SDL_Log("n3ds audio: thread on core %d", cpu);
++    }
++
+     if (!thread->handle) {
+         return SDL_SetError("Couldn't create thread");
+     }

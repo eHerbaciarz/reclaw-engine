@@ -1749,7 +1749,7 @@ bool BaseGameApp::InitializeResources(GameOptions &gameOptions) {
 #if (defined(__PSL1GHT__) || defined(__3DS__)) && !defined(__EMSCRIPTEN__)
   // First start: which instruments the game's music uses (for the small soundfont).
 #if defined(__3DS__)
-  if (PortSettings::GetInt("music", 0) != 0)
+  if (Platform::LevelMusicOn())
 #endif
   SoundFontTrim::CollectUsage();
   {
