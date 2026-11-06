@@ -47,6 +47,25 @@
 #if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
 namespace { void PostMixDiag(void *userData, Uint8 *stream, int len); }
 #endif
+#if defined(__PSL1GHT__)
+#include <sys/thread.h>
+namespace
+{
+    // PS3: SDL's audio thread runs at priority 1500, below the game's own
+    // thread (1000; lower is more urgent), and SDL_SetThreadPriority does
+    // nothing on PSL1GHT. When the game thread was busy (a teleport loading
+    // the new area) the mixing waited and the sound crackled. Raised from
+    // inside the audio thread on its first call.
+    void RaiseAudioThreadPriority(int, void *, int, void *)
+    {
+        static bool s_Done = false;
+        if (s_Done) return;
+        s_Done = true;
+        sys_ppu_thread_t self;
+        if (sysThreadGetId(&self) == 0) sysThreadSetPriority(self, 500);
+    }
+}
+#endif
 namespace
 {
     // MIDI channel 10 (index 9) is the General MIDI percussion channel.
@@ -182,6 +201,9 @@ bool SDL2MixerSystem::Initialize()
     m_pSynthMutex = SDL_CreateMutex();
 #if (defined(__PSL1GHT__) || defined(__3DS__)) && defined(OPENCLAW_STARTUP_TRACE)
     Mix_SetPostMix(PostMixDiag, this);
+#endif
+#if defined(__PSL1GHT__)
+    Mix_RegisterEffect(MIX_CHANNEL_POST, RaiseAudioThreadPriority, nullptr, nullptr);
 #endif
 #ifdef RECLAW_SMALL_SOUNDFONT
     SoundFontTrim::SetFullPaths(m_Config.soundFontPaths);
