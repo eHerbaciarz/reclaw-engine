@@ -1,6 +1,7 @@
 #ifndef __GAME_SAVES_H__
 #define __GAME_SAVES_H__
 
+#include <cstdlib>
 #include "../SharedDefines.h"
 #include "BaseGameApp.h"
 #include <sstream>
@@ -15,6 +16,20 @@ const uint32 LEVELS_COUNT = 14;
 
 // TODO: Should be data driven
 Point GetSpawnPosition(uint32 levelNumber, uint32 checkpointNumber);
+
+// A number from the saves file. std::stoi threw on the 3DS and the game did
+// not start any more (a value out of int range, e.g. an undefined level number
+// -1 written unsigned, or a damaged one); a value that is no number keeps the
+// default instead.
+inline int SaveInt(TiXmlElement* pElem, int fallback)
+{
+    const char* text = pElem ? pElem->GetText() : nullptr;
+    if (!text) return fallback;
+    char* end = nullptr;
+    // (64-bit: an unsigned value written as 4294967295 comes back as -1)
+    long long v = strtoll(text, &end, 10);
+    return end == text ? fallback : (int)(unsigned int)(unsigned long long)v;
+}
 
 struct CheckpointSave
 {
@@ -49,31 +64,31 @@ struct CheckpointSave
 
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("CheckpointNumber"))
         {
-            checkpointIdx = std::stoi(pElem->GetText());
+            checkpointIdx = SaveInt(pElem, checkpointIdx);
         }
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("Score"))
         {
-            score = std::stoi(pElem->GetText());
+            score = SaveInt(pElem, score);
         }
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("Health"))
         {
-            health = std::stoi(pElem->GetText());
+            health = SaveInt(pElem, health);
         }
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("Lives"))
         {
-            lives = std::stoi(pElem->GetText());
+            lives = SaveInt(pElem, lives);
         }
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("BulletCount"))
         {
-            bulletCount = std::stoi(pElem->GetText());
+            bulletCount = SaveInt(pElem, bulletCount);
         }
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("MagicCount"))
         {
-            magicCount = std::stoi(pElem->GetText());
+            magicCount = SaveInt(pElem, magicCount);
         }
         if (TiXmlElement* pElem = pCheckpointXml->FirstChildElement("DynamiteCount"))
         {
-            dynamiteCount = std::stoi(pElem->GetText());
+            dynamiteCount = SaveInt(pElem, dynamiteCount);
         }
 
         assert(checkpointIdx <= 2);
@@ -164,12 +179,12 @@ struct LevelSave
     {
         if (TiXmlElement* pElem = pLevelXml->FirstChildElement("LevelNumber"))
         {
-            levelNumber = std::stoi(pElem->GetText());
+            levelNumber = SaveInt(pElem, levelNumber);
         }
 
         if (TiXmlElement* pElem = pLevelXml->FirstChildElement("LevelName"))
         {
-            levelName = pElem->GetText();
+            levelName = pElem->GetText() ? pElem->GetText() : "";
         }
 
         for (TiXmlElement* pCheckpoint = pLevelXml->FirstChildElement("Checkpoint");
