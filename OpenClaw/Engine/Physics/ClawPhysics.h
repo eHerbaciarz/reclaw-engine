@@ -1,3 +1,4 @@
+#include <set>
 #ifndef __CLAWPHYSICS_H__
 #define __CLAWPHYSICS_H__
 
@@ -63,6 +64,7 @@ public:
 
     virtual void VActivate(uint32_t actorId) override;
     virtual void VDeactivate(uint32_t actorId) override;
+    virtual void VSetFarPaused(uint32_t actorId, bool far) override;
 
     virtual void VSetPosition(uint32_t actorId, const Point& position) override;
     virtual Point VGetPosition(uint32_t actorId) override;
@@ -99,6 +101,7 @@ private:
     ActorIDToBox2DBodyMap m_ActorToBodyMap;
     Box2DBodyToActorIDMap m_BodyToActorMap;
     ActorIdAndBodyList m_ActorIdAndBodyList;
+    std::set<uint32_t> m_FarPaused;   // bodies VSetFarPaused switched off
 };
 
 class KinematicComponent;

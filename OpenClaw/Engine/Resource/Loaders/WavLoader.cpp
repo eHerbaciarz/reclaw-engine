@@ -1,3 +1,4 @@
+#include "../../PortFeatures.h"
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
@@ -37,7 +38,7 @@ WavResourceExtraData::~WavResourceExtraData()
 // decodes it).
 static Mix_Chunk* FastDecodeWav(const unsigned char* b, uint32 size)
 {
-#if defined(__3DS__) || defined(__PSL1GHT__)
+#if defined(RECLAW_FAST_WAV)
     int outRate = 0, outCh = 0;
     Uint16 outFmt = 0;
     if (!Mix_QuerySpec(&outRate, &outFmt, &outCh) || outFmt != AUDIO_S16SYS || (outCh != 1 && outCh != 2) || outRate <= 0)
@@ -194,7 +195,7 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
 #if defined(__EMSCRIPTEN__)
     // For Emscripten, just return the raw size since we don't need to decode
     return rawSize;
-#elif defined(__3DS__) || defined(__PSL1GHT__)
+#elif defined(RECLAW_FAST_WAV)
     // 3DS, PS3: the decoded size worked out from the header (decoding it here too
     // decoded every sound twice); the cache counts it, so sounds still leave
     // the cache when it is full. Output: 22050 Hz, 16-bit stereo.

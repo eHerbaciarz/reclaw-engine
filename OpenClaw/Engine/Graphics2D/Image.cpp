@@ -1,3 +1,4 @@
+#include "../PortFeatures.h"
 #include <algorithm>
 #include <assert.h>
 #include <SDL2/SDL_image.h>
@@ -267,7 +268,7 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
 
     uint32_t colorIdx;
     uint32_t colorsCount = pid->colorsCount;
-#if defined(__SWITCH__) || defined(__vita__)
+#if defined(RECLAW_SDL_SMOOTH)
     // Smooth sampling mixes a sprite's edge with the see-through pixels next
     // to it: those take the colour of an opaque neighbour (no dark outlines).
     std::vector<WAP_ColorRGBA> bled(pid->colors, pid->colors + colorsCount);

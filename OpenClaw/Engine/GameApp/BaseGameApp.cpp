@@ -1,3 +1,4 @@
+#include "../PortFeatures.h"
 #include <map>
 #include <SDL2/SDL_ttf.h>
 #include <algorithm>
@@ -1403,7 +1404,7 @@ bool BaseGameApp::ViewZoomSupported() {
 #if defined(RECLAW_GPU)
   if (ReclawGpu_Active()) return true;
 #endif
-#if defined(__SWITCH__) || defined(__vita__)
+#if defined(RECLAW_SDL_SMOOTH)
   return s_ViewBaseScale > 0.0;
 #else
   return false;
@@ -1414,7 +1415,7 @@ bool BaseGameApp::SmoothSupported() {
 #if defined(RECLAW_GPU)
   if (ReclawGpu_Active()) return true;
 #endif
-#if defined(__SWITCH__) || defined(__vita__)
+#if defined(RECLAW_SDL_SMOOTH)
   return true;
 #else
   return false;
@@ -1434,7 +1435,7 @@ void BaseGameApp::SetSmooth(bool on) {
     return;
   }
 #endif
-#if defined(__SWITCH__) || defined(__vita__)
+#if defined(RECLAW_SDL_SMOOTH)
   Image::SetSmooth(on);
   LOG_WARNING(std::string("Pictures ") + (on ? "smoothed" : "sharp"));
 #endif
@@ -1794,7 +1795,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     }
   }
 #endif
-#if defined(__SWITCH__) || defined(__vita__)
+#if defined(RECLAW_SDL_SMOOTH)
   // Switch, Vita: the game draws straight onto the screen at its scale;
   // Options > view zoom shows more of the level (a smaller scale).
   if (!m_pRenderTarget && gameOptions.scale > 0.0) {
@@ -1804,7 +1805,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 #endif
   SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale,
                      (float)gameOptions.scale);
-#if defined(RECLAW_GPU) || defined(__SWITCH__) || defined(__vita__)
+#if defined(RECLAW_GPU) || defined(RECLAW_SDL_SMOOTH)
   if (SmoothSupported()) SetSmooth(Smooth());
 #endif
   Image::SetFilter(Filter());

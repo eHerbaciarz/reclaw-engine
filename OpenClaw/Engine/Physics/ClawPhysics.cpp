@@ -1,3 +1,4 @@
+#include "../PortFeatures.h"
 #include "ClawPhysics.h"
 #include "../UserInterface/Minimap.h"
 #include "../SaveState/StateArchive.h"
@@ -397,8 +398,8 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
 {
     //PROFILE_CPU("ClawPhysics::VOnUpdate");
 
-#if defined(__vita__) || defined(__3DS__)
-    // Handhelds: Box2D's recommended solver iterations (8 / 3) instead of 10 / 8;
+#if defined(RECLAW_LIGHT_PHYSICS)
+    // Handhelds, PS3: Box2D's recommended solver iterations (8 / 3) instead of 10 / 8;
     // the bodies here are simple (boxes on tiles), the difference is not visible.
     m_pWorld->Step(msDiff / 1000.0f, 8, 3);
 #else
@@ -975,6 +976,7 @@ void ClawPhysics::VRemoveActor(uint32_t actorId)
     {
         pBody->SetUserData(NULL);
     }
+    m_FarPaused.erase(actorId);
 
     ScheduleActorForRemoval(actorId);
 }
@@ -1262,6 +1264,24 @@ void ClawPhysics::VDeactivate(uint32_t actorId)
     if (b2Body* pBody = FindBox2DBody(actorId))
     {
         pBody->SetActive(false);
+    }
+}
+
+void ClawPhysics::VSetFarPaused(uint32_t actorId, bool far)
+{
+    b2Body* pBody = FindBox2DBody(actorId);
+    if (!pBody) { m_FarPaused.erase(actorId); return; }
+    if (far)
+    {
+        if (pBody->GetType() != b2_staticBody && pBody->IsActive())
+        {
+            pBody->SetActive(false);
+            m_FarPaused.insert(actorId);
+        }
+    }
+    else if (m_FarPaused.erase(actorId))
+    {
+        pBody->SetActive(true);
     }
 }
 

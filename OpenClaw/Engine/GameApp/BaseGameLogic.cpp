@@ -1,3 +1,4 @@
+#include "../PortFeatures.h"
 #include <map>
 #include <cstdio>
 #include "../Actor/ActorFactory.h"
@@ -1487,57 +1488,56 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
     }
     else if (msAccumulation >= 5)
     {
-        // Update all game actors. Handhelds and the PS3 (its PPU: ~15 ms a step for
-        // all of them): scenery and pickups far from the
-        // screen (more than a screen away) wait - most of a level's ~1700
-        // actors; updating them all cost the PS Vita a third of each step.
-#if defined(__vita__) || defined(__3DS__) || defined(__PSL1GHT__)
+        // Update all game actors. Handhelds and the PS3 (its PPU: ~15 ms a step
+        // for all of them): scenery and pickups far from the screen wait - most
+        // of a level's ~1700 actors; updating them all cost the PS Vita a third
+        // of each step (PortFeatures.h).
+#if defined(RECLAW_PAUSE_FAR_SCENERY)
         HumanView* pView = (m_GameState == GameState_IngameRunning) ? g_pApp->GetHumanView() : nullptr;
-        shared_ptr<CameraNode> pCam = pView ? pView->GetCamera() : nullptr;
+        shared_ptr<CameraNode> pCam = (pView && !Race::IsActive()) ? pView->GetCamera() : nullptr;
         SDL_Rect nearRect = { 0, 0, 0, 0 };
         if (pCam)
         {
             nearRect = pCam->GetCameraRect();
-#if defined(__3DS__) || defined(__PSL1GHT__)
-            // 3DS, PS3: half a screen around the view (the CPU is the limit)
+#if defined(RECLAW_PAUSE_FAR_ENEMIES)
+            // half a screen around the view
             nearRect.x -= nearRect.w / 2; nearRect.y -= nearRect.h / 2; nearRect.w *= 2; nearRect.h *= 2;
 #else
             nearRect.x -= nearRect.w; nearRect.y -= nearRect.h; nearRect.w *= 3; nearRect.h *= 3;
 #endif
         }
+        auto isFar = [&](Actor* pActor) {
+            shared_ptr<PositionComponent> pPos = pActor->GetPositionComponent();
+            if (!pPos) return false;
+            const Point& p = pPos->GetPosition();
+            return p.x < nearRect.x || p.y < nearRect.y || p.x > nearRect.x + nearRect.w || p.y > nearRect.y + nearRect.h;
+        };
 #endif
         for (auto &actorIter : m_ActorMap)
         {
-#if defined(__vita__) || defined(__3DS__) || defined(__PSL1GHT__)
-            if (pCam && !Race::IsActive() && actorIter.second->IsPausableWhenFar())
-            {
-                if (shared_ptr<PositionComponent> pPos = actorIter.second->GetPositionComponent())
-                {
-                    const Point& p = pPos->GetPosition();
-                    if (p.x < nearRect.x || p.y < nearRect.y || p.x > nearRect.x + nearRect.w || p.y > nearRect.y + nearRect.h) continue;
-                }
-            }
+#if defined(RECLAW_PAUSE_FAR_SCENERY)
+            Actor* pActor = actorIter.second.get();
+            bool pausable = pCam && pActor->IsPausableWhenFar();
+#if defined(RECLAW_PAUSE_FAR_ENEMIES)
+            // (enemies: their bodies switched off too, or a walking one would
+            // keep sliding; back within reach they carry on where they were)
+            pausable = pausable || (pCam && pActor->IsEnemyPausableWhenFar());
 #endif
-#if defined(__3DS__) || defined(__PSL1GHT__)
-            // 3DS, PS3: ordinary enemies far from the screen wait too, their bodies
-            // switched off (otherwise a walking one would keep sliding);
-            // back within reach they carry on where they were.
-            if (pCam && !Race::IsActive() && actorIter.second->IsEnemyPausableWhenFar())
+            if (pausable)
             {
-                Actor* pActor = actorIter.second.get();
-                bool far = false;
-                if (shared_ptr<PositionComponent> pPos = pActor->GetPositionComponent())
+                const bool far = isFar(pActor);
+                if (far != pActor->m_bPausedFar)
                 {
-                    const Point& p = pPos->GetPosition();
-                    far = p.x < nearRect.x || p.y < nearRect.y || p.x > nearRect.x + nearRect.w || p.y > nearRect.y + nearRect.h;
-                }
-                if (far != pActor->m_bPausedFar && m_pPhysics)
-                {
-                    if (far) m_pPhysics->VDeactivate(pActor->GetGUID());
-                    else m_pPhysics->VActivate(pActor->GetGUID());
+                    if (m_pPhysics) m_pPhysics->VSetFarPaused(pActor->GetGUID(), far);
                     pActor->m_bPausedFar = far;
                 }
                 if (far) continue;
+            }
+            else if (pActor->m_bPausedFar)
+            {
+                // (a race started, or the view is gone: everything runs again)
+                if (m_pPhysics) m_pPhysics->VSetFarPaused(pActor->GetGUID(), false);
+                pActor->m_bPausedFar = false;
             }
 #endif
             actorIter.second->Update(msAccumulation);

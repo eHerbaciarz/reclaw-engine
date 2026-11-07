@@ -598,6 +598,10 @@ public:
 
     virtual void VActivate(uint32_t actorId) = 0;
     virtual void VDeactivate(uint32_t actorId) = 0;
+    // Far from the screen (RECLAW_PAUSE_FAR_*): a moving body switched off
+    // while away, back on when near again - only if this switched it off (one
+    // the game switched off itself stays off). Static bodies cost nothing.
+    virtual void VSetFarPaused(uint32_t actorId, bool far) { if (far) VDeactivate(actorId); else VActivate(actorId); }
 
     virtual void VSetPosition(uint32_t actorId, const Point& position) = 0;
     virtual Point VGetPosition(uint32_t actorId) = 0;

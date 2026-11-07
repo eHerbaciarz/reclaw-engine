@@ -17,6 +17,7 @@
 #endif
 
 #include <stdint.h>
+#include "PortFeatures.h"
 #include <string>
 #include <memory>
 #include <vector>
