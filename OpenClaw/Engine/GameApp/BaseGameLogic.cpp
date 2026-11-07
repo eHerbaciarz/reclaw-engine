@@ -98,6 +98,40 @@ BaseGameLogic::~BaseGameLogic()
     RemoveAllDelegates();
 }
 
+
+// Writes the saves file. 3DS: in a thread of its own (writing it to the SD
+// card took ~100 ms: a stutter at every checkpoint flag); the text is made
+// here, writes keep their order.
+static void WriteSavesFile(TiXmlDocument& doc, const std::string& path)
+{
+#if defined(__3DS__)
+    TiXmlPrinter printer;
+    doc.Accept(&printer);
+    struct Job { std::string path, text; };
+    static SDL_mutex* s_pLock = SDL_CreateMutex();
+    Job* job = new Job{ path, std::string("<?xml version=\"1.0\" ?>\n") + printer.CStr() };
+    auto run = [](void* p) -> int {
+        Job* j = (Job*)p;
+        SDL_SetThreadPriority(SDL_THREAD_PRIORITY_LOW);
+        SDL_LockMutex(s_pLock);
+        const std::string tmp = j->path + ".tmp";
+        if (FILE* f = fopen(tmp.c_str(), "wb"))
+        {
+            const bool ok = fwrite(j->text.data(), 1, j->text.size(), f) == j->text.size();
+            fclose(f);
+            if (ok) { std::remove(j->path.c_str()); std::rename(tmp.c_str(), j->path.c_str()); }
+        }
+        SDL_UnlockMutex(s_pLock);
+        delete j;
+        return 0;
+    };
+    if (SDL_Thread* t = SDL_CreateThread(run, "saves", job)) { SDL_DetachThread(t); return; }
+    run(job);
+#else
+    doc.SaveFile(path.c_str());
+#endif
+}
+
 bool BaseGameLogic::Initialize()
 {
     m_pActorFactory = VCreateActorFactory();
@@ -1003,7 +1037,7 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
             TiXmlDocument saveGamesDoc;
             saveGamesDoc.LinkEndChild(m_pGameSaveMgr->ToXml());
             std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
-            saveGamesDoc.SaveFile(savesFilePath.c_str());
+            WriteSavesFile(saveGamesDoc, savesFilePath);
 #endif
         }
     }
@@ -2031,7 +2065,7 @@ void BaseGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
         TiXmlDocument saveGamesDoc;
         saveGamesDoc.LinkEndChild(m_pGameSaveMgr->ToXml());
         std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
-        saveGamesDoc.SaveFile(savesFilePath.c_str());
+        WriteSavesFile(saveGamesDoc, savesFilePath);
         LOG("Checkpoint saved to file");
 #endif
     }

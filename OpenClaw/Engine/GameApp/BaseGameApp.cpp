@@ -404,8 +404,15 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // 3DS: the game logic (physics, actors) runs 30 times a second - half the
   // work for the same game speed; logic_hz=60 in port_settings.txt for 60.
   {
-    int hz = PortSettings::GetInt("logic_hz", 30);
-    if (hz < 20 || hz > 60) hz = 30;
+    // With the GPU drawing there is time for 60 (a step costs ~8 ms): at 30
+    // the sprites' frames and some movements (ladders) changed every other
+    // screen refresh only.
+    int defaultHz = 30;
+#if defined(RECLAW_3DS_GPU)
+    if (ReclawGpu_Active()) defaultHz = 60;
+#endif
+    int hz = PortSettings::GetInt("logic_hz", defaultHz);
+    if (hz < 20 || hz > 60) hz = defaultHz;
     m_fixedTimestep = 1.0 / hz;
     LOG("3DS: game logic at " + ToStr(hz) + " Hz");
   }

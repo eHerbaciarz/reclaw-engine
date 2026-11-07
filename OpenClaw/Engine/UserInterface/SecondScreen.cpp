@@ -450,7 +450,7 @@ namespace
                     SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 200);
                     SDL_RenderDrawRect(g_pRenderer, &sel);
                 }
-                barred(icon, "smallnumbers", atoi(ammo[i].c_str()), 2, kNum, cx + colW / 2, yWeapons, a, 0.75);
+                barred(icon, "smallnumbers", atoi(ammo[i].c_str()), 2, kNum, cx + colW / 2, yWeapons, a, i == 0 ? 0.55 : 0.75);
             }
 
             // power-up time left, or the race
