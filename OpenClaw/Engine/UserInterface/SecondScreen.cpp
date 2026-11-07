@@ -532,8 +532,10 @@ namespace SecondScreen
 
             // A HUD picture with its number on the bar, left of the icon
             // (centred on cx); returns nothing.
+            // (free: the part of the bar the number is centred in; the lives
+            // bar has an "x" printed at its right end)
             auto barred = [&](const shared_ptr<Image>& img, const char* set, int value, int digits,
-                              double ks, int cx, int cy, Uint8 alpha) {
+                              double ks, int cx, int cy, Uint8 alpha, double free = 1.0) {
                 int w = imgW(img, k);
                 int x0 = cx - w / 2;
                 int dw = digitsW(set, digits, ks);
@@ -562,7 +564,7 @@ namespace SecondScreen
                 }
                 // on the parchment: centred on the bar's free part (up to the icon)
                 int top = cy - (int)(img->GetHeight() * k) / 2;
-                int bx0 = x0 + (int)(bar.x0 * k), bx1 = x0 + (int)(bar.x1 * k);
+                int bx0 = x0 + (int)(bar.x0 * k), bx1 = x0 + (int)((bar.x0 + (bar.x1 - bar.x0) * free) * k);
                 int by = top + (int)((bar.y0 + bar.y1) * k / 2);
                 Digits(set, value, digits, bx0 + std::max(0, (bx1 - bx0 - dw) / 2), by, ks, alpha);
             };
@@ -571,7 +573,7 @@ namespace SecondScreen
             barred(HudIcon("/game/images/interface/healthheart/"), "healthnumbers", atoi(health.c_str()), 3, k,
                    panel.x + panel.w / 4, yHealth, 255);
             barred(HudIcon("/game/images/interface/liveshead/"), "smallnumbers", atoi(lives.c_str()), 1, kNum,
-                   panel.x + panel.w * 3 / 4, yHealth, 255);
+                   panel.x + panel.w * 3 / 4, yHealth, 255, 0.6);
             line(top + h * 61 / 100);
 
             // the three weapons in equal columns; the selected one framed

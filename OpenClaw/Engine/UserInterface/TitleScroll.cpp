@@ -319,7 +319,12 @@ namespace TitleScroll
             DrawFrame(r, v, scaledTitle, left, right, paper, half);
             if (traceFrames < 2) { ++traceFrames; STARTUP_TRACE("title scroll: frame drawn"); }
             Uint32 spent = SDL_GetTicks() - frameStart;
+#if defined(RECLAW_3DS_GPU)
+            // (the 3DS's GPU drawing waits for the screen's refresh itself)
+            if (!ReclawGpu_Active() && spent < 15) SDL_Delay(15 - spent);
+#else
             if (spent < 15) SDL_Delay(15 - spent);   // ~60 fps without vsync
+#endif
         }
 
         // The melody ends with the scroll (also when it was skipped).

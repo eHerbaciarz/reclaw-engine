@@ -312,7 +312,10 @@ namespace
     void EnsureFrame()
     {
         if (g.inFrame) return;
-        C3D_FrameBegin(0);   // waits until the GPU is done with the last frame
+        // Waits for the screen's refresh (vblank), then until the GPU is done
+        // with the last frame. Without the wait the game drew 90-160 frames a
+        // second, shown at the screen's 60 unevenly: stutter while running.
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         for (GpuTexture* t : g.doomed) FreeTexture(t);
         g.doomed.clear();
         g.inFrame = true;

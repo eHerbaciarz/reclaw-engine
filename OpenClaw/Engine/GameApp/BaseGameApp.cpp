@@ -1343,9 +1343,15 @@ void BaseGameApp::SetViewZoom(int percent) {
   PortSettings::SetInt("view_zoom", percent);
 #if defined(RECLAW_3DS_GPU)
   if (ReclawGpu_Active()) {
-    // (the menu draws at scale 1 and puts this scale back after each frame;
-    // a level started later sees the new size)
+    // (the menus draw at scale 1 and put this scale back after each frame;
+    // the level's camera takes the new size at once)
     m_GameOptions.scale = 400.0 / 480.0 * ViewZoom() / 100.0;
+    if (HumanView *pView = GetHumanView()) {
+      if (shared_ptr<CameraNode> pCamera = pView->GetCamera()) {
+        pCamera->SetScale((float)m_GameOptions.scale, (float)m_GameOptions.scale);
+        pCamera->SetSize(pCamera->GetWidth(), pCamera->GetHeight());
+      }
+    }
     LOG_WARNING("View zoom " + ToStr(ViewZoom()) + "%");
   }
 #endif
