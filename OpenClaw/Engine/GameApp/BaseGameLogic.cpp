@@ -784,7 +784,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             std::vector<std::string> m = g_pApp->GetResourceCache()->Match(level + "/IMAGES/*");
             images.insert(images.end(), m.begin(), m.end());
         }
-        for (const std::string& set : { std::string("/CLAW/SOUNDS/*"), std::string("/GAME/SOUNDS/*"), level + "/SOUNDS/*" })
+        // (the level's own first: its enemies; the game's folder holds cheat
+        // and curse sounds too, so it comes last)
+        for (const std::string& set : { level + "/SOUNDS/*", std::string("/CLAW/SOUNDS/*"), std::string("/GAME/SOUNDS/*") })
         {
             std::vector<std::string> m = g_pApp->GetResourceCache()->Match(set);
             sounds.insert(sounds.end(), m.begin(), m.end());
@@ -796,7 +798,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         {
             ++done;
             if (path.size() < 4 || path.compare(path.size() - 4, 4, ".pid") != 0) continue;
-            if (linearSpaceFree() < 8u * 1024 * 1024) { imagesStopped = true; break; }
+            if (linearSpaceFree() < 10u * 1024 * 1024) { imagesStopped = true; break; }
             if (PidResourceLoader::LoadAndReturnImage(path.c_str(), g_pApp->GetCurrentPalette())) ++imagesLoaded;
             if (done % 60 == 0)
                 RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 95.0f + 4.0f * done / std::max<size_t>(1, total));
@@ -806,7 +808,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             ++done;
             if (path.size() < 4 || path.compare(path.size() - 4, 4, ".wav") != 0) continue;
             const long freeKB = Platform::FreeMemoryKB();
-            if (freeKB >= 0 && freeKB < 12 * 1024) { soundsStopped = true; break; }
+            if (freeKB >= 0 && freeKB < 10 * 1024) { soundsStopped = true; break; }
             if (WavResourceLoader::LoadAndReturnSound(path.c_str())) ++soundsLoaded;
             if (done % 30 == 0)
                 RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 95.0f + 4.0f * done / std::max<size_t>(1, total));

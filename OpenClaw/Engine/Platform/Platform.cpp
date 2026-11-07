@@ -623,9 +623,11 @@ namespace Platform
         // plus what the heap already holds but is not using
         return (long)(info.available / 1024) + (long)((mallinfo().fordblks) / 1024);
 #elif defined(__3DS__)
-        // the heap's end minus what malloc took from it, plus what malloc holds unused
-        const u32 end = __ctru_heap + __ctru_heap_size, top = (u32)sbrk(0);
-        return (long)((end > top ? end - top : 0) / 1024) + (long)(mallinfo().fordblks / 1024);
+        // the heap's size minus what is allocated in it (the earlier sum of
+        // the untouched end and malloc's free blocks counted memory twice:
+        // the preload ran the 3DS out of memory)
+        const u32 used = (u32)mallinfo().uordblks;
+        return (long)((__ctru_heap_size > used ? __ctru_heap_size - used : 0) / 1024);
 #else
         return -1;
 #endif
