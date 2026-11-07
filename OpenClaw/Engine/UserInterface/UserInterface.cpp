@@ -448,6 +448,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&percent, pElem->FirstChildElement("Percent"));
         pEventData.reset(new EventData_Menu_Set_View_Zoom(percent));
     }
+    else if (eventType == "SetAspect")
+    {
+        bool classic = false;
+        ParseValueFromXmlElem(&classic, pElem->FirstChildElement("Classic"));
+        pEventData.reset(new EventData_Menu_Set_Aspect(classic));
+    }
     else if (eventType == "SetSmooth")
     {
         bool enabled = true;
@@ -2076,6 +2082,10 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             m_bVisible = false;
         }
+        else if (conditionTypeStr == "GraphicsOptions" || conditionTypeStr == "AspectWide" || conditionTypeStr == "AspectClassic")
+        {
+            ReEvaluateVisibilityCondition();
+        }
         else if (conditionTypeStr == "SmoothOn")
         {
             m_bVisible = BaseGameApp::SmoothSupported() && BaseGameApp::Smooth();
@@ -2529,6 +2539,18 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = g_pApp->GetAudio()->IsMusicActive();
     else if (m_VisibilityConditionType == "MusicOff")
         m_bVisible = !g_pApp->GetAudio()->IsMusicActive();
+    else if (m_VisibilityConditionType == "GraphicsOptions")
+    {
+#ifndef __EMSCRIPTEN__
+        m_bVisible = true;
+#endif
+    }
+    else if (m_VisibilityConditionType == "AspectWide" || m_VisibilityConditionType == "AspectClassic")
+    {
+#ifndef __EMSCRIPTEN__
+        m_bVisible = BaseGameApp::AspectClassic() == (m_VisibilityConditionType == "AspectClassic");
+#endif
+    }
     else if (m_VisibilityConditionType == "SmoothOn")
         m_bVisible = BaseGameApp::SmoothSupported() && BaseGameApp::Smooth();
     else if (m_VisibilityConditionType == "SmoothOff")

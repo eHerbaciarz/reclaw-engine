@@ -168,7 +168,8 @@ void ScreenElementHUD::VOnRender(uint32 msDiff)
     if (m_pBossBarTexture)
     {
         Point pos;
-        Point windowSize = g_pApp->GetWindowSize();
+        // (the camera's size: in classic 4:3 it is narrower than the window)
+        Point windowSize = Point(m_pCamera->GetWidth(), m_pCamera->GetHeight());
         Point windowScale = g_pApp->GetScale();
 
         pos.Set(
@@ -338,4 +339,4 @@ void ScreenElementHUD::BossFightEndedDelegate(IEventDataPtr pEvent)
         SDL_DestroyTexture(m_pBossBarTexture);
         m_pBossBarTexture = NULL;
     }
-}
+}

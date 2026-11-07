@@ -52,6 +52,9 @@ static std::string ResolveBundledFile(const std::string& path)
 #include "../Audio/Native/SoundFontTrim.h"
 #endif
 #include "../Util/PortSettings.h"
+#if defined(__PSL1GHT__)
+#include "../Platform/Input/Ps3Pad.h"
+#endif
 #include "../Util/StartupTrace.h"
 
 #include "../Platform/Events/AppEvent.h"
@@ -408,7 +411,9 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     // the sprites' frames and some movements (ladders) changed every other
     // screen refresh only.
     int defaultHz = 30;
-#if defined(RECLAW_3DS_GPU)
+#if defined(RECLAW_GPU)
+    // (PS3 with the RSX: a step costs ~6 ms; at 30 the animations - Claw
+    // coming back after dying - moved every other frame only)
     if (ReclawGpu_Active()) defaultHz = 60;
 #endif
     int hz = PortSettings::GetInt("logic_hz", defaultHz);
@@ -929,6 +934,11 @@ void BaseGameApp::OnEvent(SDL_Event &event) {
     } else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
       void VOnMinimized();
     }
+#if defined(__PSL1GHT__)
+    // PS3: SDL reports the system menu (PS button) as the window left / entered
+    if (event.window.event == SDL_WINDOWEVENT_LEAVE) Ps3Pad::SetSystemMenu(true);
+    else if (event.window.event == SDL_WINDOWEVENT_ENTER) Ps3Pad::SetSystemMenu(false);
+#endif
     break;
   }
 
@@ -1403,12 +1413,7 @@ bool BaseGameApp::SmoothSupported() {
 }
 
 bool BaseGameApp::Smooth() {
-  // (3DS: off - its small screen looks best with sharp pixels)
-#if defined(__3DS__)
-  return PortSettings::GetInt("smooth", 0) != 0;
-#else
   return PortSettings::GetInt("smooth", 1) != 0;
-#endif
 }
 
 void BaseGameApp::SetSmooth(bool on) {
@@ -1424,6 +1429,15 @@ void BaseGameApp::SetSmooth(bool on) {
   Image::SetSmooth(on);
   LOG_WARNING(std::string("Pictures ") + (on ? "smoothed" : "sharp"));
 #endif
+}
+
+bool BaseGameApp::AspectClassic() {
+  return PortSettings::GetInt("aspect_classic", 0) != 0;
+}
+
+void BaseGameApp::SetAspectClassic(bool classic) {
+  PortSettings::SetInt("aspect_classic", classic ? 1 : 0);
+  LOG_WARNING(std::string("Aspect ") + (classic ? "classic (4:3)" : "widescreen"));
 }
 
 int BaseGameApp::ViewZoom() {

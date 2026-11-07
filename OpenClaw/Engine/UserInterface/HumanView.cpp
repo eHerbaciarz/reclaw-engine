@@ -37,6 +37,7 @@
 #include "../Race/RaceLobby.h"
 #include "../Scene/HUDSceneNode.h"
 #include "TouchPad.h"
+#include "GameHUD.h"
 
 const uint32 g_InvalidGameViewId = 0xFFFFFFFF;
 
@@ -150,21 +151,33 @@ void HumanView::VOnRender(uint32 msDiff)
                     }
                     // 3D: the HUD and other elements over the level stand out of the screen
                     const int pop = isScene ? 0 : Stereo3D::Offset(-0.6f);
-                    if (pop)
+                    // Options > Graphics > aspect classic: the level and its HUD in a
+                    // 4:3 area in the middle (the camera as wide as it)
+                    const bool isHud = dynamic_cast<ScreenElementHUD*>(screenElement.get()) != nullptr;
+                    SDL_Rect area43 = ClassicArea();
+                    const bool classic = (isScene || isHud) && area43.w > 0;
+                    if (classic)
+                    {
+                        SDL_Rect vp = { area43.x + pop, area43.y, area43.w, area43.h };
+                        SDL_RenderSetViewport(renderer, &vp);
+                    }
+                    else if (pop)
                     {
                         SDL_Rect vp = { pop, 0, (int)(g_pApp->GetWindowSize().x), (int)(g_pApp->GetWindowSize().y) };
                         SDL_RenderSetViewport(renderer, &vp);
                     }
                     screenElement->VOnRender(msDiff);
-                    if (pop) SDL_RenderSetViewport(renderer, NULL);
+                    if (pop || classic) SDL_RenderSetViewport(renderer, NULL);
                     if (isScene && (Race::IsActive() || BossModes::IsActive() || Minimap::IsVisible()))
                     {
                         Point scale = g_pApp->GetScale();
                         SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
+                        if (area43.w > 0) { full.w = area43.w; full.h = area43.h; SDL_RenderSetViewport(renderer, &area43); }
                         // 3DS: the map is on the bottom screen (SecondScreen)
                         if (!SecondScreen::ShowsHud()) Minimap::Render(renderer, full, m_ActorId);
                         Race::RenderOverlay(renderer, 0, full);
                         BossModes::RenderOverlay(renderer, full);
+                        if (area43.w > 0) SDL_RenderSetViewport(renderer, NULL);
                     }
                 }
             }
@@ -771,6 +784,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetSmoothDelegate), EventData_Menu_Set_Smooth::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetAspectDelegate), EventData_Menu_Set_Aspect::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -840,6 +855,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::SetViewZoomDelegate), EventData_Menu_Set_View_Zoom::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetSmoothDelegate), EventData_Menu_Set_Smooth::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetAspectDelegate), EventData_Menu_Set_Aspect::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1671,6 +1688,12 @@ void HumanView::SetSmoothDelegate(IEventDataPtr pEventData)
     if (pCast) g_pApp->SetSmooth(pCast->IsEnabled());
 }
 
+void HumanView::SetAspectDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Aspect> pCast = static_pointer_cast<EventData_Menu_Set_Aspect>(pEventData);
+    if (pCast) BaseGameApp::SetAspectClassic(pCast->IsClassic());
+}
+
 void HumanView::StartRaceDelegate(IEventDataPtr pEventData)
 {
     Race::Setup setup;
@@ -1805,6 +1828,34 @@ bool HumanView::IsRectInAnyView(const SDL_Rect& rect)
         if (SDL_HasIntersection(&rect, &cameraRect)) return true;
     }
     return false;
+}
+
+// Options > Graphics > aspect classic: the 4:3 area of the level in the
+// middle of the screen (in the renderer's scaled units), and the camera made
+// as wide as it. Empty when the level fills the screen (widescreen, split
+// screen, or the screen not wider than 4:3).
+SDL_Rect HumanView::ClassicArea()
+{
+    SDL_Rect r = { 0, 0, 0, 0 };
+    if (!m_pCamera) return r;
+    const Point window = g_pApp->GetWindowSize();
+    const Point scale = g_pApp->GetScale();
+    int wantW = (int)window.x;
+    if (BaseGameApp::AspectClassic() && !m_pCamera2 && window.y > 0)
+    {
+        const int w43 = (int)(window.y * 4 / 3) & ~1;
+        if (w43 + 8 < window.x) wantW = w43;
+    }
+    if ((int)m_pCamera->GetWidth() != wantW)
+    {
+        m_pCamera->SetSize(wantW, m_pCamera->GetHeight());
+    }
+    if (wantW >= (int)window.x || scale.x <= 0 || scale.y <= 0) return r;
+    r.w = (int)(wantW / scale.x);
+    r.h = (int)(window.y / scale.y);
+    r.x = (int)((window.x - wantW) / 2 / scale.x);
+    r.y = 0;
+    return r;
 }
 
 void HumanView::RenderSplitScene(SDL_Renderer* pRenderer)

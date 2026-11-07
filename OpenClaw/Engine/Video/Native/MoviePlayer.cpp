@@ -262,12 +262,12 @@ namespace
     }
 
     //---------------------------------------------------------------- input
-    // A / Enter / tap: skip this movie. B / + / Escape: stop the sequence.
+    // A / Start / Enter / tap: skip this movie. B / Select / Escape: stop the sequence.
     SkipKind SkipRequested()
     {
         int b = BlockingInput::Poll();
-        if (b & (BlockingInput::Back | BlockingInput::Start | BlockingInput::Quit)) return AbortAll;
-        if (b & BlockingInput::Accept) return SkipOne;
+        if (b & (BlockingInput::Back | BlockingInput::Quit)) return AbortAll;
+        if (b & (BlockingInput::Accept | BlockingInput::Start)) return SkipOne;
         return None;
     }
 
@@ -381,6 +381,25 @@ namespace
             SDL_RenderPresent(r);
         };
 
+#if defined(__PSL1GHT__)
+        {
+            // PS3: the TV takes a moment to show the picture after the game
+            // starts (the video mode is set); the first movie began unseen.
+            // A second and a half of black first.
+            static bool s_First = true;
+            if (s_First)
+            {
+                s_First = false;
+                const Uint32 t0 = SDL_GetTicks();
+                while (SDL_GetTicks() - t0 < 1500 && AppAlive())
+                {
+                    SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+                    SDL_RenderClear(r);
+                    SDL_RenderPresent(r);
+                }
+            }
+        }
+#endif
         InitSkipInput();
         SkipKind skipped = None;
         STARTUP_TRACE("movie: first frame");

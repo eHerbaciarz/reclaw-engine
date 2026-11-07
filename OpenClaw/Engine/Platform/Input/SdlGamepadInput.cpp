@@ -25,6 +25,27 @@ namespace Ps3Pad
         bool g_InfoOk = false;
     }
 
+    namespace
+    {
+        bool g_MenuOpen = false;
+        Uint32 g_MenuClosedAt = 0;
+        unsigned g_MenuCount = 0;
+    }
+
+    void SetSystemMenu(bool open)
+    {
+        if (open && !g_MenuOpen) ++g_MenuCount;
+        if (!open && g_MenuOpen) g_MenuClosedAt = SDL_GetTicks();
+        g_MenuOpen = open;
+    }
+
+    bool SystemMenuQuiet()
+    {
+        return g_MenuOpen || (g_MenuClosedAt && SDL_GetTicks() - g_MenuClosedAt < 400);
+    }
+
+    unsigned SystemMenuCount() { return g_MenuCount; }
+
     bool State(int port, padData& out)
     {
         if (port < 0 || port >= MAX_PORT_NUM) return false;
@@ -453,7 +474,14 @@ namespace SdlGamepadInput
 #ifdef __PSL1GHT__
     void PollDirect(void (*emit)(const AppEvent &, void *), void *ctx)
     {
-        struct Port { unsigned buttons = 0; float x = 0, y = 0; bool l2 = false, r2 = false; };
+        struct Port
+        {
+            unsigned buttons = 0; float x = 0, y = 0; bool l2 = false, r2 = false;
+            // Select (the level map) waits: the PS button can come with it on
+            // some pads, and the system menu opening then means it was not for
+            // the game. Sent when released, or when held for 0.3 s.
+            bool selectPending = false; Uint32 selectAt = 0; unsigned selectMenus = 0;
+        };
         static Port s_Ports[2];
         static std::map<std::pair<int, int>, GamepadButton> s_Pressed;
         OpenController c;   // PlayStation pads: positional (cross = A)
@@ -484,11 +512,47 @@ namespace SdlGamepadInput
             {
                 if (kButtons[i].bit) now |= 1u << i;
                 const bool was = (p.buttons >> i) & 1u, is = kButtons[i].bit != 0;
-                if (was == is) continue;
                 const auto key = std::make_pair(port, kButtons[i].sdl);
+                auto send = [&](bool down, GamepadButton b) {
+                    AppEvent e;
+                    e.type = down ? AppEventType::GamepadButtonDown : AppEventType::GamepadButtonUp;
+                    e.gamepadButton.gamepadIndex = port;
+                    e.gamepadButton.button = b;
+                    e.gamepadButton.value = down ? 1.0f : 0.0f;
+                    emit(e, ctx);
+                };
+                if (kButtons[i].sdl == SDL_CONTROLLER_BUTTON_BACK)
+                {
+                    // Select: held back (see Port)
+                    if (is && !was)
+                    {
+                        if (Ps3Pad::SystemMenuQuiet()) continue;
+                        p.selectPending = true;
+                        p.selectAt = SDL_GetTicks();
+                        p.selectMenus = Ps3Pad::SystemMenuCount();
+                        continue;
+                    }
+                    const bool menuSince = Ps3Pad::SystemMenuCount() != p.selectMenus || Ps3Pad::SystemMenuQuiet();
+                    if (p.selectPending && (!is || SDL_GetTicks() - p.selectAt >= 300))
+                    {
+                        p.selectPending = false;
+                        GamepadButton b;
+                        if (!menuSince && MapButton(c, kButtons[i].sdl, IsMenuContext(), b))
+                        {
+                            MarkGamepadActive(-(port + 2));
+                            send(true, b);
+                            if (is) s_Pressed[key] = b;
+                            else send(false, b);
+                        }
+                        continue;
+                    }
+                }
+                if (was == is) continue;
                 GamepadButton button;
                 if (is)
                 {
+                    // (pressed while the system menu is open: for the system)
+                    if (Ps3Pad::SystemMenuQuiet()) continue;
                     if (!MapButton(c, kButtons[i].sdl, IsMenuContext(), button)) continue;
                     s_Pressed[key] = button;
                     MarkGamepadActive(-(port + 2));
@@ -500,12 +564,7 @@ namespace SdlGamepadInput
                     button = it->second;
                     s_Pressed.erase(it);
                 }
-                AppEvent e;
-                e.type = is ? AppEventType::GamepadButtonDown : AppEventType::GamepadButtonUp;
-                e.gamepadButton.gamepadIndex = port;
-                e.gamepadButton.button = button;
-                e.gamepadButton.value = is ? 1.0f : 0.0f;
-                emit(e, ctx);
+                send(is, button);
             }
             p.buttons = now;
 

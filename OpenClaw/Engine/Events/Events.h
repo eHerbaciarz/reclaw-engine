@@ -2469,6 +2469,30 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Aspect
+// Options > Graphics: the level widescreen or classic 4:3 (bars at the sides).
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Aspect : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Aspect(bool classic = false) : m_bClassic(classic) { }
+
+    bool IsClassic() const { return m_bClassic; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Aspect(m_bClassic)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Aspect"; }
+
+private:
+    bool m_bClassic;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Set_View_Zoom
 // 3DS (GPU drawing): how much of the level is seen (percent of the normal
 // zoom; less shows more of the level).

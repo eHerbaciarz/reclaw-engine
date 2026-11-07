@@ -650,7 +650,47 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+            <!-- ReClaw: Options > Graphics (smoothing, aspect, view) -->
+            <Name>GRAPHICS_BUTTON</Name>
+            <GameFontText en="GRAPHICS">GRAFIKA</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>GraphicsOptions</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="240" align="center" />
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options_Graphics</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
+            <Type>Button</Type>
+            <Hotkey>B</Hotkey>
+            <State>Inactive</State>
+            <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
+            <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
+            <Position x="320" y="275" align="center" />
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Main</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+    </MenuPage>
+
+    <!-- GRAPHICS PAGE (ReClaw) -->
+    <MenuPage>
+        <PageName>MenuPage_Options_Graphics</PageName>
+        <KeyboardEvent>
+            <KeyType>Escape</KeyType>
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options</PageName>
+            </GeneratedEvent>
+        </KeyboardEvent>
+        <MenuItem>
+            <!-- ReClaw (3DS, PS3, Switch, Vita): how much of the level is seen; each
                  press goes to the next one (100, 90, 80, 70 % of the zoom) -->
             <Name>VIEW_ZOOM_100_BUTTON</Name>
             <GameFontText en="VIEW: NORMAL">WIDOK: NORMALNY</GameFontText>
@@ -659,7 +699,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:100</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
+            <Position x="320" y="205" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>90</Percent>
@@ -686,7 +726,7 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+            <!-- ReClaw (3DS, PS3, Switch, Vita): how much of the level is seen; each
                  press goes to the next one (100, 90, 80, 70 % of the zoom) -->
             <Name>VIEW_ZOOM_90_BUTTON</Name>
             <GameFontText en="VIEW: WIDE">WIDOK: SZEROKI</GameFontText>
@@ -695,7 +735,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:90</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
+            <Position x="320" y="205" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>80</Percent>
@@ -722,7 +762,7 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+            <!-- ReClaw (3DS, PS3, Switch, Vita): how much of the level is seen; each
                  press goes to the next one (100, 90, 80, 70 % of the zoom) -->
             <Name>VIEW_ZOOM_80_BUTTON</Name>
             <GameFontText en="VIEW: WIDER">WIDOK: SZERSZY</GameFontText>
@@ -731,7 +771,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:80</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
+            <Position x="320" y="205" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>70</Percent>
@@ -758,7 +798,7 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+            <!-- ReClaw (3DS, PS3, Switch, Vita): how much of the level is seen; each
                  press goes to the next one (100, 90, 80, 70 % of the zoom) -->
             <Name>VIEW_ZOOM_70_BUTTON</Name>
             <GameFontText en="VIEW: WIDEST">WIDOK: NAJSZERSZY</GameFontText>
@@ -767,7 +807,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:70</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
+            <Position x="320" y="205" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>100</Percent>
@@ -794,7 +834,7 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw (3DS, PS3, Switch, Vita): pictures smoothed or sharp pixels -->
+            <!-- ReClaw: pictures smoothed or sharp pixels -->
             <Name>SMOOTH_ON_BUTTON</Name>
             <GameFontText en="SMOOTHING: ON">WYGŁADZANIE: TAK</GameFontText>
             <Type>Button</Type>
@@ -802,7 +842,7 @@
             <VisibilityCondition>
                 <ConditionType>SmoothOn</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="275" align="center" />
+            <Position x="320" y="240" align="center" />
             <GeneratedEvent>
                 <Type>SetSmooth</Type>
                 <IsEnabled>false</IsEnabled>
@@ -829,7 +869,7 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw (3DS, PS3, Switch, Vita): pictures smoothed or sharp pixels -->
+            <!-- ReClaw: pictures smoothed or sharp pixels -->
             <Name>SMOOTH_OFF_BUTTON</Name>
             <GameFontText en="SMOOTHING: OFF">WYGŁADZANIE: NIE</GameFontText>
             <Type>Button</Type>
@@ -837,7 +877,7 @@
             <VisibilityCondition>
                 <ConditionType>SmoothOff</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="275" align="center" />
+            <Position x="320" y="240" align="center" />
             <GeneratedEvent>
                 <Type>SetSmooth</Type>
                 <IsEnabled>true</IsEnabled>
@@ -864,6 +904,76 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
+            <!-- ReClaw: the level widescreen (16:9) or classic (4:3, bars at the sides) -->
+            <Name>ASPECT_WIDE_BUTTON</Name>
+            <GameFontText en="ASPECT: WIDESCREEN">PROPORCJE: PANORAMICZNE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>AspectWide</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="275" align="center" />
+            <GeneratedEvent>
+                <Type>SetAspect</Type>
+                <Classic>true</Classic>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: the level widescreen (16:9) or classic (4:3, bars at the sides) -->
+            <Name>ASPECT_CLASSIC_BUTTON</Name>
+            <GameFontText en="ASPECT: CLASSIC">PROPORCJE: KLASYCZNE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>AspectClassic</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="275" align="center" />
+            <GeneratedEvent>
+                <Type>SetAspect</Type>
+                <Classic>false</Classic>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <Hotkey>B</Hotkey>
@@ -873,10 +983,10 @@
             <Position x="320" y="310" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
-                <PageName>MenuPage_Main</PageName>
+                <PageName>MenuPage_Options</PageName>
             </GeneratedEvent>
         </MenuItem>
-    </MenuPage>
+        </MenuPage>
 
     <!-- AUDIO PAGE -->
     <MenuPage>

@@ -130,6 +130,8 @@ protected:
     void SetSubtitlesDelegate(IEventDataPtr pEventData);
     void SetViewZoomDelegate(IEventDataPtr pEventData);
     void SetSmoothDelegate(IEventDataPtr pEventData);
+    void SetAspectDelegate(IEventDataPtr pEventData);
+    SDL_Rect ClassicArea();
     void OnCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);
     void BossModesDelegate(IEventDataPtr pEventData);

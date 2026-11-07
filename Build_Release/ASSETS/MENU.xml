@@ -2595,73 +2595,18 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw (3DS, PS3, Switch, Vita): pictures smoothed or sharp pixels -->
-            <Name>SMOOTH_ON_BUTTON</Name>
-            <GameFontText en="SMOOTHING: ON">WYGŁADZANIE: TAK</GameFontText>
+            <!-- ReClaw: Options > Graphics (smoothing, aspect) -->
+            <Name>GRAPHICS_BUTTON</Name>
+            <GameFontText en="GRAPHICS">GRAFIKA</GameFontText>
             <Type>Button</Type>
             <State>Inactive</State>
             <VisibilityCondition>
-                <ConditionType>SmoothOn</ConditionType>
+                <ConditionType>GraphicsOptions</ConditionType>
             </VisibilityCondition>
             <Position x="320" y="343" align="center" />
             <GeneratedEvent>
-                <Type>SetSmooth</Type>
-                <IsEnabled>false</IsEnabled>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
-                <IsVisible>false</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
-                <State>Inactive</State>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
-                <IsVisible>true</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
-                <State>Active</State>
-            </GeneratedEvent>
-        </MenuItem>
-        <MenuItem>
-            <!-- ReClaw (3DS, PS3, Switch, Vita): pictures smoothed or sharp pixels -->
-            <Name>SMOOTH_OFF_BUTTON</Name>
-            <GameFontText en="SMOOTHING: OFF">WYGŁADZANIE: NIE</GameFontText>
-            <Type>Button</Type>
-            <State>Inactive</State>
-            <VisibilityCondition>
-                <ConditionType>SmoothOff</ConditionType>
-            </VisibilityCondition>
-            <Position x="320" y="343" align="center" />
-            <GeneratedEvent>
-                <Type>SetSmooth</Type>
-                <IsEnabled>true</IsEnabled>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
-                <IsVisible>false</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
-                <State>Inactive</State>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
-                <IsVisible>true</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
-                <State>Active</State>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options_Graphics</PageName>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
@@ -2693,6 +2638,179 @@
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Main</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+    </MenuPage>
+
+    <!-- GRAPHICS PAGE (ReClaw: Options > Graphics) -->
+    <MenuPage>
+        <PageName>MenuPage_Options_Graphics</PageName>
+        <AutoLayout top="230" step="40" bottom="410" />
+        <KeyboardEvent>
+            <KeyType>Escape</KeyType>
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options</PageName>
+            </GeneratedEvent>
+        </KeyboardEvent>
+        <MenuItem>
+            <Name>GRAPHICS_TITLE</Name>
+            <GameFontText en="GRAPHICS">GRAFIKA</GameFontText>
+            <GameFontUnderline>-2</GameFontUnderline>
+            <Type>Text</Type>
+            <State>Inactive</State>
+            <Position x="320" y="160" align="center" />
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: pictures smoothed or sharp pixels -->
+            <Name>SMOOTH_ON_BUTTON</Name>
+            <GameFontText en="SMOOTHING: ON">WYGŁADZANIE: TAK</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>SmoothOn</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="230" align="center" />
+            <GeneratedEvent>
+                <Type>SetSmooth</Type>
+                <IsEnabled>false</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: pictures smoothed or sharp pixels -->
+            <Name>SMOOTH_OFF_BUTTON</Name>
+            <GameFontText en="SMOOTHING: OFF">WYGŁADZANIE: NIE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>SmoothOff</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="230" align="center" />
+            <GeneratedEvent>
+                <Type>SetSmooth</Type>
+                <IsEnabled>true</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: the level widescreen (16:9) or classic (4:3, bars at the sides) -->
+            <Name>ASPECT_WIDE_BUTTON</Name>
+            <GameFontText en="ASPECT: WIDESCREEN">PROPORCJE: PANORAMICZNE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>AspectWide</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="270" align="center" />
+            <GeneratedEvent>
+                <Type>SetAspect</Type>
+                <Classic>true</Classic>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: the level widescreen (16:9) or classic (4:3, bars at the sides) -->
+            <Name>ASPECT_CLASSIC_BUTTON</Name>
+            <GameFontText en="ASPECT: CLASSIC">PROPORCJE: KLASYCZNE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>AspectClassic</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="270" align="center" />
+            <GeneratedEvent>
+                <Type>SetAspect</Type>
+                <Classic>false</Classic>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_CLASSIC_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>ASPECT_WIDE_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>BACK_BUTTON</Name>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
+            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
+            <Position x="320" y="310" align="center" />
+            <GeneratedEvent>
+                <Type>SwitchPage</Type>
+                <PageName>MenuPage_Options</PageName>
             </GeneratedEvent>
         </MenuItem>
     </MenuPage>

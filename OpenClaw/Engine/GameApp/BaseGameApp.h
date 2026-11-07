@@ -375,6 +375,9 @@ public:
   // Options: pictures smoothed or sharp pixels (same platforms)
   static bool SmoothSupported();
   static bool Smooth();
+  // Options > Graphics: the level in classic 4:3 (false: widescreen)
+  static bool AspectClassic();
+  static void SetAspectClassic(bool classic);
   void SetSmooth(bool on);
   const GlobalOptions *GetGlobalOptions() const { return &m_GlobalOptions; }
   const ControlOptions *GetControlOptions() const { return &m_ControlOptions; }

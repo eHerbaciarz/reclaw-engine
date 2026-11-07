@@ -51,6 +51,7 @@ const EventType EventData_Menu_Open_Cheats::sk_EventType(0x5a1d0c41);
 const EventType EventData_Menu_Set_Subtitles::sk_EventType(0x5a1d0c42);
 const EventType EventData_Menu_Set_View_Zoom::sk_EventType(0x3d5c0a71);
 const EventType EventData_Menu_Set_Smooth::sk_EventType(0x6b2e91d4);
+const EventType EventData_Menu_Set_Aspect::sk_EventType(0x2f7d4c18);
 const EventType EventData_Menu_Boss_Modes::sk_EventType(0x5a1d0c43);
 const EventType EventData_Menu_Open_Language::sk_EventType(0x5a1d0c44);
 const EventType EventData_Reset_Save_Progress::sk_EventType(0xbf29c2f5);
