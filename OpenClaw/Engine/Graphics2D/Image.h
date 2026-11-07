@@ -21,7 +21,15 @@ public:
     // Switch, Vita: the game's pictures (sprites, tiles) sampled smoothly or
     // as sharp pixels; applies to the loaded ones at once.
     static void SetSmooth(bool on);
-    static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer);
+    // filterable: a picture of the level (sprites, tiles, HUD), made bigger by
+    // the pixel filter of Options > Graphics when one is on
+    static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable = false);
+    // Options > Graphics > filter (PixelFilters::Kind; experimental): for the
+    // pictures loaded from now on
+    static void SetFilter(int kind);
+    static int Filter();
+    // The texture's size over the picture's (2 when filtered)
+    inline int GetTexScale() { return m_TexScale; }
     // Pass as colorKey: use the image's top-left pixel as the transparent colour.
     // Menu texts are drawn on a solid background that differs between releases
     // (black in the English CLAW.REZ, magenta in the Polish one).
@@ -49,7 +57,9 @@ public:
     SDL_Texture* GetMirroredTexture(SDL_Renderer* pRenderer);
 
 private:
-    bool Initialize(WapPid* pid, SDL_Renderer* renderer);
+    bool Initialize(WapPid* pid, SDL_Renderer* renderer, bool filterable = false);
+    static SDL_Texture* FilteredTextureFromPid(WapPid* pid, SDL_Renderer* renderer, int kind);
+    int m_TexScale = 1;
     bool Initialize(SDL_Texture* pTexture);
 
     SDL_Texture* m_pTexture;

@@ -378,6 +378,10 @@ public:
   // Options > Graphics: the level in classic 4:3 (false: widescreen)
   static bool AspectClassic();
   static void SetAspectClassic(bool classic);
+  // Options > Graphics: pixel filter of the level's pictures (experimental;
+  // from the next level loaded)
+  static int Filter();
+  static void SetFilter(int kind);
   void SetSmooth(bool on);
   const GlobalOptions *GetGlobalOptions() const { return &m_GlobalOptions; }
   const ControlOptions *GetControlOptions() const { return &m_ControlOptions; }

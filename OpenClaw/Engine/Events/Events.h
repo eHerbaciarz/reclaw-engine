@@ -2493,6 +2493,30 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Filter
+// Options > Graphics: pixel filter for the level's pictures (PixelFilters::Kind).
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Filter : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Filter(int kind = 0) : m_Kind(kind) { }
+
+    int GetKind() const { return m_Kind; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Filter(m_Kind)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Filter"; }
+
+private:
+    int m_Kind;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Set_View_Zoom
 // 3DS (GPU drawing): how much of the level is seen (percent of the normal
 // zoom; less shows more of the level).

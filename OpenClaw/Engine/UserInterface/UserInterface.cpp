@@ -448,6 +448,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&percent, pElem->FirstChildElement("Percent"));
         pEventData.reset(new EventData_Menu_Set_View_Zoom(percent));
     }
+    else if (eventType == "SetFilter")
+    {
+        int kind = 0;
+        ParseValueFromXmlElem(&kind, pElem->FirstChildElement("Kind"));
+        pEventData.reset(new EventData_Menu_Set_Filter(kind));
+    }
     else if (eventType == "SetAspect")
     {
         bool classic = false;
@@ -2082,7 +2088,8 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             m_bVisible = false;
         }
-        else if (conditionTypeStr == "GraphicsOptions" || conditionTypeStr == "AspectWide" || conditionTypeStr == "AspectClassic")
+        else if (conditionTypeStr == "GraphicsOptions" || conditionTypeStr == "AspectWide" || conditionTypeStr == "AspectClassic" ||
+                 conditionTypeStr.compare(0, 7, "Filter:") == 0)
         {
             ReEvaluateVisibilityCondition();
         }
@@ -2543,6 +2550,12 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
     {
 #ifndef __EMSCRIPTEN__
         m_bVisible = true;
+#endif
+    }
+    else if (m_VisibilityConditionType.compare(0, 7, "Filter:") == 0)
+    {
+#ifndef __EMSCRIPTEN__
+        m_bVisible = atoi(m_VisibilityConditionType.c_str() + 7) == BaseGameApp::Filter();
 #endif
     }
     else if (m_VisibilityConditionType == "AspectWide" || m_VisibilityConditionType == "AspectClassic")

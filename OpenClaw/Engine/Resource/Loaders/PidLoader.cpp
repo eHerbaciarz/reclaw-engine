@@ -1,4 +1,6 @@
 #include "PidLoader.h"
+#include <cctype>
+#include <string>
 
 #include "../../Graphics2D/Image.h"
 #include "../../GameApp/BaseGameApp.h"
@@ -36,7 +38,16 @@ void PidResourceExtraData::LoadImage(char* rawBuffer, uint32 size, WapPal* palet
     if (_image == NULL)
     {
         SDL_Renderer* renderer = g_pApp->GetRenderer();
-        _image = shared_ptr<Image>(Image::CreateImage(_pid, renderer));
+        // Pictures of the level (not the menus') can be made bigger by a
+        // pixel filter (Options > Graphics)
+        bool filterable = false;
+        if (resourceString)
+        {
+            std::string path(resourceString);
+            for (char& ch : path) ch = (char)toupper((unsigned char)ch);
+            filterable = path.find("MENU") == std::string::npos;
+        }
+        _image = shared_ptr<Image>(Image::CreateImage(_pid, renderer, filterable));
         WAP_PidDestroy(_pid); _pid = NULL;
         //SAFE_DELETE_ARRAY(rawBuffer);
     }

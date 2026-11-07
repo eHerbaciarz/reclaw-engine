@@ -131,6 +131,7 @@ protected:
     void SetViewZoomDelegate(IEventDataPtr pEventData);
     void SetSmoothDelegate(IEventDataPtr pEventData);
     void SetAspectDelegate(IEventDataPtr pEventData);
+    void SetFilterDelegate(IEventDataPtr pEventData);
     SDL_Rect ClassicArea();
     void OnCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);

@@ -5,6 +5,10 @@
 #include "../SharedDefines.h"
 #include <set>
 #include <vector>
+#include "PixelFilters.h"
+#if !defined(RECLAW_GPU)
+#include "../../../platform/common/reclaw_bleed.h"
+#endif
 
 namespace
 {
@@ -300,10 +304,51 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
     return texture;
 }
 
-Image* Image::CreateImage(WapPid* pid, SDL_Renderer* renderer)
+static int g_Filter = 0;
+
+void Image::SetFilter(int kind)
+{
+    g_Filter = (kind > 0 && kind < PixelFilters::Count) ? kind : 0;
+}
+
+int Image::Filter() { return g_Filter; }
+
+// The picture made twice as big by a pixel filter (its colours as in
+// GetTextureFromPid). Null if that cannot be done (the caller makes the plain one).
+SDL_Texture* Image::FilteredTextureFromPid(WapPid* pid, SDL_Renderer* renderer, int kind)
+{
+    const int w = (int)pid->width, h = (int)pid->height;
+    if (w <= 0 || h <= 0 || w > 1024 || h > 1024 || (uint32_t)(w * h) != pid->colorsCount) return NULL;
+    std::vector<uint32_t> src((size_t)w * h);
+    bool opaque = true;
+    for (size_t i = 0; i < src.size(); ++i)
+    {
+        const WAP_ColorRGBA c = pid->colors[i];
+        if (c.a != 255) opaque = false;
+        src[i] = ((uint32_t)c.a << 24) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
+    }
+    std::vector<uint32_t> big;
+    PixelFilters::Upscale2x((PixelFilters::Kind)kind, src.data(), w, h, big);
+    const uint32_t* pixels = big.data();
+#if !defined(RECLAW_GPU)
+    // (for smooth sampling: see-through pixels coloured like their neighbours;
+    // the GPU shims do this themselves)
+    std::vector<uint32_t> bled;
+    if (const uint32_t* b = ReclawBleedAlpha(pixels, w * 2, w * 2, h * 2, bled)) pixels = b;
+#endif
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom((void*)pixels, w * 2, h * 2, 32, w * 2 * 4, SDL_PIXELFORMAT_ARGB8888);
+    if (!surface) return NULL;
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    if (texture && opaque) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
+    else if (texture) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    return texture;
+}
+
+Image* Image::CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable)
 {
     Image* image = new Image();
-    if (!image->Initialize(pid, renderer))
+    if (!image->Initialize(pid, renderer, filterable))
     {
         delete image;
         return NULL;
@@ -431,7 +476,7 @@ Image* Image::CreateImageFromColor(SDL_Color color, int w, int h, SDL_Renderer* 
     return pImage;
 }
 
-bool Image::Initialize(WapPid* pid, SDL_Renderer* renderer)
+bool Image::Initialize(WapPid* pid, SDL_Renderer* renderer, bool filterable)
 {
     if (pid == NULL || renderer == NULL)
     {
@@ -443,7 +488,13 @@ bool Image::Initialize(WapPid* pid, SDL_Renderer* renderer)
     m_OffsetX = pid->offsetX;
     m_OffsetY = pid->offsetY;
 
-    m_pTexture = GetTextureFromPid(pid, renderer);
+    m_pTexture = NULL;
+    if (filterable && g_Filter != 0)
+    {
+        m_pTexture = FilteredTextureFromPid(pid, renderer, g_Filter);
+        if (m_pTexture) m_TexScale = 2;
+    }
+    if (m_pTexture == NULL) m_pTexture = GetTextureFromPid(pid, renderer);
     if (m_pTexture == NULL)
     {
         return false;

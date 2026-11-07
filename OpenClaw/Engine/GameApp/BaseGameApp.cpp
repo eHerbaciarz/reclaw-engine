@@ -1440,6 +1440,17 @@ void BaseGameApp::SetAspectClassic(bool classic) {
   LOG_WARNING(std::string("Aspect ") + (classic ? "classic (4:3)" : "widescreen"));
 }
 
+int BaseGameApp::Filter() {
+  const int k = PortSettings::GetInt("filter", 0);
+  return (k >= 0 && k <= 3) ? k : 0;
+}
+
+void BaseGameApp::SetFilter(int kind) {
+  PortSettings::SetInt("filter", kind);
+  Image::SetFilter(Filter());
+  LOG_WARNING("Pixel filter " + ToStr(Filter()) + " (from the next level loaded)");
+}
+
 int BaseGameApp::ViewZoom() {
   const int z = PortSettings::GetInt("view_zoom", 100);
   return z >= 95 ? 100 : (z >= 85 ? 90 : (z >= 75 ? 80 : 70));
@@ -1767,6 +1778,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 #if defined(RECLAW_GPU) || defined(__SWITCH__) || defined(__vita__)
   if (SmoothSupported()) SetSmooth(Smooth());
 #endif
+  Image::SetFilter(Filter());
 
   // Stage 2a: install WASM-first platform event pipeline.
   if (!m_videoPlatform) {

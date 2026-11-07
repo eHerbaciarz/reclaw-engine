@@ -540,6 +540,17 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 
     m_pPhysics.reset(CreateClawPhysics());
 
+    {
+        // Options > Graphics > filter changed: the pictures made again
+        static int s_LoadedFilter = -1;
+        if (s_LoadedFilter >= 0 && s_LoadedFilter != Image::Filter())
+        {
+            PidResourceLoader::ClearKept();
+            g_pApp->GetResourceMgr()->VFlush();
+        }
+        s_LoadedFilter = Image::Filter();
+    }
+
 #if defined(__3DS__) || defined(__PSL1GHT__)
     // 3DS, PS3 memory: the menu's images and files (and the decoded pictures they
     // keep) leave the resource caches before the level is built.

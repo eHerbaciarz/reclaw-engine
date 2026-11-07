@@ -109,12 +109,15 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
                 // cell-sized (e.g. one pixel wider with a stray edge column);
                 // stretching them into the cell made that column visible as
                 // thin vertical lines (level 13 vines).
+                // (a filtered picture's texture is twice its size: GetTexScale)
+                const int ts = image->GetTexScale();
                 int texW = tilePixelWidth, texH = tilePixelHeight;
                 SDL_QueryTexture(image->GetTexture(), NULL, NULL, &texW, &texH);
-                SDL_Rect srcRect = { 0, 0,
-                    std::min<int32_t>(texW, tilePixelWidth),
-                    std::min<int32_t>(texH, tilePixelHeight) };
-                SDL_Rect tileRect = { x, y, srcRect.w, srcRect.h };
+                texW /= ts;
+                texH /= ts;
+                const int cellW = std::min<int32_t>(texW, tilePixelWidth), cellH = std::min<int32_t>(texH, tilePixelHeight);
+                SDL_Rect srcRect = { 0, 0, cellW * ts, cellH * ts };
+                SDL_Rect tileRect = { x, y, cellW, cellH };
 
                 SDL_RenderCopy(renderer, image->GetTexture(), &srcRect, &tileRect);
 #ifdef OPENCLAW_STARTUP_TRACE

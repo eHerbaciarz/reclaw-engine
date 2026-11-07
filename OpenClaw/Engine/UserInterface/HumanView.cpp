@@ -786,6 +786,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetAspectDelegate), EventData_Menu_Set_Aspect::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetFilterDelegate), EventData_Menu_Set_Filter::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -857,6 +859,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::SetSmoothDelegate), EventData_Menu_Set_Smooth::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetAspectDelegate), EventData_Menu_Set_Aspect::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetFilterDelegate), EventData_Menu_Set_Filter::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1692,6 +1696,12 @@ void HumanView::SetAspectDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Menu_Set_Aspect> pCast = static_pointer_cast<EventData_Menu_Set_Aspect>(pEventData);
     if (pCast) BaseGameApp::SetAspectClassic(pCast->IsClassic());
+}
+
+void HumanView::SetFilterDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Filter> pCast = static_pointer_cast<EventData_Menu_Set_Filter>(pEventData);
+    if (pCast) BaseGameApp::SetFilter(pCast->GetKind());
 }
 
 void HumanView::StartRaceDelegate(IEventDataPtr pEventData)

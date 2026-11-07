@@ -2802,12 +2802,156 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
+            <!-- ReClaw (experimental): pixel filter of the level's pictures, from the
+                 next level loaded (none, Scale2x, 2xSaI, xBR); each press: the next -->
+            <Name>FILTER_0_BUTTON</Name>
+            <GameFontText en="FILTER: NONE">FILTR: BRAK</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Filter:0</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="310" align="center" />
+            <GeneratedEvent>
+                <Type>SetFilter</Type>
+                <Kind>1</Kind>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_0_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_0_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_1_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_1_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw (experimental): pixel filter of the level's pictures, from the
+                 next level loaded (none, Scale2x, 2xSaI, xBR); each press: the next -->
+            <Name>FILTER_1_BUTTON</Name>
+            <GameFontText en="FILTER: SIMPLE">FILTR: PROSTY</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Filter:1</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="310" align="center" />
+            <GeneratedEvent>
+                <Type>SetFilter</Type>
+                <Kind>2</Kind>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_1_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_1_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_2_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_2_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw (experimental): pixel filter of the level's pictures, from the
+                 next level loaded (none, Scale2x, 2xSaI, xBR); each press: the next -->
+            <Name>FILTER_2_BUTTON</Name>
+            <GameFontText en="FILTER: SAI">FILTR: SAI</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Filter:2</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="310" align="center" />
+            <GeneratedEvent>
+                <Type>SetFilter</Type>
+                <Kind>3</Kind>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_2_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_2_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_3_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_3_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw (experimental): pixel filter of the level's pictures, from the
+                 next level loaded (none, Scale2x, 2xSaI, xBR); each press: the next -->
+            <Name>FILTER_3_BUTTON</Name>
+            <GameFontText en="FILTER: EDGES">FILTR: KRAWĘDZIE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Filter:3</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="310" align="center" />
+            <GeneratedEvent>
+                <Type>SetFilter</Type>
+                <Kind>0</Kind>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_3_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_3_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FILTER_0_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FILTER_0_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <State>Inactive</State>
             <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/012_PREVIOUSMENU.PCX</InactiveImage>
             <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/013_PREVIOUSMENU.PCX</ActiveImage>
-            <Position x="320" y="310" align="center" />
+            <Position x="320" y="350" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>
