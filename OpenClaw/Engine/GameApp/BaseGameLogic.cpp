@@ -511,6 +511,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     // keep) leave the resource caches before the level is built.
     PidResourceLoader::ClearKept();
     WavResourceLoader::ClearKept();   // (all sounds were stopped above)
+    g_pApp->GetResourceCache()->ClearKeptFiles();
     g_pApp->GetResourceMgr()->VFlush();
     TraceLevel("caches flushed");
 #endif
@@ -803,19 +804,15 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             if (done % 60 == 0)
                 RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 95.0f + 4.0f * done / std::max<size_t>(1, total));
         }
-        for (const std::string& path : sounds)
-        {
-            ++done;
-            if (path.size() < 4 || path.compare(path.size() - 4, 4, ".wav") != 0) continue;
-            const long freeKB = Platform::FreeMemoryKB();
-            if (freeKB >= 0 && freeKB < 10 * 1024) { soundsStopped = true; break; }
-            if (WavResourceLoader::LoadAndReturnSound(path.c_str())) ++soundsLoaded;
-            if (done % 30 == 0)
-                RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 95.0f + 4.0f * done / std::max<size_t>(1, total));
-        }
+        // Sounds: their files' bytes kept in memory (a few MB); decoded when
+        // first played, from memory: 2-5 ms instead of 15-80 ms from the card.
+        // (Decoding them all now needs 4-8 times as much: out of memory.)
+        const size_t soundBytes = g_pApp->GetResourceCache()->KeepFiles(sounds, 6u * 1024 * 1024);
+        soundsLoaded = soundBytes / 1024;
+        RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 99.0f);
         LOG_WARNING("Level preload: " + ToStr((int)imagesLoaded) + " of " + ToStr((int)images.size()) + " pictures" +
-                    (imagesStopped ? " (stopped: GPU memory)" : "") + ", " + ToStr((int)soundsLoaded) + " of " +
-                    ToStr((int)sounds.size()) + " sounds" + (soundsStopped ? " (stopped: memory)" : "") +
+                    (imagesStopped ? " (stopped: GPU memory)" : "") + ", " + ToStr((int)sounds.size()) + " sound files, " +
+                    ToStr((int)soundsLoaded) + " KB kept" + (soundsStopped ? "" : "") +
                     "; free: heap " + ToStr((int)Platform::FreeMemoryKB()) + " KB, linear " +
                     ToStr((int)(linearSpaceFree() / 1024)) + " KB");
         TraceLevel("pictures and sounds preloaded");

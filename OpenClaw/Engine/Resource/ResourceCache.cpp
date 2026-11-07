@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 
 #include <libwap.h>
 
@@ -318,6 +319,32 @@ std::shared_ptr<ResourceHandle> ResourceCache::GetHandle(Resource* r)
     return handle;
 }
 
+static std::map<std::string, std::vector<char>> s_KeptFiles;
+
+size_t ResourceCache::KeepFiles(const std::vector<std::string>& names, size_t budget)
+{
+    size_t total = 0;
+    for (const auto& kv : s_KeptFiles) total += kv.second.size();
+    for (const std::string& name : names)
+    {
+        Resource r(name);
+        if (s_KeptFiles.count(r.GetName())) continue;
+        int32 size = _resourceFile->VGetRawResourceSize(&r);
+        if (size <= 0) continue;
+        if (total + (size_t)size > budget) break;
+        std::vector<char> data((size_t)size);
+        if (_resourceFile->VGetRawResource(&r, data.data()) < 0) continue;
+        total += (size_t)size;
+        s_KeptFiles[r.GetName()].swap(data);
+    }
+    return total;
+}
+
+void ResourceCache::ClearKeptFiles()
+{
+    s_KeptFiles.clear();
+}
+
 std::shared_ptr<ResourceHandle> ResourceCache::Load(Resource* r)
 {
     std::shared_ptr<IResourceLoader> loader;
@@ -340,7 +367,8 @@ std::shared_ptr<ResourceHandle> ResourceCache::Load(Resource* r)
         return nullptr;
     }
 
-    int32 rawSize = _resourceFile->VGetRawResourceSize(r);
+    auto kept = s_KeptFiles.find(r->GetName());
+    int32 rawSize = kept != s_KeptFiles.end() ? (int32)kept->second.size() : _resourceFile->VGetRawResourceSize(r);
     if (rawSize < 0)
     {
 
@@ -357,7 +385,11 @@ std::shared_ptr<ResourceHandle> ResourceCache::Load(Resource* r)
     }
     memset(rawBuffer, 0, allocSize);
 
-    if (_resourceFile->VGetRawResource(r, rawBuffer) < 0)
+    if (kept != s_KeptFiles.end())
+    {
+        memcpy(rawBuffer, kept->second.data(), kept->second.size());
+    }
+    else if (_resourceFile->VGetRawResource(r, rawBuffer) < 0)
     {
         LOG_ERROR("Could not retrieve data buffer from resource: " + r->GetName() + 
             " in resource file: " + _resourceFile->VGetName());

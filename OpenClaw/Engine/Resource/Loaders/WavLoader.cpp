@@ -119,10 +119,28 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
     // For Emscripten, just return the raw size since we don't need to decode
     return rawSize;
 #elif defined(__3DS__)
-    // 3DS: the decoded sound lives in its Mix_Chunk (normal heap); measuring it
-    // here decoded every sound twice, and the cache then set aside that much
-    // of its (linear) memory for nothing, pushing pictures out.
-    return 1;
+    // 3DS: the decoded size worked out from the header (decoding it here too
+    // decoded every sound twice); the cache counts it, so sounds still leave
+    // the cache when it is full. Output: 22050 Hz, 16-bit stereo.
+    {
+        const unsigned char* b = (const unsigned char*)rawBuffer;
+        unsigned ch = 1, rate = 22050, bits = 8, data = rawSize;
+        for (uint32 i = 12; i + 8 <= rawSize; )
+        {
+            const unsigned len = b[i + 4] | (b[i + 5] << 8) | (b[i + 6] << 16) | ((unsigned)b[i + 7] << 24);
+            if (memcmp(b + i, "fmt ", 4) == 0 && i + 24 <= rawSize)
+            {
+                ch = b[i + 10] | (b[i + 11] << 8);
+                rate = b[i + 12] | (b[i + 13] << 8) | (b[i + 14] << 16) | ((unsigned)b[i + 15] << 24);
+                bits = b[i + 22] | (b[i + 23] << 8);
+            }
+            else if (memcmp(b + i, "data", 4) == 0) { data = len; break; }
+            i += 8 + len + (len & 1);
+        }
+        if (!ch || !rate || !bits) return rawSize * 8;
+        const double frames = (double)data / (ch * (bits / 8.0));
+        return (uint32)(frames * 22050.0 / rate * 4.0) + 64;
+    }
 #else
     // TODO: This is inefficent, this resource gets basically loaded twice, once just
     // to find out how much room it takes and second time to actually create it
@@ -176,13 +194,6 @@ shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resource
     }
 #endif
     Resource resource(resourceString);
-#if defined(__3DS__)
-    static std::map<std::string, shared_ptr<Mix_Chunk>>& kept = KeptSounds();
-    {
-        auto it = kept.find(resource.GetName());
-        if (it != kept.end()) return it->second;
-    }
-#endif
 
     shared_ptr<ResourceHandle> handle = g_pApp->GetResourceCache()->GetHandle(&resource);
     if (!handle)
@@ -199,9 +210,6 @@ shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resource
         return NULL;
     }
 
-#if defined(__3DS__)
-    if (extraData->GetSound()) kept[resource.GetName()] = extraData->GetSound();
-#endif
     return extraData->GetSound();
 }
 

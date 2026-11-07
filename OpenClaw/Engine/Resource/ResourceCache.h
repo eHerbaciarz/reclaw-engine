@@ -175,6 +175,11 @@ public:
 
     int32 Preload(const std::string pattern, void(*progressCallback)(int32, bool &));
     std::vector<std::string> Match(const std::string pattern);
+    // The files' bytes read now and kept in memory (until ClearKeptFiles);
+    // loading them later reads no card. Stops at `budget` bytes. Returns the
+    // bytes kept.
+    size_t KeepFiles(const std::vector<std::string>& names, size_t budget);
+    void ClearKeptFiles();
     std::vector<std::string> GetAllFilesInDirectory(const char* directoryPath);
 
     void Flush();
