@@ -774,17 +774,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     // (PidResourceLoader / WavResourceLoader keep them).
     {
         const std::string level = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber());
-        const char* imageSets[] = { "/CLAW/IMAGES/*", "/GAME/IMAGES/*", nullptr };
+        // (pictures are not preloaded: keeping them all ran the GPU memory out,
+        // and they were not what stuttered)
         std::vector<std::string> images, sounds;
-        for (const char** p = imageSets; *p; ++p)
-        {
-            std::vector<std::string> m = g_pApp->GetResourceCache()->Match(*p);
-            images.insert(images.end(), m.begin(), m.end());
-        }
-        {
-            std::vector<std::string> m = g_pApp->GetResourceCache()->Match(level + "/IMAGES/*");
-            images.insert(images.end(), m.begin(), m.end());
-        }
         // (the level's own first: its enemies; the game's folder holds cheat
         // and curse sounds too, so it comes last)
         for (const std::string& set : { level + "/SOUNDS/*", std::string("/CLAW/SOUNDS/*"), std::string("/GAME/SOUNDS/*") })

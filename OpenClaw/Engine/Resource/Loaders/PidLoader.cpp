@@ -96,7 +96,9 @@ static shared_ptr<Image> LoadImageUncached(const char* resourceString, WapPal* p
 
 shared_ptr<Image> PidResourceLoader::LoadAndReturnImage(const char* resourceString, WapPal* palette)
 {
-#if defined(__3DS__)
+    // (keeping every picture of the level ran the 3DS's GPU memory out:
+    // off; pictures were not what made the game stutter, sounds were)
+#if 0
     Resource key(resourceString);   // (lower case)
     auto it = s_KeptImages.find(key.GetName());
     if (it != s_KeptImages.end()) return it->second;

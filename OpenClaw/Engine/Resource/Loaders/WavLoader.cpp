@@ -1,4 +1,6 @@
 #include <cstring>
+#include <algorithm>
+#include <cstdint>
 #include "../../Util/StartupTrace.h"
 #include "WavLoader.h"
 
@@ -28,14 +30,88 @@ WavResourceExtraData::~WavResourceExtraData()
     // Sound takes care of its own destruction
 }
 
+// 3DS: plain PCM WAVs converted to the mixer's format here, with linear
+// interpolation. SDL's converter (a long resampling filter) took 15-225 ms a
+// sound on the 3DS, a stutter every time a sound was played for the first
+// time; this takes a millisecond or two. Null: not a WAV this handles (SDL
+// decodes it).
+static Mix_Chunk* FastDecodeWav(const unsigned char* b, uint32 size)
+{
+#if defined(__3DS__)
+    int outRate = 0, outCh = 0;
+    Uint16 outFmt = 0;
+    if (!Mix_QuerySpec(&outRate, &outFmt, &outCh) || outFmt != AUDIO_S16SYS || (outCh != 1 && outCh != 2) || outRate <= 0)
+        return nullptr;
+    if (size < 12 || memcmp(b, "RIFF", 4) != 0 || memcmp(b + 8, "WAVE", 4) != 0) return nullptr;
+    unsigned tag = 0, ch = 0, rate = 0, bits = 0;
+    const unsigned char* data = nullptr;
+    uint32 dataLen = 0;
+    for (uint32 i = 12; i + 8 <= size; )
+    {
+        const uint32 len = b[i + 4] | (b[i + 5] << 8) | (b[i + 6] << 16) | ((uint32)b[i + 7] << 24);
+        if (memcmp(b + i, "fmt ", 4) == 0 && len >= 16 && i + 24 <= size)
+        {
+            tag = b[i + 8] | (b[i + 9] << 8);
+            ch = b[i + 10] | (b[i + 11] << 8);
+            rate = b[i + 12] | (b[i + 13] << 8) | (b[i + 14] << 16) | ((uint32)b[i + 15] << 24);
+            bits = b[i + 22] | (b[i + 23] << 8);
+        }
+        else if (memcmp(b + i, "data", 4) == 0)
+        {
+            data = b + i + 8;
+            dataLen = std::min<uint32>(len, size - (i + 8));
+            break;
+        }
+        if (len > size) break;
+        i += 8 + len + (len & 1);
+    }
+    if (!data || tag != 1 || (ch != 1 && ch != 2) || (bits != 8 && bits != 16) || rate < 4000 || rate > 96000) return nullptr;
+    const uint32 bytesPerFrame = ch * bits / 8;
+    const uint32 inFrames = dataLen / bytesPerFrame;
+    if (inFrames == 0) return nullptr;
+    const uint32 outFrames = (uint32)((uint64_t)inFrames * (uint32)outRate / rate);
+    if (outFrames == 0) return nullptr;
+    Mix_Chunk* chunk = (Mix_Chunk*)SDL_malloc(sizeof(Mix_Chunk));
+    Sint16* out = (Sint16*)SDL_malloc((size_t)outFrames * outCh * sizeof(Sint16));
+    if (!chunk || !out) { SDL_free(chunk); SDL_free(out); return nullptr; }
+    auto sample = [&](uint32 frame, unsigned c) -> int {
+        const unsigned char* p = data + (size_t)frame * bytesPerFrame + c * (bits / 8);
+        return bits == 8 ? ((int)p[0] - 128) << 8 : (int)(Sint16)(p[0] | (p[1] << 8));
+    };
+    const uint64_t step = ((uint64_t)rate << 16) / (uint32)outRate;   // 16.16 fixed point
+    uint64_t pos = 0;
+    for (uint32 f = 0; f < outFrames; ++f, pos += step)
+    {
+        const uint32 i0 = (uint32)(pos >> 16), i1 = std::min(i0 + 1, inFrames - 1);
+        const int frac = (int)(pos & 0xFFFF);
+        int l = sample(i0, 0) + (int)(((int64_t)(sample(i1, 0) - sample(i0, 0)) * frac) >> 16);
+        int r = ch == 2 ? sample(i0, 1) + (int)(((int64_t)(sample(i1, 1) - sample(i0, 1)) * frac) >> 16) : l;
+        if (outCh == 1) out[f] = (Sint16)((l + r) / 2);
+        else { out[2 * f] = (Sint16)l; out[2 * f + 1] = (Sint16)r; }
+    }
+    chunk->allocated = 1;
+    chunk->abuf = (Uint8*)out;
+    chunk->alen = outFrames * outCh * sizeof(Sint16);
+    chunk->volume = MIX_MAX_VOLUME;
+    return chunk;
+#else
+    (void)b; (void)size;
+    return nullptr;
+#endif
+}
+
 void WavResourceExtraData::LoadWavSound(char* rawBuffer, uint32 size)
 {
 #ifndef __EMSCRIPTEN__
     // Native: decode to PCM in the mixer's output format, as upstream OpenClaw
     // does. Mix_PlayChannel, Mix_SetPosition and Util::GetSoundDurationMs all
     // expect a real decoded chunk.
-    SDL_RWops* soundRwOps = SDL_RWFromConstMem(rawBuffer, (int)size);
-    Mix_Chunk* pChunk = Mix_LoadWAV_RW(soundRwOps, 1);
+    Mix_Chunk* pChunk = FastDecodeWav((const unsigned char*)rawBuffer, size);
+    if (!pChunk)
+    {
+        SDL_RWops* soundRwOps = SDL_RWFromConstMem(rawBuffer, (int)size);
+        pChunk = Mix_LoadWAV_RW(soundRwOps, 1);
+    }
     if (pChunk == NULL)
     {
         LOG_ERROR("Mix_LoadWAV_RW failed: " + std::string(Mix_GetError()));
