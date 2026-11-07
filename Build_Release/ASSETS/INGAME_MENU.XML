@@ -446,150 +446,6 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
-                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
-            <Name>VIEW_ZOOM_100_BUTTON</Name>
-            <GameFontText en="VIEW: NORMAL">WIDOK: NORMALNY</GameFontText>
-            <Type>Button</Type>
-            <State>Inactive</State>
-            <VisibilityCondition>
-                <ConditionType>ViewZoom:100</ConditionType>
-            </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
-            <GeneratedEvent>
-                <Type>SetViewZoom</Type>
-                <Percent>90</Percent>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
-                <IsVisible>false</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
-                <State>Inactive</State>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
-                <IsVisible>true</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
-                <State>Active</State>
-            </GeneratedEvent>
-        </MenuItem>
-        <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
-                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
-            <Name>VIEW_ZOOM_90_BUTTON</Name>
-            <GameFontText en="VIEW: WIDE">WIDOK: SZEROKI</GameFontText>
-            <Type>Button</Type>
-            <State>Inactive</State>
-            <VisibilityCondition>
-                <ConditionType>ViewZoom:90</ConditionType>
-            </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
-            <GeneratedEvent>
-                <Type>SetViewZoom</Type>
-                <Percent>80</Percent>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
-                <IsVisible>false</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
-                <State>Inactive</State>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
-                <IsVisible>true</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
-                <State>Active</State>
-            </GeneratedEvent>
-        </MenuItem>
-        <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
-                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
-            <Name>VIEW_ZOOM_80_BUTTON</Name>
-            <GameFontText en="VIEW: WIDER">WIDOK: SZERSZY</GameFontText>
-            <Type>Button</Type>
-            <State>Inactive</State>
-            <VisibilityCondition>
-                <ConditionType>ViewZoom:80</ConditionType>
-            </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
-            <GeneratedEvent>
-                <Type>SetViewZoom</Type>
-                <Percent>70</Percent>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
-                <IsVisible>false</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
-                <State>Inactive</State>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
-                <IsVisible>true</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
-                <State>Active</State>
-            </GeneratedEvent>
-        </MenuItem>
-        <MenuItem>
-            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
-                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
-            <Name>VIEW_ZOOM_70_BUTTON</Name>
-            <GameFontText en="VIEW: WIDEST">WIDOK: NAJSZERSZY</GameFontText>
-            <Type>Button</Type>
-            <State>Inactive</State>
-            <VisibilityCondition>
-                <ConditionType>ViewZoom:70</ConditionType>
-            </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
-            <GeneratedEvent>
-                <Type>SetViewZoom</Type>
-                <Percent>100</Percent>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
-                <IsVisible>false</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
-                <State>Inactive</State>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemVisibility</Type>
-                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
-                <IsVisible>true</IsVisible>
-            </GeneratedEvent>
-            <GeneratedEvent>
-                <Type>ModifyMenuItemState</Type>
-                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
-                <State>Active</State>
-            </GeneratedEvent>
-        </MenuItem>
-        <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <State>Inactive</State>
@@ -791,6 +647,150 @@
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options_Display</PageName>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
+            <Name>VIEW_ZOOM_100_BUTTON</Name>
+            <GameFontText en="VIEW: NORMAL">WIDOK: NORMALNY</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>ViewZoom:100</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="240" align="center" />
+            <GeneratedEvent>
+                <Type>SetViewZoom</Type>
+                <Percent>90</Percent>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
+            <Name>VIEW_ZOOM_90_BUTTON</Name>
+            <GameFontText en="VIEW: WIDE">WIDOK: SZEROKI</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>ViewZoom:90</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="240" align="center" />
+            <GeneratedEvent>
+                <Type>SetViewZoom</Type>
+                <Percent>80</Percent>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_90_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
+            <Name>VIEW_ZOOM_80_BUTTON</Name>
+            <GameFontText en="VIEW: WIDER">WIDOK: SZERSZY</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>ViewZoom:80</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="240" align="center" />
+            <GeneratedEvent>
+                <Type>SetViewZoom</Type>
+                <Percent>70</Percent>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_80_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw 3DS (GPU drawing): how much of the level is seen; each
+                 press goes to the next one (100, 90, 80, 70 % of the zoom) -->
+            <Name>VIEW_ZOOM_70_BUTTON</Name>
+            <GameFontText en="VIEW: WIDEST">WIDOK: NAJSZERSZY</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>ViewZoom:70</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="240" align="center" />
+            <GeneratedEvent>
+                <Type>SetViewZoom</Type>
+                <Percent>100</Percent>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_70_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>VIEW_ZOOM_100_BUTTON</MenuItemName>
+                <State>Active</State>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>

@@ -573,7 +573,7 @@ namespace SecondScreen
             barred(HudIcon("/game/images/interface/healthheart/"), "healthnumbers", atoi(health.c_str()), 3, k,
                    panel.x + panel.w / 4, yHealth, 255);
             barred(HudIcon("/game/images/interface/liveshead/"), "smallnumbers", atoi(lives.c_str()), 1, kNum,
-                   panel.x + panel.w * 3 / 4, yHealth, 255, 0.6);
+                   panel.x + panel.w * 3 / 4, yHealth, 255, 0.4);
             line(top + h * 61 / 100);
 
             // the three weapons in equal columns; the selected one framed
@@ -593,7 +593,7 @@ namespace SecondScreen
                     SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 200);
                     SDL_RenderDrawRect(g_pRenderer, &sel);
                 }
-                barred(icon, "smallnumbers", atoi(ammo[i].c_str()), 2, kNum, cx + colW / 2, yWeapons, a);
+                barred(icon, "smallnumbers", atoi(ammo[i].c_str()), 2, kNum, cx + colW / 2, yWeapons, a, 0.75);
             }
 
             // power-up time left, or the race
