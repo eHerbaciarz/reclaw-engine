@@ -53,6 +53,37 @@ extern "C" void ReclawBootMark(const char* step)
     first = false;
 }
 #define BOOT_MARK(s) ReclawBootMark(s)
+
+// PS3: the log copied to a USB stick (no FTP needed for testing): the
+// previous session's log (a crash included) when the game starts, as
+// reclaw_previous.log, and this session's when it quits, as reclaw.log.
+static std::string Ps3UsbDir()
+{
+    for (int i = 0; i < 8; ++i)
+    {
+        char path[32];
+        snprintf(path, sizeof(path), "/dev_usb00%d", i);
+        sysFSStat st;
+        if (sysLv2FsStat(path, &st) == 0) return std::string(path) + "/";
+    }
+    return std::string();
+}
+
+static bool Ps3CopyFile(const std::string& from, const std::string& to)
+{
+    FILE* in = fopen(from.c_str(), "rb");
+    if (!in) return false;
+    FILE* out = fopen(to.c_str(), "wb");
+    if (!out) { fclose(in); return false; }
+    char buf[16384];
+    size_t n;
+    bool ok = true;
+    while ((n = fread(buf, 1, sizeof(buf), in)) > 0)
+        if (fwrite(buf, 1, n, out) != n) { ok = false; break; }
+    fclose(in);
+    if (fclose(out) != 0) ok = false;
+    return ok;
+}
 #endif
 #ifndef BOOT_MARK
 #define BOOT_MARK(s) ((void)0)
@@ -452,6 +483,12 @@ namespace Platform
         if (IsConsole())
         {
             MakeDirs(g_DataDir);
+#if defined(__PSL1GHT__)
+            {
+                const std::string usb = Ps3UsbDir();
+                if (!usb.empty()) Ps3CopyFile(g_DataDir + "reclaw.log", usb + "reclaw_previous.log");
+            }
+#endif
             g_pLogFile = fopen((g_DataDir + "reclaw.log").c_str(), "w");
             BOOT_MARK(g_pLogFile ? "8 log open (the rest is in save/reclaw.log)" : "8 log could NOT be opened");
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);
@@ -648,6 +685,17 @@ namespace Platform
         if (g_pLogMutex) WriteLogPending();
 #endif
         if (g_pLogFile) fflush(g_pLogFile);
+    }
+
+    void CopyLogToUsb()
+    {
+#if defined(__PSL1GHT__)
+        if (!g_pLogFile) return;
+        fflush(g_pLogFile);
+        const std::string usb = Ps3UsbDir();
+        if (!usb.empty() && Ps3CopyFile(g_DataDir + "reclaw.log", usb + "reclaw.log"))
+            SDL_Log("log copied to %sreclaw.log", usb.c_str());
+#endif
     }
 
     bool LevelMusicOn()

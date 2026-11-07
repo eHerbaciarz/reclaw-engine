@@ -88,6 +88,8 @@ namespace Platform
     // on the third core there); port_settings.txt "music=" overrides it.
     bool LevelMusicOn();
     // Writes out the log lines still in memory (3DS: written every half second).
+    // PS3: this session's log copied to a USB stick (reclaw.log), if one is in.
+    void CopyLogToUsb();
     void FlushLog();
 
     // Save states (ZL/ZR) and rewind (hold R). On for now everywhere; to be

@@ -473,6 +473,7 @@ void BaseGameApp::Terminate() {
 
   SaveGameOptions();
   Platform::FlushLog();
+  Platform::CopyLogToUsb();
 #if defined(__3DS__)
   // exit() closes every FILE still open; one of them was on a file system
   // already shut down (romfs), and closing it crashed the 3DS (Luma3DS dump:
