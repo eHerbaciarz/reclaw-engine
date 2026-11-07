@@ -112,6 +112,7 @@ namespace
         bool inFrame = false;
         GpuTexture* white = nullptr;
         std::vector<GpuTexture*> doomed;
+        std::vector<GpuTexture*> doomedTargets;   // (deleted outside a frame only)
     } g;
 
     bool IsGpu(SDL_Renderer* r) { return r == kGpuRenderer && g.active; }
@@ -621,6 +622,8 @@ void ReclawGpu_RenderPresent(SDL_Renderer* renderer)
     g.batches = 0;
     C3D_FrameEnd(GX_CMDLIST_FLUSH);
     g.inFrame = false;
+    for (GpuTexture* t : g.doomedTargets) FreeTexture(t);
+    g.doomedTargets.clear();
     static int s_Frames = 0;
     if (++s_Frames % 300 == 0)
         SDL_Log("GPU: last frame %d vertices in %d draws (commands %.0f%% full), CPU %.1f ms, GPU %.1f ms; linear free %lu KB, VRAM free %lu KB",
@@ -918,6 +921,14 @@ void ReclawGpu_DestroyTexture(SDL_Texture* texture)
     // once showed as garbage (the loading screen's progress bar).
     if (g.inFrame) FlushBatch();
     t->magic = 0;
+    if (t->target)
+    {
+        // citro3d stops the 3DS when a render target is deleted inside a
+        // frame (svcBreak); outside one it waits for the GPU itself.
+        if (g.inFrame) g.doomedTargets.push_back(t);
+        else FreeTexture(t);
+        return;
+    }
     g.doomed.push_back(t);
 }
 
