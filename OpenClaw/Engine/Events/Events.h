@@ -2517,6 +2517,30 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Crt
+// Options > Graphics: the CRT effect (scanlines, darker corners) on / off.
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Crt : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Crt(bool enabled = false) : m_bEnabled(enabled) { }
+
+    bool IsEnabled() const { return m_bEnabled; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Crt(m_bEnabled)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Crt"; }
+
+private:
+    bool m_bEnabled;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Set_View_Zoom
 // 3DS (GPU drawing): how much of the level is seen (percent of the normal
 // zoom; less shows more of the level).

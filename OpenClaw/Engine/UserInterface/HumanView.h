@@ -132,6 +132,7 @@ protected:
     void SetSmoothDelegate(IEventDataPtr pEventData);
     void SetAspectDelegate(IEventDataPtr pEventData);
     void SetFilterDelegate(IEventDataPtr pEventData);
+    void SetCrtDelegate(IEventDataPtr pEventData);
     SDL_Rect ClassicArea();
     void OnCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);

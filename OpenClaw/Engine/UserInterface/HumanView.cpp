@@ -38,6 +38,7 @@
 #include "../Scene/HUDSceneNode.h"
 #include "TouchPad.h"
 #include "GameHUD.h"
+#include "../Graphics2D/CrtEffect.h"
 
 const uint32 g_InvalidGameViewId = 0xFFFFFFFF;
 
@@ -182,6 +183,13 @@ void HumanView::VOnRender(uint32 msDiff)
                 }
             }
             //LOG("SCREEN ELEMENTS: " + ToStr(m_ScreenElements.size()))
+
+            // Options > Graphics > CRT effect: over the level (and the menu over it)
+            if (m_pScene && m_pScene->VIsVisible() && !m_pCamera2)
+            {
+                const Point window = g_pApp->GetWindowSize();
+                CrtEffect::Render(renderer, (int)window.x, (int)window.y, (float)g_pApp->GetScale().x);
+            }
 
             g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
 
@@ -788,6 +796,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetFilterDelegate), EventData_Menu_Set_Filter::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetCrtDelegate), EventData_Menu_Set_Crt::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -861,6 +871,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::SetAspectDelegate), EventData_Menu_Set_Aspect::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetFilterDelegate), EventData_Menu_Set_Filter::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetCrtDelegate), EventData_Menu_Set_Crt::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1702,6 +1714,12 @@ void HumanView::SetFilterDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Menu_Set_Filter> pCast = static_pointer_cast<EventData_Menu_Set_Filter>(pEventData);
     if (pCast) BaseGameApp::SetFilter(pCast->GetKind());
+}
+
+void HumanView::SetCrtDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Crt> pCast = static_pointer_cast<EventData_Menu_Set_Crt>(pEventData);
+    if (pCast) CrtEffect::SetOn(pCast->IsEnabled());
 }
 
 void HumanView::StartRaceDelegate(IEventDataPtr pEventData)

@@ -40,6 +40,11 @@ static std::string ResolveBundledFile(const std::string& path)
 #include "../Resource/Loaders/PalLoader.h"
 #include "../Resource/Loaders/PcxLoader.h"
 #include "../Resource/Loaders/PidLoader.h"
+// Options > Graphics > filter changed: the level's pictures are made again
+// before the next frame (a loading bar meanwhile), not in the middle of the
+// menu's event handling.
+static bool s_RefilterPending = false;
+static void DrawRefilterProgress(int done, int total);
 #include "../Resource/Loaders/PngLoader.h"
 #include "../Resource/Loaders/WavLoader.h"
 #include "../Resource/Loaders/WwdLoader.h"
@@ -754,6 +759,10 @@ void BaseGameApp::StepLoop() {
       // device automatically (60Hz, 165Hz, VRR, ...) with no artificial cap. Motion
       // smoothness comes from interpolation (m_alpha) rather than raw render count.
       uint32 fixedDeltaMs = static_cast<uint32>(m_fixedTimestep * 1000.0);
+      if (s_RefilterPending) {
+        s_RefilterPending = false;
+        PidResourceLoader::Refilter(&DrawRefilterProgress);
+      }
       for (auto &pGameView : m_pGame->m_GameViews) {
         // PROFILE_CPU("ONLY RENDER");
         pGameView->VOnRender(fixedDeltaMs);
@@ -1445,10 +1454,30 @@ int BaseGameApp::Filter() {
   return (k >= 0 && k <= 3) ? k : 0;
 }
 
+static void DrawRefilterProgress(int done, int total) {
+  SDL_Renderer *r = g_pApp->GetRenderer();
+  float sx = 1.0f, sy = 1.0f;
+  SDL_RenderGetScale(r, &sx, &sy);
+  SDL_RenderSetScale(r, 1.0f, 1.0f);
+  const Point window = g_pApp->GetWindowSize();
+  const int W = (int)window.x, H = (int)window.y;
+  SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+  SDL_RenderClear(r);
+  const int bw = W / 2, bh = std::max(6, H / 36);
+  SDL_Rect frame = { (W - bw) / 2, H / 2 - bh / 2, bw, bh };
+  SDL_SetRenderDrawColor(r, 236, 196, 98, 255);
+  SDL_RenderDrawRect(r, &frame);
+  SDL_Rect fill = { frame.x + 2, frame.y + 2, (int)((long long)(bw - 4) * done / std::max(1, total)), bh - 4 };
+  SDL_RenderFillRect(r, &fill);
+  Util::RenderForcePresent(r);
+  SDL_RenderSetScale(r, sx, sy);
+}
+
 void BaseGameApp::SetFilter(int kind) {
   PortSettings::SetInt("filter", kind);
   Image::SetFilter(Filter());
-  LOG_WARNING("Pixel filter " + ToStr(Filter()) + " (from the next level loaded)");
+  s_RefilterPending = true;
+  LOG_WARNING("Pixel filter " + ToStr(Filter()));
 }
 
 int BaseGameApp::ViewZoom() {

@@ -6,4 +6,6 @@ target_sources(openclaw
     ${CMAKE_CURRENT_SOURCE_DIR}/Image.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PixelFilters.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PixelFilters.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CrtEffect.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/CrtEffect.cpp
 )

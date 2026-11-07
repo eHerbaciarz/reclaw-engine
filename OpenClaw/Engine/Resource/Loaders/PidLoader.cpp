@@ -47,7 +47,7 @@ void PidResourceExtraData::LoadImage(char* rawBuffer, uint32 size, WapPal* palet
             for (char& ch : path) ch = (char)toupper((unsigned char)ch);
             filterable = path.find("MENU") == std::string::npos;
         }
-        _image = shared_ptr<Image>(Image::CreateImage(_pid, renderer, filterable));
+        _image = shared_ptr<Image>(Image::CreateImage(_pid, renderer, filterable, resourceString, palette));
         WAP_PidDestroy(_pid); _pid = NULL;
         //SAFE_DELETE_ARRAY(rawBuffer);
     }
@@ -160,3 +160,33 @@ shared_ptr<PidResourceLoader> PidResourceLoader::Create()
 {
     return shared_ptr<PidResourceLoader>(new PidResourceLoader());
 };
+void PidResourceLoader::Refilter(void (*progress)(int done, int total))
+{
+    std::vector<Image::Source> images = Image::FilterableImages();
+    SDL_Renderer* renderer = g_pApp->GetRenderer();
+    std::vector<char> raw;
+    int done = 0;
+    const int total = (int)images.size();
+    Uint32 lastDraw = 0;
+    for (const Image::Source& src : images)
+    {
+        ++done;
+        // (pictures of an earlier level, with its palette gone: left alone)
+        if (src.palette != g_pApp->GetCurrentPalette()) continue;
+        if (g_pApp->GetResourceCache()->ReadRaw(src.path, raw) && !raw.empty())
+        {
+            if (WapPid* pid = WAP_PidLoadFromData(raw.data(), (uint32_t)raw.size(), src.palette))
+            {
+                OnPidLoaded(src.path.c_str(), pid);
+                src.image->Rebuild(pid, renderer);
+                WAP_PidDestroy(pid);
+            }
+        }
+        if (progress && (SDL_GetTicks() - lastDraw >= 33 || done == total))
+        {
+            lastDraw = SDL_GetTicks();
+            progress(done, total);
+        }
+    }
+    LOG_WARNING("Pixel filter: " + ToStr(total) + " pictures made again");
+}

@@ -10,6 +10,7 @@
 #include "../Util/PortSettings.h"
 
 #include "../Graphics2D/Image.h"
+#include "../Graphics2D/CrtEffect.h"
 #include "../Race/Race.h"
 #include "../Platform/Platform.h"
 #include "Lang.h"
@@ -447,6 +448,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         int percent = 100;
         ParseValueFromXmlElem(&percent, pElem->FirstChildElement("Percent"));
         pEventData.reset(new EventData_Menu_Set_View_Zoom(percent));
+    }
+    else if (eventType == "SetCrt")
+    {
+        bool enabled = false;
+        ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
+        pEventData.reset(new EventData_Menu_Set_Crt(enabled));
     }
     else if (eventType == "SetFilter")
     {
@@ -2089,7 +2096,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             m_bVisible = false;
         }
         else if (conditionTypeStr == "GraphicsOptions" || conditionTypeStr == "AspectWide" || conditionTypeStr == "AspectClassic" ||
-                 conditionTypeStr.compare(0, 7, "Filter:") == 0)
+                 conditionTypeStr.compare(0, 7, "Filter:") == 0 || conditionTypeStr == "CrtOn" || conditionTypeStr == "CrtOff")
         {
             ReEvaluateVisibilityCondition();
         }
@@ -2550,6 +2557,12 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
     {
 #ifndef __EMSCRIPTEN__
         m_bVisible = true;
+#endif
+    }
+    else if (m_VisibilityConditionType == "CrtOn" || m_VisibilityConditionType == "CrtOff")
+    {
+#ifndef __EMSCRIPTEN__
+        m_bVisible = CrtEffect::IsOn() == (m_VisibilityConditionType == "CrtOn");
 #endif
     }
     else if (m_VisibilityConditionType.compare(0, 7, "Filter:") == 0)

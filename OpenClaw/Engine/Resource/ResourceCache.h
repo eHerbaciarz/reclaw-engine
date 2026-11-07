@@ -180,6 +180,8 @@ public:
     // bytes kept.
     size_t KeepFiles(const std::vector<std::string>& names, size_t budget);
     void ClearKeptFiles();
+    // A file's bytes read from the archive (kept bytes used if there)
+    bool ReadRaw(const std::string& name, std::vector<char>& out);
     std::vector<std::string> GetAllFilesInDirectory(const char* directoryPath);
 
     void Flush();

@@ -4,6 +4,7 @@
 #include "Image.h"
 #include "../SharedDefines.h"
 #include <set>
+#include <map>
 #include <vector>
 #include "PixelFilters.h"
 #if !defined(RECLAW_GPU)
@@ -16,6 +17,9 @@ namespace
     // Image::SetSmooth).
     std::set<SDL_Texture*>& SmoothTextures() { static std::set<SDL_Texture*> s; return s; }
     bool g_Smooth = false;
+    // The filterable pictures' file and palette (Image::FilterableImages)
+    struct FilterSource { std::string path; WapPal* palette; };
+    std::map<Image*, FilterSource>& FilterSources() { static std::map<Image*, FilterSource> s; return s; }
     void AddSmoothTexture(SDL_Texture* t)
     {
 #if !defined(RECLAW_GPU)
@@ -68,6 +72,7 @@ Image::Image(SDL_Texture* pSDLTexture)
 
 Image::~Image()
 {
+    FilterSources().erase(this);
     RemoveSmoothTexture(m_pMirrored);
     RemoveSmoothTexture(m_pTexture);
     if (m_pMirrored) {
@@ -306,6 +311,36 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
 
 static int g_Filter = 0;
 
+
+std::vector<Image::Source> Image::FilterableImages()
+{
+    std::vector<Source> v;
+    for (auto& kv : FilterSources()) v.push_back(Source{ kv.first, kv.second.path, kv.second.palette });
+    return v;
+}
+
+bool Image::Rebuild(WapPid* pid, SDL_Renderer* renderer)
+{
+    if (!pid || !renderer) return false;
+    SDL_Texture* tex = NULL;
+    int scale = 1;
+    if (g_Filter != 0)
+    {
+        tex = FilteredTextureFromPid(pid, renderer, g_Filter);
+        if (tex) scale = 2;
+    }
+    if (!tex) tex = GetTextureFromPid(pid, renderer);
+    if (!tex) return false;
+    RemoveSmoothTexture(m_pMirrored);
+    RemoveSmoothTexture(m_pTexture);
+    if (m_pMirrored) { SDL_DestroyTexture(m_pMirrored); m_pMirrored = NULL; }
+    if (m_pTexture) SDL_DestroyTexture(m_pTexture);
+    m_pTexture = tex;
+    m_TexScale = scale;
+    AddSmoothTexture(m_pTexture);
+    return true;
+}
+
 void Image::SetFilter(int kind)
 {
     g_Filter = (kind > 0 && kind < PixelFilters::Count) ? kind : 0;
@@ -345,7 +380,8 @@ SDL_Texture* Image::FilteredTextureFromPid(WapPid* pid, SDL_Renderer* renderer, 
     return texture;
 }
 
-Image* Image::CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable)
+Image* Image::CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable,
+                          const char* sourcePath, WapPal* sourcePalette)
 {
     Image* image = new Image();
     if (!image->Initialize(pid, renderer, filterable))
@@ -353,6 +389,7 @@ Image* Image::CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable)
         delete image;
         return NULL;
     }
+    if (filterable && sourcePath) FilterSources()[image] = FilterSource{ sourcePath, sourcePalette };
 
     return image;
 }

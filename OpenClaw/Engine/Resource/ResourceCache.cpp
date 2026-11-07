@@ -348,6 +348,17 @@ size_t ResourceCache::KeepFiles(const std::vector<std::string>& names, size_t bu
     return total;
 }
 
+bool ResourceCache::ReadRaw(const std::string& name, std::vector<char>& out)
+{
+    Resource r(name);
+    auto kept = s_KeptFiles.find(r.GetName());
+    if (kept != s_KeptFiles.end()) { out = kept->second; return true; }
+    const int32 size = _resourceFile->VGetRawResourceSize(&r);
+    if (size <= 0) return false;
+    out.resize((size_t)size);
+    return _resourceFile->VGetRawResource(&r, out.data()) >= 0;
+}
+
 void ResourceCache::ClearKeptFiles()
 {
     s_KeptFiles.clear();

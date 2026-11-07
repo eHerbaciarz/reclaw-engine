@@ -4,6 +4,8 @@
 #include <libwap.h>
 #include <SDL2/SDL.h>
 #include <stdint.h>
+#include <string>
+#include <vector>
 
 class Image
 {
@@ -23,7 +25,14 @@ public:
     static void SetSmooth(bool on);
     // filterable: a picture of the level (sprites, tiles, HUD), made bigger by
     // the pixel filter of Options > Graphics when one is on
-    static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable = false);
+    static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer, bool filterable = false,
+                              const char* sourcePath = nullptr, WapPal* sourcePalette = nullptr);
+    // The filterable pictures loaded now (their file and palette), to make
+    // their textures again when the filter changes (PidResourceLoader::Refilter).
+    struct Source { Image* image; std::string path; WapPal* palette; };
+    static std::vector<Source> FilterableImages();
+    // A new texture for this picture from its pixels (filter as set now).
+    bool Rebuild(WapPid* pid, SDL_Renderer* renderer);
     // Options > Graphics > filter (PixelFilters::Kind; experimental): for the
     // pictures loaded from now on
     static void SetFilter(int kind);

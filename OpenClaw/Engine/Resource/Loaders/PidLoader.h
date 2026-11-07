@@ -35,6 +35,9 @@ public:
 
     static WapPid* LoadAndReturnPid(const char* resourceString, WapPal* palette);
     static shared_ptr<Image> LoadAndReturnImage(const char* resourceString, WapPal* palette);
+    // Options > Graphics > filter changed: the level's pictures made again
+    // (progress(done, total) now and then, for a loading bar).
+    static void Refilter(void (*progress)(int done, int total));
     // 3DS: pictures stay loaded for the whole level (the small resource cache
     // let them go, and actors made later read them from the SD card again:
     // stutter). Cleared when a level is loaded.
