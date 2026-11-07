@@ -277,7 +277,8 @@ namespace
         }
         else
         {
-            Mtx_OrthoTilt(&proj, 0.0f, (float)kScreenW, (float)kScreenH, 0.0f, 1.0f, -1.0f, true);
+            // bottom and top swapped: with (H, 0) the 3DS showed the picture upside down
+            Mtx_OrthoTilt(&proj, 0.0f, (float)kScreenW, 0.0f, (float)kScreenH, 1.0f, -1.0f, true);
         }
         C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, g.uProjection, &proj);
         g.targetBound = true;
