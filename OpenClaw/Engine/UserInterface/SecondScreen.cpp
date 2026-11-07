@@ -468,19 +468,40 @@ namespace SecondScreen
         if (state == g_LastState) return;
         g_LastState = state;
         g_LastDraw = SDL_GetTicks();
-
-        SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 255);
-        SDL_RenderClear(g_pRenderer);
-        if (g_pBackground)
+        // (how long a redraw takes: reclaw.log every 10 s while playing)
+        struct DrawTimer
         {
-            // The map fills the screen, cropped to its aspect ratio.
-            int tw = 0, th = 0;
-            SDL_QueryTexture(g_pBackground, NULL, NULL, &tw, &th);
-            double scale = std::max(g_Width / (double)tw, g_Height / (double)th);
-            SDL_Rect dst = { (int)(g_Width - tw * scale) / 2, (int)(g_Height - th * scale) / 2,
-                             (int)(tw * scale), (int)(th * scale) };
-            SDL_RenderCopy(g_pRenderer, g_pBackground, NULL, &dst);
-        }
+            Uint64 t0 = SDL_GetPerformanceCounter();
+            ~DrawTimer()
+            {
+                static int s_Count = 0;
+                static double s_Max = 0, s_Sum = 0;
+                static Uint32 s_Last = SDL_GetTicks();
+                const double ms = (SDL_GetPerformanceCounter() - t0) * 1000.0 / SDL_GetPerformanceFrequency();
+                ++s_Count; s_Sum += ms; s_Max = std::max(s_Max, ms);
+                if (SDL_GetTicks() - s_Last >= 10000)
+                {
+                    SDL_Log("bottom screen: %d redraws in 10 s, %.1f ms avg, %.1f ms max", s_Count, s_Sum / s_Count, s_Max);
+                    s_Count = 0; s_Sum = s_Max = 0; s_Last = SDL_GetTicks();
+                }
+            }
+        } drawTimer;
+
+        auto backdrop = [&]() {
+            SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 255);
+            SDL_RenderClear(g_pRenderer);
+            if (g_pBackground)
+            {
+                // The map fills the screen, cropped to its aspect ratio.
+                int tw = 0, th = 0;
+                SDL_QueryTexture(g_pBackground, NULL, NULL, &tw, &th);
+                double scale = std::max(g_Width / (double)tw, g_Height / (double)th);
+                SDL_Rect dst = { (int)(g_Width - tw * scale) / 2, (int)(g_Height - th * scale) / 2,
+                                 (int)(tw * scale), (int)(th * scale) };
+                SDL_RenderCopy(g_pRenderer, g_pBackground, NULL, &dst);
+            }
+        };
+        if (!inGame) backdrop();
 
         if (inGame)
         {
@@ -496,12 +517,7 @@ namespace SecondScreen
             const double kNum = big ? 2.4 : 1.2;           // small numbers
             const int pad = big ? 24 : 8;
 
-            SDL_SetRenderDrawBlendMode(g_pRenderer, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(g_pRenderer, 8, 4, 0, 205);
             SDL_Rect panel = { pad, pad, g_Width - 2 * pad, g_Height - 2 * pad };
-            SDL_RenderFillRect(g_pRenderer, &panel);
-            SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 150);
-            SDL_RenderDrawRect(g_pRenderer, &panel);
 
             auto imgW = [](const shared_ptr<Image>& img, double s) { return img ? (int)(img->GetWidth() * s) : 0; };
             auto digitsW = [&](const char* set, int digits, double s) {
@@ -518,8 +534,43 @@ namespace SecondScreen
             const int yTitle = top + h * 10 / 100, yScore = top + h * 29 / 100, yHealth = top + h * 50 / 100,
                       yWeapons = top + h * 71 / 100, yExtra = top + h * 90 / 100;
 
-            Text(g_pFontBig, level, g_Width / 2, yTitle - TTF_FontHeight(g_pFontBig) / 2, kGold, 0);
-            line(top + h * 19 / 100);
+            // The parts that stay (the map, the dark panel, the level's name,
+            // the lines) drawn once into a picture of their own: drawing them
+            // every time the score changed (the scaled map, the blended panel,
+            // the name's letters) took tens of ms on the 3DS's CPU, a stutter
+            // at every coin picked up or enemy killed. Now one plain copy.
+            {
+                static SDL_Texture* s_pBase = nullptr;
+                static std::string s_BaseKey;
+                const std::string baseKey = level + (g_pBackground ? "|b" : "|");
+                auto drawBase = [&]() {
+                    backdrop();
+                    SDL_SetRenderDrawBlendMode(g_pRenderer, SDL_BLENDMODE_BLEND);
+                    SDL_SetRenderDrawColor(g_pRenderer, 8, 4, 0, 205);
+                    SDL_RenderFillRect(g_pRenderer, &panel);
+                    SDL_SetRenderDrawColor(g_pRenderer, kGold.r, kGold.g, kGold.b, 150);
+                    SDL_RenderDrawRect(g_pRenderer, &panel);
+                    Text(g_pFontBig, level, g_Width / 2, yTitle - TTF_FontHeight(g_pFontBig) / 2, kGold, 0);
+                    line(top + h * 19 / 100);
+                    line(top + h * 39 / 100);
+                    line(top + h * 61 / 100);
+                };
+                if (!s_pBase)
+                {
+                    s_pBase = SDL_CreateTexture(g_pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_Width, g_Height);
+                    if (s_pBase) SDL_SetTextureBlendMode(s_pBase, SDL_BLENDMODE_NONE);
+                    s_BaseKey = "\x01";
+                }
+                if (s_pBase && s_BaseKey != baseKey && SDL_SetRenderTarget(g_pRenderer, s_pBase) == 0)
+                {
+                    drawBase();
+                    SDL_SetRenderTarget(g_pRenderer, NULL);
+                    s_BaseKey = baseKey;
+                }
+                if (s_pBase && s_BaseKey == baseKey) SDL_RenderCopy(g_pRenderer, s_pBase, NULL, NULL);
+                else drawBase();
+                SDL_SetRenderDrawBlendMode(g_pRenderer, SDL_BLENDMODE_BLEND);
+            }
 
             // treasure: chest + score, centred
             shared_ptr<Image> chest = HudIcon("/game/images/interface/treasurechest/");
@@ -528,7 +579,6 @@ namespace SecondScreen
             int x = (g_Width - rowW) / 2;
             x += Draw(chest, x, yScore, k) + gap;
             Digits("scorenumbers", atoi(score.c_str()), scoreDigits, x, yScore, k);
-            line(top + h * 39 / 100);
 
             // A HUD picture with its number on the bar, left of the icon
             // (centred on cx); returns nothing.
@@ -574,7 +624,6 @@ namespace SecondScreen
                    panel.x + panel.w / 4, yHealth, 255);
             barred(HudIcon("/game/images/interface/liveshead/"), "smallnumbers", atoi(lives.c_str()), 1, kNum,
                    panel.x + panel.w * 3 / 4, yHealth, 255, 0.4);
-            line(top + h * 61 / 100);
 
             // the three weapons in equal columns; the selected one framed
             const char* weapons[3] = { "pistol", "magic", "dynamite" };
