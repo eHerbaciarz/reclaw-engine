@@ -12,10 +12,12 @@
 //   (C3D_FrameEnd) at SDL_RenderPresent. Textures destroyed during a frame
 //   are freed when the GPU is done with it.
 //
-// Texture memory follows the GL convention (row 0 = the picture's bottom):
-// a picture's row y is stored at row (potH - 1 - y); texture coordinate
-// v = 1 - y / potH. Render targets come out the same way (citro3d's
-// projections with bottom 0, top H), so pictures and targets are sampled alike.
+// Texture memory: the first row in memory is the picture's top (texture
+// coordinate v = 1), so a picture's row y is stored at row y and sampled at
+// v = 1 - y / potH. Render targets drawn with a y-down projection come out the
+// same way, so pictures and targets are sampled alike. (Checked on a New 3DS:
+// storing rows bottom-up showed every picture upside down and pictures
+// smaller than their texture only as a strip.)
 
 #define RECLAW_GPU_IMPL
 #include "n3ds_gpu.h"
@@ -132,7 +134,8 @@ namespace
     // Texel index of picture pixel (x, y) in a potW x potH texture.
     inline u32 TexelIndex(int x, int y, int potW, int potH)
     {
-        const u32 r = (u32)(potH - 1 - y);
+        (void)potH;
+        const u32 r = (u32)y;
         return ((r >> 3) * (u32)(potW >> 3) + ((u32)x >> 3)) * 64 + Morton((u32)x & 7, r & 7);
     }
 
@@ -273,13 +276,11 @@ namespace
         if (g.target)
         {
             const int tw = g.target->chunks[0].tex.width, th = g.target->chunks[0].tex.height;
-            // (0, th) like the screen: with (th, 0) a target's picture came out upside down
-            Mtx_Ortho(&proj, 0.0f, (float)tw, 0.0f, (float)th, 1.0f, -1.0f, true);
+            Mtx_Ortho(&proj, 0.0f, (float)tw, (float)th, 0.0f, 1.0f, -1.0f, true);
         }
         else
         {
-            // bottom and top swapped: with (H, 0) the 3DS showed the picture upside down
-            Mtx_OrthoTilt(&proj, 0.0f, (float)kScreenW, 0.0f, (float)kScreenH, 1.0f, -1.0f, true);
+            Mtx_OrthoTilt(&proj, 0.0f, (float)kScreenW, (float)kScreenH, 0.0f, 1.0f, -1.0f, true);
         }
         C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, g.uProjection, &proj);
         g.targetBound = true;
