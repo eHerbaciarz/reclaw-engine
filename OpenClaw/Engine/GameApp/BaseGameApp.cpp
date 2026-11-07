@@ -465,6 +465,7 @@ void BaseGameApp::Terminate() {
   m_ActorXmlPrototypeMap.clear();
 
   SaveGameOptions();
+  Platform::FlushLog();
 #if defined(__3DS__)
   // exit() closes every FILE still open; one of them was on a file system
   // already shut down (romfs), and closing it crashed the 3DS (Luma3DS dump:
@@ -1333,6 +1334,23 @@ void BaseGameApp::GetMouseState(int *x, int *y) {
   if (y) *y = my;
 }
 
+int BaseGameApp::ViewZoom() {
+  const int z = PortSettings::GetInt("view_zoom", 100);
+  return z >= 95 ? 100 : (z >= 85 ? 90 : (z >= 75 ? 80 : 70));
+}
+
+void BaseGameApp::SetViewZoom(int percent) {
+  PortSettings::SetInt("view_zoom", percent);
+#if defined(RECLAW_3DS_GPU)
+  if (ReclawGpu_Active()) {
+    // (the menu draws at scale 1 and puts this scale back after each frame;
+    // a level started later sees the new size)
+    m_GameOptions.scale = 400.0 / 480.0 * ViewZoom() / 100.0;
+    LOG_WARNING("View zoom " + ToStr(ViewZoom()) + "%");
+  }
+#endif
+}
+
 void BaseGameApp::PresentFrame(bool present) {
 #if defined(RECLAW_3DS_GPU)
   // 3DS GPU: the game's frame is the screen itself
@@ -1540,7 +1558,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     // GPU scales every picture).
     gameOptions.renderWidth = 0;
     gameOptions.renderHeight = 0;
-    gameOptions.scale = 400.0 / 480.0;
+    gameOptions.scale = 400.0 / 480.0 * ViewZoom() / 100.0;
     renderPct3DS = 100;
     // The game draws into "its frame" (the screen with a view of its own):
     // movies, the title scroll and other screens that select no target

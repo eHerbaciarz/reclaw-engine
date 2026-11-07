@@ -2445,6 +2445,31 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_View_Zoom
+// 3DS (GPU drawing): how much of the level is seen (percent of the normal
+// zoom; less shows more of the level).
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_View_Zoom : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_View_Zoom(int percent = 100) : m_Percent(percent) { }
+
+    int GetPercent() const { return m_Percent; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_View_Zoom(m_Percent)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_View_Zoom"; }
+
+private:
+    int m_Percent;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Boss_Modes
 // Boss practice / Boss Rush ("Skrzyzuj szpady ponownie"): open the boss list
 // (level 0) or start a boss level (level 1-14) from the menu.

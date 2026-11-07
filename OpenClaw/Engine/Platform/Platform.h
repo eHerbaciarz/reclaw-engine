@@ -87,6 +87,8 @@ namespace Platform
     // 3DS: level music on by default only on a New 3DS (its synthesizer runs
     // on the third core there); port_settings.txt "music=" overrides it.
     bool LevelMusicOn();
+    // Writes out the log lines still in memory (3DS: written every half second).
+    void FlushLog();
 
     // Save states (ZL/ZR) and rewind (hold R). On for now everywhere; to be
     // checked on PS Vita and 3DS and turned off there if they are too slow.

@@ -442,6 +442,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&action, pElem->FirstChildElement("Action"));
         pEventData.reset(new EventData_Menu_Open_Cheats(action));
     }
+    else if (eventType == "SetViewZoom")
+    {
+        int percent = 100;
+        ParseValueFromXmlElem(&percent, pElem->FirstChildElement("Percent"));
+        pEventData.reset(new EventData_Menu_Set_View_Zoom(percent));
+    }
     else if (eventType == "SetSubtitles")
     {
         bool enabled = true;
@@ -2118,6 +2124,10 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             m_bVisible = (bool)EM_ASM_INT({ return window.forceOriginalAspect ? 1 : 0; });
 #endif
         }
+        else if (conditionTypeStr.compare(0, 9, "ViewZoom:") == 0)
+        {
+            ReEvaluateVisibilityCondition();
+        }
         else if (conditionTypeStr.compare(0, 18, "LanguageAvailable:") == 0 ||
                  conditionTypeStr.compare(0, 5, "Cheat") == 0 || conditionTypeStr == "SpecialModeUnlocked")
         {
@@ -2525,6 +2535,13 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         const std::string code = m_VisibilityConditionType.substr(18);
         for (const GameLanguages::Entry& e : GameLanguages::Available())
             if (e.code == code) m_bVisible = true;
+    }
+    else if (m_VisibilityConditionType.compare(0, 9, "ViewZoom:") == 0)
+    {
+        // 3DS (GPU drawing): the item of the current zoom
+#if defined(RECLAW_3DS_GPU)
+        m_bVisible = ReclawGpu_Active() && atoi(m_VisibilityConditionType.c_str() + 9) == BaseGameApp::ViewZoom();
+#endif
     }
     else if (m_VisibilityConditionType == "WebOnly")
     {

@@ -94,7 +94,8 @@ namespace
         int uProjection = -1;
         Vertex* vbuf = nullptr;
         int vused = 0, batchStart = 0;
-        bool overflowLogged = false;
+        bool overflowLogged = false, cmdFullLogged = false, unpresentedLogged = false;
+        int batches = 0;
         // what the pending vertices are drawn with
         C3D_Tex* batchTex = nullptr;
         SDL_BlendMode batchBlend = SDL_BLENDMODE_INVALID;
@@ -247,10 +248,24 @@ namespace
     }
 
     //------------------------------------------------------------- drawing
+    // Words left in the GPU command buffer (it overflowing stops the 3DS:
+    // svcBreak in GPUCMD_AddInternal).
+    u32 CmdWordsLeft()
+    {
+        u32 size = 0, offset = 0;
+        GPUCMD_GetBuffer(nullptr, &size, &offset);
+        return size > offset ? size - offset : 0;
+    }
+
     void FlushBatch()
     {
         const int count = g.vused - g.batchStart;
-        if (count > 0 && g.batchTex)
+        if (count > 0 && g.batchTex && CmdWordsLeft() < 2048)
+        {
+            // full: the rest of this frame is left out instead
+            if (!g.cmdFullLogged) { SDL_Log("GPU: command buffer full, drawings left out"); g.cmdFullLogged = true; }
+        }
+        else if (count > 0 && g.batchTex)
         {
             C3D_TexBind(0, g.batchTex);
             switch (g.batchBlend)
@@ -269,6 +284,7 @@ namespace
                     break;
             }
             C3D_DrawArrays(GPU_TRIANGLES, g.batchStart, count);
+            ++g.batches;
         }
         g.batchStart = g.vused;
     }
@@ -476,7 +492,7 @@ namespace
     //------------------------------------------------------------- start
     bool Start(SDL_Window* window)
     {
-        if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 2)) return false;
+        if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 4)) return false;
         g.screen[0] = C3D_RenderTargetCreate(kScreenH, kScreenW, GPU_RB_RGBA8, C3D_DEPTHTYPE(-1));
         g.screen[1] = C3D_RenderTargetCreate(kScreenH, kScreenW, GPU_RB_RGBA8, C3D_DEPTHTYPE(-1));
         if (!g.screen[0] || !g.screen[1]) return false;
@@ -562,9 +578,27 @@ int ReclawGpu_GetRendererOutputSize(SDL_Renderer* renderer, int* w, int* h)
     return 0;
 }
 
+void ReclawGpu_RenderPresent(SDL_Renderer* renderer);
+
 int ReclawGpu_RenderClear(SDL_Renderer* renderer)
 {
     if (!IsGpu(renderer)) return SDL_RenderClear(renderer);
+    // The game sometimes draws whole frames without showing them (a level
+    // frame drawn twice between two presents, during the teleport's fade).
+    // Software SDL just draws over them; here every one of them stays in the
+    // GPU's command list until a present, and enough of them overflowed it
+    // (a crash entering a portal). A screen clear after a lot was drawn
+    // shows that frame first.
+    if (g.inFrame && !g.target && g.eye == 0)
+    {
+        u32 size = 0, offset = 0;
+        GPUCMD_GetBuffer(nullptr, &size, &offset);
+        if (offset > size / 4 || g.vused > kMaxVertices / 4)
+        {
+            if (!g.unpresentedLogged) { SDL_Log("GPU: frames drawn without a present, one shown at a clear"); g.unpresentedLogged = true; }
+            ReclawGpu_RenderPresent(renderer);
+        }
+    }
     EnsureFrame();
     int tw, th;
     TargetSize(tw, th);
@@ -583,12 +617,14 @@ void ReclawGpu_RenderPresent(SDL_Renderer* renderer)
     if (!g.inFrame) return;
     FlushBatch();
     GSPGPU_FlushDataCache(g.vbuf, sizeof(Vertex) * std::max(1, g.vused));
-    const int vertices = g.vused;
+    const int vertices = g.vused, batches = g.batches;
+    g.batches = 0;
     C3D_FrameEnd(GX_CMDLIST_FLUSH);
     g.inFrame = false;
     static int s_Frames = 0;
     if (++s_Frames % 300 == 0)
-        SDL_Log("GPU: last frame %d vertices, CPU %.1f ms, GPU %.1f ms; linear free %lu KB, VRAM free %lu KB", vertices / 6 * 6,
+        SDL_Log("GPU: last frame %d vertices in %d draws (commands %.0f%% full), CPU %.1f ms, GPU %.1f ms; linear free %lu KB, VRAM free %lu KB",
+                vertices / 6 * 6, batches, C3D_GetCmdBufUsage() * 100.0f,
                 C3D_GetProcessingTime(), C3D_GetDrawingTime(), (unsigned long)(linearSpaceFree() / 1024), (unsigned long)(vramSpaceFree() / 1024));
     g.targetBound = false;
     g.eye = 0;

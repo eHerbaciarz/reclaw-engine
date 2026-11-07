@@ -767,6 +767,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetSubtitlesDelegate), EventData_Menu_Set_Subtitles::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetViewZoomDelegate), EventData_Menu_Set_View_Zoom::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -832,6 +834,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::OpenCheatsDelegate), EventData_Menu_Open_Cheats::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetSubtitlesDelegate), EventData_Menu_Set_Subtitles::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetViewZoomDelegate), EventData_Menu_Set_View_Zoom::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1649,6 +1653,12 @@ void HumanView::SetSubtitlesDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Menu_Set_Subtitles> pCast = static_pointer_cast<EventData_Menu_Set_Subtitles>(pEventData);
     if (pCast) Subtitles::SetEnabled(pCast->IsEnabled());
+}
+
+void HumanView::SetViewZoomDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_View_Zoom> pCast = static_pointer_cast<EventData_Menu_Set_View_Zoom>(pEventData);
+    if (pCast) g_pApp->SetViewZoom(pCast->GetPercent());
 }
 
 void HumanView::StartRaceDelegate(IEventDataPtr pEventData)

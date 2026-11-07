@@ -98,7 +98,7 @@ namespace
             return c.a > 128 && (c.r + c.g + c.b) / 3 > 150 && mx - mn < 120;
         };
         // the longest light run starting in the left half, on any row
-        int bestLen = 0;
+        int bestLen = 0, bestY = 0;
         std::vector<int> rowEnd(pid->height, -1), rowStart(pid->height, -1);
         for (int y = 0; y < pid->height; ++y)
         {
@@ -108,19 +108,30 @@ namespace
             int start = x;
             while (x < pid->width && pale(x, y)) ++x;
             rowStart[y] = start; rowEnd[y] = x;
-            if (x - start > bestLen) { bestLen = x - start; best.x0 = start; best.x1 = x; }
+            if (x - start > bestLen) { bestLen = x - start; best.x0 = start; best.x1 = x; bestY = y; }
         }
         if (bestLen < pid->width / 4) return Bar();
-        // the rows that belong to that bar (runs nearly as long, starting
-        // about where the longest one does)
-        best.y0 = pid->height; best.y1 = -1;
-        for (int y = 0; y < pid->height; ++y)
+        // The bar's height: only its light top edge is pale (the weapon bars
+        // are shaded), so measure the solid part around that row in the
+        // bar's columns, the median over them.
+        std::vector<int> tops, bottoms;
+        for (int x = best.x0 + 1; x < best.x1 - 1; ++x)
         {
-            if (rowEnd[y] - rowStart[y] >= bestLen * 85 / 100 && std::abs(rowStart[y] - best.x0) <= 3)
-            {
-                best.y0 = std::min(best.y0, y);
-                best.y1 = std::max(best.y1, y + 1);
-            }
+            auto solid = [&](int y) { return pid->colors[y * pid->width + x].a > 128; };
+            if (!solid(bestY)) continue;
+            int y0 = bestY, y1 = bestY + 1;
+            while (y0 > 0 && solid(y0 - 1)) --y0;
+            while (y1 < pid->height && solid(y1)) ++y1;
+            tops.push_back(y0);
+            bottoms.push_back(y1);
+        }
+        if (tops.empty()) { best.y0 = bestY; best.y1 = bestY + 1; }
+        else
+        {
+            std::sort(tops.begin(), tops.end());
+            std::sort(bottoms.begin(), bottoms.end());
+            best.y0 = tops[tops.size() / 2];
+            best.y1 = bottoms[bottoms.size() / 2];
         }
         LOG_WARNING("HUD bar " + ToStr(pid->width) + "x" + ToStr(pid->height) + ": x " + ToStr(best.x0) + "-" + ToStr(best.x1) +
             ", y " + ToStr(best.y0) + "-" + ToStr(best.y1));

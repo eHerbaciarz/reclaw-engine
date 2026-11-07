@@ -366,6 +366,10 @@ public:
     return &m_GameOptions.consoleConfig;
   }
   GameOptions *GetGameConfig() { return &m_GameOptions; }
+  // 3DS (GPU drawing): how much of the level is seen, in percent of the
+  // normal zoom (100, 90, 80, 70; port_settings.txt view_zoom=). Saved.
+  static int ViewZoom();
+  void SetViewZoom(int percent);
   const GlobalOptions *GetGlobalOptions() const { return &m_GlobalOptions; }
   const ControlOptions *GetControlOptions() const { return &m_ControlOptions; }
   const DebugOptions *GetDebugOptions() const { return &m_DebugOptions; }

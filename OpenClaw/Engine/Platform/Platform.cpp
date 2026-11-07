@@ -149,17 +149,78 @@ namespace
     }
 #endif
 
+#if defined(__3DS__)
+    // 3DS: writing a line to the SD card and flushing it took ~15 ms, a
+    // visible hitch for every log line during play. Lines go to memory; a
+    // thread of its own writes them out every half second (and at exit or a
+    // fatal error, FlushLog). A crash loses at most the last half second.
+    SDL_mutex* g_pLogMutex = nullptr;
+    std::string g_LogPending;
+    bool g_LogThreadStarted = false;
+
+    void WriteLogPending()
+    {
+        std::string out;
+        SDL_LockMutex(g_pLogMutex);
+        out.swap(g_LogPending);
+        SDL_UnlockMutex(g_pLogMutex);
+        if (!out.empty() && g_pLogFile)
+        {
+            fwrite(out.data(), 1, out.size(), g_pLogFile);
+            fflush(g_pLogFile);
+        }
+    }
+
+    int LogWriterThread(void*)
+    {
+        SDL_SetThreadPriority(SDL_THREAD_PRIORITY_LOW);
+        for (;;)
+        {
+            SDL_Delay(500);
+            WriteLogPending();
+        }
+        return 0;
+    }
+#endif
+
     // One sink for every SDL_Log message on consoles: a log file in the
     // player's folder plus the system debug output (emulator logs).
     void ConsoleLogOutput(void*, int, SDL_LogPriority priority, const char* message)
     {
         static const char* kPrefix[] = { "", "VERBOSE: ", "DEBUG: ", "INFO: ", "WARN: ", "ERROR: ", "CRITICAL: " };
         const char* prefix = (priority > 0 && priority < SDL_NUM_LOG_PRIORITIES) ? kPrefix[priority] : "";
+#if defined(__3DS__)
+        if (g_pLogFile)
+        {
+            if (!g_pLogMutex) g_pLogMutex = SDL_CreateMutex();
+            if (g_pLogMutex)
+            {
+                SDL_LockMutex(g_pLogMutex);
+                g_LogPending += prefix;
+                g_LogPending += message;
+                g_LogPending += '\n';
+                SDL_UnlockMutex(g_pLogMutex);
+                if (!g_LogThreadStarted)
+                {
+                    g_LogThreadStarted = true;
+                    if (SDL_Thread* t = SDL_CreateThread(LogWriterThread, "log", nullptr)) SDL_DetachThread(t);
+                    else g_LogThreadStarted = false;
+                }
+                if (!g_LogThreadStarted) WriteLogPending();
+            }
+            else
+            {
+                fprintf(g_pLogFile, "%s%s\n", prefix, message);
+                fflush(g_pLogFile);
+            }
+        }
+#else
         if (g_pLogFile)
         {
             fprintf(g_pLogFile, "%s%s\n", prefix, message);
             fflush(g_pLogFile);
         }
+#endif
         std::string line = std::string(prefix) + message;
 #if defined(__SWITCH__)
         svcOutputDebugString(line.c_str(), line.size());
@@ -274,7 +335,7 @@ namespace Platform
             catch (const std::exception& ex) { text = ex.what(); what = text.c_str(); }
             catch (...) { }
             SDL_Log("FATAL: uncaught exception: %s", what);
-            if (g_pLogFile) fflush(g_pLogFile);
+            FlushLog();
             SDL_QuitSubSystem(SDL_INIT_AUDIO);
             std::abort();
         });
@@ -570,6 +631,14 @@ namespace Platform
 #else
         return false;
 #endif
+    }
+
+    void FlushLog()
+    {
+#if defined(__3DS__)
+        if (g_pLogMutex) WriteLogPending();
+#endif
+        if (g_pLogFile) fflush(g_pLogFile);
     }
 
     bool LevelMusicOn()
