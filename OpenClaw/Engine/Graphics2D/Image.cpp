@@ -3,6 +3,43 @@
 #include <SDL2/SDL_image.h>
 #include "Image.h"
 #include "../SharedDefines.h"
+#include <set>
+#include <vector>
+
+namespace
+{
+    // The pictures made from the game's images (their sampling follows
+    // Image::SetSmooth).
+    std::set<SDL_Texture*>& SmoothTextures() { static std::set<SDL_Texture*> s; return s; }
+    bool g_Smooth = false;
+    void AddSmoothTexture(SDL_Texture* t)
+    {
+#if !defined(RECLAW_GPU)
+        if (!t) return;
+        SmoothTextures().insert(t);
+        SDL_SetTextureScaleMode(t, g_Smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+#else
+        (void)t;
+#endif
+    }
+    void RemoveSmoothTexture(SDL_Texture* t)
+    {
+#if !defined(RECLAW_GPU)
+        if (t) SmoothTextures().erase(t);
+#else
+        (void)t;
+#endif
+    }
+}
+
+void Image::SetSmooth(bool on)
+{
+    g_Smooth = on;
+#if !defined(RECLAW_GPU)
+    for (SDL_Texture* t : SmoothTextures())
+        SDL_SetTextureScaleMode(t, on ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+#endif
+}
 
 Image::Image()
     :
@@ -27,6 +64,8 @@ Image::Image(SDL_Texture* pSDLTexture)
 
 Image::~Image()
 {
+    RemoveSmoothTexture(m_pMirrored);
+    RemoveSmoothTexture(m_pTexture);
     if (m_pMirrored) {
         SDL_DestroyTexture(m_pMirrored);
         m_pMirrored = NULL;
@@ -76,6 +115,7 @@ SDL_Texture* Image::GetMirroredTexture(SDL_Renderer* pRenderer)
     SDL_SetTextureColorMod(m_pTexture, r, g, b);
     SDL_SetTextureBlendMode(mirrored, blend);
     m_pMirrored = mirrored;
+    if (SmoothTextures().count(m_pTexture)) AddSmoothTexture(m_pMirrored);
     return m_pMirrored;
 }
 
@@ -218,9 +258,33 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
 
     uint32_t colorIdx;
     uint32_t colorsCount = pid->colorsCount;
+#if defined(__SWITCH__) || defined(__vita__)
+    // Smooth sampling mixes a sprite's edge with the see-through pixels next
+    // to it: those take the colour of an opaque neighbour (no dark outlines).
+    std::vector<WAP_ColorRGBA> bled(pid->colors, pid->colors + colorsCount);
+    if (colorsCount == width * height)
+    {
+        auto at = [&](uint32_t x, uint32_t y) -> const WAP_ColorRGBA& { return pid->colors[y * width + x]; };
+        for (uint32_t y = 0; y < height; ++y)
+            for (uint32_t x = 0; x < width; ++x)
+            {
+                WAP_ColorRGBA& c = bled[y * width + x];
+                if (c.a != 0) continue;
+                const WAP_ColorRGBA* n = nullptr;
+                if (x > 0 && at(x - 1, y).a) n = &at(x - 1, y);
+                else if (x + 1 < width && at(x + 1, y).a) n = &at(x + 1, y);
+                else if (y > 0 && at(x, y - 1).a) n = &at(x, y - 1);
+                else if (y + 1 < height && at(x, y + 1).a) n = &at(x, y + 1);
+                if (n) { c.r = n->r; c.g = n->g; c.b = n->b; }
+            }
+    }
+    const WAP_ColorRGBA* colors = bled.data();
+#else
+    const WAP_ColorRGBA* colors = pid->colors;
+#endif
     for (colorIdx = 0; colorIdx < colorsCount; colorIdx++)
     {
-        WAP_ColorRGBA color = pid->colors[colorIdx];
+        WAP_ColorRGBA color = colors[colorIdx];
         uint32_t x = colorIdx % width;
         uint32_t y = colorIdx / width;
 
@@ -384,6 +448,7 @@ bool Image::Initialize(WapPid* pid, SDL_Renderer* renderer)
     {
         return false;
     }
+    AddSmoothTexture(m_pTexture);
 
     return true;
 }

@@ -1,0 +1,82 @@
+--- a/src/audio/psl1ght/SDL_psl1ghtaudio.c
++++ b/src/audio/psl1ght/SDL_psl1ghtaudio.c
+@@ -76,7 +76,7 @@
+ 	//either 2 or 8 channel
+ 	_params.numChannels = AUDIO_PORT_2CH;
+ 	//8 16 or 32 block buffer
+-	_params.numBlocks = AUDIO_BLOCK_8;
++	_params.numBlocks = AUDIO_BLOCK_16;   /* ReClaw: 16 blocks (85 ms), more slack */
+ 	//extended attributes
+ 	_params.attrib = 0;
+ 	//sound level (1 is default)
+@@ -160,34 +160,51 @@
+     SDL_free(this->hidden);
+ }
+ 
+-static Uint8 *
+-PSL1GHT_AUD_GetDeviceBuf(_THIS)
++/* ReClaw: the blocks are written a few ahead of the one the hardware reads
++   (its read index), not simply one after another: the writing used to start
++   at the block being played and stayed in step with it only through the
++   events, so it wrote into or just behind the playing block - crackling. */
++static int
++PSL1GHT_ReadBlock(_THIS)
+ {
+-	
+-	//deprintf( "PSL1GHT_AUD_GetDeviceBuf(%08X.%08X) at %d ms\n", SHW64(this), SDL_GetTicks());
++    return (int)(*(volatile u64 *)(u64)_config.readIndex % _config.numBlocks);
++}
+ 
+-    //int playing = _config.readIndex;
+-    // int playing = *((u64*)(u64)_config.readIndex);
+-    int filling = (_last_filled_buf + 1) % _config.numBlocks;
+-	Uint8 * dma_buf = (Uint8 *)(u64)_config.audioDataStart;
+-	//deprintf( "\tWriting to buffer %d \n", filling);
+-	// deprintf( "\tbuffer address (%08X.%08X => %08X.%08X)\n", SHW64(_config.audioDataStart), SHW64(dma_buf));
++static int
++PSL1GHT_Lead(_THIS)
++{
++    /* blocks written ahead of the one being read */
++    const int n = (int)_config.numBlocks;
++    return (_last_filled_buf - PSL1GHT_ReadBlock(this) + n) % n;
++}
+ 
+-	_last_filled_buf = filling;
++static Uint8 *
++PSL1GHT_AUD_GetDeviceBuf(_THIS)
++{
++    const int n = (int)_config.numBlocks;
++    const int lead = PSL1GHT_Lead(this);
++    /* the hardware passed the written blocks (or at the start): again two
++       blocks ahead of it (the most written ahead normally is n - 3) */
++    if (lead > n - 3)
++        _last_filled_buf = (PSL1GHT_ReadBlock(this) + 1) % n;
++    int filling = (_last_filled_buf + 1) % n;
++    Uint8 * dma_buf = (Uint8 *)(u64)_config.audioDataStart;
++    _last_filled_buf = filling;
+     return (dma_buf + (filling * this->spec.size));
+ }
+ 
+-/* This function waits until it is possible to write a full sound buffer */
++/* Waits until there is room for a block: up to numBlocks - 4 written ahead
++   (~64 ms of 85), refilled as the hardware reads them. */
+ static void
+ PSL1GHT_WaitDevice(_THIS)
+ {
+-    /* We're in blocking mode, so there's nothing to do here */
+-	//deprintf( "ALSA_WaitDevice(%08X.%08X)\n", SHW64(this));
+-	
+-	sys_event_t event;
+-	//s32 ret = 
+-	sysEventQueueReceive( _snd_queue, &event, 20 * 1000);
+-	//deprintf( "sysEventQueueReceive: %08X\n", ret);
++    const int n = (int)_config.numBlocks;
++    int tries = 0;
++    while (PSL1GHT_Lead(this) >= n - 4 && tries++ < 8) {
++        sys_event_t event;
++        if (sysEventQueueReceive(_snd_queue, &event, 20 * 1000) != 0)
++            break;
++    }
+ }
+ 
+ 

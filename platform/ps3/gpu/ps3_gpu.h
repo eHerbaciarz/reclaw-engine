@@ -63,6 +63,9 @@ void ReclawGpu_SetEye(int eye);
 // that selects no target and draws by the screen's size gets scale 1).
 // Copying it, or destroying it, does nothing. Null without the GPU.
 struct SDL_Texture* ReclawGpu_GameFrame(void);
+// Options: every picture sampled smoothly (1) or as set for it (0: sharp
+// pixels unless the game asked for smooth sampling).
+void ReclawGpu_SetSmooth(int on);
 #ifdef __cplusplus
 }
 #endif

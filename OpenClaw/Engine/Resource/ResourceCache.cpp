@@ -296,16 +296,24 @@ void ResourceCache::RegisterLoader(std::shared_ptr<IResourceLoader> loader)
     _resourceLoaderList.push_front(loader);
 }
 
+// File loading time for the perf lines in reclaw.log
+Uint64 g_PerfLoadTicks = 0, g_PerfFrameLoadTicks = 0;
+int g_PerfLoads = 0;
+
 std::shared_ptr<ResourceHandle> ResourceCache::GetHandle(Resource* r)
 {
     std::shared_ptr<ResourceHandle> handle(Find(r));
     if (handle == nullptr)
     {
-#if defined(__3DS__) || defined(__PSL1GHT__)
+#if defined(OPENCLAW_STARTUP_TRACE)
         // Files that take long to read show up in reclaw.log (stutter hunting)
-        const Uint32 t0 = SDL_GetTicks();
+        const Uint64 t0 = SDL_GetPerformanceCounter();
         handle = Load(r);
-        const Uint32 ms = SDL_GetTicks() - t0;
+        const Uint64 ticks = SDL_GetPerformanceCounter() - t0;
+        g_PerfLoadTicks += ticks;
+        g_PerfFrameLoadTicks += ticks;
+        ++g_PerfLoads;
+        const Uint32 ms = (Uint32)(ticks * 1000 / SDL_GetPerformanceFrequency());
         if (ms >= 15) LOG_WARNING("slow load: " + r->GetName() + " " + std::to_string(ms) + " ms");
 #else
         handle = Load(r);

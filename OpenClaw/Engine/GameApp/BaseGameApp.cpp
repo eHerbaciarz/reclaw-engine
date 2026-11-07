@@ -702,7 +702,7 @@ void BaseGameApp::StepLoop() {
       // Performance in reclaw.log every 5 s: frames, logic and render time.
       static Uint64 s_perfStart = SDL_GetPerformanceCounter(), s_logicTicks = 0, s_renderTicks = 0;
       static int s_perfFrames = 0, s_perfUpdates = 0;
-      static double s_worstMs = 0;
+      static double s_worstMs = 0, s_worstLogicMs = 0, s_worstRenderMs = 0, s_worstLoadMs = 0;
       const Uint64 perfFreq = SDL_GetPerformanceFrequency();
       Uint64 perfT0 = SDL_GetPerformanceCounter();
 #endif
@@ -759,7 +759,18 @@ void BaseGameApp::StepLoop() {
         s_renderTicks += perfT2 - perfT1;
         s_logicTicks += perfT1 - perfT0;
         s_perfFrames++;
-        s_worstMs = std::max(s_worstMs, (double)(perfT2 - perfT0) * 1000.0 / perfFreq);
+        {
+          // the slowest frame: its logic, drawing and file loading (stutter hunting)
+          extern Uint64 g_PerfFrameLoadTicks;
+          const double ms = (double)(perfT2 - perfT0) * 1000.0 / perfFreq;
+          if (ms > s_worstMs) {
+            s_worstMs = ms;
+            s_worstLogicMs = (double)(perfT1 - perfT0) * 1000.0 / perfFreq;
+            s_worstRenderMs = (double)(perfT2 - perfT1) * 1000.0 / perfFreq;
+            s_worstLoadMs = (double)g_PerfFrameLoadTicks * 1000.0 / perfFreq;
+          }
+          g_PerfFrameLoadTicks = 0;
+        }
         double secs = (double)(perfT2 - s_perfStart) / perfFreq;
         if (secs >= 5.0) {
           extern Uint64 g_PerfLogicTicks[4];
@@ -803,6 +814,14 @@ void BaseGameApp::StepLoop() {
               sounds += " " + plays[k].second + " x" + std::to_string(plays[k].first);
             g_PerfSoundPlays.clear();
             STARTUP_TRACE(sounds);
+            extern Uint64 g_PerfLoadTicks;
+            extern int g_PerfLoads;
+            char loads[200];
+            snprintf(loads, sizeof(loads), "perf loads: %d files, %.1f ms; worst frame %.0f ms: logic %.1f, drawing %.1f, of it loading files %.1f ms",
+                     g_PerfLoads, g_PerfLoadTicks * 1000.0 / perfFreq, s_worstMs, s_worstLogicMs, s_worstRenderMs, s_worstLoadMs);
+            g_PerfLoads = 0;
+            g_PerfLoadTicks = 0;
+            STARTUP_TRACE(loads);
           }
           // actor updates per logic step, the slowest component types and actors
           extern int g_PerfActorUpdates;
@@ -1357,6 +1376,55 @@ static double GpuBaseScale() {
 }
 #endif
 
+// The level's scale at the normal zoom (set when the display starts).
+static double s_ViewBaseScale = 0.0;
+
+bool BaseGameApp::ViewZoomSupported() {
+#if defined(RECLAW_GPU)
+  if (ReclawGpu_Active()) return true;
+#endif
+#if defined(__SWITCH__) || defined(__vita__)
+  return s_ViewBaseScale > 0.0;
+#else
+  return false;
+#endif
+}
+
+bool BaseGameApp::SmoothSupported() {
+#if defined(RECLAW_GPU)
+  if (ReclawGpu_Active()) return true;
+#endif
+#if defined(__SWITCH__) || defined(__vita__)
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool BaseGameApp::Smooth() {
+  // (3DS: off - its small screen looks best with sharp pixels)
+#if defined(__3DS__)
+  return PortSettings::GetInt("smooth", 0) != 0;
+#else
+  return PortSettings::GetInt("smooth", 1) != 0;
+#endif
+}
+
+void BaseGameApp::SetSmooth(bool on) {
+  PortSettings::SetInt("smooth", on ? 1 : 0);
+#if defined(RECLAW_GPU)
+  if (ReclawGpu_Active()) {
+    ReclawGpu_SetSmooth(on ? 1 : 0);
+    LOG_WARNING(std::string("Pictures ") + (on ? "smoothed" : "sharp"));
+    return;
+  }
+#endif
+#if defined(__SWITCH__) || defined(__vita__)
+  Image::SetSmooth(on);
+  LOG_WARNING(std::string("Pictures ") + (on ? "smoothed" : "sharp"));
+#endif
+}
+
 int BaseGameApp::ViewZoom() {
   const int z = PortSettings::GetInt("view_zoom", 100);
   return z >= 95 ? 100 : (z >= 85 ? 90 : (z >= 75 ? 80 : 70));
@@ -1364,11 +1432,10 @@ int BaseGameApp::ViewZoom() {
 
 void BaseGameApp::SetViewZoom(int percent) {
   PortSettings::SetInt("view_zoom", percent);
-#if defined(RECLAW_GPU)
-  if (ReclawGpu_Active()) {
+  if (ViewZoomSupported() && s_ViewBaseScale > 0.0) {
     // (the menus draw at scale 1 and put this scale back after each frame;
     // the level's camera takes the new size at once)
-    m_GameOptions.scale = GpuBaseScale() * ViewZoom() / 100.0;
+    m_GameOptions.scale = s_ViewBaseScale * ViewZoom() / 100.0;
     if (HumanView *pView = GetHumanView()) {
       if (shared_ptr<CameraNode> pCamera = pView->GetCamera()) {
         pCamera->SetScale((float)m_GameOptions.scale, (float)m_GameOptions.scale);
@@ -1377,7 +1444,6 @@ void BaseGameApp::SetViewZoom(int percent) {
     }
     LOG_WARNING("View zoom " + ToStr(ViewZoom()) + "%");
   }
-#endif
 }
 
 void BaseGameApp::PresentFrame(bool present) {
@@ -1570,7 +1636,8 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     ReclawPS3_TvSize(&tvW, &tvH);
     gameOptions.renderWidth = 0;
     gameOptions.renderHeight = 0;
-    gameOptions.scale = GpuBaseScale() * ViewZoom() / 100.0;
+    s_ViewBaseScale = GpuBaseScale();
+    gameOptions.scale = s_ViewBaseScale * ViewZoom() / 100.0;
     m_WindowSize.Set(tvW, tvH);
     m_pRenderTarget = ReclawGpu_GameFrame();
     SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
@@ -1604,7 +1671,8 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     // GPU scales every picture).
     gameOptions.renderWidth = 0;
     gameOptions.renderHeight = 0;
-    gameOptions.scale = GpuBaseScale() * ViewZoom() / 100.0;
+    s_ViewBaseScale = GpuBaseScale();
+    gameOptions.scale = s_ViewBaseScale * ViewZoom() / 100.0;
     renderPct3DS = 100;
     // The game draws into "its frame" (the screen with a view of its own):
     // movies, the title scroll and other screens that select no target
@@ -1671,8 +1739,19 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     }
   }
 #endif
+#if defined(__SWITCH__) || defined(__vita__)
+  // Switch, Vita: the game draws straight onto the screen at its scale;
+  // Options > view zoom shows more of the level (a smaller scale).
+  if (!m_pRenderTarget && gameOptions.scale > 0.0) {
+    s_ViewBaseScale = gameOptions.scale;
+    gameOptions.scale = s_ViewBaseScale * ViewZoom() / 100.0;
+  }
+#endif
   SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale,
                      (float)gameOptions.scale);
+#if defined(RECLAW_GPU) || defined(__SWITCH__) || defined(__vita__)
+  if (SmoothSupported()) SetSmooth(Smooth());
+#endif
 
   // Stage 2a: install WASM-first platform event pipeline.
   if (!m_videoPlatform) {

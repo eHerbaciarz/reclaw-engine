@@ -2595,6 +2595,76 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
+            <!-- ReClaw (3DS, PS3, Switch, Vita): pictures smoothed or sharp pixels -->
+            <Name>SMOOTH_ON_BUTTON</Name>
+            <GameFontText en="SMOOTHING: ON">WYGŁADZANIE: TAK</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>SmoothOn</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="343" align="center" />
+            <GeneratedEvent>
+                <Type>SetSmooth</Type>
+                <IsEnabled>false</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw (3DS, PS3, Switch, Vita): pictures smoothed or sharp pixels -->
+            <Name>SMOOTH_OFF_BUTTON</Name>
+            <GameFontText en="SMOOTHING: OFF">WYGŁADZANIE: NIE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>SmoothOff</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="343" align="center" />
+            <GeneratedEvent>
+                <Type>SetSmooth</Type>
+                <IsEnabled>true</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_OFF_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>SMOOTH_ON_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <!-- ReClaw: language of the game data (data/<code>/), only with
                  more than one language folder -->
             <Name>LANGUAGE_BUTTON</Name>

@@ -448,6 +448,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&percent, pElem->FirstChildElement("Percent"));
         pEventData.reset(new EventData_Menu_Set_View_Zoom(percent));
     }
+    else if (eventType == "SetSmooth")
+    {
+        bool enabled = true;
+        ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
+        pEventData.reset(new EventData_Menu_Set_Smooth(enabled));
+    }
     else if (eventType == "SetSubtitles")
     {
         bool enabled = true;
@@ -2070,6 +2076,14 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         {
             m_bVisible = false;
         }
+        else if (conditionTypeStr == "SmoothOn")
+        {
+            m_bVisible = BaseGameApp::SmoothSupported() && BaseGameApp::Smooth();
+        }
+        else if (conditionTypeStr == "SmoothOff")
+        {
+            m_bVisible = BaseGameApp::SmoothSupported() && !BaseGameApp::Smooth();
+        }
         else if (conditionTypeStr == "SubtitlesOn")
         {
             m_bVisible = Subtitles::IsEnabled();
@@ -2515,6 +2529,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = g_pApp->GetAudio()->IsMusicActive();
     else if (m_VisibilityConditionType == "MusicOff")
         m_bVisible = !g_pApp->GetAudio()->IsMusicActive();
+    else if (m_VisibilityConditionType == "SmoothOn")
+        m_bVisible = BaseGameApp::SmoothSupported() && BaseGameApp::Smooth();
+    else if (m_VisibilityConditionType == "SmoothOff")
+        m_bVisible = BaseGameApp::SmoothSupported() && !BaseGameApp::Smooth();
     else if (m_VisibilityConditionType == "SubtitlesOn")
         m_bVisible = Subtitles::IsEnabled();
     else if (m_VisibilityConditionType == "SubtitlesOff")
@@ -2538,10 +2556,8 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
     }
     else if (m_VisibilityConditionType.compare(0, 9, "ViewZoom:") == 0)
     {
-        // 3DS (GPU drawing): the item of the current zoom
-#if defined(RECLAW_GPU)
-        m_bVisible = ReclawGpu_Active() && atoi(m_VisibilityConditionType.c_str() + 9) == BaseGameApp::ViewZoom();
-#endif
+        // 3DS, PS3 (GPU drawing), Switch, Vita: the item of the current zoom
+        m_bVisible = BaseGameApp::ViewZoomSupported() && atoi(m_VisibilityConditionType.c_str() + 9) == BaseGameApp::ViewZoom();
     }
     else if (m_VisibilityConditionType == "WebOnly")
     {

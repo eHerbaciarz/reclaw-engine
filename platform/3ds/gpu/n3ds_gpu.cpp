@@ -21,6 +21,8 @@
 
 #define RECLAW_GPU_IMPL
 #include "n3ds_gpu.h"
+#include "../../common/reclaw_bleed.h"
+#include <set>
 
 #include <3ds.h>
 #include <citro3d.h>
@@ -110,6 +112,8 @@ namespace
         Uint8 dr = 0, dg = 0, db = 0, da = 255;
         SDL_BlendMode drawBlend = SDL_BLENDMODE_NONE;
         bool inFrame = false;
+        bool smooth = false;              // every picture sampled smoothly (Options)
+        std::set<struct GpuTexture*> live;   // (filters set again when smooth changes)
         GpuTexture* white = nullptr;
         std::vector<GpuTexture*> doomed;
         std::vector<GpuTexture*> doomedTargets;   // (deleted outside a frame only)
@@ -179,6 +183,16 @@ namespace
     void Upload(GpuTexture* t, const SDL_Rect* rect, const Uint32* pixels, int pitchPixels)
     {
         SDL_Rect r = rect ? *rect : SDL_Rect{ 0, 0, t->w, t->h };
+        std::vector<uint32_t> bled;
+        if (t->access != SDL_TEXTUREACCESS_STREAMING && r.w > 0 && r.h > 0)
+        {
+            // (for smooth sampling: see-through pixels coloured like their neighbours)
+            if (const uint32_t* b = ReclawBleedAlpha((const uint32_t*)pixels, pitchPixels, r.w, r.h, bled))
+            {
+                pixels = (const Uint32*)b;
+                pitchPixels = r.w;
+            }
+        }
         for (Chunk& c : t->chunks)
         {
             const int x0 = std::max(r.x, c.x), y0 = std::max(r.y, c.y);
@@ -191,7 +205,7 @@ namespace
 
     void ApplyFilter(GpuTexture* t)
     {
-        const GPU_TEXTURE_FILTER_PARAM f = t->linear ? GPU_LINEAR : GPU_NEAREST;
+        const GPU_TEXTURE_FILTER_PARAM f = (t->linear || g.smooth) ? GPU_LINEAR : GPU_NEAREST;
         for (Chunk& c : t->chunks) C3D_TexSetFilter(&c.tex, f, f);
     }
 
@@ -214,6 +228,7 @@ namespace
             t->target = C3D_RenderTargetCreateFromTex(&t->chunks[0].tex, GPU_TEXFACE_2D, 0, C3D_DEPTHTYPE(-1));
             if (!t->target) { C3D_TexDelete(&t->chunks[0].tex); delete t; return nullptr; }
             ApplyFilter(t);
+            g.live.insert(t);
             return t;
         }
         for (int y = 0; y < h; y += kMaxChunk)
@@ -237,11 +252,13 @@ namespace
             }
         }
         ApplyFilter(t);
+        g.live.insert(t);
         return t;
     }
 
     void FreeTexture(GpuTexture* t)
     {
+        g.live.erase(t);
         if (t->target) C3D_RenderTargetDelete(t->target);
         for (Chunk& c : t->chunks) C3D_TexDelete(&c.tex);
         t->magic = 0;
@@ -990,6 +1007,13 @@ int ReclawGpu_GetTextureBlendMode(SDL_Texture* texture, SDL_BlendMode* mode)
     if (!IsGpuTex(texture)) return SDL_GetTextureBlendMode(texture, mode);
     if (mode) *mode = Tex(texture)->blend;
     return 0;
+}
+
+void ReclawGpu_SetSmooth(int on)
+{
+    if (g.smooth == (on != 0)) return;
+    g.smooth = on != 0;
+    for (GpuTexture* t : g.live) ApplyFilter(t);
 }
 
 int ReclawGpu_SetTextureScaleMode(SDL_Texture* texture, SDL_ScaleMode mode)

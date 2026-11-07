@@ -8,6 +8,8 @@
 # Needs in $PS3DEV/portlibs/ppu: SDL2 (ps3libraries 014-sdl2_psl1ght),
 # SDL2_mixer (016), zlib, libpng, freetype, plus SDL2_image and SDL2_ttf built
 # from source (platform/ps3/build-sdl-addons.sh). CI: .github/workflows/ps3.yml
+# SDL2 with platform/deps/patches/SDL-psl1ght-audio.patch (the audio blocks
+# written ahead of the hardware's read position; without it the sound crackles).
 #
 # Install: reclaw_hen.pkg (finalized, Package Manager on HEN/CFW), reclaw.pkg
 # (debug package) or the .self in RPCS3. The first run creates the folders in

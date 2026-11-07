@@ -15,6 +15,7 @@
 
 #define RECLAW_GPU_IMPL
 #include "ps3_gpu.h"
+#include "../../common/reclaw_bleed.h"
 #include "../compat/ps3_sdl_screen.h"
 
 #include <SDL2/SDL.h>
@@ -108,7 +109,7 @@ namespace
         Uint8 dr = 0, dg = 0, db = 0, da = 255;
         SDL_BlendMode drawBlend = SDL_BLENDMODE_NONE;
         bool inFrame = false;
-        bool smooth = true;               // pictures sampled smoothly (port_settings.txt smooth=0: sharp pixels)
+        bool smooth = false;              // every picture sampled smoothly (Options)
         bool texDirty = false;            // a texture changed during the frame
         GpuTexture* white = nullptr;
         std::vector<GpuTexture*> doomed[2];   // freed when that half's frame is done
@@ -138,28 +139,10 @@ namespace
         if (r.w <= 0 || r.h <= 0) return;
         if (g.inFrame) g.texDirty = true;
         std::vector<Uint32> bled;
-        if (g.smooth && t->access != SDL_TEXTUREACCESS_STREAMING)
+        if (t->access != SDL_TEXTUREACCESS_STREAMING)
         {
-            // Smooth sampling mixes a sprite's edge with the see-through pixels
-            // next to it: those take the colour of an opaque neighbour (their
-            // own, usually black, made dark outlines).
-            bled.resize((size_t)r.w * r.h);
-            for (int y = 0; y < r.h; ++y) memcpy(&bled[(size_t)y * r.w], pixels + (size_t)y * pitchPixels, (size_t)r.w * 4);
-            auto src = [&](int x, int y) { return pixels[(size_t)y * pitchPixels + x]; };
-            for (int y = 0; y < r.h; ++y)
-                for (int x = 0; x < r.w; ++x)
-                {
-                    if (src(x, y) >> 24) continue;
-                    Uint32 n = 0;
-                    if (x > 0 && (src(x - 1, y) >> 24)) n = src(x - 1, y);
-                    else if (x + 1 < r.w && (src(x + 1, y) >> 24)) n = src(x + 1, y);
-                    else if (y > 0 && (src(x, y - 1) >> 24)) n = src(x, y - 1);
-                    else if (y + 1 < r.h && (src(x, y + 1) >> 24)) n = src(x, y + 1);
-                    else continue;
-                    bled[(size_t)y * r.w + x] = n & 0x00FFFFFFu;
-                }
-            pixels = bled.data();
-            pitchPixels = r.w;
+            // (for smooth sampling: see-through pixels coloured like their neighbours)
+            if (const uint32_t* b = ReclawBleedAlpha(pixels, pitchPixels, r.w, r.h, bled)) { pixels = b; pitchPixels = r.w; }
         }
         for (int y = 0; y < r.h; ++y)
             memcpy((Uint8*)t->data + (size_t)(r.y + y) * t->pitch + (size_t)r.x * 4, pixels + (size_t)y * pitchPixels, (size_t)r.w * 4);
@@ -172,7 +155,6 @@ namespace
         t->w = w;
         t->h = h;
         t->target = target;
-        t->linear = g.smooth;
         t->pitch = ((u32)w * 4 + 63) & ~63u;
         t->data = (Uint32*)rsxMemalign(128, (size_t)t->pitch * h);
         if (!t->data || rsxAddressToOffset(t->data, &t->offset) != 0)
@@ -231,12 +213,13 @@ namespace
         tex.offset = t->offset;
         rsxLoadTexture(g.ctx, (u8)g.texUnit, &tex);
         rsxTextureControl(g.ctx, (u8)g.texUnit, GCM_TRUE, 0 << 8, 12 << 8, GCM_TEXTURE_MAX_ANISO_1);
-        const u8 f = t->linear ? GCM_TEXTURE_LINEAR : GCM_TEXTURE_NEAREST;
+        const bool linear = t->linear || g.smooth;
+        const u8 f = linear ? GCM_TEXTURE_LINEAR : GCM_TEXTURE_NEAREST;
         rsxTextureFilter(g.ctx, (u8)g.texUnit, 0, f, f, GCM_TEXTURE_CONVOLUTION_QUINCUNX);
         rsxTextureWrapMode(g.ctx, (u8)g.texUnit, GCM_TEXTURE_CLAMP_TO_EDGE, GCM_TEXTURE_CLAMP_TO_EDGE, GCM_TEXTURE_CLAMP_TO_EDGE,
                            GCM_TEXTURE_UNSIGNED_REMAP_NORMAL, GCM_TEXTURE_ZFUNC_NEVER, 0);
         g.boundTex = t;
-        g.boundLinear = t->linear;
+        g.boundLinear = linear;
     }
 
     void BindBlend(SDL_BlendMode blend)
@@ -276,7 +259,7 @@ namespace
                 g.boundTex = nullptr;
                 g.texDirty = false;
             }
-            if (g.batchTex != g.boundTex || g.batchTex->linear != g.boundLinear) BindTexture(g.batchTex);
+            if (g.batchTex != g.boundTex || (g.batchTex->linear || g.smooth) != g.boundLinear) BindTexture(g.batchTex);
             if (g.batchBlend != g.boundBlend) BindBlend(g.batchBlend);
             // (the vertices were written after the last draw: not from the cache)
             rsxInvalidateVertexCache(g.ctx);
@@ -560,7 +543,6 @@ namespace
         if (!g.vbufBase || rsxAddressToOffset(g.vbufBase, &g.vbufOffset) != 0) return false;
         for (int i = 0; i < 2; ++i) { *Label(i) = 0; g.halfSeq[i] = 0; }
 
-        g.smooth = PortSettings::GetInt("smooth", 1) != 0;
         g.white = NewTexture(8, 8, false);
         if (!g.white) return false;
         std::vector<Uint32> white(64, 0xFFFFFFFFu);
@@ -568,7 +550,7 @@ namespace
 
         g.window = window;
         g.active = true;
-        SDL_Log("GPU: the game draws with the RSX at %dx%d%s", g.tvW, g.tvH, g.smooth ? ", pictures smoothed" : "");
+        SDL_Log("GPU: the game draws with the RSX at %dx%d", g.tvW, g.tvH);
         return true;
     }
 }
@@ -963,6 +945,11 @@ int ReclawGpu_GetTextureBlendMode(SDL_Texture* texture, SDL_BlendMode* mode)
     if (!IsGpuTex(texture)) return SDL_GetTextureBlendMode(texture, mode);
     if (mode) *mode = Tex(texture)->blend;
     return 0;
+}
+
+void ReclawGpu_SetSmooth(int on)
+{
+    g.smooth = on != 0;   // (the next draw binds its texture again if it changed)
 }
 
 int ReclawGpu_SetTextureScaleMode(SDL_Texture* texture, SDL_ScaleMode mode)

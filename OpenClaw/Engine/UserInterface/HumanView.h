@@ -129,6 +129,7 @@ protected:
     void OpenCheatsDelegate(IEventDataPtr pEventData);
     void SetSubtitlesDelegate(IEventDataPtr pEventData);
     void SetViewZoomDelegate(IEventDataPtr pEventData);
+    void SetSmoothDelegate(IEventDataPtr pEventData);
     void OnCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);
     void BossModesDelegate(IEventDataPtr pEventData);

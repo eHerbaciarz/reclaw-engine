@@ -370,6 +370,12 @@ public:
   // normal zoom (100, 90, 80, 70; port_settings.txt view_zoom=). Saved.
   static int ViewZoom();
   void SetViewZoom(int percent);
+  // Options: how much of the level is seen (3DS / PS3 GPU drawing, Switch, Vita)
+  static bool ViewZoomSupported();
+  // Options: pictures smoothed or sharp pixels (same platforms)
+  static bool SmoothSupported();
+  static bool Smooth();
+  void SetSmooth(bool on);
   const GlobalOptions *GetGlobalOptions() const { return &m_GlobalOptions; }
   const ControlOptions *GetControlOptions() const { return &m_ControlOptions; }
   const DebugOptions *GetDebugOptions() const { return &m_DebugOptions; }

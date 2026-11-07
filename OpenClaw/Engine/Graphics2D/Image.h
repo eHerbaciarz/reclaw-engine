@@ -18,6 +18,9 @@ public:
     // is an unscaled one (and takes less memory). Their size for the game
     // (GetWidth/GetHeight) stays the original one.
     static void SetScaledRenderer(SDL_Renderer* renderer, float scale);
+    // Switch, Vita: the game's pictures (sprites, tiles) sampled smoothly or
+    // as sharp pixels; applies to the loaded ones at once.
+    static void SetSmooth(bool on);
     static Image* CreateImage(WapPid* pid, SDL_Renderer* renderer);
     // Pass as colorKey: use the image's top-left pixel as the transparent colour.
     // Menu texts are drawn on a solid background that differs between releases
