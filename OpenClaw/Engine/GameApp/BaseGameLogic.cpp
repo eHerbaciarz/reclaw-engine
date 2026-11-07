@@ -844,6 +844,23 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         TraceLevel("pictures and sounds preloaded");
     }
 #endif
+#if defined(__PSL1GHT__)
+    // PS3: the level's sound files read into memory now (from the HDD during
+    // play: a stutter the first time each one was played); decoded from
+    // memory when first played.
+    {
+        const std::string level = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber());
+        std::vector<std::string> sounds;
+        for (const std::string& set : { level + "/SOUNDS/*", std::string("/CLAW/SOUNDS/*"), std::string("/GAME/SOUNDS/*") })
+        {
+            std::vector<std::string> m = g_pApp->GetResourceCache()->Match(set);
+            sounds.insert(sounds.end(), m.begin(), m.end());
+        }
+        const size_t soundBytes = g_pApp->GetResourceCache()->KeepFiles(sounds, 24u * 1024 * 1024);
+        LOG_WARNING("Level preload: " + ToStr((int)sounds.size()) + " sound files, " + ToStr((int)(soundBytes / 1024)) + " KB kept");
+        TraceLevel("sounds preloaded");
+    }
+#endif
 
     // Load claw stats: Score, Health, Lives, Ammo: Bullets, Magic, Dynamite
     IEventMgr* pEventMgr = IEventMgr::Get();

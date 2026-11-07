@@ -108,6 +108,7 @@ namespace
         Uint8 dr = 0, dg = 0, db = 0, da = 255;
         SDL_BlendMode drawBlend = SDL_BLENDMODE_NONE;
         bool inFrame = false;
+        bool smooth = true;               // pictures sampled smoothly (port_settings.txt smooth=0: sharp pixels)
         bool texDirty = false;            // a texture changed during the frame
         GpuTexture* white = nullptr;
         std::vector<GpuTexture*> doomed[2];   // freed when that half's frame is done
@@ -136,6 +137,30 @@ namespace
         r.h = std::min(r.h, t->h - r.y);
         if (r.w <= 0 || r.h <= 0) return;
         if (g.inFrame) g.texDirty = true;
+        std::vector<Uint32> bled;
+        if (g.smooth && t->access != SDL_TEXTUREACCESS_STREAMING)
+        {
+            // Smooth sampling mixes a sprite's edge with the see-through pixels
+            // next to it: those take the colour of an opaque neighbour (their
+            // own, usually black, made dark outlines).
+            bled.resize((size_t)r.w * r.h);
+            for (int y = 0; y < r.h; ++y) memcpy(&bled[(size_t)y * r.w], pixels + (size_t)y * pitchPixels, (size_t)r.w * 4);
+            auto src = [&](int x, int y) { return pixels[(size_t)y * pitchPixels + x]; };
+            for (int y = 0; y < r.h; ++y)
+                for (int x = 0; x < r.w; ++x)
+                {
+                    if (src(x, y) >> 24) continue;
+                    Uint32 n = 0;
+                    if (x > 0 && (src(x - 1, y) >> 24)) n = src(x - 1, y);
+                    else if (x + 1 < r.w && (src(x + 1, y) >> 24)) n = src(x + 1, y);
+                    else if (y > 0 && (src(x, y - 1) >> 24)) n = src(x, y - 1);
+                    else if (y + 1 < r.h && (src(x, y + 1) >> 24)) n = src(x, y + 1);
+                    else continue;
+                    bled[(size_t)y * r.w + x] = n & 0x00FFFFFFu;
+                }
+            pixels = bled.data();
+            pitchPixels = r.w;
+        }
         for (int y = 0; y < r.h; ++y)
             memcpy((Uint8*)t->data + (size_t)(r.y + y) * t->pitch + (size_t)r.x * 4, pixels + (size_t)y * pitchPixels, (size_t)r.w * 4);
     }
@@ -147,6 +172,7 @@ namespace
         t->w = w;
         t->h = h;
         t->target = target;
+        t->linear = g.smooth;
         t->pitch = ((u32)w * 4 + 63) & ~63u;
         t->data = (Uint32*)rsxMemalign(128, (size_t)t->pitch * h);
         if (!t->data || rsxAddressToOffset(t->data, &t->offset) != 0)
@@ -534,6 +560,7 @@ namespace
         if (!g.vbufBase || rsxAddressToOffset(g.vbufBase, &g.vbufOffset) != 0) return false;
         for (int i = 0; i < 2; ++i) { *Label(i) = 0; g.halfSeq[i] = 0; }
 
+        g.smooth = PortSettings::GetInt("smooth", 1) != 0;
         g.white = NewTexture(8, 8, false);
         if (!g.white) return false;
         std::vector<Uint32> white(64, 0xFFFFFFFFu);
@@ -541,7 +568,7 @@ namespace
 
         g.window = window;
         g.active = true;
-        SDL_Log("GPU: the game draws with the RSX at %dx%d", g.tvW, g.tvH);
+        SDL_Log("GPU: the game draws with the RSX at %dx%d%s", g.tvW, g.tvH, g.smooth ? ", pictures smoothed" : "");
         return true;
     }
 }

@@ -37,7 +37,7 @@ WavResourceExtraData::~WavResourceExtraData()
 // decodes it).
 static Mix_Chunk* FastDecodeWav(const unsigned char* b, uint32 size)
 {
-#if defined(__3DS__)
+#if defined(__3DS__) || defined(__PSL1GHT__)
     int outRate = 0, outCh = 0;
     Uint16 outFmt = 0;
     if (!Mix_QuerySpec(&outRate, &outFmt, &outCh) || outFmt != AUDIO_S16SYS || (outCh != 1 && outCh != 2) || outRate <= 0)
@@ -194,8 +194,8 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
 #if defined(__EMSCRIPTEN__)
     // For Emscripten, just return the raw size since we don't need to decode
     return rawSize;
-#elif defined(__3DS__)
-    // 3DS: the decoded size worked out from the header (decoding it here too
+#elif defined(__3DS__) || defined(__PSL1GHT__)
+    // 3DS, PS3: the decoded size worked out from the header (decoding it here too
     // decoded every sound twice); the cache counts it, so sounds still leave
     // the cache when it is full. Output: 22050 Hz, 16-bit stereo.
     {
@@ -214,8 +214,11 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
             i += 8 + len + (len & 1);
         }
         if (!ch || !rate || !bits) return rawSize * 8;
+        int outRate = 22050, outCh = 2;
+        Uint16 outFmt = 0;
+        if (!Mix_QuerySpec(&outRate, &outFmt, &outCh) || outRate <= 0 || outCh <= 0) { outRate = 22050; outCh = 2; }
         const double frames = (double)data / (ch * (bits / 8.0));
-        return (uint32)(frames * 22050.0 / rate * 4.0) + 64;
+        return (uint32)(frames * outRate / rate * 2.0 * outCh) + 64;
     }
 #else
     // TODO: This is inefficent, this resource gets basically loaded twice, once just

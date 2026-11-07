@@ -301,7 +301,7 @@ std::shared_ptr<ResourceHandle> ResourceCache::GetHandle(Resource* r)
     std::shared_ptr<ResourceHandle> handle(Find(r));
     if (handle == nullptr)
     {
-#if defined(__3DS__)
+#if defined(__3DS__) || defined(__PSL1GHT__)
         // Files that take long to read show up in reclaw.log (stutter hunting)
         const Uint32 t0 = SDL_GetTicks();
         handle = Load(r);

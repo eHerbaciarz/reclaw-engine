@@ -246,7 +246,6 @@ namespace
     {
         SDL_AudioStream* stream = nullptr;
         SDL_mutex* mutex = nullptr;
-        bool halve = false;   // PS3, 3DS: the game's sounds' headroom
     };
 
     void MovieAudioEffect(int, void* buffer, int len, void* udata)
@@ -260,12 +259,6 @@ namespace
         }
         if (got < 0) got = 0;
         if (got < len) memset((char*)buffer + got, 0, len - got);
-        if (ctx->halve)
-        {
-            // (written over the channel's samples: its volume does not apply)
-            Sint16* p = (Sint16*)buffer;
-            for (int i = 0; i < got / 2; ++i) p[i] = (Sint16)(p[i] / 2);
-        }
     }
 
     //---------------------------------------------------------------- input
@@ -337,13 +330,11 @@ namespace
             Uint16 fmt = 0;
             if (Mix_QuerySpec(&freq, &fmt, &outCh))
             {
-                ctx.stream = SDL_NewAudioStream(depth[0] == 16 ? AUDIO_S16LSB : AUDIO_U8, channels[0], (int)rate[0],
+                // (libsmacker gives 16-bit samples in the CPU's byte order:
+                // big-endian on the PS3 - read as little-endian they crackled)
+                ctx.stream = SDL_NewAudioStream(depth[0] == 16 ? AUDIO_S16SYS : AUDIO_U8, channels[0], (int)rate[0],
                                                 fmt, outCh, freq);
                 ctx.mutex = SDL_CreateMutex();
-#if defined(__PSL1GHT__) || defined(__3DS__)
-                // the movies' loud parts clipped when mixed (crackling)
-                ctx.halve = fmt == AUDIO_S16SYS;
-#endif
             }
             if (!ctx.stream || !ctx.mutex) hasAudio = false;
         }
