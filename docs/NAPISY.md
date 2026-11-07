@@ -49,6 +49,15 @@ python auto_subtitles.py --only movies   # albo --only dialogue; --model medium 
 - Poprawionych plików nie nadpisuje (tylko puste szablony).
 - Folder raportu zawiera dźwięki z gry – zostaje u Ciebie.
 
+## Same dźwięki dialogów (bez rozpoznawania mowy)
+
+`scripts/extract_dialogue_audio.py` (w tym samym folderze co
+`subtitle_templates.py` i `auto_subtitles.py`) zapisuje dźwięk filmów
+(`audio_pl/movies/movie_XX.wav`, potrzebny ffmpeg) i kwestie mówione z REZ
+(`audio_pl/dialogue/<ścieżka>.wav`, ta sama ścieżka co plik napisów) oraz
+`LISTA.tsv`. Mowę od odgłosów odróżnia tylko po długości i ścieżce (`--all`:
+wszystkie dźwięki); pewniejszy podział daje `auto_subtitles.py`.
+
 ## Teksty menu (`lang/<język>/menu/strings.txt`)
 
 Napisy w menu i na ekranach dodanych przez port (kody, wyścig, tryby bossów,
