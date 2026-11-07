@@ -115,9 +115,14 @@ bool WavResourceLoader::VLoadResource(char* rawBuffer, uint32 rawSize, std::shar
 
 uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize)
 {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__)
     // For Emscripten, just return the raw size since we don't need to decode
     return rawSize;
+#elif defined(__3DS__)
+    // 3DS: the decoded sound lives in its Mix_Chunk (normal heap); measuring it
+    // here decoded every sound twice, and the cache then set aside that much
+    // of its (linear) memory for nothing, pushing pictures out.
+    return 1;
 #else
     // TODO: This is inefficent, this resource gets basically loaded twice, once just
     // to find out how much room it takes and second time to actually create it
@@ -132,6 +137,14 @@ uint32 WavResourceLoader::VGetLoadedResourceSize(char* rawBuffer, uint32 rawSize
     return decodedSize;
 #endif
 }
+
+#if defined(__3DS__)
+static std::map<std::string, shared_ptr<Mix_Chunk>>& KeptSounds()
+{
+    static std::map<std::string, shared_ptr<Mix_Chunk>> s_Kept;
+    return s_Kept;
+}
+#endif
 
 shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resourceString)
 {
@@ -163,6 +176,13 @@ shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resource
     }
 #endif
     Resource resource(resourceString);
+#if defined(__3DS__)
+    static std::map<std::string, shared_ptr<Mix_Chunk>>& kept = KeptSounds();
+    {
+        auto it = kept.find(resource.GetName());
+        if (it != kept.end()) return it->second;
+    }
+#endif
 
     shared_ptr<ResourceHandle> handle = g_pApp->GetResourceCache()->GetHandle(&resource);
     if (!handle)
@@ -179,7 +199,17 @@ shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resource
         return NULL;
     }
 
+#if defined(__3DS__)
+    if (extraData->GetSound()) kept[resource.GetName()] = extraData->GetSound();
+#endif
     return extraData->GetSound();
+}
+
+void WavResourceLoader::ClearKept()
+{
+#if defined(__3DS__)
+    KeptSounds().clear();
+#endif
 }
 
 std::shared_ptr<WavResourceLoader> WavResourceLoader::Create()

@@ -9,6 +9,8 @@
 #include "../Resource/Loaders/PalLoader.h"
 #include "../Resource/Loaders/WwdLoader.h"
 #include "../Resource/Loaders/PcxLoader.h"
+#include "../Resource/Loaders/PidLoader.h"
+#include "../Resource/Loaders/WavLoader.h"
 #include "../Events/EventMgr.h"
 #include "../Graphics2D/Image.h"
 #include "../Audio/Audio.h"
@@ -214,6 +216,7 @@ std::string BaseGameLogic::GetActorXml(uint32 actorId)
 bool BaseGameLogic::VEnterMenu(const char* xmlMenuResource)
 {
     TiXmlElement* pXmlLevelRoot = nullptr;
+    PidResourceLoader::ClearKept();   // (3DS: the level's pictures)
     
 #ifdef __EMSCRIPTEN__
     // For WASM builds, try to load from individual files first for better lazy loading
@@ -506,6 +509,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 #if defined(__3DS__) || defined(__PSL1GHT__)
     // 3DS, PS3 memory: the menu's images and files (and the decoded pictures they
     // keep) leave the resource caches before the level is built.
+    PidResourceLoader::ClearKept();
+    WavResourceLoader::ClearKept();   // (all sounds were stopped above)
     g_pApp->GetResourceMgr()->VFlush();
     TraceLevel("caches flushed");
 #endif
@@ -759,6 +764,61 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     loadingProgress = 95.0f;
     TraceLevel("actors created");
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
+
+#if defined(__3DS__)
+    // 3DS: the level's pictures and sounds read now, while the loading screen
+    // is up, as far as the memory allows. During play every picture or sound
+    // used for the first time (an enemy dying, a shot) was read from the SD
+    // card then: a stutter each time. They stay loaded for the level
+    // (PidResourceLoader / WavResourceLoader keep them).
+    {
+        const std::string level = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber());
+        const char* imageSets[] = { "/CLAW/IMAGES/*", "/GAME/IMAGES/*", nullptr };
+        std::vector<std::string> images, sounds;
+        for (const char** p = imageSets; *p; ++p)
+        {
+            std::vector<std::string> m = g_pApp->GetResourceCache()->Match(*p);
+            images.insert(images.end(), m.begin(), m.end());
+        }
+        {
+            std::vector<std::string> m = g_pApp->GetResourceCache()->Match(level + "/IMAGES/*");
+            images.insert(images.end(), m.begin(), m.end());
+        }
+        for (const std::string& set : { std::string("/CLAW/SOUNDS/*"), std::string("/GAME/SOUNDS/*"), level + "/SOUNDS/*" })
+        {
+            std::vector<std::string> m = g_pApp->GetResourceCache()->Match(set);
+            sounds.insert(sounds.end(), m.begin(), m.end());
+        }
+        const size_t total = images.size() + sounds.size();
+        size_t done = 0, imagesLoaded = 0, soundsLoaded = 0;
+        bool imagesStopped = false, soundsStopped = false;
+        for (const std::string& path : images)
+        {
+            ++done;
+            if (path.size() < 4 || path.compare(path.size() - 4, 4, ".pid") != 0) continue;
+            if (linearSpaceFree() < 8u * 1024 * 1024) { imagesStopped = true; break; }
+            if (PidResourceLoader::LoadAndReturnImage(path.c_str(), g_pApp->GetCurrentPalette())) ++imagesLoaded;
+            if (done % 60 == 0)
+                RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 95.0f + 4.0f * done / std::max<size_t>(1, total));
+        }
+        for (const std::string& path : sounds)
+        {
+            ++done;
+            if (path.size() < 4 || path.compare(path.size() - 4, 4, ".wav") != 0) continue;
+            const long freeKB = Platform::FreeMemoryKB();
+            if (freeKB >= 0 && freeKB < 12 * 1024) { soundsStopped = true; break; }
+            if (WavResourceLoader::LoadAndReturnSound(path.c_str())) ++soundsLoaded;
+            if (done % 30 == 0)
+                RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, 95.0f + 4.0f * done / std::max<size_t>(1, total));
+        }
+        LOG_WARNING("Level preload: " + ToStr((int)imagesLoaded) + " of " + ToStr((int)images.size()) + " pictures" +
+                    (imagesStopped ? " (stopped: GPU memory)" : "") + ", " + ToStr((int)soundsLoaded) + " of " +
+                    ToStr((int)sounds.size()) + " sounds" + (soundsStopped ? " (stopped: memory)" : "") +
+                    "; free: heap " + ToStr((int)Platform::FreeMemoryKB()) + " KB, linear " +
+                    ToStr((int)(linearSpaceFree() / 1024)) + " KB");
+        TraceLevel("pictures and sounds preloaded");
+    }
+#endif
 
     // Load claw stats: Score, Health, Lives, Ammo: Bullets, Magic, Dynamite
     IEventMgr* pEventMgr = IEventMgr::Get();

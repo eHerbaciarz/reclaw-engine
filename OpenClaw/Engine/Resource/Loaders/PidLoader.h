@@ -35,6 +35,11 @@ public:
 
     static WapPid* LoadAndReturnPid(const char* resourceString, WapPal* palette);
     static shared_ptr<Image> LoadAndReturnImage(const char* resourceString, WapPal* palette);
+    // 3DS: pictures stay loaded for the whole level (the small resource cache
+    // let them go, and actors made later read them from the SD card again:
+    // stutter). Cleared when a level is loaded.
+    static void ClearKept();
+    static size_t KeptCount();
     static std::shared_ptr<PidResourceLoader> Create();
 };
 

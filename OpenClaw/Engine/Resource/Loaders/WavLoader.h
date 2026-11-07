@@ -29,6 +29,9 @@ public:
     virtual bool VLoadResource(char* rawBuffer, uint32 rawSize, std::shared_ptr<ResourceHandle> handle);
 
     static shared_ptr<Mix_Chunk> LoadAndReturnSound(const char* resourceString);
+    // 3DS: sounds stay loaded for the whole level (like PidResourceLoader's
+    // pictures). Cleared when a level is loaded (no sound plays then).
+    static void ClearKept();
     static std::shared_ptr<WavResourceLoader> Create();
 };
 

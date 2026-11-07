@@ -72,7 +72,43 @@ WapPid* PidResourceLoader::LoadAndReturnPid(const char* resourceString, WapPal* 
     return extraData->GetPid();
 }
 
+#if defined(__3DS__)
+static std::map<std::string, shared_ptr<Image>> s_KeptImages;
+#endif
+
+void PidResourceLoader::ClearKept()
+{
+#if defined(__3DS__)
+    s_KeptImages.clear();
+#endif
+}
+
+size_t PidResourceLoader::KeptCount()
+{
+#if defined(__3DS__)
+    return s_KeptImages.size();
+#else
+    return 0;
+#endif
+}
+
+static shared_ptr<Image> LoadImageUncached(const char* resourceString, WapPal* palette);
+
 shared_ptr<Image> PidResourceLoader::LoadAndReturnImage(const char* resourceString, WapPal* palette)
+{
+#if defined(__3DS__)
+    Resource key(resourceString);   // (lower case)
+    auto it = s_KeptImages.find(key.GetName());
+    if (it != s_KeptImages.end()) return it->second;
+    shared_ptr<Image> image = LoadImageUncached(resourceString, palette);
+    if (image) s_KeptImages[key.GetName()] = image;
+    return image;
+#else
+    return LoadImageUncached(resourceString, palette);
+#endif
+}
+
+static shared_ptr<Image> LoadImageUncached(const char* resourceString, WapPal* palette)
 {
     Resource resource(resourceString);
 

@@ -1,6 +1,8 @@
 #if defined(__PSL1GHT__)
 #include <ppu-lv2.h>
 #include <malloc.h>
+#elif defined(__3DS__)
+#include <malloc.h>
 #endif
 #include "Platform.h"
 #include "../GameApp/ReclawVersion.h"
@@ -29,6 +31,7 @@
 // there (textures, the resource caches' files, screens, sound), the normal
 // heap gets the rest.
 extern "C" { u32 __ctru_linear_heap_size = 56 * 1024 * 1024; }
+extern "C" { extern u32 __ctru_heap, __ctru_heap_size; }
 #elif defined(__WIIU__)
 #include <coreinit/debug.h>
 #elif defined(__PS3__) || defined(__PSL1GHT__)
@@ -619,6 +622,10 @@ namespace Platform
         lv2syscall1(352, (u64)&info);   // sys_memory_get_user_memory_size
         // plus what the heap already holds but is not using
         return (long)(info.available / 1024) + (long)((mallinfo().fordblks) / 1024);
+#elif defined(__3DS__)
+        // the heap's end minus what malloc took from it, plus what malloc holds unused
+        const u32 end = __ctru_heap + __ctru_heap_size, top = (u32)sbrk(0);
+        return (long)((end > top ? end - top : 0) / 1024) + (long)(mallinfo().fordblks / 1024);
 #else
         return -1;
 #endif
