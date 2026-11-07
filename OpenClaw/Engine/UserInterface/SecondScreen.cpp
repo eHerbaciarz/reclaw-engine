@@ -262,212 +262,23 @@ namespace
         return actor ? MakeStrongPtr(actor->GetComponent<T>(name)) : nullptr;
     }
 
-}
 
-namespace SecondScreen
-{
-    void Init()
+    // What the bottom screen shows while playing.
+    struct HudJob
     {
-        if (!Platform::HasSecondScreen() || g_pWindow) return;
-#if defined(__3DS__)
-        g_Width = 320; g_Height = 240;
-        g_pWindow = SDL_CreateWindow("ReClaw", SDL_WINDOWPOS_UNDEFINED_DISPLAY(1),
-                                     SDL_WINDOWPOS_UNDEFINED_DISPLAY(1), g_Width, g_Height, SDL_WINDOW_SHOWN);
-#elif defined(__WIIU__)
-        g_Width = 854; g_Height = 480;
-        g_pWindow = SDL_CreateWindow("ReClaw", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                     g_Width, g_Height, SDL_WINDOW_SHOWN | SDL_WINDOW_WIIU_GAMEPAD_ONLY);
-#endif
-        if (!g_pWindow)
-        {
-            LOG_WARNING(std::string("Second screen: no window: ") + SDL_GetError());
-            return;
-        }
-        g_pRenderer = SDL_CreateRenderer(g_pWindow, -1, 0);
-        if (!g_pRenderer)
-        {
-            LOG_WARNING(std::string("Second screen: no renderer: ") + SDL_GetError());
-            SDL_DestroyWindow(g_pWindow);
-            g_pWindow = nullptr;
-            return;
-        }
-        if (!TTF_WasInit()) TTF_Init();
-        std::string font = Platform::SplashFont();
-        g_pFontBig = TTF_OpenFont(font.c_str(), g_Height / 12);
-        g_pFontSmall = TTF_OpenFont(font.c_str(), g_Height / 18);
-        LOG("Second screen ready: " + ToStr(g_Width) + "x" + ToStr(g_Height));
-    }
-
-    void Shutdown()
-    {
-        if (g_pBackground) SDL_DestroyTexture(g_pBackground);
-        if (g_pFontBig) TTF_CloseFont(g_pFontBig);
-        if (g_pFontSmall) TTF_CloseFont(g_pFontSmall);
-        g_HudImages.clear();
-        g_Bars.clear();
-        if (g_pMirror) SDL_DestroyTexture(g_pMirror);
-        g_pMirror = nullptr;
-        if (g_pRenderer) SDL_DestroyRenderer(g_pRenderer);
-        if (g_pWindow) SDL_DestroyWindow(g_pWindow);
-        g_pBackground = nullptr;
-        g_pFontBig = g_pFontSmall = nullptr;
-        g_pRenderer = nullptr;
-        g_pWindow = nullptr;
-    }
-
-    bool IsActive() { return g_pRenderer != nullptr; }
-
-    bool ShowsHud()
-    {
-#if defined(__3DS__)
-        return g_pRenderer != nullptr;
-#else
-        return false;
-#endif
-    }
-
-    void DrawBackground()
-    {
-        SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 255);
-        SDL_RenderClear(g_pRenderer);
-        if (g_pBackground)
-        {
-            int tw = 0, th = 0;
-            SDL_QueryTexture(g_pBackground, NULL, NULL, &tw, &th);
-            double scale = std::max(g_Width / (double)tw, g_Height / (double)th);
-            SDL_Rect dst = { (int)(g_Width - tw * scale) / 2, (int)(g_Height - th * scale) / 2,
-                             (int)(tw * scale), (int)(th * scale) };
-            SDL_RenderCopy(g_pRenderer, g_pBackground, NULL, &dst);
-        }
-    }
-
-    // The menu as on the top screen (3DS), about 20 times a second.
-    bool UpdateMirror()
-    {
-#if defined(__3DS__)
-        if (!InMenu())
-        {
-            if (g_MirrorShown) { g_MirrorShown = false; g_LastState.clear(); }
-            return false;
-        }
-        static Uint32 s_last = 0;
-        if (SDL_GetTicks() - s_last < 50) return true;
-        s_last = SDL_GetTicks();
-        SDL_Renderer* top = g_pApp->GetRenderer();
-        int w = 0, h = 0;
-        if (SDL_Texture* target = SDL_GetRenderTarget(top)) SDL_QueryTexture(target, NULL, NULL, &w, &h);
-        else SDL_GetRendererOutputSize(top, &w, &h);
-        if (w <= 0 || h <= 0) return false;
-        if (!g_pMirror || w != g_MirrorW || h != g_MirrorH)
-        {
-            if (g_pMirror) SDL_DestroyTexture(g_pMirror);
-            g_pMirror = SDL_CreateTexture(g_pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-            g_MirrorW = w; g_MirrorH = h;
-            g_MirrorPixels.assign((size_t)w * h, 0);
-        }
-        if (!g_pMirror) return false;
-        float sx = 1.0f, sy = 1.0f;
-        SDL_RenderGetScale(top, &sx, &sy);
-        SDL_RenderSetScale(top, 1.0f, 1.0f);
-        int ok = SDL_RenderReadPixels(top, NULL, SDL_PIXELFORMAT_ARGB8888, g_MirrorPixels.data(), w * 4);
-        SDL_RenderSetScale(top, sx, sy);
-        if (ok != 0) return false;
-        SDL_UpdateTexture(g_pMirror, NULL, g_MirrorPixels.data(), w * 4);
-
-        LoadBackground();
-        DrawBackground();
-        // The menu is laid out in 4:3 (640x480) in the middle of the top
-        // screen: that part, filling this 4:3 screen (the 3DS: 1:1).
-        int srcW = std::min(w, h * g_Width / g_Height);
-        g_MirrorSrc = { (w - srcW) / 2, 0, srcW, h };
-        g_MirrorRect = { 0, 0, g_Width, g_Height };
-        SDL_RenderCopy(g_pRenderer, g_pMirror, &g_MirrorSrc, &g_MirrorRect);
-        SDL_RenderPresent(g_pRenderer);
-        g_MirrorShown = true;
-        return true;
-#else
-        return false;
-#endif
-    }
-
-    void ShowBackgroundOnly()
-    {
-        if (!g_pRenderer) return;
-        LoadBackground();
-        DrawBackground();
-        SDL_RenderPresent(g_pRenderer);
-        g_MirrorShown = false;
-        g_LastState = "background";
-    }
-
-    void Update()
-    {
-        if (!g_pRenderer) return;
-        if (g_pApp && g_pApp->GetGameLogic())
-        {
-            GameState st = g_pApp->GetGameLogic()->GetGameState();
-            if (st == GameState_LoadingLevel || st == GameState_LoadingMenu || st == GameState_LoadingScoreScreen)
-            {
-                if (g_LastState != "background") ShowBackgroundOnly();
-                return;
-            }
-        }
-        if (UpdateMirror()) return;
-        // A few times per second is plenty for a status screen.
-        if (SDL_GetTicks() - g_LastDraw < 200) return;
-
-        LoadBackground();
-
-        BaseGameLogic* pLogic = g_pApp->GetGameLogic();
-        StrongActorPtr pClaw = pLogic ? pLogic->GetClawActor() : nullptr;
-        const bool inGame = pLogic && pClaw && pLogic->GetGameState() == GameState_IngameRunning;
-
-#if defined(__3DS__)
-        // The level map (Select) is drawn here, over the map picture.
-        if (inGame && Minimap::IsVisible())
-        {
-            static Uint32 s_lastMap = 0;
-            if (SDL_GetTicks() - s_lastMap < 100) return;
-            s_lastMap = SDL_GetTicks();
-            DrawBackground();
-            SDL_Rect full = { 0, 0, g_Width, g_Height };
-            Minimap::Render(g_pRenderer, full, pClaw->GetGUID());
-            SDL_RenderPresent(g_pRenderer);
-            g_LastState = "map";
-            return;
-        }
-#endif
-
-        // Gather what is shown; redraw only when it changed.
+        bool inGame = false;
         std::string level, health, lives, score, ammo[3], powerup, race;
         int activeAmmo = -1;
-        if (inGame)
-        {
-            if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData())
-            {
-                level = LevelTitle(*pLevel);
-            }
-            if (auto p = Component<HealthComponent>(pClaw, HealthComponent::g_Name)) health = ToStr(std::max(0, (int)p->GetHealth()));
-            if (auto p = Component<LifeComponent>(pClaw, LifeComponent::g_Name)) lives = ToStr(p->GetLives());
-            if (auto p = Component<ScoreComponent>(pClaw, ScoreComponent::g_Name)) score = ToStr((int)p->GetScore());
-            if (auto p = Component<AmmoComponent>(pClaw, AmmoComponent::g_Name))
-            {
-                ammo[0] = ToStr((int)p->GetRemainingAmmo(AmmoType_Pistol));
-                ammo[1] = ToStr((int)p->GetRemainingAmmo(AmmoType_Magic));
-                ammo[2] = ToStr((int)p->GetRemainingAmmo(AmmoType_Dynamite));
-                activeAmmo = (int)p->GetActiveAmmoType();
-            }
-            if (auto p = Component<PowerupComponent>(pClaw, PowerupComponent::g_Name))
-            {
-                if (p->HasPowerup()) powerup = ToStr(std::max(0, (int)(p->GetRemainingPowerupTime() / 1000))) + " s";
-            }
-            if (Race::IsActive()) race = Lang::Tr("Wyścig", "Race");
-        }
-        std::string state = level + "|" + health + "|" + lives + "|" + score + "|" + ammo[0] + ammo[1] + ammo[2] +
-                            "|" + ToStr(activeAmmo) + "|" + powerup + "|" + race + (g_pBackground ? "b" : "");
-        if (state == g_LastState) return;
-        g_LastState = state;
-        g_LastDraw = SDL_GetTicks();
+    };
+
+    // The status screen (the HUD while playing, the map picture otherwise).
+    void DrawScreen(const HudJob& j)
+    {
+        const bool inGame = j.inGame;
+        const std::string &level = j.level, &health = j.health, &lives = j.lives, &score = j.score,
+                          &powerup = j.powerup, &race = j.race;
+        const std::string* ammo = j.ammo;
+        const int activeAmmo = j.activeAmmo;
         // (how long a redraw takes: reclaw.log every 10 s while playing)
         struct DrawTimer
         {
@@ -508,9 +319,6 @@ namespace SecondScreen
             // The game's HUD, moved here from the top screen (3DS): the same
             // pictures as in the level, at their own size, in tidy rows on a
             // dark panel (the menu picture's plates would show through).
-            int levelNo = 0;
-            if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
-            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_Bars.clear(); g_Rows.clear(); g_HudLevel = levelNo; }
 
             const bool big = g_Width >= 640;               // Wii U GamePad
             const double k = big ? 2.0 : 1.0;              // pictures
@@ -660,6 +468,314 @@ namespace SecondScreen
             }
         }
         SDL_RenderPresent(g_pRenderer);
+    }
+
+    // Every picture DrawScreen uses, loaded now (main thread).
+    void PreloadHudImages()
+    {
+        static int s_Done = -2;
+        if (s_Done == g_HudLevel) return;
+        s_Done = g_HudLevel;
+        const char* icons[] = { "treasurechest", "healthheart", "liveshead", "weapons/pistol", "weapons/magic",
+                                "weapons/dynamite", "stopwatch" };
+        for (const char* icon : icons) HudIcon(std::string("/game/images/interface/") + icon + "/");
+        const char* sets[] = { "scorenumbers", "healthnumbers", "smallnumbers" };
+        for (const char* set : sets)
+            for (char c = '0'; c <= '9'; ++c)
+                HudImage(std::string("/game/images/interface/") + set + "/00" + c + ".pid");
+    }
+
+    // The drawing thread (3DS: low priority on the game's core, so it runs
+    // while the game waits for the screen's refresh).
+    SDL_mutex* g_pDrawLock = nullptr;     // held while drawing on g_pRenderer
+    SDL_mutex* g_pJobLock = nullptr;
+    SDL_sem* g_pJobSem = nullptr;
+    HudJob g_Job;
+    bool g_ThreadStarted = false;
+
+    int HudThread(void*)
+    {
+        SDL_SetThreadPriority(SDL_THREAD_PRIORITY_LOW);
+        for (;;)
+        {
+            SDL_SemWait(g_pJobSem);
+            HudJob job;
+            SDL_LockMutex(g_pJobLock);
+            job = g_Job;
+            SDL_UnlockMutex(g_pJobLock);
+            SDL_LockMutex(g_pDrawLock);
+            if (g_pRenderer) DrawScreen(job);
+            SDL_UnlockMutex(g_pDrawLock);
+        }
+        return 0;
+    }
+
+    void SubmitHud(const HudJob& job)
+    {
+#if defined(__3DS__)
+        if (!g_ThreadStarted)
+        {
+            g_ThreadStarted = true;
+            g_pJobLock = SDL_CreateMutex();
+            g_pJobSem = SDL_CreateSemaphore(0);
+            SDL_Thread* t = (g_pDrawLock && g_pJobLock && g_pJobSem) ? SDL_CreateThread(HudThread, "hud", nullptr) : nullptr;
+            if (t) SDL_DetachThread(t);
+            else { SDL_DestroySemaphore(g_pJobSem); g_pJobSem = nullptr; }
+        }
+        if (g_pJobSem)
+        {
+            SDL_LockMutex(g_pJobLock);
+            g_Job = job;
+            SDL_UnlockMutex(g_pJobLock);
+            if (SDL_SemValue(g_pJobSem) == 0) SDL_SemPost(g_pJobSem);
+            return;
+        }
+#endif
+        DrawScreen(job);
+    }
+
+    // Main thread: drawing on g_pRenderer waits for the drawing thread.
+    struct DrawGuard
+    {
+        bool ok = true;
+        DrawGuard() { if (g_pDrawLock) ok = SDL_TryLockMutex(g_pDrawLock) == 0; }
+        ~DrawGuard() { if (g_pDrawLock && ok) SDL_UnlockMutex(g_pDrawLock); }
+    };
+
+}
+
+namespace SecondScreen
+{
+    void Init()
+    {
+        if (!Platform::HasSecondScreen() || g_pWindow) return;
+#if defined(__3DS__)
+        g_Width = 320; g_Height = 240;
+        g_pWindow = SDL_CreateWindow("ReClaw", SDL_WINDOWPOS_UNDEFINED_DISPLAY(1),
+                                     SDL_WINDOWPOS_UNDEFINED_DISPLAY(1), g_Width, g_Height, SDL_WINDOW_SHOWN);
+#elif defined(__WIIU__)
+        g_Width = 854; g_Height = 480;
+        g_pWindow = SDL_CreateWindow("ReClaw", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                     g_Width, g_Height, SDL_WINDOW_SHOWN | SDL_WINDOW_WIIU_GAMEPAD_ONLY);
+#endif
+        if (!g_pWindow)
+        {
+            LOG_WARNING(std::string("Second screen: no window: ") + SDL_GetError());
+            return;
+        }
+        g_pRenderer = SDL_CreateRenderer(g_pWindow, -1, 0);
+        if (!g_pRenderer)
+        {
+            LOG_WARNING(std::string("Second screen: no renderer: ") + SDL_GetError());
+            SDL_DestroyWindow(g_pWindow);
+            g_pWindow = nullptr;
+            return;
+        }
+        if (!TTF_WasInit()) TTF_Init();
+        std::string font = Platform::SplashFont();
+        g_pFontBig = TTF_OpenFont(font.c_str(), g_Height / 12);
+        g_pFontSmall = TTF_OpenFont(font.c_str(), g_Height / 18);
+        LOG("Second screen ready: " + ToStr(g_Width) + "x" + ToStr(g_Height));
+    }
+
+    void Shutdown()
+    {
+        if (g_pDrawLock) SDL_LockMutex(g_pDrawLock);   // (the drawing thread stays out from now on)
+        if (g_pBackground) SDL_DestroyTexture(g_pBackground);
+        if (g_pFontBig) TTF_CloseFont(g_pFontBig);
+        if (g_pFontSmall) TTF_CloseFont(g_pFontSmall);
+        g_HudImages.clear();
+        g_Bars.clear();
+        if (g_pMirror) SDL_DestroyTexture(g_pMirror);
+        g_pMirror = nullptr;
+        if (g_pRenderer) SDL_DestroyRenderer(g_pRenderer);
+        if (g_pWindow) SDL_DestroyWindow(g_pWindow);
+        g_pBackground = nullptr;
+        g_pFontBig = g_pFontSmall = nullptr;
+        g_pRenderer = nullptr;
+        g_pWindow = nullptr;
+    }
+
+    bool IsActive() { return g_pRenderer != nullptr; }
+
+    bool ShowsHud()
+    {
+#if defined(__3DS__)
+        return g_pRenderer != nullptr;
+#else
+        return false;
+#endif
+    }
+
+    void DrawBackground()
+    {
+        SDL_SetRenderDrawColor(g_pRenderer, 0, 0, 0, 255);
+        SDL_RenderClear(g_pRenderer);
+        if (g_pBackground)
+        {
+            int tw = 0, th = 0;
+            SDL_QueryTexture(g_pBackground, NULL, NULL, &tw, &th);
+            double scale = std::max(g_Width / (double)tw, g_Height / (double)th);
+            SDL_Rect dst = { (int)(g_Width - tw * scale) / 2, (int)(g_Height - th * scale) / 2,
+                             (int)(tw * scale), (int)(th * scale) };
+            SDL_RenderCopy(g_pRenderer, g_pBackground, NULL, &dst);
+        }
+    }
+
+    // The menu as on the top screen (3DS), about 20 times a second.
+    bool UpdateMirror()
+    {
+#if defined(__3DS__)
+        if (!InMenu())
+        {
+            if (g_MirrorShown) { g_MirrorShown = false; g_LastState.clear(); }
+            return false;
+        }
+        static Uint32 s_last = 0;
+        if (SDL_GetTicks() - s_last < 50) return true;
+        s_last = SDL_GetTicks();
+        SDL_Renderer* top = g_pApp->GetRenderer();
+        int w = 0, h = 0;
+        if (SDL_Texture* target = SDL_GetRenderTarget(top)) SDL_QueryTexture(target, NULL, NULL, &w, &h);
+        else SDL_GetRendererOutputSize(top, &w, &h);
+        if (w <= 0 || h <= 0) return false;
+        if (!g_pMirror || w != g_MirrorW || h != g_MirrorH)
+        {
+            if (g_pMirror) SDL_DestroyTexture(g_pMirror);
+            g_pMirror = SDL_CreateTexture(g_pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+            g_MirrorW = w; g_MirrorH = h;
+            g_MirrorPixels.assign((size_t)w * h, 0);
+        }
+        if (!g_pMirror) return false;
+        float sx = 1.0f, sy = 1.0f;
+        SDL_RenderGetScale(top, &sx, &sy);
+        SDL_RenderSetScale(top, 1.0f, 1.0f);
+        int ok = SDL_RenderReadPixels(top, NULL, SDL_PIXELFORMAT_ARGB8888, g_MirrorPixels.data(), w * 4);
+        SDL_RenderSetScale(top, sx, sy);
+        if (ok != 0) return false;
+        SDL_UpdateTexture(g_pMirror, NULL, g_MirrorPixels.data(), w * 4);
+
+        LoadBackground();
+        DrawBackground();
+        // The menu is laid out in 4:3 (640x480) in the middle of the top
+        // screen: that part, filling this 4:3 screen (the 3DS: 1:1).
+        int srcW = std::min(w, h * g_Width / g_Height);
+        g_MirrorSrc = { (w - srcW) / 2, 0, srcW, h };
+        g_MirrorRect = { 0, 0, g_Width, g_Height };
+        SDL_RenderCopy(g_pRenderer, g_pMirror, &g_MirrorSrc, &g_MirrorRect);
+        SDL_RenderPresent(g_pRenderer);
+        g_MirrorShown = true;
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    void ShowBackgroundOnly()
+    {
+        if (!g_pRenderer) return;
+        DrawGuard guard;
+        if (!guard.ok) return;
+        LoadBackground();
+        DrawBackground();
+        SDL_RenderPresent(g_pRenderer);
+        g_MirrorShown = false;
+        g_LastState = "background";
+    }
+
+    void Update()
+    {
+        if (!g_pRenderer) return;
+        if (!g_pDrawLock) g_pDrawLock = SDL_CreateMutex();
+        DrawGuard guard;
+        if (!guard.ok) return;   // (the drawing thread is busy: next time)
+        if (g_pApp && g_pApp->GetGameLogic())
+        {
+            GameState st = g_pApp->GetGameLogic()->GetGameState();
+            if (st == GameState_LoadingLevel || st == GameState_LoadingMenu || st == GameState_LoadingScoreScreen)
+            {
+                if (g_LastState != "background") ShowBackgroundOnly();
+                return;
+            }
+        }
+        if (UpdateMirror()) return;
+        // A few times per second is plenty for a status screen.
+        if (SDL_GetTicks() - g_LastDraw < 200) return;
+
+        LoadBackground();
+
+        BaseGameLogic* pLogic = g_pApp->GetGameLogic();
+        StrongActorPtr pClaw = pLogic ? pLogic->GetClawActor() : nullptr;
+        const bool inGame = pLogic && pClaw && pLogic->GetGameState() == GameState_IngameRunning;
+
+#if defined(__3DS__)
+        // The level map (Select) is drawn here, over the map picture.
+        if (inGame && Minimap::IsVisible())
+        {
+            static Uint32 s_lastMap = 0;
+            if (SDL_GetTicks() - s_lastMap < 100) return;
+            s_lastMap = SDL_GetTicks();
+            DrawBackground();
+            SDL_Rect full = { 0, 0, g_Width, g_Height };
+            Minimap::Render(g_pRenderer, full, pClaw->GetGUID());
+            SDL_RenderPresent(g_pRenderer);
+            g_LastState = "map";
+            return;
+        }
+#endif
+
+        // Gather what is shown; redraw only when it changed.
+        std::string level, health, lives, score, ammo[3], powerup, race;
+        int activeAmmo = -1;
+        if (inGame)
+        {
+            if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData())
+            {
+                level = LevelTitle(*pLevel);
+            }
+            if (auto p = Component<HealthComponent>(pClaw, HealthComponent::g_Name)) health = ToStr(std::max(0, (int)p->GetHealth()));
+            if (auto p = Component<LifeComponent>(pClaw, LifeComponent::g_Name)) lives = ToStr(p->GetLives());
+            if (auto p = Component<ScoreComponent>(pClaw, ScoreComponent::g_Name)) score = ToStr((int)p->GetScore());
+            if (auto p = Component<AmmoComponent>(pClaw, AmmoComponent::g_Name))
+            {
+                ammo[0] = ToStr((int)p->GetRemainingAmmo(AmmoType_Pistol));
+                ammo[1] = ToStr((int)p->GetRemainingAmmo(AmmoType_Magic));
+                ammo[2] = ToStr((int)p->GetRemainingAmmo(AmmoType_Dynamite));
+                activeAmmo = (int)p->GetActiveAmmoType();
+            }
+            if (auto p = Component<PowerupComponent>(pClaw, PowerupComponent::g_Name))
+            {
+                if (p->HasPowerup()) powerup = ToStr(std::max(0, (int)(p->GetRemainingPowerupTime() / 1000))) + " s";
+            }
+            if (Race::IsActive()) race = Lang::Tr("Wyścig", "Race");
+        }
+        std::string state = level + "|" + health + "|" + lives + "|" + score + "|" + ammo[0] + ammo[1] + ammo[2] +
+                            "|" + ToStr(activeAmmo) + "|" + powerup + "|" + race + (g_pBackground ? "b" : "");
+        if (state == g_LastState) return;
+        g_LastState = state;
+        g_LastDraw = SDL_GetTicks();
+        if (!inGame)
+        {
+            DrawScreen(HudJob());
+            return;
+        }
+        // Playing: the pictures it needs are loaded here (the resource cache
+        // belongs to this thread), the drawing itself is done by a thread of
+        // its own while the game waits for the screen's refresh (3DS: the
+        // software drawing of this screen took ~16 ms, a skipped frame at
+        // every coin or kill).
+        {
+            int levelNo = 0;
+            if (shared_ptr<LevelData> pLevel = pLogic->GetCurrentLevelData()) levelNo = pLevel->GetLevelNumber();
+            if (levelNo != g_HudLevel) { g_HudImages.clear(); g_Bars.clear(); g_Rows.clear(); g_HudLevel = levelNo; }
+            PreloadHudImages();
+        }
+        HudJob job;
+        job.inGame = true;
+        job.level = level; job.health = health; job.lives = lives; job.score = score;
+        for (int i = 0; i < 3; ++i) job.ammo[i] = ammo[i];
+        job.powerup = powerup; job.race = race; job.activeAmmo = activeAmmo;
+        SubmitHud(job);
     }
 
     bool HandleTouch(const SDL_Event& evt)

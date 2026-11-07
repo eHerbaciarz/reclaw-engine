@@ -1489,6 +1489,14 @@ void BaseGameLogic::VChangeState(GameState newState)
     {
         // Unload level if applicable
         UnloadLevel();
+#if defined(__3DS__)
+        // 3DS: the level's pictures (textures in the GPU's memory) and files
+        // leave the caches before the menu's are made (going back to the menu
+        // ran out of GPU memory: the game quit)
+        g_pApp->GetResourceCache()->ClearKeptFiles();
+        g_pApp->GetResourceMgr()->VFlush();
+        TraceLevel("level unloaded, caches flushed");
+#endif
         if (!VEnterMenu("MENU.XML"))
         {
             LOG_ERROR("Failed to enter menu");
