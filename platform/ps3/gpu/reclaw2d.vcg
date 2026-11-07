@@ -1,0 +1,14 @@
+// ReClaw PS3: 2D drawing. Positions in the target's pixels; scaleBias turns
+// them into clip space (x * 2/w - 1, 1 - y * 2/h).
+void main(float2 position : POSITION,
+          float2 texcoord : TEXCOORD0,
+          float4 color : COLOR0,
+          uniform float4 scaleBias,
+          out float4 oPosition : POSITION,
+          out float2 oTexcoord : TEXCOORD0,
+          out float4 oColor : COLOR0)
+{
+    oPosition = float4(position.x * scaleBias.x + scaleBias.z, position.y * scaleBias.y + scaleBias.w, 0.0f, 1.0f);
+    oTexcoord = texcoord;
+    oColor = color;
+}

@@ -30,6 +30,13 @@ target_include_directories(openclaw BEFORE PRIVATE "${CMAKE_CURRENT_LIST_DIR}/co
 # Startup steps and performance in save/reclaw.log (first builds on real hardware)
 target_compile_definitions(openclaw PRIVATE OPENCLAW_STARTUP_TRACE=1)
 target_compile_options(openclaw PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_LIST_DIR}/compat/ps3_cxx_compat.h>")
+# Drawing with the RSX (gpu/ps3_gpu.cpp; port_settings.txt gpu=0: software):
+# every SDL render call of the game goes through gpu/ps3_gpu.h
+target_sources(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/gpu/ps3_gpu.cpp")
+set_source_files_properties("${CMAKE_CURRENT_LIST_DIR}/gpu/ps3_gpu.cpp" "${CMAKE_CURRENT_LIST_DIR}/compat/ps3_sdl_screen.cpp"
+    PROPERTIES COMPILE_DEFINITIONS RECLAW_GPU_IMPL)
+target_compile_definitions(openclaw PRIVATE RECLAW_PS3_GPU RECLAW_GPU)
+target_compile_options(openclaw PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_LIST_DIR}/gpu/ps3_gpu.h>")
 openclaw_link_sdl(openclaw NO_GFX)
 # PSL1GHT system libraries used by SDL and the network race
 target_link_libraries(openclaw PRIVATE

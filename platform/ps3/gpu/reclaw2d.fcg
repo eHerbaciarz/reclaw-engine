@@ -1,0 +1,8 @@
+// ReClaw PS3: the picture times the vertex colour (colour / alpha mod).
+void main(float2 texcoord : TEXCOORD0,
+          float4 color : COLOR0,
+          uniform sampler2D texture,
+          out float4 oColor : COLOR)
+{
+    oColor = tex2D(texture, texcoord) * color;
+}

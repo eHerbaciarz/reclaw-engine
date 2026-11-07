@@ -400,8 +400,8 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     LOG_WARNING("Invalid gameLogicFps value, using default 60 FPS");
     m_fixedTimestep = 1.0 / 60.0;
   }
-#if defined(__3DS__)
-  // 3DS: the game logic (physics, actors) runs 30 times a second - half the
+#if defined(__3DS__) || defined(__PSL1GHT__)
+  // 3DS, PS3: the game logic (physics, actors) runs 30 times a second - half the
   // work for the same game speed; logic_hz=60 in port_settings.txt for 60.
   {
     // With the GPU drawing there is time for 60 (a step costs ~8 ms): at 30
@@ -414,7 +414,7 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     int hz = PortSettings::GetInt("logic_hz", defaultHz);
     if (hz < 20 || hz > 60) hz = defaultHz;
     m_fixedTimestep = 1.0 / hz;
-    LOG("3DS: game logic at " + ToStr(hz) + " Hz");
+    LOG("Game logic at " + ToStr(hz) + " Hz");
   }
 #endif
 
@@ -1341,6 +1341,22 @@ void BaseGameApp::GetMouseState(int *x, int *y) {
   if (y) *y = my;
 }
 
+#if defined(RECLAW_GPU)
+// The level's scale at the normal zoom when the GPU draws: 3DS: the game's
+// 480x288 on the 400x240 screen; PS3: the software picture's size (960x540
+// on a 1080p TV, 854x480 otherwise) on the TV.
+static double GpuBaseScale() {
+#if defined(RECLAW_PS3_GPU)
+  int tvW = 1280, tvH = 720, w = 854, h = 480;
+  ReclawPS3_TvSize(&tvW, &tvH);
+  ReclawPS3_GameSize(&w, &h);
+  return h > 0 ? (double)tvH / h : 1.5;
+#else
+  return 400.0 / 480.0;
+#endif
+}
+#endif
+
 int BaseGameApp::ViewZoom() {
   const int z = PortSettings::GetInt("view_zoom", 100);
   return z >= 95 ? 100 : (z >= 85 ? 90 : (z >= 75 ? 80 : 70));
@@ -1348,11 +1364,11 @@ int BaseGameApp::ViewZoom() {
 
 void BaseGameApp::SetViewZoom(int percent) {
   PortSettings::SetInt("view_zoom", percent);
-#if defined(RECLAW_3DS_GPU)
+#if defined(RECLAW_GPU)
   if (ReclawGpu_Active()) {
     // (the menus draw at scale 1 and put this scale back after each frame;
     // the level's camera takes the new size at once)
-    m_GameOptions.scale = 400.0 / 480.0 * ViewZoom() / 100.0;
+    m_GameOptions.scale = GpuBaseScale() * ViewZoom() / 100.0;
     if (HumanView *pView = GetHumanView()) {
       if (shared_ptr<CameraNode> pCamera = pView->GetCamera()) {
         pCamera->SetScale((float)m_GameOptions.scale, (float)m_GameOptions.scale);
@@ -1365,8 +1381,8 @@ void BaseGameApp::SetViewZoom(int percent) {
 }
 
 void BaseGameApp::PresentFrame(bool present) {
-#if defined(RECLAW_3DS_GPU)
-  // 3DS GPU: the game's frame is the screen itself
+#if defined(RECLAW_GPU)
+  // GPU drawing (3DS, PS3): the game's frame is the screen itself
   if (m_pRenderTarget && m_pRenderTarget == ReclawGpu_GameFrame()) {
     if (present) SDL_RenderPresent(m_pRenderer);
     return;
@@ -1545,6 +1561,23 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 #endif
 
 #if defined(__PSL1GHT__) || defined(__PS3__)
+#if defined(RECLAW_PS3_GPU)
+  if (ReclawGpu_Active()) {
+    // The RSX draws straight into the TV's picture (1920x1080 / 1280x720),
+    // the level at the software picture's view scaled up (sharp, every
+    // picture scaled by the RSX); menus and movies at the TV's size.
+    int tvW = 1280, tvH = 720;
+    ReclawPS3_TvSize(&tvW, &tvH);
+    gameOptions.renderWidth = 0;
+    gameOptions.renderHeight = 0;
+    gameOptions.scale = GpuBaseScale() * ViewZoom() / 100.0;
+    m_WindowSize.Set(tvW, tvH);
+    m_pRenderTarget = ReclawGpu_GameFrame();
+    SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
+    LOG_WARNING("PS3: drawing with the RSX at " + ToStr(tvW) + "x" + ToStr(tvH) + ", level scale " +
+                ToStr(gameOptions.scale));
+  } else
+#endif
   // PS3: the game draws in software at the size of its frame (960x540 on
   // a 1080p TV, 854x480 otherwise; platform/ps3/compat/ps3_sdl_screen.cpp)
   if (gameOptions.renderWidth <= 0 || gameOptions.renderHeight <= 0) {
@@ -1571,7 +1604,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     // GPU scales every picture).
     gameOptions.renderWidth = 0;
     gameOptions.renderHeight = 0;
-    gameOptions.scale = 400.0 / 480.0 * ViewZoom() / 100.0;
+    gameOptions.scale = GpuBaseScale() * ViewZoom() / 100.0;
     renderPct3DS = 100;
     // The game draws into "its frame" (the screen with a view of its own):
     // movies, the title scroll and other screens that select no target

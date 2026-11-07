@@ -29,7 +29,7 @@ target_sources(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/gpu/n3ds_gpu.cpp")
 set_source_files_properties("${CMAKE_CURRENT_LIST_DIR}/gpu/n3ds_gpu.cpp" PROPERTIES COMPILE_DEFINITIONS RECLAW_GPU_IMPL)
 target_include_directories(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/gpu")
 target_compile_options(openclaw PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_LIST_DIR}/gpu/n3ds_gpu.h>")
-target_compile_definitions(openclaw PRIVATE RECLAW_3DS_GPU)
+target_compile_definitions(openclaw PRIVATE RECLAW_3DS_GPU RECLAW_GPU)
 target_link_libraries(openclaw PRIVATE ZLIB::ZLIB citro3d ctru m)
 # Startup trace and fps every 5 s in reclaw.log (first 3DS builds).
 target_compile_definitions(openclaw PRIVATE OPENCLAW_STARTUP_TRACE)

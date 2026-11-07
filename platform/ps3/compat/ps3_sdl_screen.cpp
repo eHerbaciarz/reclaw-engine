@@ -271,3 +271,41 @@ extern "C" void ReclawPS3_GameSize(int* w, int* h)
     if (w) *w = g_W;
     if (h) *h = g_H;
 }
+
+extern "C" void ReclawPS3_TvSize(int* w, int* h)
+{
+    if (w) *w = g_TvW;
+    if (h) *h = g_TvH;
+}
+
+extern "C" int ReclawPS3_GpuDisplay(unsigned int offsets[2], unsigned int* pitch)
+{
+    SDL_DisplayMode mode;
+    if (SDL_GetCurrentDisplayMode(0, &mode) == 0 && mode.w > 0 && mode.h > 0)
+    {
+        g_TvW = mode.w; g_TvH = mode.h;
+    }
+    if (g_TvH >= 1000) { g_W = g_TvW / 2; g_H = g_TvH / 2; }
+    else { g_W = 854; g_H = 480; }
+    if (!gGcmContext || (!g_Buffer[0] && !InitBuffers())) return 0;
+    offsets[0] = g_DisplayOffset[0];
+    offsets[1] = g_DisplayOffset[1];
+    *pitch = g_Pitch;
+    return 1;
+}
+
+extern "C" void ReclawPS3_GpuWaitFlip(void)
+{
+    if (!g_FirstFlip) WaitFlip();
+    g_FirstFlip = false;
+}
+
+extern "C" void ReclawPS3_GpuFlip(int index)
+{
+    Flip(index);
+}
+
+extern "C" void ReclawPS3_ResetCommandBuffer(void)
+{
+    ResetCommandBuffer();
+}

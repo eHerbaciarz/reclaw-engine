@@ -2539,7 +2539,7 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
     else if (m_VisibilityConditionType.compare(0, 9, "ViewZoom:") == 0)
     {
         // 3DS (GPU drawing): the item of the current zoom
-#if defined(RECLAW_3DS_GPU)
+#if defined(RECLAW_GPU)
         m_bVisible = ReclawGpu_Active() && atoi(m_VisibilityConditionType.c_str() + 9) == BaseGameApp::ViewZoom();
 #endif
     }

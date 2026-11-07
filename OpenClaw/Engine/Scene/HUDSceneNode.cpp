@@ -73,7 +73,7 @@ void SDL2HUDSceneNode::VRender(Scene* pScene)
     };
 
     SDL_Renderer* renderer = pScene->GetRenderer();
-#if defined(__PSL1GHT__) || (defined(__3DS__) && !defined(RECLAW_3DS_GPU))
+#if (defined(__PSL1GHT__) && !defined(RECLAW_PS3_GPU)) || (defined(__3DS__) && !defined(RECLAW_3DS_GPU))
     // SDL's software renderer: SDL_RenderCopyEx makes and rotates a temporary
     // copy of the picture on every call, even unflipped. A plain copy, of the
     // mirrored picture (made once) when mirrored.

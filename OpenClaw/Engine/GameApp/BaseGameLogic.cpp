@@ -1459,18 +1459,19 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
     }
     else if (msAccumulation >= 5)
     {
-        // Update all game actors. Handhelds: scenery and pickups far from the
+        // Update all game actors. Handhelds and the PS3 (its PPU: ~15 ms a step for
+        // all of them): scenery and pickups far from the
         // screen (more than a screen away) wait - most of a level's ~1700
         // actors; updating them all cost the PS Vita a third of each step.
-#if defined(__vita__) || defined(__3DS__)
+#if defined(__vita__) || defined(__3DS__) || defined(__PSL1GHT__)
         HumanView* pView = (m_GameState == GameState_IngameRunning) ? g_pApp->GetHumanView() : nullptr;
         shared_ptr<CameraNode> pCam = pView ? pView->GetCamera() : nullptr;
         SDL_Rect nearRect = { 0, 0, 0, 0 };
         if (pCam)
         {
             nearRect = pCam->GetCameraRect();
-#if defined(__3DS__)
-            // 3DS: half a screen around the view (the CPU is the limit)
+#if defined(__3DS__) || defined(__PSL1GHT__)
+            // 3DS, PS3: half a screen around the view (the CPU is the limit)
             nearRect.x -= nearRect.w / 2; nearRect.y -= nearRect.h / 2; nearRect.w *= 2; nearRect.h *= 2;
 #else
             nearRect.x -= nearRect.w; nearRect.y -= nearRect.h; nearRect.w *= 3; nearRect.h *= 3;
@@ -1479,7 +1480,7 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
 #endif
         for (auto &actorIter : m_ActorMap)
         {
-#if defined(__vita__) || defined(__3DS__)
+#if defined(__vita__) || defined(__3DS__) || defined(__PSL1GHT__)
             if (pCam && !Race::IsActive() && actorIter.second->IsPausableWhenFar())
             {
                 if (shared_ptr<PositionComponent> pPos = actorIter.second->GetPositionComponent())
@@ -1489,8 +1490,8 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
                 }
             }
 #endif
-#if defined(__3DS__)
-            // 3DS: ordinary enemies far from the screen wait too, their bodies
+#if defined(__3DS__) || defined(__PSL1GHT__)
+            // 3DS, PS3: ordinary enemies far from the screen wait too, their bodies
             // switched off (otherwise a walking one would keep sliding);
             // back within reach they carry on where they were.
             if (pCam && !Race::IsActive() && actorIter.second->IsEnemyPausableWhenFar())
