@@ -166,8 +166,16 @@ namespace
         const std::string names[2] = { name + "_" + lang, name };
         std::string data;
         bool found = false;
+        // Remastered movies: also next to them, movies/movie_01_pl.srt or
+        // movies/movie_01.srt
+        if (name.compare(0, 6, "movie_") == 0)
+        {
+            const std::string dir = Platform::RootDir() + "movies/";
+            found = ReadFile(dir + name + "_" + lang + ".srt", data) || ReadFile(dir + name + ".srt", data);
+        }
         for (const std::string& code : codes)
         {
+            if (found) break;
             if (ReadFile(Platform::LangDir(code) + rel, data) ||
                 ReadFile(Platform::BundlePath("lang/" + code + "/" + rel), data))
             {

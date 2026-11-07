@@ -11,7 +11,9 @@ Kolejność szukania dla filmu nr XX (numeracja jak na stronie „Odtwórz film�
 2. `movies/movie_XX.mpg` – MPEG-1 + MP2 (każda wersja poza Vitą i 3DS),
 3. oryginał z `CLAW.FEC`.
 
-Napisy jak dla oryginałów: `lang/<język>/subtitles/movies/movie_XX.srt`.
+Napisy jak dla oryginałów: `lang/<język>/subtitles/movies/movie_XX.srt`,
+albo obok filmu: `movies/movie_XX_<język>.srt` (np. `movie_01_pl.srt`) lub
+`movies/movie_XX.srt`. Widać je, gdy napisy są włączone w opcjach.
 Obraz zachowuje proporcje filmu (czarne pasy, jeśli ekran ma inne).
 
 ## Format .mp4 (H.264 + AAC)
