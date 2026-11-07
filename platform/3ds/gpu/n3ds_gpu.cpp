@@ -14,8 +14,8 @@
 //
 // Texture memory follows the GL convention (row 0 = the picture's bottom):
 // a picture's row y is stored at row (potH - 1 - y); texture coordinate
-// v = 1 - y / potH. Render targets come out the same way (drawn with a
-// y-down projection), so pictures and targets are sampled alike.
+// v = 1 - y / potH. Render targets come out the same way (citro3d's
+// projections with bottom 0, top H), so pictures and targets are sampled alike.
 
 #define RECLAW_GPU_IMPL
 #include "n3ds_gpu.h"
@@ -273,7 +273,8 @@ namespace
         if (g.target)
         {
             const int tw = g.target->chunks[0].tex.width, th = g.target->chunks[0].tex.height;
-            Mtx_Ortho(&proj, 0.0f, (float)tw, (float)th, 0.0f, 1.0f, -1.0f, true);
+            // (0, th) like the screen: with (th, 0) a target's picture came out upside down
+            Mtx_Ortho(&proj, 0.0f, (float)tw, 0.0f, (float)th, 1.0f, -1.0f, true);
         }
         else
         {
