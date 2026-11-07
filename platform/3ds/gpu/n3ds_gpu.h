@@ -57,6 +57,11 @@ extern "C" {
 int ReclawGpu_Active(void);
 // Stereo 3D: which eye the screen drawing goes to (0 left, 1 right).
 void ReclawGpu_SetEye(int eye);
+// The game's frame as a render target: drawing goes straight to the screen,
+// but with a scale and viewport of its own, as with a real render target (code
+// that selects no target and draws by the screen's size gets scale 1).
+// Copying it, or destroying it, does nothing. Null without the GPU.
+struct SDL_Texture* ReclawGpu_GameFrame(void);
 #ifdef __cplusplus
 }
 #endif

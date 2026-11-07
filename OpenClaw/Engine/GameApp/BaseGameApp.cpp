@@ -1318,7 +1318,7 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
 void BaseGameApp::GetMouseState(int *x, int *y) {
   int mx = 0, my = 0;
   SDL_GetMouseState(&mx, &my);
-  if (m_pRenderTarget && m_pWindow) {
+  if (m_pRenderTarget && m_pWindow && m_GameOptions.renderWidth > 0 && m_GameOptions.renderHeight > 0) {
     int ww = 0, wh = 0;
     SDL_GetWindowSize(m_pWindow, &ww, &wh);
     if (ww > 0 && wh > 0 && (ww != m_GameOptions.renderWidth || wh != m_GameOptions.renderHeight)) {
@@ -1334,6 +1334,13 @@ void BaseGameApp::GetMouseState(int *x, int *y) {
 }
 
 void BaseGameApp::PresentFrame(bool present) {
+#if defined(RECLAW_3DS_GPU)
+  // 3DS GPU: the game's frame is the screen itself
+  if (m_pRenderTarget && m_pRenderTarget == ReclawGpu_GameFrame()) {
+    if (present) SDL_RenderPresent(m_pRenderer);
+    return;
+  }
+#endif
   if (!m_pRenderTarget) {
     if (present) SDL_RenderPresent(m_pRenderer);
     return;
@@ -1535,6 +1542,11 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     gameOptions.renderHeight = 0;
     gameOptions.scale = 400.0 / 480.0;
     renderPct3DS = 100;
+    // The game draws into "its frame" (the screen with a view of its own):
+    // movies, the title scroll and other screens that select no target
+    // and draw by the screen's size get scale 1, as with the frame in memory.
+    m_pRenderTarget = ReclawGpu_GameFrame();
+    SDL_SetRenderTarget(m_pRenderer, m_pRenderTarget);
     LOG_WARNING("3DS: drawing with the GPU, the level at 480x288 on the 400x240 screen");
   } else
 #endif

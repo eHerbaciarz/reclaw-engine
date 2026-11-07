@@ -163,9 +163,9 @@ namespace
             SDL_Rect full = { mapX(0), mapY(0), mapX(kScreenW) - mapX(0), mapY(kScreenH) - mapY(0) };
             SDL_Rect dst = { mapX(edge), full.y, mapX(edge + openW) - mapX(edge), full.h };
             SDL_Rect src = { dst.x - full.x, 0, dst.w, dst.h };
-            if (s_traced < 400) STARTUP_TRACE("title scroll: map copy " + std::to_string(src.x) + "," + std::to_string(src.w) + "x" + std::to_string(src.h) + " -> " + std::to_string(dst.x));
+            if (s_traced < 2) STARTUP_TRACE("title scroll: map copy " + std::to_string(src.x) + "," + std::to_string(src.w) + "x" + std::to_string(src.h) + " -> " + std::to_string(dst.x));
             SDL_RenderCopy(r, title, &src, &dst);
-            if (s_traced < 400) STARTUP_TRACE("title scroll: map copied");
+            if (s_traced < 2) STARTUP_TRACE("title scroll: map copied");
 
             // Soft shadow on the paper next to each roll.
             SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
@@ -181,18 +181,18 @@ namespace
 
         // The rolls turn as paper comes off them (opposite directions).
         double turn = kScreenW / 2.0 - edge;
-        if (s_traced < 400) STARTUP_TRACE("title scroll: map and shadows drawn");
+        if (s_traced < 2) STARTUP_TRACE("title scroll: map and shadows drawn");
         UpdateRoll(left, paper, turn);
         UpdateRoll(right, paper, -turn);
-        if (s_traced < 400) STARTUP_TRACE("title scroll: rolls updated");
+        if (s_traced < 2) STARTUP_TRACE("title scroll: rolls updated");
         int lx = edge - kRollD / 2, rx = kScreenW - edge - kRollD / 2;
         SDL_Rect l = { mapX(lx), mapY(-kRollOverhang), mapX(lx + kRollD) - mapX(lx), mapY(kScreenH + kRollOverhang) - mapY(-kRollOverhang) };
         SDL_Rect rr = { mapX(rx), l.y, mapX(rx + kRollD) - mapX(rx), l.h };
         SDL_RenderCopy(r, left.tex, NULL, &l);
         SDL_RenderCopyEx(r, right.tex, NULL, &rr, 0.0, NULL, SDL_FLIP_HORIZONTAL);
-        if (s_traced < 400) STARTUP_TRACE("title scroll: rolls drawn");
+        if (s_traced < 2) STARTUP_TRACE("title scroll: rolls drawn");
         SDL_RenderPresent(r);
-        if (s_traced < 400) { ++s_traced; STARTUP_TRACE("title scroll: presented"); }
+        if (s_traced < 2) { ++s_traced; STARTUP_TRACE("title scroll: presented"); }
     }
 }
 
@@ -315,9 +315,9 @@ namespace TitleScroll
                     break;
             }
             Uint32 frameStart = SDL_GetTicks();
-            if (traceFrames < 400) STARTUP_TRACE("title scroll: drawing a frame, half " + std::to_string((int)half));
+            if (traceFrames < 2) STARTUP_TRACE("title scroll: drawing a frame, half " + std::to_string((int)half));
             DrawFrame(r, v, scaledTitle, left, right, paper, half);
-            if (traceFrames < 400) { ++traceFrames; STARTUP_TRACE("title scroll: frame drawn"); }
+            if (traceFrames < 2) { ++traceFrames; STARTUP_TRACE("title scroll: frame drawn"); }
             Uint32 spent = SDL_GetTicks() - frameStart;
             if (spent < 15) SDL_Delay(15 - spent);   // ~60 fps without vsync
         }

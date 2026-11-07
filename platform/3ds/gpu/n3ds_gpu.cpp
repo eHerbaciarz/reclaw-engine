@@ -62,6 +62,7 @@ namespace
         SDL_BlendMode blend = SDL_BLENDMODE_NONE;
         Uint8 r = 255, g = 255, b = 255, a = 255;
         bool linear = false;
+        bool alias = false;   // the game's frame (ReclawGpu_GameFrame): the screen itself
     };
 
     struct Vertex
@@ -100,6 +101,11 @@ namespace
         GpuTexture* target = nullptr;
         bool targetBound = false;
         View mainView, targetView;
+        // The game's frame is selected (ReclawGpu_GameFrame): drawing goes to
+        // the screen, with the game's own scale and viewport (gameView).
+        GpuTexture gameFrame;
+        bool gameFrameOn = false;
+        View gameView;
         Uint8 dr = 0, dg = 0, db = 0, da = 255;
         SDL_BlendMode drawBlend = SDL_BLENDMODE_NONE;
         bool inFrame = false;
@@ -110,7 +116,7 @@ namespace
     bool IsGpu(SDL_Renderer* r) { return r == kGpuRenderer && g.active; }
     bool IsGpuTex(SDL_Texture* t) { return t && *(const uint32_t*)t == kMagic; }
     GpuTexture* Tex(SDL_Texture* t) { return (GpuTexture*)t; }
-    View& CurView() { return g.target ? g.targetView : g.mainView; }
+    View& CurView() { return g.target ? g.targetView : (g.gameFrameOn ? g.gameView : g.mainView); }
 
     int Pot(int v)
     {
@@ -739,7 +745,12 @@ int ReclawGpu_SetRenderTarget(SDL_Renderer* renderer, SDL_Texture* texture)
 {
     if (!IsGpu(renderer)) return SDL_SetRenderTarget(renderer, texture);
     GpuTexture* t = IsGpuTex(texture) ? Tex(texture) : nullptr;
-    if (texture && (!t || !t->target)) return SDL_SetError("not a render target");
+    // The game's frame: the screen with the game's view (kept between uses,
+    // as the game expects of its own render target).
+    const bool frame = t && t->alias;
+    if (frame) t = nullptr;
+    if (texture && !frame && (!t || !t->target)) return SDL_SetError("not a render target");
+    g.gameFrameOn = frame;
     if (t == g.target) return 0;
     if (g.inFrame) FlushBatch();
     g.target = t;
@@ -751,7 +762,18 @@ int ReclawGpu_SetRenderTarget(SDL_Renderer* renderer, SDL_Texture* texture)
 SDL_Texture* ReclawGpu_GetRenderTarget(SDL_Renderer* renderer)
 {
     if (!IsGpu(renderer)) return SDL_GetRenderTarget(renderer);
+    if (!g.target && g.gameFrameOn) return (SDL_Texture*)&g.gameFrame;
     return (SDL_Texture*)g.target;
+}
+
+SDL_Texture* ReclawGpu_GameFrame(void)
+{
+    if (!g.active) return nullptr;
+    g.gameFrame.alias = true;
+    g.gameFrame.access = SDL_TEXTUREACCESS_TARGET;
+    g.gameFrame.w = kScreenW;
+    g.gameFrame.h = kScreenH;
+    return (SDL_Texture*)&g.gameFrame;
 }
 
 int ReclawGpu_RenderCopy(SDL_Renderer* renderer, SDL_Texture* texture, const SDL_Rect* srcrect, const SDL_Rect* dstrect)
@@ -853,9 +875,14 @@ void ReclawGpu_DestroyTexture(SDL_Texture* texture)
 {
     if (!IsGpuTex(texture)) { if (texture) SDL_DestroyTexture(texture); return; }
     GpuTexture* t = Tex(texture);
+    if (t->alias) return;
     if (g.target == t) ReclawGpu_SetRenderTarget(kGpuRenderer, nullptr);
-    if (g.inFrame) { FlushBatch(); t->magic = 0; g.doomed.push_back(t); }
-    else FreeTexture(t);
+    // Freed when the GPU is done with it: also after a frame was handed over
+    // (C3D_FrameEnd), the GPU may still be drawing it; its memory reused at
+    // once showed as garbage (the loading screen's progress bar).
+    if (g.inFrame) FlushBatch();
+    t->magic = 0;
+    g.doomed.push_back(t);
 }
 
 int ReclawGpu_QueryTexture(SDL_Texture* texture, Uint32* format, int* access, int* w, int* h)
