@@ -607,6 +607,9 @@ namespace
 
         Uint32 start = SDL_GetTicks();
         int late = 0, frames = 0;
+        // (for the log: how long decoding and showing a picture take)
+        Uint64 decodeTicks = 0, pictureTicks = 0;
+        const double perfMs = 1000.0 / (double)SDL_GetPerformanceFrequency();
         while (have)
         {
             Uint32 due = start + (Uint32)(frame.time * 1000.0);
@@ -635,6 +638,7 @@ namespace
                 }
                 if (tex) SDL_SetTextureScaleMode(tex, SDL_ScaleModeLinear);
             }
+            const Uint64 pictureT0 = SDL_GetPerformanceCounter();
             if (tex)
             {
                 if (yuvTexture)
@@ -657,12 +661,22 @@ namespace
                 Subtitles::Render(r);
                 SDL_RenderPresent(r);
             }
+            const Uint64 decodeT0 = SDL_GetPerformanceCounter();
+            pictureTicks += decodeT0 - pictureT0;
             have = dec->NextFrame(frame, sink);
             // Too slow to decode: drop pictures until we catch up.
             while (have && (Sint32)(SDL_GetTicks() - (start + (Uint32)(frame.time * 1000.0))) > 100)
             {
                 have = dec->NextFrame(frame, sink);
             }
+            decodeTicks += SDL_GetPerformanceCounter() - decodeT0;
+        }
+        if (frames > 0)
+        {
+            char line[200];
+            snprintf(line, sizeof(line), "Remastered movie: %d pictures %dx%d, %d late; per picture: decoding %.1f ms, showing %.1f ms (incl. waiting for the screen)",
+                     frames, texW, texH, late, decodeTicks * perfMs / frames, pictureTicks * perfMs / frames);
+            LOG(line);
         }
         if (frames > 0 && late * 10 > frames)
         {

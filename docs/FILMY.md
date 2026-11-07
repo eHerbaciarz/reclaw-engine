@@ -61,7 +61,7 @@ Długość filmu jak w oryginale (co do klatki), żeby pasowały napisy.
 | PS4 | tak | tak | |
 | Steam Deck | tak | tak | |
 | PortMaster (aarch64) | tak | tak | słabsze układy (RK3326) – do sprawdzenia |
-| PS3 | – | tak | |
+| PS3 | tak (eksperymentalnie) | tak | H.264 dekoduje jeden rdzeń PPU – .mpg bywa lżejsze; czasy w reclaw.log („Remastered movie: …”) |
 | Wii U | – | tak | |
 | Linux / Windows / Android | – (na razie) | tak | FFmpeg do dodania przy budowaniu |
 | PS Vita, 3DS | – | – | tylko oryginały z CLAW.FEC |

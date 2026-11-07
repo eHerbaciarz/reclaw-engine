@@ -4,7 +4,7 @@
 # libavcodec, libavutil; LGPL, no GPL parts).
 #
 #   scripts/build_ffmpeg_min.sh <platform> <prefix> [FFmpeg source]
-#   platform: linux | steamdeck | portmaster | windows | switch | ps4
+#   platform: linux | steamdeck | portmaster | windows | switch | ps4 | ps3
 # steamdeck / portmaster use platform/handheld-linux's zig cc (ZIG_TARGET is
 # set here), switch needs DEVKITPRO, ps4 the OpenOrbis toolchain (OPENORBIS).
 set -e
@@ -53,6 +53,15 @@ case "$PLATFORM" in
         --extra-cflags="--target=x86_64-pc-freebsd12-elf -D__PS4__ -D__OPENORBIS__ -isysroot $OPENORBIS -isystem $OPENORBIS/include -fPIC" \
         --extra-ldflags="--target=x86_64-pc-freebsd12-elf -fuse-ld=lld -nostdlib -L$OPENORBIS/lib" \
         --disable-linux-perf ;;
+  ps3)
+    # PSL1GHT (Cell PPU, 64-bit big-endian PowerPC with AltiVec); no pthreads:
+    # one decoding thread
+    : "${PS3DEV:?set PS3DEV}"
+    export PSL1GHT="${PSL1GHT:-$PS3DEV}" PATH="$PS3DEV/ppu/bin:$PATH"
+    ../configure "${COMMON[@]}" --enable-cross-compile --target-os=none --arch=ppc64 --cpu=cell \
+        --cross-prefix=ppu- --disable-pthreads --enable-altivec --disable-runtime-cpudetect \
+        --extra-cflags="-D__PSL1GHT__ -mcpu=cell -maltivec -I$PS3DEV/ppu/include -I$PS3DEV/portlibs/ppu/include" \
+        --extra-ldflags="-L$PS3DEV/ppu/lib -L$PS3DEV/portlibs/ppu/lib" ;;
   *) echo "unknown platform $PLATFORM"; exit 1 ;;
 esac
 # zig's glibc and the OpenOrbis headers have no <sys/sysctl.h> although configure finds sysctl()
