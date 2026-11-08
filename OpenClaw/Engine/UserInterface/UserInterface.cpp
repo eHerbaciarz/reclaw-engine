@@ -1,3 +1,5 @@
+#include "../Util/StartupTrace.h"
+#include <set>
 #include "UserInterface.h"
 #include <algorithm>
 #include <map>
@@ -1889,8 +1891,13 @@ void ScreenElementMenuItem::VOnRender(uint32 msDiff)
     shared_ptr<Image> pCurrImage = greyed ? m_Images[MenuItemState_Inactive] : m_Images[m_State];
     if (pCurrImage == nullptr)
     {
-        LOG_ERROR("Offending button: " + m_Name + " for state: " + ToStr(m_State));
-        assert(false && "Image is in invalid state - no image for given state was found");
+        // (a picture that could not be made: another state's, or nothing -
+        // drawing a missing one closed the game)
+        for (auto& kv : m_Images) if (kv.second) { pCurrImage = kv.second; break; }
+        static std::set<std::string> s_Reported;
+        if (s_Reported.insert(m_Name).second)
+            LOG_WARNING("Menu item " + m_Name + ": no picture for state " + ToStr(m_State));
+        if (pCurrImage == nullptr) return;
     }
 
     SDL_Rect renderRect;
@@ -2457,6 +2464,7 @@ bool ScreenElementMenuItem::Press()
 
         Focus();
 
+        STARTUP_TRACE(("menu: " + m_Name + " chosen").c_str());
         for (IEventDataPtr pEvent : m_GeneratedEventList)
         {
             IEventMgr::Get()->VQueueEvent(pEvent);
@@ -2684,8 +2692,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
 
 SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
 {
-    int itemWidth, itemHeight;
-    SDL_QueryTexture(m_Images[m_State]->GetTexture(), NULL, NULL, &itemWidth, &itemHeight);
+    int itemWidth = 0, itemHeight = 0;
+    shared_ptr<Image> pImage = m_Images[m_State];
+    if (!pImage) for (auto& kv : m_Images) if (kv.second) { pImage = kv.second; break; }
+    if (pImage) SDL_QueryTexture(pImage->GetTexture(), NULL, NULL, &itemWidth, &itemHeight);
 
     SDL_Rect itemRect;
     itemRect.x = (int)m_Position.x;

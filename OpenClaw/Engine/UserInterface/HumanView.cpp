@@ -1713,6 +1713,7 @@ bool HumanView::OnMenuCheatKey(CheatCode::Key key)
     const bool done = CheatCode::Feed(key);
     if (done)
     {
+        STARTUP_TRACE("cheat code entered in the menu");
         if (m_pMenu) m_pMenu->RefreshActivePageVisibility();
         return true;
     }
