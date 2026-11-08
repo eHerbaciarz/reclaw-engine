@@ -57,6 +57,7 @@ extern "C" void ReclawBootMark(const char* step)
 // PS3: the log copied to a USB stick (no FTP needed for testing): the
 // previous session's log (a crash included) when the game starts, as
 // reclaw_previous.log, and this session's when it quits, as reclaw.log.
+// (Every console also keeps the last log as save/reclaw_previous.log.)
 static std::string Ps3UsbDir()
 {
     for (int i = 0; i < 8; ++i)
@@ -489,6 +490,17 @@ namespace Platform
                 if (!usb.empty()) Ps3CopyFile(g_DataDir + "reclaw.log", usb + "reclaw_previous.log");
             }
 #endif
+            // The last session's log kept next to the new one (after a crash
+            // it is the one that tells where the game stopped)
+            {
+                const std::string current = g_DataDir + "reclaw.log", previous = g_DataDir + "reclaw_previous.log";
+                if (FILE* f = fopen(current.c_str(), "rb"))
+                {
+                    fclose(f);
+                    remove(previous.c_str());
+                    rename(current.c_str(), previous.c_str());
+                }
+            }
             g_pLogFile = fopen((g_DataDir + "reclaw.log").c_str(), "w");
             BOOT_MARK(g_pLogFile ? "8 log open (the rest is in save/reclaw.log)" : "8 log could NOT be opened");
             SDL_LogSetOutputFunction(&ConsoleLogOutput, NULL);

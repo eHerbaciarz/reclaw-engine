@@ -67,8 +67,9 @@ INCLUDES := -I$(PORTLIBS)/include -I$(PORTLIBS)/include/SDL2 -I$(LIBNX)/include 
             -I$(REPO)/ThirdParty/Tinyxml -idirafter $(REPO)/ThirdParty
 
 DEFINES  := -D__SWITCH__ -DOPENCLAW_NATIVE=1
-ifeq ($(TRACE),1)
-# Diagnostic build: timestamped startup trace in /switch/reclaw/save/reclaw.log
+# Timestamped trace lines in /switch/reclaw/save/reclaw.log (as on the other
+# consoles: where it stopped after a crash; TRACE=0 leaves them out)
+ifneq ($(TRACE),0)
 DEFINES  += -DOPENCLAW_STARTUP_TRACE
 endif
 
