@@ -659,9 +659,11 @@ bool HumanView::EnterMenu(TiXmlElement* pMenuData)
 
 void HumanView::LoadScoreScreen(TiXmlElement* pScoreScreenRootElem)
 {
+    STARTUP_TRACE("score screen: dropping the level's picture");
     m_ScreenElements.clear();
     m_pScene.reset();
     m_pHUD.reset();
+    STARTUP_TRACE("score screen: level's picture dropped");
 
     m_pCamera->SetParent(nullptr);
     Point defaultCameraPos(0, 0);
@@ -669,6 +671,7 @@ void HumanView::LoadScoreScreen(TiXmlElement* pScoreScreenRootElem)
     m_pCamera->SetTarget(nullptr);
 
     g_pApp->GetAudio()->StopAllSounds();
+    STARTUP_TRACE("score screen: sounds stopped");
 
     LOG("Initializing score screen ...");
     shared_ptr<ScreenElementScoreScreen> pScoreScreen(new ScreenElementScoreScreen(g_pApp->GetRenderer()));

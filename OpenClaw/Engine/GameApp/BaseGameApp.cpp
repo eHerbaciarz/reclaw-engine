@@ -743,7 +743,30 @@ void BaseGameApp::StepLoop() {
 
         // Convert fixed timestep back to milliseconds for game logic
         uint32 fixedDeltaMs = static_cast<uint32>(m_fixedTimestep * 1000.0);
+#ifdef OPENCLAW_STARTUP_TRACE
+        // One step much longer than a frame: what it was spent on (reclaw.log).
+        extern Uint64 g_PerfLogicTicks[4];
+        const Uint64 stepT0 = SDL_GetPerformanceCounter();
+        const Uint64 stepL0 = g_PerfLogicTicks[0], stepL1 = g_PerfLogicTicks[1], stepL2 = g_PerfLogicTicks[2], stepL3 = g_PerfLogicTicks[3];
+        const int stepState = (int)m_pGame->GetGameState();
+#endif
         m_pGame->VOnUpdate(fixedDeltaMs);
+#ifdef OPENCLAW_STARTUP_TRACE
+        {
+          const Uint64 stepT1 = SDL_GetPerformanceCounter();
+          const double k = 1000.0 / perfFreq;
+          const double stepMs = (stepT1 - stepT0) * k, evMs = (stepT0 - perfEv0) * k;
+          if (stepMs + evMs >= 40.0) {
+            char slow[300];
+            snprintf(slow, sizeof(slow), "slow step: %.0f ms (state %d -> %d): events %.0f, processes %.0f, physics %.0f, views %.0f, actors %.0f, other %.0f ms",
+                     stepMs + evMs, stepState, (int)m_pGame->GetGameState(), evMs,
+                     (g_PerfLogicTicks[0] - stepL0) * k, (g_PerfLogicTicks[1] - stepL1) * k, (g_PerfLogicTicks[3] - stepL3) * k,
+                     ((g_PerfLogicTicks[2] - stepL2) - (g_PerfLogicTicks[3] - stepL3)) * k,
+                     stepMs - ((g_PerfLogicTicks[0] - stepL0) + (g_PerfLogicTicks[1] - stepL1) + (g_PerfLogicTicks[2] - stepL2)) * k);
+            STARTUP_TRACE(slow);
+          }
+        }
+#endif
 
         m_accumulator -= m_fixedTimestep;
       }

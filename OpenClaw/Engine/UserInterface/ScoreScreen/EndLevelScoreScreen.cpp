@@ -1,3 +1,4 @@
+#include "../../Util/StartupTrace.h"
 #include "EndLevelScoreScreen.h"
 #include "../../GameApp/BaseGameApp.h"
 #include "../../Video/Native/MoviePlayer.h"
@@ -712,6 +713,7 @@ bool ScreenElementScoreScreen::Initialize(TiXmlElement* pScoreScreenRootElem)
     std::string scoreBackgroundImagePath;
     DO_AND_CHECK(ParseValueFromXmlElem(&scoreBackgroundImagePath, pScoreScreenRootElem->FirstChildElement("ScoreBackgroundScreen")));
     m_pScoreBackgroundImage = PcxResourceLoader::LoadAndReturnImage(scoreBackgroundImagePath.c_str());
+    STARTUP_TRACE("score screen: pictures loaded");
 
     if (TiXmlElement* pAcquiredPieceElem = pScoreScreenRootElem->FirstChildElement("AcquiredPiece"))
     {
@@ -762,6 +764,7 @@ bool ScreenElementScoreScreen::Initialize(TiXmlElement* pScoreScreenRootElem)
         QueueDelayedProcess(pClawCommentSoundProc, delay);
 
         clawFinishDialogTime = delay + Util::GetSoundDurationMs(sound);
+        STARTUP_TRACE("score screen: Claw's comment measured");
     }
     else
     {

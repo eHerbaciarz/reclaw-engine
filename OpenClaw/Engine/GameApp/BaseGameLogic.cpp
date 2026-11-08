@@ -1002,6 +1002,7 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
         LOG_ERROR("Failed to load score screen XML resource: " + std::string(xmlScoreScreenResource));
         return false;
     }
+    STARTUP_TRACE("score screen: XML read");
 
     // Save game progress
     // When Claw finishes level, the saved checkpoint is (CurrentLevel + 1) level start
@@ -1212,8 +1213,10 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
     DO_AND_CHECK(SetTiXmlNodeValue(pScoreScreenRootElem, "FinishedLevelScreen.ScorePointsOnLevelStart", startLevelScore));
     DO_AND_CHECK(SetTiXmlNodeValue(pScoreScreenRootElem, "FinishedLevelScreen.ScorePointsCollectedInLevel", levelScoreCollected));
 
+    STARTUP_TRACE("score screen: progress saved");
     // Load the ScoreScreen
     g_pApp->GetHumanView()->LoadScoreScreen(pScoreScreenRootElem);
+    STARTUP_TRACE("score screen: shown");
 
     return true;
 }
