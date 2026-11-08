@@ -2161,7 +2161,7 @@ void HumanView::CaptureEffectFrame()
     }
     if (!m_pEffectFrame)
         m_pEffectFrame = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
-    if (!m_pEffectFrame) return;
+    if (!m_pEffectFrame) { STARTUP_TRACE("effect: no texture for the level picture"); return; }
     SDL_Texture* previous = SDL_GetRenderTarget(pRenderer);
     float sx = 1.0f, sy = 1.0f;
     SDL_RenderGetScale(pRenderer, &sx, &sy);
@@ -2181,6 +2181,7 @@ void HumanView::CaptureEffectFrame()
     m_bPostponeRenderPresent = wasPostponed;
     SDL_SetRenderTarget(pRenderer, previous);
     SDL_RenderSetScale(pRenderer, sx, sy);
+    STARTUP_TRACE("effect: level picture kept");
 }
 
 void HumanView::DrawEffectFrame(SDL_Renderer* pRenderer)
@@ -2297,11 +2298,9 @@ void DeathFadeInOutProcess::VOnInit()
     shared_ptr<CameraNode> pCamera = g_pApp->GetHumanView()->GetCamera();
     Point cameraPos = pCamera->GetPosition();
 
+    // (the camera's position is the level point at the top left corner;
+    // the screen's units are the level's - SDL scales them)
     m_Epicenter.Set(m_Epicenter.x - cameraPos.x, m_Epicenter.y - cameraPos.y);
-
-    // Apply scale
-    Point scale = g_pApp->GetScale();
-    m_Epicenter.Set(m_Epicenter.x / scale.x, m_Epicenter.y / scale.y);
 
     // The level as it is now (Claw is moved back to the checkpoint later)
     g_pApp->GetHumanView()->CaptureEffectFrame();
@@ -2427,25 +2426,25 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
         fadeSpeed = &m_FadeOutSpeed;
     }
 
-    // Left -> right rect
-    int currentWidth = (int)((double)referenceTime * fadeSpeed->x * areaShare);
-    //LOG("Current width: " + ToStr(currentWidth));
-    SDL_Rect leftRect = { 0, 0, currentWidth, (int)windowSize.y };
-    FillBlack(pRenderer, leftRect);
-
-    // Right -> left rect
-    SDL_Rect rightRect = { (int)windowSize.x - currentWidth , 0, currentWidth, (int)windowSize.y };
-    FillBlack(pRenderer, rightRect);
-
-    int currentHeight = (int)((double)referenceTime * fadeSpeed->y);
-    // Top -> Down
-    SDL_Rect topRect = { 0, 0, (int)windowSize.x, currentHeight };
-    FillBlack(pRenderer, topRect);
-
-    // Down -> Top
-    SDL_Rect bottomRect = { 0, (int)windowSize.y - currentHeight, (int)windowSize.x, currentHeight };
-    FillBlack(pRenderer, bottomRect);
-
+    // The black closes in as a box on where Claw died, and opens again from
+    // the middle (the camera is on Claw, back at the checkpoint).
+    const double duration = (m_DeathFadeState == DeathFadeState_FadingOut) ? m_FadeOutDuration : m_FadeInDuration;
+    double f = duration > 0 ? referenceTime / duration : 0.0;
+    f = f < 0 ? 0 : (f > 1 ? 1 : f);
+    const double W = windowSize.x, H = windowSize.y;
+    double ex = W / 2, ey = H / 2;
+    if (m_DeathFadeState != DeathFadeState_FadingOut && m_DeathFadeState != DeathFadeState_Ended)
+    {
+        double px = m_Epicenter.x - (area.w > 0 ? 0 : 0), py = m_Epicenter.y;
+        if (px >= 0 && px <= W && py >= 0 && py <= H) { ex = px; ey = py; }
+    }
+    const int x0 = (int)(ex * f), x1 = (int)(W - (W - ex) * f);
+    const int y0 = (int)(ey * f), y1 = (int)(H - (H - ey) * f);
+    FillBlack(pRenderer, SDL_Rect{ 0, 0, x0, (int)H });
+    FillBlack(pRenderer, SDL_Rect{ x1, 0, (int)W - x1, (int)H });
+    FillBlack(pRenderer, SDL_Rect{ x0, 0, x1 - x0, y0 });
+    FillBlack(pRenderer, SDL_Rect{ x0, y1, x1 - x0, (int)H - y1 });
+    (void)areaShare;
 
     if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);
