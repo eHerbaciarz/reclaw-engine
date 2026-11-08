@@ -507,12 +507,17 @@ namespace
         return "";
     }
 
+    // (worked out once: 64 x 2 file checks took ~0.1 s on the PS3's disk, and
+    // every movie item of the menu asked - a second for the menu)
+    int g_RemasterCount = -1;
+
     int RemasterCount()
     {
+        if (g_RemasterCount >= 0) return g_RemasterCount;
         int count = 0;
         bool mp4 = false;
         for (int i = 0; i < 64; ++i) if (!RemasterPath(i, &mp4).empty()) count = i + 1;
-        return count;
+        return g_RemasterCount = count;
     }
 
     // YUV 4:2:0 -> ARGB for renderers without YUV textures.
@@ -765,6 +770,7 @@ namespace MoviePlayer
         g_UserDirectory = userDirectory;
         g_Movies.clear();
         g_Indexed = false;
+        g_RemasterCount = -1;
     }
 
     bool IsAvailable()
