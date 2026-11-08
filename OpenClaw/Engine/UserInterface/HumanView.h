@@ -143,6 +143,7 @@ protected:
     void SetFilterDelegate(IEventDataPtr pEventData);
     void SetCrtDelegate(IEventDataPtr pEventData);
     void OnCheatKey(CheatCode::Key key);
+    bool OnMenuCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);
     void BossModesDelegate(IEventDataPtr pEventData);
     void OpenLanguageDelegate(IEventDataPtr pEventData);

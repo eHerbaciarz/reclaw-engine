@@ -1,5 +1,6 @@
 #include "CheatCode.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -83,11 +84,25 @@ namespace CheatCode
             if (g_Recent[i] != kCode[i]) return false;
         }
         g_Recent.clear();
+        g_SpecialMode = true;   // "Skrzyżuj szpady ponownie" in the main menu too
         // Shown whether subtitles are on or off.
         Subtitles::ShowText(Lang::Tr("Nie dość, że pirat to jeszcze oszust", "Not only a pirate, but a cheat as well"), 4000);
         g_Unlocked = true;
         LOG("Cheat code entered");
         return true;
+    }
+
+    int Progress()
+    {
+        // the longest end of the recent presses that starts the code
+        for (int n = std::min((int)g_Recent.size(), kCodeLength); n > 0; --n)
+        {
+            bool match = true;
+            for (int i = 0; i < n && match; ++i)
+                match = g_Recent[g_Recent.size() - n + i] == kCode[i];
+            if (match) return n;
+        }
+        return 0;
     }
 
     bool IsOn(const std::string& name)

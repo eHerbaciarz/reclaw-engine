@@ -22,6 +22,8 @@ namespace CheatCode
     // A button pressed during the game. Returns true when this press
     // completed the code (the message is already shown, the menu unlocked).
     bool Feed(Key key);
+    // How many presses of the code have been made so far (0: none).
+    int Progress();
 
     // The "Cheats" screen: toggles and one-off cheats for the current game.
     void RunCheatsScreen(SDL_Renderer* pRenderer);

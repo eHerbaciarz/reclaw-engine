@@ -300,6 +300,19 @@ bool HumanView::VOnEvent(SDL_Event& evt)
                    key == SDLK_SPACE ? CheatCode::Key::Jump :
                    (key == SDLK_LALT || key == SDLK_RALT) ? CheatCode::Key::Fire : CheatCode::Key::Other);
     }
+    // ...and in the main menu (the last two keys do not reach the menu)
+    if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0 && g_pApp->GetGameLogic() &&
+        g_pApp->GetGameLogic()->GetGameState() == GameState_Menu)
+    {
+        SDL_Keycode key = evt.key.keysym.sym;
+        if (OnMenuCheatKey(key == SDLK_UP ? CheatCode::Key::Up : key == SDLK_DOWN ? CheatCode::Key::Down :
+                           key == SDLK_LEFT ? CheatCode::Key::Left : key == SDLK_RIGHT ? CheatCode::Key::Right :
+                           (key == SDLK_SPACE || key == SDLK_RETURN) ? CheatCode::Key::Jump :
+                           (key == SDLK_LALT || key == SDLK_RALT || key == SDLK_ESCAPE) ? CheatCode::Key::Fire : CheatCode::Key::Other))
+        {
+            return true;
+        }
+    }
 
     // First let console try to eat this event
     if (m_pConsole->OnEvent(evt))
@@ -429,6 +442,22 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
                            b == GamepadButton::DPadRight ? CheatCode::Key::Right :
                            b == GamepadButton::A ? CheatCode::Key::Jump :
                            b == GamepadButton::B ? CheatCode::Key::Fire : CheatCode::Key::Other);
+            }
+
+            // ...and in the main menu (Cross and Circle at the end of it do
+            // not choose / go back there)
+            if (gameState == GameState_Menu)
+            {
+                GamepadButton b = evt.gamepadButton.button;
+                if (OnMenuCheatKey(b == GamepadButton::DPadUp ? CheatCode::Key::Up :
+                                   b == GamepadButton::DPadDown ? CheatCode::Key::Down :
+                                   b == GamepadButton::DPadLeft ? CheatCode::Key::Left :
+                                   b == GamepadButton::DPadRight ? CheatCode::Key::Right :
+                                   b == GamepadButton::A ? CheatCode::Key::Jump :
+                                   b == GamepadButton::B ? CheatCode::Key::Fire : CheatCode::Key::Other))
+                {
+                    return true;
+                }
             }
 
             // Score screen after a level: Cross / Circle / Start (A / B / +)
@@ -651,6 +680,8 @@ bool HumanView::EnterMenu(TiXmlElement* pMenuData)
         // background music) only runs on first creation, so restart the menu music
         // explicitly when returning to the menu from gameplay.
         m_pMenu->PlayBackgroundMusic();
+        // (items shown after the cheat code entered in a level)
+        m_pMenu->RefreshActivePageVisibility();
     }
 
     m_ScreenElements.clear();
@@ -1673,6 +1704,19 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
     pLevelData->SetCustomLevel(level.path, level.startX, level.startY);
     g_pApp->GetGameLogic()->SetLevelData(pLevelData);
     g_pApp->GetGameLogic()->VChangeState(GameState_LoadingLevel);
+}
+
+// True: the press was part of the code's buttons after the arrows (eaten).
+bool HumanView::OnMenuCheatKey(CheatCode::Key key)
+{
+    if (CheatCode::IsUnlocked()) return false;
+    const bool done = CheatCode::Feed(key);
+    if (done)
+    {
+        if (m_pMenu) m_pMenu->RefreshActivePageVisibility();
+        return true;
+    }
+    return CheatCode::Progress() > 8;
 }
 
 void HumanView::OnCheatKey(CheatCode::Key key)
