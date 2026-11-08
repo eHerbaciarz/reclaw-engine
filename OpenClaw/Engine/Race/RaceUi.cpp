@@ -67,12 +67,26 @@ namespace
     {
         Text t;
         if (s.empty() || !font) return t;
-        TTF_SetFontOutline(font, outline);
-        SDL_Surface* back = TTF_RenderUTF8_Blended(font, s.c_str(), edge);
-        TTF_SetFontOutline(font, 0);
+        // The edge: the text in the edge colour drawn around itself, not
+        // FreeType's outline (the PS3 closed the game in it with this font)
         SDL_Surface* front = TTF_RenderUTF8_Blended(font, s.c_str(), fill);
-        if (back && front)
+        SDL_Surface* edgeText = TTF_RenderUTF8_Blended(font, s.c_str(), edge);
+        SDL_Surface* back = nullptr;
+        if (front && edgeText)
         {
+            back = SDL_CreateRGBSurfaceWithFormat(0, front->w + 2 * outline, front->h + 2 * outline, 32, SDL_PIXELFORMAT_ARGB8888);
+        }
+        if (back)
+        {
+            SDL_FillRect(back, NULL, 0);
+            SDL_SetSurfaceBlendMode(edgeText, SDL_BLENDMODE_BLEND);
+            for (int dy = -outline; dy <= outline; ++dy)
+                for (int dx = -outline; dx <= outline; ++dx)
+                {
+                    if (dx * dx + dy * dy > outline * outline + outline) continue;
+                    SDL_Rect at = { outline + dx, outline + dy, edgeText->w, edgeText->h };
+                    SDL_BlitSurface(edgeText, NULL, back, &at);
+                }
             SDL_Rect dst = { outline, outline, front->w, front->h };
             SDL_SetSurfaceBlendMode(front, SDL_BLENDMODE_BLEND);
             SDL_BlitSurface(front, NULL, back, &dst);
@@ -82,6 +96,7 @@ namespace
         }
         if (back) SDL_FreeSurface(back);
         if (front) SDL_FreeSurface(front);
+        if (edgeText) SDL_FreeSurface(edgeText);
         return t;
     }
 
@@ -244,8 +259,14 @@ namespace RaceUi
             }
 
             // ---- draw
+            static bool s_TracedDraw = false;
+            const bool traceDraw = !s_TracedDraw;
+            s_TracedDraw = true;
+            if (traceDraw) STARTUP_TRACE("list screen: background");
             c.Clear();
+            if (traceDraw) STARTUP_TRACE("list screen: title");
             c.Line(c.title, screen.title, 150, kGold);
+            if (traceDraw) STARTUP_TRACE("list screen: items");
             const double top = 205, rowH = 32;
             const int rows = 7;
             if (screen.selected < scroll) scroll = screen.selected;
@@ -264,6 +285,7 @@ namespace RaceUi
                 c.Line(c.small, line, y, kParchment);
                 y += 20;
             }
+            if (traceDraw) STARTUP_TRACE("list screen: drawn, showing");
             CrtEffect::BeforePresent(pRenderer);
             SDL_RenderPresent(pRenderer);
             {
