@@ -8,6 +8,9 @@
 #include <cstring>
 #include <vector>
 
+// pictures that had dithering (reclaw.log; defined in Image.cpp)
+extern int g_ReclawDeDithered;
+
 static inline const uint32_t* ReclawBleedAlpha(const uint32_t* px, int pitch, int w, int h, std::vector<uint32_t>& out)
 {
     bool any = false;
@@ -69,6 +72,7 @@ static inline void ReclawDeDither(uint32_t* px, int pitch, int w, int h)
             if (ok && sides >= 3) { mark[(size_t)y * w + x] = me ? 1 : 2; any = true; }
         }
     if (!any) return;
+    ++g_ReclawDeDithered;
     std::vector<uint32_t> orig((size_t)w * h);
     for (int y = 0; y < h; ++y) memcpy(&orig[(size_t)y * w], px + (size_t)y * pitch, (size_t)w * 4);
     for (int y = 0; y < h; ++y)
@@ -102,13 +106,20 @@ static inline void ReclawDeDither(uint32_t* px, int pitch, int w, int h)
 // picture is opaque (nothing to do).
 static inline const uint32_t* ReclawPreparePicture(const uint32_t* px, int pitch, int w, int h, std::vector<uint32_t>& out)
 {
+    // (the game's pictures mark see-through pixels with alpha 1, not 0:
+    // libwap's palette; both count, and come out as 0)
     bool any = false;
     for (int y = 0; y < h && !any; ++y)
         for (int x = 0; x < w; ++x)
-            if (!(px[(size_t)y * pitch + x] >> 24)) { any = true; break; }
+            if ((px[(size_t)y * pitch + x] >> 24) <= 1) { any = true; break; }
     if (!any) return nullptr;
     std::vector<uint32_t> tmp((size_t)w * h);
-    for (int y = 0; y < h; ++y) memcpy(&tmp[(size_t)y * w], px + (size_t)y * pitch, (size_t)w * 4);
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x)
+        {
+            const uint32_t c = px[(size_t)y * pitch + x];
+            tmp[(size_t)y * w + x] = (c >> 24) <= 1 ? (c & 0x00FFFFFFu) : c;
+        }
     ReclawDeDither(tmp.data(), w, w, h);
     if (!ReclawBleedAlpha(tmp.data(), w, w, h, out)) out.swap(tmp);
     return out.data();

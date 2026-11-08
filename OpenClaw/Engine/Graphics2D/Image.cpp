@@ -1,3 +1,4 @@
+#include "ViewportRestore.h"
 #include "../PortFeatures.h"
 #include <algorithm>
 #include <assert.h>
@@ -9,6 +10,7 @@
 #include <vector>
 #include "PixelFilters.h"
 #include "../../../platform/common/reclaw_bleed.h"
+int g_ReclawDeDithered = 0;
 
 namespace
 {
@@ -118,14 +120,7 @@ SDL_Texture* Image::GetMirroredTexture(SDL_Renderer* pRenderer)
     // The viewport back only if one was set: the whole target given back as a
     // set viewport stayed when the scale changed (the menus draw at scale 1),
     // cutting the pause menu to a corner of the screen.
-    {
-        int fullW = 0, fullH = 0;
-        if (previous) SDL_QueryTexture(previous, NULL, NULL, &fullW, &fullH);
-        else SDL_GetRendererOutputSize(pRenderer, &fullW, &fullH);
-        const bool whole = viewport.x == 0 && viewport.y == 0 &&
-                           viewport.w >= (int)(fullW / scaleX) - 1 && viewport.h >= (int)(fullH / scaleY) - 1;
-        SDL_RenderSetViewport(pRenderer, whole ? NULL : &viewport);
-    }
+    ReclawRestoreViewport(pRenderer, viewport, scaleX, scaleY);
     SDL_RenderSetClipRect(pRenderer, clipped ? &clip : NULL);
 
     SDL_SetTextureBlendMode(m_pTexture, blend);

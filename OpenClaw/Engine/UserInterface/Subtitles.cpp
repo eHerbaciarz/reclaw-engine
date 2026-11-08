@@ -1,3 +1,4 @@
+#include "../Graphics2D/ViewportRestore.h"
 #include "Subtitles.h"
 
 #include <SDL2/SDL_ttf.h>
@@ -400,7 +401,7 @@ namespace Subtitles
         }
 
         SDL_RenderSetScale(r, sx, sy);
-        SDL_RenderSetViewport(r, &viewport);
+        ReclawRestoreViewport(r, viewport, sx, sy);
     }
 
     void FreeTextures()

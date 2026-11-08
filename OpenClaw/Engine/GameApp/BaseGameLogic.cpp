@@ -986,6 +986,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     LOG("Rings count: " + ToStr(Rings));*/
 
     TraceLevel("loaded, starting the world");
+    { extern int g_ReclawDeDithered; STARTUP_TRACE(("pictures with dithering made see-through so far: " + std::to_string(g_ReclawDeDithered)).c_str()); }
     pEventMgr->VTriggerEvent(IEventDataPtr(new EventData_World_Finished_Loading()));
     TraceLevel("world started");
 

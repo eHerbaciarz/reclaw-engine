@@ -51,6 +51,16 @@ namespace
         }
     }
 #endif
+
+#ifdef __PSL1GHT__
+    unsigned g_Ps3Prev[MAX_PORT_NUM] = {};
+
+    unsigned Ps3Buttons(const padData& d)
+    {
+        return (d.BTN_CROSS ? 1u : 0u) | (d.BTN_CIRCLE ? 2u : 0u) | (d.BTN_START ? 4u : 0u) |
+               (d.BTN_UP ? 8u : 0u) | (d.BTN_DOWN ? 16u : 0u) | (d.BTN_SELECT ? 32u : 0u);
+    }
+#endif
 }
 
 namespace BlockingInput
@@ -72,15 +82,13 @@ namespace BlockingInput
         // PS3: the pads read directly too (the "CLAW.REZ not found" screen
         // could not be left with SDL's controller events alone).
         {
-            static unsigned s_prev[MAX_PORT_NUM] = {};
             for (int i = 0; i < MAX_PORT_NUM; ++i)
             {
                 padData d;
                 if (!Ps3Pad::State(i, d)) continue;
-                unsigned now = (d.BTN_CROSS ? 1u : 0u) | (d.BTN_CIRCLE ? 2u : 0u) | (d.BTN_START ? 4u : 0u) |
-                               (d.BTN_UP ? 8u : 0u) | (d.BTN_DOWN ? 16u : 0u) | (d.BTN_SELECT ? 32u : 0u);
-                unsigned pressed = now & ~s_prev[i];
-                s_prev[i] = now;
+                const unsigned now = Ps3Buttons(d);
+                unsigned pressed = now & ~g_Ps3Prev[i];
+                g_Ps3Prev[i] = now;
                 if (pressed & 1u) result |= Accept;
                 if (pressed & (2u | 32u)) result |= Back;
                 if (pressed & 4u) result |= Start;
@@ -129,6 +137,15 @@ namespace BlockingInput
 #ifdef __SWITCH__
         EnsurePad();
         padUpdate(&g_Pad);   // buttons held now do not count as new presses
+#endif
+#ifdef __PSL1GHT__
+        // the same on the PS3: Cross still down from the score screen
+        // skipped the movie after it at once
+        for (int i = 0; i < MAX_PORT_NUM; ++i)
+        {
+            padData d;
+            g_Ps3Prev[i] = Ps3Pad::State(i, d) ? Ps3Buttons(d) : 0u;
+        }
 #endif
         Flush();
     }
