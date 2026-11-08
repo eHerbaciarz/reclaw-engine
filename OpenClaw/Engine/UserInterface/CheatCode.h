@@ -15,6 +15,7 @@ namespace CheatCode
     enum class Key { Up, Down, Left, Right, Jump, Fire, Other };
 
     bool IsUnlocked();
+    bool IsSpecialModeOn();
     // Saved games deleted: the cheats are locked again.
     void Lock();
 

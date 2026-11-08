@@ -1761,7 +1761,9 @@ void HumanView::BossModesDelegate(IEventDataPtr pEventData)
     int level = pCast->GetLevel();
     if (level <= 0)
     {
+        STARTUP_TRACE("boss modes: list");
         level = BossModes::RunMenu(g_pApp->GetRenderer());
+        STARTUP_TRACE(("boss modes: chosen level " + ToStr(level)).c_str());
     }
     if (level <= 0 || !BossModes::IsActive())
     {

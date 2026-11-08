@@ -230,7 +230,7 @@ namespace
             g_FightMs = 0;
             g_RetryShownMs = 0;
             ++g_Attempts;
-            LOG("Boss modes: fight started (level " + std::to_string(g_Level) + ")");
+            LOG_WARNING("Boss modes: fight started (level " + std::to_string(g_Level) + ")");
         }
 
         void FightEnded(IEventDataPtr pEvent)
@@ -243,7 +243,7 @@ namespace
                 g_PhaseMs = 0;
                 if (g_Mode == BossModes::Mode::Practice) g_LastPracticeMs = g_FightMs;
                 else g_RushTimes.push_back(g_FightMs);
-                LOG("Boss modes: boss defeated in " + FormatTime(g_FightMs));
+                LOG_WARNING("Boss modes: boss defeated in " + FormatTime(g_FightMs));
             }
             else if (g_Mode == BossModes::Mode::Practice)
             {
@@ -259,7 +259,7 @@ namespace
             if (g_Phase == Phase::Lost || g_Phase == Phase::Leaving || g_Phase == Phase::Won) return;
             g_Phase = Phase::Lost;
             g_PhaseMs = 0;
-            LOG("Boss modes: Boss Rush lost");
+            LOG_WARNING("Boss modes: Boss Rush lost");
         }
     };
 
@@ -381,7 +381,7 @@ namespace BossModes
                 Begin(Mode::Practice);
                 g_Level = level;
                 g_Attempts = 0;
-                LOG("Boss practice: " + BossName(level));
+                LOG_WARNING("Boss practice: " + BossName(level));
                 return level;
             }
             if (!rushOpen)
@@ -396,7 +396,7 @@ namespace BossModes
             if (g_RushLevels.empty()) { End(); return 0; }
             g_RushIndex = 0;
             g_Level = g_RushLevels[0];
-            LOG("Boss Rush: " + std::to_string(g_RushLevels.size()) + " bosses");
+            LOG_WARNING("Boss Rush: " + std::to_string(g_RushLevels.size()) + " bosses");
             return g_Level;
         }
     }
@@ -452,7 +452,7 @@ namespace BossModes
                 // floor line).
                 spawnPosition = pActor->GetPositionComponent()->GetPosition() + Point(0, -48);
                 IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Teleport_Actor(clawId, spawnPosition)));
-                LOG("Boss modes: Captain placed at the boss (" + std::to_string((int)spawnPosition.x) + ", " +
+                LOG_WARNING("Boss modes: Captain placed at the boss (" + std::to_string((int)spawnPosition.x) + ", " +
                     std::to_string((int)spawnPosition.y) + ")");
                 return;
             }

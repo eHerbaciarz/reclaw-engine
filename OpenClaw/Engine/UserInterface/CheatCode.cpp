@@ -30,6 +30,7 @@ namespace
     // The cheats menu: until the game is closed (the code is entered again
     // after every start)
     bool g_Unlocked = false;
+    bool g_SpecialMode = false;   // "Skrzyżuj szpady ponownie" in the main menu
 
     std::vector<K> g_Recent;   // last presses
     Uint32 g_LastPress = 0;
@@ -55,10 +56,16 @@ namespace CheatCode
         return g_Unlocked;
     }
 
+    // Also only until the game is closed (after the code, Cheats > bosses).
+    bool IsSpecialModeOn()
+    {
+        return g_Unlocked && g_SpecialMode;
+    }
+
     void Lock()
     {
         g_Unlocked = false;
-        PortSettings::SetBool("special_mode", false);
+        g_SpecialMode = false;
     }
 
     bool Feed(Key key)
@@ -126,7 +133,7 @@ namespace CheatCode
             // The special mode: "Skrzyżuj szpady ponownie" in the main menu,
             // with every boss and Parry & Thrust.
             BossModes::UnlockAll();
-            PortSettings::SetBool("special_mode", true);
+            g_SpecialMode = true;
             Subtitles::ShowText(Lang::Tr("Tryb specjalny odblokowany: Skrzyżuj szpady ponownie w menu głównym",
                                          "Special mode unlocked: Cross Swords Again in the main menu"), 3500);
         }

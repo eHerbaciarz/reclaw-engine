@@ -189,10 +189,6 @@ bool BaseGameLogic::Initialize()
         {
             // First launch: no saves yet (the web build starts the same way).
             LOG_WARNING("No saves file at " + savesFilePath + ", starting a new game");
-            // The special mode stays unlocked only as long as the saves exist.
-            STARTUP_TRACE("saves: port settings");
-            PortSettings::SetBool("special_mode", false);
-            STARTUP_TRACE("saves: port settings written");
         }
         else
         {

@@ -1,3 +1,4 @@
+#include "../Util/StartupTrace.h"
 #include "../Graphics2D/CrtEffect.h"
 #include "RaceUi.h"
 
@@ -179,7 +180,10 @@ namespace RaceUi
         float prevScaleX = 1.0f, prevScaleY = 1.0f;
         SDL_RenderGetScale(pRenderer, &prevScaleX, &prevScaleY);
         Canvas c;
-        if (!c.Begin(pRenderer))
+        STARTUP_TRACE("list screen: fonts");
+        const bool canvasOk = c.Begin(pRenderer);
+        STARTUP_TRACE(canvasOk ? "list screen: fonts ready" : "list screen: no font");
+        if (!canvasOk)
         {
             LOG_ERROR("Race screen: font not found");
             SDL_SetRenderTarget(pRenderer, pPrevTarget);
@@ -246,6 +250,10 @@ namespace RaceUi
             }
             CrtEffect::BeforePresent(pRenderer);
             SDL_RenderPresent(pRenderer);
+            {
+                static bool s_FirstShown = false;
+                if (!s_FirstShown) { s_FirstShown = true; STARTUP_TRACE("list screen: first frame shown"); }
+            }
             SDL_Delay(15);
         }
 
