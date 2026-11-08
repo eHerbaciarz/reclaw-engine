@@ -2195,17 +2195,27 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
     ParseValueFromXmlElem(&m_bVisible, pElem->FirstChildElement("IsVisible"));
     if (pElem->FirstChildElement("NoAutoLayout")) m_bAutoLayout = false;
 
-    if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
+    // (an item drawn in the game's letters below does not need its pictures)
+    bool usesGameFont = false;
+    if (TiXmlElement* pFontElem = pElem->FirstChildElement("GameFontText"))
     {
-        m_Images.insert(std::make_pair(MenuItemState_Disabled, pImage));
+        const char* t = Lang::Code() == "en" ? pFontElem->Attribute("en") : (Lang::Code() == "pl" ? pFontElem->GetText() : nullptr);
+        usesGameFont = t && GameFont::Available();
     }
-    if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("InactiveImage")))
+    if (!usesGameFont)
     {
-        m_Images.insert(std::make_pair(MenuItemState_Inactive, pImage));
-    }
-    if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("ActiveImage")))
-    {
-        m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
+        if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
+        {
+            m_Images.insert(std::make_pair(MenuItemState_Disabled, pImage));
+        }
+        if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("InactiveImage")))
+        {
+            m_Images.insert(std::make_pair(MenuItemState_Inactive, pImage));
+        }
+        if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("ActiveImage")))
+        {
+            m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
+        }
     }
 
     // <GameFontText>SKRZYŻUJ SZPADY PONOWNIE</GameFontText> (Polish): with the

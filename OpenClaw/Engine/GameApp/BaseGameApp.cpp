@@ -848,6 +848,15 @@ void BaseGameApp::StepLoop() {
           extern std::map<std::string, Uint64> g_PerfActorTicks;
           {
             const double perSample = 1000.0 / perfFreq / std::max(1, g_PerfSampledSteps);
+            {
+              extern int g_PerfBodiesMoving, g_PerfBodiesAwake, g_PerfContacts, g_PerfPhysicsSteps;
+              const int n = std::max(1, g_PerfPhysicsSteps);
+              char phys[160];
+              snprintf(phys, sizeof(phys), "perf physics: %d moving bodies (%d awake), %d contacts per step",
+                       g_PerfBodiesMoving / n, g_PerfBodiesAwake / n, g_PerfContacts / n);
+              g_PerfBodiesMoving = g_PerfBodiesAwake = g_PerfContacts = g_PerfPhysicsSteps = 0;
+              STARTUP_TRACE(phys);
+            }
             std::string top = "perf: " + std::to_string(g_PerfActorUpdates / std::max(1, s_perfUpdates)) + " actor updates/step; components:";
             std::vector<std::pair<Uint64, std::string>> v;
             for (auto& c : g_PerfComponentTicks) v.push_back({ c.second, c.first });

@@ -975,7 +975,15 @@ namespace GameFont
         // made at the size it is drawn at, smoothly, and placed by its own size.
         Pixels scaled;
         const double s = g_pApp ? g_pApp->GetWindowSize().y / 480.0 : 1.0;
-        const bool rescale = s > 0.1 && (s < 0.99 || s > 1.01);
+        bool rescale = s > 0.1 && (s < 0.99 || s > 1.01);
+#if defined(RECLAW_GPU)
+        // GPU drawing: the GPU makes it bigger smoothly itself (the texture is
+        // sampled linearly). Done here, on the PS3's CPU at 1080p, it took
+        // ~0.1 s for every menu item and seven seconds for the whole menu.
+        // (Smaller - the 3DS - is still averaged here: sharper.)
+        const bool gpuScales = ReclawGpu_Active() && s > 1.01;
+        if (gpuScales) rescale = false;
+#endif
         if (rescale)
         {
             scaled = Resize(p, (int)(p.w * s), (int)(p.h * s));
@@ -989,6 +997,9 @@ namespace GameFont
         SDL_FreeSurface(surface);
         if (!texture) return nullptr;
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+#if defined(RECLAW_GPU)
+        if (gpuScales) SDL_SetTextureScaleMode(texture, SDL_ScaleModeLinear);
+#endif
         std::shared_ptr<Image> image(new Image(texture));
 #if defined(__PSL1GHT__) || defined(__3DS__)
         if (rescale) image->SetLogicalSize(p.w, p.h);

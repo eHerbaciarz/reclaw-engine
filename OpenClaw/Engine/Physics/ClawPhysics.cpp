@@ -406,6 +406,24 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
     m_pWorld->Step(msDiff / 1000.0f, 10, 8);
 #endif
 
+#ifdef OPENCLAW_STARTUP_TRACE
+    {
+        // (for the perf line: what makes a step slow somewhere in a level)
+        extern int g_PerfBodiesMoving, g_PerfBodiesAwake, g_PerfContacts, g_PerfPhysicsSteps;
+        int moving = 0, awake = 0;
+        for (b2Body* b = m_pWorld->GetBodyList(); b; b = b->GetNext())
+        {
+            if (b->GetType() == b2_staticBody || !b->IsActive()) continue;
+            ++moving;
+            if (b->IsAwake()) ++awake;
+        }
+        g_PerfBodiesMoving += moving;
+        g_PerfBodiesAwake += awake;
+        g_PerfContacts += m_pWorld->GetContactCount();
+        ++g_PerfPhysicsSteps;
+    }
+#endif
+
     ProcessPendingChanges();
 }
 
@@ -1266,6 +1284,8 @@ void ClawPhysics::VDeactivate(uint32_t actorId)
         pBody->SetActive(false);
     }
 }
+
+int g_PerfBodiesMoving = 0, g_PerfBodiesAwake = 0, g_PerfContacts = 0, g_PerfPhysicsSteps = 0;
 
 void ClawPhysics::VSetFarPaused(uint32_t actorId, bool far)
 {
