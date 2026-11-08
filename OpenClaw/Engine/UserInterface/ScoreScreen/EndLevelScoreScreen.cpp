@@ -388,7 +388,11 @@ void ScreenElementScoreScreen::VOnRender(uint32 msDiff)
     SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
     SDL_RenderClear(m_pRenderer);
 
-    // Render background centered at 4:3
+    // Render background centered at 4:3. (The rectangles below are in screen
+    // pixels: drawn at scale 1. With the renderer's scale on them as before,
+    // the map came out 2.25x too big on a 1080p PS3 and the treasures
+    // scattered - the scale was applied twice.)
+    SDL_RenderSetScale(m_pRenderer, 1.0f, 1.0f);
     SDL_Rect backgroundSrc = { 0, 0, m_pBackground->GetWidth(), m_pBackground->GetHeight() };
     SDL_Rect backgroundDst = {
         (int)g_ScreenOffset.x,
@@ -397,13 +401,15 @@ void ScreenElementScoreScreen::VOnRender(uint32 msDiff)
         (int)(DESIGN_HEIGHT * uniformScale)
     };
     SDL_RenderCopy(m_pRenderer, m_pBackground->GetTexture(), &backgroundSrc, &backgroundDst);
+    g_pApp->SetScale(g_ScreenScale);
 
-    // Set viewport to center the 4:3 content area for scene rendering
+    // Set viewport to center the 4:3 content area for scene rendering (in the
+    // renderer's scaled units, like SDL: it multiplies them by the scale)
     SDL_Rect viewport = {
-        (int)g_ScreenOffset.x,
+        (int)(g_ScreenOffset.x / uniformScale),
         0,
-        (int)(DESIGN_WIDTH * uniformScale),
-        (int)(DESIGN_HEIGHT * uniformScale)
+        (int)DESIGN_WIDTH,
+        (int)DESIGN_HEIGHT
     };
     SDL_RenderSetViewport(m_pRenderer, &viewport);
 

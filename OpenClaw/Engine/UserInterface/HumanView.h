@@ -63,6 +63,9 @@ public:
     void SetCurrentLevelMusic(const std::string& music) { m_CurrentLevelMusic = music; }
 
 shared_ptr<ScreenElementMenu> GetActiveMenu() { return m_pMenu ? m_pMenu : (m_pGameOverMenu ? m_pGameOverMenu : m_pIngameMenu); }
+    // Options > Graphics > aspect classic: the level's 4:3 area (renderer's
+    // scaled units; empty: the whole screen). Also sizes the camera to it.
+    SDL_Rect ClassicArea();
     bool IsScoreScreenVisible();
 
 protected:
@@ -133,7 +136,6 @@ protected:
     void SetAspectDelegate(IEventDataPtr pEventData);
     void SetFilterDelegate(IEventDataPtr pEventData);
     void SetCrtDelegate(IEventDataPtr pEventData);
-    SDL_Rect ClassicArea();
     void OnCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);
     void BossModesDelegate(IEventDataPtr pEventData);

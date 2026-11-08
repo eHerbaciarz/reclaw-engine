@@ -429,6 +429,23 @@ bool HumanView::VOnGamepadEvent(const AppEvent& evt)
                            b == GamepadButton::B ? CheatCode::Key::Fire : CheatCode::Key::Other);
             }
 
+            // Score screen after a level: Cross / Circle / Start (A / B / +)
+            // skip its animations, like Enter on a keyboard
+            if (IsScoreScreenVisible())
+            {
+                GamepadButton b = evt.gamepadButton.button;
+                if (b == GamepadButton::A || b == GamepadButton::B || b == GamepadButton::Start)
+                {
+                    SDL_Event key = {0};
+                    key.type = SDL_KEYDOWN;
+                    key.key.repeat = 0;
+                    key.key.keysym.sym = SDLK_RETURN;
+                    key.key.keysym.scancode = SDL_SCANCODE_RETURN;
+                    for (shared_ptr<IScreenElement>& e : m_ScreenElements)
+                        if (dynamic_cast<ScreenElementScoreScreen*>(e.get()) && e->VOnEvent(key)) return true;
+                }
+            }
+
             // Handle gamepad input for menus (main menu, quick menu, or game-over)
             bool inMenu = (gameState == GameState_Menu || menuActive);
 
@@ -2214,6 +2231,17 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
 
     Point windowSize = g_pApp->GetWindowSizeScaled();
+    // Classic 4:3: the effect closes over the level's area, not the screen
+    // (the black sides are drawn anyway); the speeds were worked out for
+    // the whole width.
+    SDL_Rect area = g_pApp->GetHumanView() ? g_pApp->GetHumanView()->ClassicArea() : SDL_Rect{ 0, 0, 0, 0 };
+    double areaShare = 1.0;
+    if (area.w > 0 && windowSize.x > 0)
+    {
+        areaShare = area.w / windowSize.x;
+        windowSize.Set(area.w, area.h);
+        SDL_RenderSetViewport(pRenderer, &area);
+    }
     
     /*g_pApp->GetHumanView()->SetRendering(true);
     g_pApp->GetHumanView()->VOnRender(msDiff);
@@ -2233,7 +2261,7 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
     }
 
     // Left -> right rect
-    int currentWidth = (int)((double)referenceTime * fadeSpeed->x);
+    int currentWidth = (int)((double)referenceTime * fadeSpeed->x * areaShare);
     //LOG("Current width: " + ToStr(currentWidth));
     SDL_Rect leftRect = { 0, 0, currentWidth, (int)windowSize.y };
     SDL_Texture* pLeftRectTexture = Util::CreateSDLTextureRect(leftRect.w, leftRect.h, COLOR_BLACK, pRenderer);
@@ -2260,6 +2288,7 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
     SDL_DestroyTexture(pTopTexture);
     SDL_DestroyTexture(pBottomTexture);
 
+    if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);
 }
 
@@ -2508,6 +2537,17 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
 
     Point windowSize = g_pApp->GetWindowSizeScaled();
+    // Classic 4:3: the effect closes over the level's area, not the screen
+    // (the black sides are drawn anyway); the speeds were worked out for
+    // the whole width.
+    SDL_Rect area = g_pApp->GetHumanView() ? g_pApp->GetHumanView()->ClassicArea() : SDL_Rect{ 0, 0, 0, 0 };
+    double areaShare = 1.0;
+    if (area.w > 0 && windowSize.x > 0)
+    {
+        areaShare = area.w / windowSize.x;
+        windowSize.Set(area.w, area.h);
+        SDL_RenderSetViewport(pRenderer, &area);
+    }
 
     // Render fade in/outs according to current state
     int referenceTime = 0;
@@ -2525,7 +2565,7 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
     referenceTime = max(0, referenceTime);
 
     // Left -> right rect
-    int currentWidth = (int)((double)referenceTime * fadeSpeed->x);
+    int currentWidth = (int)((double)referenceTime * fadeSpeed->x * areaShare);
     //LOG("Current width: " + ToStr(currentWidth));
     SDL_Rect leftRect = { 0, 0, currentWidth, (int)windowSize.y };
     SDL_Texture* pLeftRectTexture = Util::CreateSDLTextureRect(leftRect.w, leftRect.h, COLOR_BLACK, pRenderer);
@@ -2539,5 +2579,6 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
     SDL_DestroyTexture(pLeftRectTexture);
     SDL_DestroyTexture(pRightRectTexture);
 
+    if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);
 }

@@ -756,6 +756,68 @@ namespace
         return out;
     }
 
+    // Kerning after L (and Ł): its picture keeps the room of the letter's
+    // top-right, so "FIL TR", "KL ASYCZNE" looked broken; the next letter
+    // moves in until the gap is like between other letters.
+    const Glyph* FindGlyph(uint32_t cp)
+    {
+        auto it = g_Glyphs.find(cp);
+        if (it == g_Glyphs.end()) it = g_Glyphs.find(BaseLetter(cp));
+        return it == g_Glyphs.end() ? nullptr : &it->second;
+    }
+
+    // The narrowest gap between two letters side by side (-1: none found).
+    int MinGap(const Glyph& a, const Glyph& b)
+    {
+        const int GH = kAbove + kBelow;
+        int best = -1;
+        for (int y = 0; y < GH; ++y)
+        {
+            int right = -1;   // a's ink, this row and the ones next to it
+            for (int yy = std::max(0, y - 1); yy <= std::min(GH - 1, y + 1); ++yy)
+                for (int x = a.w - 1; x > right; --x)
+                    if (a.px[(size_t)yy * a.w + x] >> 24) { right = x; break; }
+            if (right < 0) continue;
+            int left = -1;
+            for (int x = 0; x < b.w; ++x)
+                if (b.px[(size_t)y * b.w + x] >> 24) { left = x; break; }
+            if (left < 0) continue;
+            const int gap = (a.w - 1 - right) + left;
+            if (best < 0 || gap < best) best = gap;
+        }
+        return best;
+    }
+
+    int NormalGap()
+    {
+        static int s_Gap = -1;
+        if (s_Gap >= 0) return s_Gap;
+        const char* letters = "ABCDEFGHIKMNOPRSTUWYZ";
+        std::vector<int> gaps;
+        for (const char* p = letters; *p; ++p)
+            for (const char* q = letters; *q; ++q)
+            {
+                const Glyph* a = FindGlyph((uint32_t)*p);
+                const Glyph* b = FindGlyph((uint32_t)*q);
+                if (!a || !b) continue;
+                const int g = MinGap(*a, *b);
+                if (g >= 0) gaps.push_back(g);
+            }
+        if (gaps.empty()) return s_Gap = 0;
+        std::sort(gaps.begin(), gaps.end());
+        return s_Gap = gaps[gaps.size() / 2];
+    }
+
+    int Kern(uint32_t prev, uint32_t next)
+    {
+        if (prev != 'L' && prev != 0x0141) return 0;
+        const Glyph* a = FindGlyph(prev);
+        const Glyph* b = FindGlyph(next);
+        if (!a || !b) return 0;
+        const int gap = MinGap(*a, *b);
+        return gap < 0 ? 0 : std::max(0, gap - NormalGap());
+    }
+
     uint32_t Blend(uint32_t dst, uint32_t src)
     {
         uint32_t sa = src >> 24;
@@ -798,11 +860,13 @@ namespace GameFont
         }
         auto lineWidth = [](const std::vector<uint32_t>& l) {
             int w = 0;
+            uint32_t prev = 0;
             for (uint32_t cp : l)
             {
                 auto it = g_Glyphs.find(cp);
                 if (it == g_Glyphs.end()) it = g_Glyphs.find(BaseLetter(cp));
-                w += (it != g_Glyphs.end()) ? it->second.w : kSpace;
+                w += (it != g_Glyphs.end()) ? it->second.w - Kern(prev, cp) : kSpace;
+                prev = cp;
             }
             return w;
         };
@@ -819,11 +883,14 @@ namespace GameFont
             int x = kPad + (textW - lineWidth(lines[li])) / 2;
             int top = (int)li * (GH + kLineGap);
             int lineStart = x;
+            uint32_t prev = 0;
             for (uint32_t cp : lines[li])
             {
                 auto it = g_Glyphs.find(cp);
                 if (it == g_Glyphs.end()) it = g_Glyphs.find(BaseLetter(cp));
-                if (it == g_Glyphs.end()) { x += kSpace; continue; }
+                if (it == g_Glyphs.end()) { x += kSpace; prev = cp; continue; }
+                x -= Kern(prev, cp);
+                prev = cp;
                 const Glyph& g = it->second;
                 for (int y = 0; y < GH; ++y)
                     for (int gx = 0; gx < g.w; ++gx)

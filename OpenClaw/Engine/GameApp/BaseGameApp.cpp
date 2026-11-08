@@ -1462,6 +1462,9 @@ void BaseGameApp::SetAspectClassic(bool classic) {
 }
 
 int BaseGameApp::Filter() {
+  // Pixel filters: hidden from the menu until they are tuned; filters_test=1
+  // in port_settings.txt turns them on for trying (filter=1..3).
+  if (PortSettings::GetInt("filters_test", 0) == 0) return 0;
   const int k = PortSettings::GetInt("filter", 0);
   return (k >= 0 && k <= 3) ? k : 0;
 }
