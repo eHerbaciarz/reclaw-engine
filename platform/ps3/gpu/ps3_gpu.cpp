@@ -142,7 +142,7 @@ namespace
         if (t->access != SDL_TEXTUREACCESS_STREAMING)
         {
             // (for smooth sampling: see-through pixels coloured like their neighbours)
-            if (const uint32_t* b = ReclawBleedAlpha(pixels, pitchPixels, r.w, r.h, bled)) { pixels = b; pitchPixels = r.w; }
+            if (const uint32_t* b = ReclawPreparePicture(pixels, pitchPixels, r.w, r.h, bled)) { pixels = b; pitchPixels = r.w; }
         }
         for (int y = 0; y < r.h; ++y)
             memcpy((Uint8*)t->data + (size_t)(r.y + y) * t->pitch + (size_t)r.x * 4, pixels + (size_t)y * pitchPixels, (size_t)r.w * 4);

@@ -187,7 +187,7 @@ namespace
         if (t->access != SDL_TEXTUREACCESS_STREAMING && r.w > 0 && r.h > 0)
         {
             // (for smooth sampling: see-through pixels coloured like their neighbours)
-            if (const uint32_t* b = ReclawBleedAlpha((const uint32_t*)pixels, pitchPixels, r.w, r.h, bled))
+            if (const uint32_t* b = ReclawPreparePicture((const uint32_t*)pixels, pitchPixels, r.w, r.h, bled))
             {
                 pixels = (const Uint32*)b;
                 pitchPixels = r.w;
@@ -902,11 +902,16 @@ SDL_Texture* ReclawGpu_CreateTextureFromSurface(SDL_Renderer* renderer, SDL_Surf
     const bool hasAlpha = surface->format->Amask != 0 || keyed;
     SDL_Surface* argb = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ARGB8888, 0);
     if (!argb) return nullptr;
+    // (dithering made half-transparent first: the format must keep that)
+    std::vector<uint32_t> prepared;
+    const Uint32* src = (const Uint32*)argb->pixels;
+    int srcPitch = argb->pitch / 4;
+    if (const uint32_t* p = ReclawPreparePicture(src, srcPitch, argb->w, argb->h, prepared)) { src = (const Uint32*)p; srcPitch = argb->w; }
     // the smallest format that keeps the picture
     bool opaque = true, binary = true;
     for (int y = 0; y < argb->h && binary; ++y)
     {
-        const Uint32* row = (const Uint32*)((const Uint8*)argb->pixels + (size_t)y * argb->pitch);
+        const Uint32* row = src + (size_t)y * srcPitch;
         for (int x = 0; x < argb->w; ++x)
         {
             const Uint32 a = row[x] >> 24;
@@ -918,7 +923,7 @@ SDL_Texture* ReclawGpu_CreateTextureFromSurface(SDL_Renderer* renderer, SDL_Surf
     GpuTexture* t = NewTexture(argb->w, argb->h, fmt, false);
     if (t)
     {
-        Upload(t, nullptr, (const Uint32*)argb->pixels, argb->pitch / 4);
+        Upload(t, nullptr, src, srcPitch);
         t->format = SDL_PIXELFORMAT_ARGB8888;
         t->blend = hasAlpha ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE;
         Uint8 am = 255, cr = 255, cg = 255, cb = 255;

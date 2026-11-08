@@ -8,9 +8,7 @@
 #include <map>
 #include <vector>
 #include "PixelFilters.h"
-#if !defined(RECLAW_GPU)
 #include "../../../platform/common/reclaw_bleed.h"
-#endif
 
 namespace
 {
@@ -117,7 +115,17 @@ SDL_Texture* Image::GetMirroredTexture(SDL_Renderer* pRenderer)
     SDL_RenderCopyEx(pRenderer, m_pTexture, NULL, NULL, 0, NULL, SDL_FLIP_HORIZONTAL);
     SDL_SetRenderTarget(pRenderer, previous);
     SDL_RenderSetScale(pRenderer, scaleX, scaleY);
-    SDL_RenderSetViewport(pRenderer, &viewport);
+    // The viewport back only if one was set: the whole target given back as a
+    // set viewport stayed when the scale changed (the menus draw at scale 1),
+    // cutting the pause menu to a corner of the screen.
+    {
+        int fullW = 0, fullH = 0;
+        if (previous) SDL_QueryTexture(previous, NULL, NULL, &fullW, &fullH);
+        else SDL_GetRendererOutputSize(pRenderer, &fullW, &fullH);
+        const bool whole = viewport.x == 0 && viewport.y == 0 &&
+                           viewport.w >= (int)(fullW / scaleX) - 1 && viewport.h >= (int)(fullH / scaleY) - 1;
+        SDL_RenderSetViewport(pRenderer, whole ? NULL : &viewport);
+    }
     SDL_RenderSetClipRect(pRenderer, clipped ? &clip : NULL);
 
     SDL_SetTextureBlendMode(m_pTexture, blend);
@@ -270,23 +278,25 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
     uint32_t colorsCount = pid->colorsCount;
 #if defined(RECLAW_SDL_SMOOTH)
     // Smooth sampling mixes a sprite's edge with the see-through pixels next
-    // to it: those take the colour of an opaque neighbour (no dark outlines).
+    // to it: those take the colour of an opaque neighbour (no dark outlines);
+    // dithered see-through areas become half-transparent (reclaw_bleed.h).
     std::vector<WAP_ColorRGBA> bled(pid->colors, pid->colors + colorsCount);
     if (colorsCount == width * height)
     {
-        auto at = [&](uint32_t x, uint32_t y) -> const WAP_ColorRGBA& { return pid->colors[y * width + x]; };
-        for (uint32_t y = 0; y < height; ++y)
-            for (uint32_t x = 0; x < width; ++x)
+        std::vector<uint32_t> argb(colorsCount), out;
+        for (uint32_t i = 0; i < colorsCount; ++i)
+        {
+            const WAP_ColorRGBA& c = pid->colors[i];
+            argb[i] = ((uint32_t)c.a << 24) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
+        }
+        if (const uint32_t* p = ReclawPreparePicture(argb.data(), (int)width, (int)width, (int)height, out))
+        {
+            for (uint32_t i = 0; i < colorsCount; ++i)
             {
-                WAP_ColorRGBA& c = bled[y * width + x];
-                if (c.a != 0) continue;
-                const WAP_ColorRGBA* n = nullptr;
-                if (x > 0 && at(x - 1, y).a) n = &at(x - 1, y);
-                else if (x + 1 < width && at(x + 1, y).a) n = &at(x + 1, y);
-                else if (y > 0 && at(x, y - 1).a) n = &at(x, y - 1);
-                else if (y + 1 < height && at(x, y + 1).a) n = &at(x, y + 1);
-                if (n) { c.r = n->r; c.g = n->g; c.b = n->b; }
+                WAP_ColorRGBA& c = bled[i];
+                c.a = (uint8_t)(p[i] >> 24); c.r = (uint8_t)(p[i] >> 16); c.g = (uint8_t)(p[i] >> 8); c.b = (uint8_t)p[i];
             }
+        }
     }
     const WAP_ColorRGBA* colors = bled.data();
 #else
@@ -373,7 +383,7 @@ SDL_Texture* Image::FilteredTextureFromPid(WapPid* pid, SDL_Renderer* renderer, 
     // (for smooth sampling: see-through pixels coloured like their neighbours;
     // the GPU shims do this themselves)
     std::vector<uint32_t> bled;
-    if (const uint32_t* b = ReclawBleedAlpha(pixels, w * 2, w * 2, h * 2, bled)) pixels = b;
+    if (const uint32_t* b = ReclawPreparePicture(pixels, w * 2, w * 2, h * 2, bled)) pixels = b;
 #endif
     SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom((void*)pixels, w * 2, h * 2, 32, w * 2 * 4, SDL_PIXELFORMAT_ARGB8888);
     if (!surface) return NULL;
