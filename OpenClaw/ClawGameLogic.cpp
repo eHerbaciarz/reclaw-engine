@@ -240,6 +240,13 @@ void ClawGameLogic::TeleportActorDelegate(IEventDataPtr pEventData)
         return;
     }
 
+    // A warp with the screen effect: the level kept as it is now, to close
+    // over (the effect starts after Claw has been moved)
+    if (pCastEventData->GetHasScreenSfx() && g_pApp->GetHumanView())
+    {
+        g_pApp->GetHumanView()->CaptureEffectFrame();
+    }
+
     m_pPhysics->VSetPosition(pCastEventData->GetActorId(), pCastEventData->GetDestination());
     IEventMgr::Get()->VTriggerEvent(IEventDataPtr(
         new EventData_Move_Actor(pCastEventData->GetActorId(), pCastEventData->GetDestination(), true)));

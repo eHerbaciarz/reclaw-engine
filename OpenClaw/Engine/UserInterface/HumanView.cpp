@@ -79,6 +79,7 @@ HumanView::HumanView(SDL_Renderer* renderer)
 HumanView::~HumanView()
 {
     RemoveAllDelegates();
+    DropEffectFrame();
 
     while (!m_ScreenElements.empty())
     {
@@ -119,7 +120,8 @@ void HumanView::VOnRender(uint32 msDiff)
 
         // Nintendo 3DS 3D slider: the level is drawn twice, right eye first.
         const bool inLevel = m_pScene && m_pScene->VIsVisible() && !m_pCamera2 && !g_pApp->IsMenuActive();
-        const int eyes = Stereo3D::BeginFrame(inLevel) ? 2 : 1;
+        // (a picture kept for an effect: flat, the slider left as it is)
+        const int eyes = (!m_bCapturingEffectFrame && Stereo3D::BeginFrame(inLevel)) ? 2 : 1;
         for (int pass = 0; pass < eyes; ++pass)
         {
             Stereo3D::SetEye(eyes == 2 ? (pass == 0 ? 1 : -1) : 0);
@@ -2087,8 +2089,92 @@ void HumanView::ToggleAspectRatioDelegate(IEventDataPtr pEventData)
 //
 //=================================================================================================
 
+void HumanView::CaptureEffectFrame()
+{
+    SDL_Renderer* pRenderer = g_pApp->GetRenderer();
+    if (!pRenderer || !m_pScene) return;
+    int w = 0, h = 0;
+    SDL_GetRendererOutputSize(pRenderer, &w, &h);
+    if (w <= 0 || h <= 0) return;
+    if (m_pEffectFrame)
+    {
+        int tw = 0, th = 0;
+        SDL_QueryTexture(m_pEffectFrame, NULL, NULL, &tw, &th);
+        if (tw != w || th != h) DropEffectFrame();
+    }
+    if (!m_pEffectFrame)
+        m_pEffectFrame = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
+    if (!m_pEffectFrame) return;
+    SDL_Texture* previous = SDL_GetRenderTarget(pRenderer);
+    if (SDL_SetRenderTarget(pRenderer, m_pEffectFrame) != 0) { DropEffectFrame(); return; }
+    const bool wasRendering = m_bRendering, wasPostponed = m_bPostponeRenderPresent;
+    m_bRendering = true;
+    m_bPostponeRenderPresent = true;
+    m_bCapturingEffectFrame = true;
+    VOnRender(0);
+    m_bCapturingEffectFrame = false;
+    m_bRendering = wasRendering;
+    m_bPostponeRenderPresent = wasPostponed;
+    SDL_SetRenderTarget(pRenderer, previous);
+}
+
+void HumanView::DrawEffectFrame(SDL_Renderer* pRenderer)
+{
+    if (!m_pEffectFrame) return;
+    float sx = 1.0f, sy = 1.0f;
+    SDL_RenderGetScale(pRenderer, &sx, &sy);
+    SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
+    SDL_RenderSetViewport(pRenderer, NULL);
+    SDL_SetTextureBlendMode(m_pEffectFrame, SDL_BLENDMODE_NONE);
+    SDL_RenderCopy(pRenderer, m_pEffectFrame, NULL, NULL);
+    SDL_RenderSetScale(pRenderer, sx, sy);
+}
+
+void HumanView::DropEffectFrame()
+{
+    if (m_pEffectFrame) SDL_DestroyTexture(m_pEffectFrame);
+    m_pEffectFrame = nullptr;
+}
+
+// The level drawn again under a full-screen effect (death, teleport), not
+// shown yet: the effect's black bands go over a whole new frame. Drawing
+// them over whatever the screen buffer held left the frames of two
+// buffers (PS3, Switch...) alternating: a jerky, lopsided closing box.
+static void DrawLevelUnderEffect(SDL_Renderer* pRenderer, bool closing)
+{
+    HumanView* pView = g_pApp->GetHumanView();
+    if (!pView) return;
+    if (closing && pView->HasEffectFrame())
+    {
+        // the moment Claw died / stepped into the warp (he has already been
+        // moved to where he comes back)
+        SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
+        SDL_RenderClear(pRenderer);
+        pView->DrawEffectFrame(pRenderer);
+    }
+    else
+    {
+        if (!closing) pView->DropEffectFrame();
+        const bool wasRendering = pView->IsRendering();
+        pView->SetRendering(true);
+        pView->SetPostponeRenderPresent(true);
+        pView->VOnRender(0);
+        pView->SetRendering(wasRendering);
+    }
+    const Point scale = g_pApp->GetScale();
+    SDL_RenderSetScale(pRenderer, (float)scale.x, (float)scale.y);
+    SDL_RenderSetViewport(pRenderer, NULL);
+    SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
+}
+
+static void FillBlack(SDL_Renderer* pRenderer, const SDL_Rect& r)
+{
+    if (r.w > 0 && r.h > 0) SDL_RenderFillRect(pRenderer, &r);
+}
+
 void SpecialEffectProcess::VRestoreStates()
 {
+    if (g_pApp && g_pApp->GetHumanView()) g_pApp->GetHumanView()->DropEffectFrame();
     if (g_pApp && g_pApp->GetGameLogic())
     {
         g_pApp->GetGameLogic()->SetRunning(true);
@@ -2145,6 +2231,9 @@ void DeathFadeInOutProcess::VOnInit()
     Point scale = g_pApp->GetScale();
     m_Epicenter.Set(m_Epicenter.x / scale.x, m_Epicenter.y / scale.y);
 
+    // The level as it is now (Claw is moved back to the checkpoint later)
+    g_pApp->GetHumanView()->CaptureEffectFrame();
+
     // Stop game logic update during fade in/out
     g_pApp->GetGameLogic()->SetRunning(false);
 
@@ -2188,7 +2277,6 @@ void DeathFadeInOutProcess::VOnUpdate(uint32 msDiff)
                 IEventMgr::Get()->VTriggerEvent(IEventDataPtr(
                     new EventData_Request_Play_Sound(soundInfo)));
 
-                g_pApp->GetHumanView()->SetRendering(true);
                 m_CurrentTime = 0;
                 m_DeathFadeState = DeathFadeState_FadingOut;
             }
@@ -2232,6 +2320,7 @@ void DeathFadeInOutProcess::VOnUpdate(uint32 msDiff)
 void DeathFadeInOutProcess::VRender(uint32 msDiff)
 {
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
+    DrawLevelUnderEffect(pRenderer, m_DeathFadeState != DeathFadeState_FadingOut && m_DeathFadeState != DeathFadeState_Ended);
 
     Point windowSize = g_pApp->GetWindowSizeScaled();
     // Classic 4:3: the effect closes over the level's area, not the screen
@@ -2267,29 +2356,21 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
     int currentWidth = (int)((double)referenceTime * fadeSpeed->x * areaShare);
     //LOG("Current width: " + ToStr(currentWidth));
     SDL_Rect leftRect = { 0, 0, currentWidth, (int)windowSize.y };
-    SDL_Texture* pLeftRectTexture = Util::CreateSDLTextureRect(leftRect.w, leftRect.h, COLOR_BLACK, pRenderer);
-    SDL_RenderCopy(pRenderer, pLeftRectTexture, NULL, &leftRect);
+    FillBlack(pRenderer, leftRect);
 
     // Right -> left rect
     SDL_Rect rightRect = { (int)windowSize.x - currentWidth , 0, currentWidth, (int)windowSize.y };
-    SDL_Texture* pRightRectTexture = Util::CreateSDLTextureRect(rightRect.w, rightRect.h, COLOR_BLACK, pRenderer);
-    SDL_RenderCopy(pRenderer, pRightRectTexture, NULL, &rightRect);
+    FillBlack(pRenderer, rightRect);
 
     int currentHeight = (int)((double)referenceTime * fadeSpeed->y);
     // Top -> Down
     SDL_Rect topRect = { 0, 0, (int)windowSize.x, currentHeight };
-    SDL_Texture* pTopTexture = Util::CreateSDLTextureRect(topRect.w, topRect.h, COLOR_BLACK, pRenderer);
-    SDL_RenderCopy(pRenderer, pTopTexture, NULL, &topRect);
+    FillBlack(pRenderer, topRect);
 
     // Down -> Top
     SDL_Rect bottomRect = { 0, (int)windowSize.y - currentHeight, (int)windowSize.x, currentHeight };
-    SDL_Texture* pBottomTexture = Util::CreateSDLTextureRect(bottomRect.w, bottomRect.h, COLOR_BLACK, pRenderer);
-    SDL_RenderCopy(pRenderer, pBottomTexture, NULL, &bottomRect);
+    FillBlack(pRenderer, bottomRect);
 
-    SDL_DestroyTexture(pLeftRectTexture);
-    SDL_DestroyTexture(pRightRectTexture);
-    SDL_DestroyTexture(pTopTexture);
-    SDL_DestroyTexture(pBottomTexture);
 
     if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);
@@ -2457,6 +2538,10 @@ void TeleportFadeInOutProcess::VOnInit()
     assert(g_pApp->GetHumanView());
     assert(g_pApp->GetHumanView()->GetCamera());
 
+    // (the level before the warp: captured by the game logic before it
+    // moved Claw; ClawGameLogic::TeleportActorDelegate)
+    if (!g_pApp->GetHumanView()->HasEffectFrame()) g_pApp->GetHumanView()->CaptureEffectFrame();
+
     // Stop game logic update during fade in/out
     g_pApp->GetGameLogic()->SetRunning(false);
     g_pApp->GetHumanView()->SetPostponeRenderPresent(true);
@@ -2509,7 +2594,6 @@ void TeleportFadeInOutProcess::VOnUpdate(uint32 msDiff)
             {
                 m_CurrentTime = 0;
                 m_TeleportState = TeleportState_FadingOut;
-                g_pApp->GetHumanView()->SetRendering(true);
 
                 /*for (shared_ptr<FadingLine> pLine : m_Lines)
                 {
@@ -2538,6 +2622,7 @@ void TeleportFadeInOutProcess::VOnUpdate(uint32 msDiff)
 void TeleportFadeInOutProcess::VRender(uint32 msDiff)
 {
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
+    DrawLevelUnderEffect(pRenderer, m_TeleportState == TeleportState_FadingIn);
 
     Point windowSize = g_pApp->GetWindowSizeScaled();
     // Classic 4:3: the effect closes over the level's area, not the screen
@@ -2571,16 +2656,12 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
     int currentWidth = (int)((double)referenceTime * fadeSpeed->x * areaShare);
     //LOG("Current width: " + ToStr(currentWidth));
     SDL_Rect leftRect = { 0, 0, currentWidth, (int)windowSize.y };
-    SDL_Texture* pLeftRectTexture = Util::CreateSDLTextureRect(leftRect.w, leftRect.h, COLOR_BLACK, pRenderer);
-    SDL_RenderCopy(pRenderer, pLeftRectTexture, NULL, &leftRect);
+    FillBlack(pRenderer, leftRect);
 
     // Right -> left rect
     SDL_Rect rightRect = { (int)windowSize.x - currentWidth, 0, currentWidth, (int)windowSize.y };
-    SDL_Texture* pRightRectTexture = Util::CreateSDLTextureRect(rightRect.w, rightRect.h, COLOR_BLACK, pRenderer);
-    SDL_RenderCopy(pRenderer, pRightRectTexture, NULL, &rightRect);
+    FillBlack(pRenderer, rightRect);
 
-    SDL_DestroyTexture(pLeftRectTexture);
-    SDL_DestroyTexture(pRightRectTexture);
 
     if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);

@@ -59,6 +59,12 @@ public:
     void SetRendering(bool rendering) { m_bRendering = rendering; }
     bool IsRendering() { return m_bRendering; }
     void SetPostponeRenderPresent(bool postpone) { m_bPostponeRenderPresent = postpone; }
+    // Death / teleport effects: the level as it was before Claw moved, drawn
+    // under the closing black bands (the screen buffers do not keep it).
+    void CaptureEffectFrame();
+    bool HasEffectFrame() const { return m_pEffectFrame != nullptr; }
+    void DrawEffectFrame(SDL_Renderer* pRenderer);
+    void DropEffectFrame();
 
     void SetCurrentLevelMusic(const std::string& music) { m_CurrentLevelMusic = music; }
 
@@ -162,6 +168,8 @@ protected:
 
     uint64 m_CurrentTick;
     uint64 m_LastDraw;
+    SDL_Texture* m_pEffectFrame = nullptr;
+    bool m_bCapturingEffectFrame = false;
     bool m_RunFullSpeed;
 
     shared_ptr<ScreenElementMenu> m_pMenu;

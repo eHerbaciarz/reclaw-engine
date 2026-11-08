@@ -27,6 +27,10 @@ namespace
     const int kCodeLength = sizeof(kCode) / sizeof(kCode[0]);
     const Uint32 kMaxGapMs = 1500;   // between two presses
 
+    // The cheats menu: until the game is closed (the code is entered again
+    // after every start)
+    bool g_Unlocked = false;
+
     std::vector<K> g_Recent;   // last presses
     Uint32 g_LastPress = 0;
 
@@ -48,12 +52,12 @@ namespace CheatCode
 {
     bool IsUnlocked()
     {
-        return PortSettings::GetBool("cheats_unlocked", false);
+        return g_Unlocked;
     }
 
     void Lock()
     {
-        PortSettings::SetBool("cheats_unlocked", false);
+        g_Unlocked = false;
         PortSettings::SetBool("special_mode", false);
     }
 
@@ -74,7 +78,7 @@ namespace CheatCode
         g_Recent.clear();
         // Shown whether subtitles are on or off.
         Subtitles::ShowText(Lang::Tr("Nie dość, że pirat to jeszcze oszust", "Not only a pirate, but a cheat as well"), 4000);
-        if (!IsUnlocked()) PortSettings::SetBool("cheats_unlocked", true);
+        g_Unlocked = true;
         LOG("Cheat code entered");
         return true;
     }
