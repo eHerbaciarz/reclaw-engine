@@ -73,6 +73,7 @@ std::map<std::string, MenuPage> g_StringToMenuPageEnumMap =
     { "MenuPage_Options_Language",              MenuPage_Options_Language },
     { "MenuPage_Cheats",                        MenuPage_Cheats },
     { "MenuPage_Options_Audio",                 MenuPage_Options_Audio },
+    { "MenuPage_Options_Graphics",              MenuPage_Options_Graphics },
     { "MenuPage_Multiplayer_LevelRacing",       MenuPage_Multiplayer_LevelRacing },
     { "MenuPage_Multiplayer_EditMacros",        MenuPage_Multiplayer_EditMacros },
 
@@ -262,6 +263,7 @@ static MenuPage StringToMenuPageEnum(const std::string& str)
     {
         LOG_ERROR("Conflicting string: " + str);
         assert(false && "Unknown menu page string");
+        return MenuPage_Main;   // (an unknown page used to read past the map's end)
     }
 
     return findIt->second;

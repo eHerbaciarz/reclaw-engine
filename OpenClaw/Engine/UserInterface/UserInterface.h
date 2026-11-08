@@ -80,6 +80,7 @@ enum MenuPage
     MenuPage_Options_Language,
     MenuPage_Cheats,
     MenuPage_Options_Audio,
+    MenuPage_Options_Graphics,   // ReClaw: Options > Graphics
 
     MenuPage_Multiplayer_LevelRacing,
     MenuPage_Multiplayer_EditMacros,

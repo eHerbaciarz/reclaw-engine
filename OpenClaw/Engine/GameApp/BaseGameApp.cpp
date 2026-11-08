@@ -425,7 +425,7 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     int hz = PortSettings::GetInt("logic_hz", defaultHz);
     if (hz < 20 || hz > 60) hz = defaultHz;
     m_fixedTimestep = 1.0 / hz;
-    LOG("Game logic at " + ToStr(hz) + " Hz");
+    LOG_WARNING("Game logic at " + ToStr(hz) + " Hz" + (hz != defaultHz ? " (logic_hz in port_settings.txt)" : ""));
   }
 #endif
 

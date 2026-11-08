@@ -349,6 +349,9 @@ void Image::SetFilter(int kind)
 
 int Image::Filter() { return g_Filter; }
 
+static int g_FilteredCount = 0;
+int Image::FilteredCount() { return g_FilteredCount; }
+
 // The picture made twice as big by a pixel filter (its colours as in
 // GetTextureFromPid). Null if that cannot be done (the caller makes the plain one).
 SDL_Texture* Image::FilteredTextureFromPid(WapPid* pid, SDL_Renderer* renderer, int kind)
@@ -376,6 +379,7 @@ SDL_Texture* Image::FilteredTextureFromPid(WapPid* pid, SDL_Renderer* renderer, 
     if (!surface) return NULL;
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
+    if (texture) ++g_FilteredCount;
     if (texture && opaque) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
     else if (texture) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     return texture;

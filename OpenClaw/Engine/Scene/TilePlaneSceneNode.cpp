@@ -41,8 +41,15 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
     float movementRatioX = pProperties->movementPercentX / 100.0f;
     float movementRatioY = pProperties->movementPercentY / 100.0f;
 
-    float parallaxCameraPosX = (float) cameraRect.x * movementRatioX;
-    float parallaxCameraPosY = (float) cameraRect.y * movementRatioY;
+    // Planes that scroll slower (background) are placed by the middle of the
+    // view, so a wider or narrower view (widescreen / classic 4:3, zoom) shows
+    // more or less round the same spot instead of moving them; at the game's
+    // own 640x480 this is exactly the original x * ratio. (Not before the
+    // plane's start: there is nothing left of it.)
+    float parallaxCameraPosX = (float) cameraRect.x * movementRatioX + (movementRatioX - 1.0f) * (cameraRect.w - 640) / 2.0f;
+    float parallaxCameraPosY = (float) cameraRect.y * movementRatioY + (movementRatioY - 1.0f) * (cameraRect.h - 480) / 2.0f;
+    if (movementRatioX != 1.0f && parallaxCameraPosX < 0.0f) parallaxCameraPosX = 0.0f;
+    if (movementRatioY != 1.0f && parallaxCameraPosY < 0.0f) parallaxCameraPosY = 0.0f;
 
     int32_t startCol = (int32_t)(parallaxCameraPosX / tilePixelWidth) - numTilesPadding;
     int32_t startRow = (int32_t)(parallaxCameraPosY / tilePixelHeight) - numTilesPadding;

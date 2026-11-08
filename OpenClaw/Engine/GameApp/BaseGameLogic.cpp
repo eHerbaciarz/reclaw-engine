@@ -810,6 +810,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
 
     loadingProgress = 95.0f;
     TraceLevel("actors created");
+    if (Image::Filter() != 0)
+        LOG_WARNING("Pixel filter " + ToStr(Image::Filter()) + ": " + ToStr(Image::FilteredCount()) + " pictures made with it so far");
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
 
 #if defined(__3DS__)

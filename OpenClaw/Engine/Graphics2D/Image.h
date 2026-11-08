@@ -37,6 +37,8 @@ public:
     // pictures loaded from now on
     static void SetFilter(int kind);
     static int Filter();
+    // Pictures made with the filter so far (for the log)
+    static int FilteredCount();
     // The texture's size over the picture's (2 when filtered)
     inline int GetTexScale() { return m_TexScale; }
     // Pass as colorKey: use the image's top-left pixel as the transparent colour.

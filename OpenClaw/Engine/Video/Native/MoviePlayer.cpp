@@ -676,7 +676,7 @@ namespace
             char line[200];
             snprintf(line, sizeof(line), "Remastered movie: %d pictures %dx%d, %d late; per picture: decoding %.1f ms, showing %.1f ms (incl. waiting for the screen)",
                      frames, texW, texH, late, decodeTicks * perfMs / frames, pictureTicks * perfMs / frames);
-            LOG(line);
+            LOG_WARNING(line);
         }
         if (frames > 0 && late * 10 > frames)
         {
