@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "../Util/StartupTrace.h"
 #include "../Graphics2D/CrtEffect.h"
 #include "RaceUi.h"
@@ -151,9 +152,25 @@ namespace
         }
 
         // Centered line at design y; returns its screen rect.
+        // Texts made once per screen (not every frame: each one is a new
+        // texture, cleaned and uploaded on the PS3 / 3DS)
+        std::map<std::string, Text> texts;
+        ~Canvas()
+        {
+            for (auto& kv : texts) FreeText(kv.second);
+        }
+
         SDL_Rect Line(TTF_Font* font, const std::string& s, double y, SDL_Color fill)
         {
-            Text t = MakeText(r, font, s, fill, kEdge, outline);
+            char key[64];
+            snprintf(key, sizeof(key), "%p %02x%02x%02x%02x ", (void*)font, fill.r, fill.g, fill.b, fill.a);
+            auto it = texts.find(key + s);
+            if (it == texts.end())
+            {
+                if (texts.size() > 64) { for (auto& kv : texts) FreeText(kv.second); texts.clear(); }
+                it = texts.insert(std::make_pair(key + s, MakeText(r, font, s, fill, kEdge, outline))).first;
+            }
+            const Text& t = it->second;
             SDL_Rect dst = { 0, 0, 0, 0 };
             if (t.tex)
             {
@@ -162,7 +179,6 @@ namespace
                 int w = (int)(t.w * shrink), h = (int)(t.h * shrink);
                 dst = { v.offX + (int)(kScreenW * v.scale - w) / 2, v.Map(0, y, 0, 0).y - h / 2, w, h };
                 SDL_RenderCopy(r, t.tex, NULL, &dst);
-                FreeText(t);
             }
             return dst;
         }

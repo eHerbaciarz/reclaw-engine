@@ -2213,6 +2213,13 @@ static void DrawLevelUnderEffect(SDL_Renderer* pRenderer, bool closing)
     SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
 }
 
+static Uint32 g_EffectShownAt = 0;   // when the last effect frame was on the screen
+
+static bool EffectShownJustNow()
+{
+    return g_EffectShownAt != 0 && SDL_GetTicks() - g_EffectShownAt < 8;
+}
+
 static void FillBlack(SDL_Renderer* pRenderer, const SDL_Rect& r)
 {
     if (r.w > 0 && r.h > 0) SDL_RenderFillRect(pRenderer, &r);
@@ -2366,6 +2373,9 @@ void DeathFadeInOutProcess::VOnUpdate(uint32 msDiff)
 void DeathFadeInOutProcess::VRender(uint32 msDiff)
 {
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
+    // two game steps in one frame (catching up): one picture is enough
+    // (each one waits for the screen; drawing both made the effect late)
+    if (EffectShownJustNow()) return;
     DrawLevelUnderEffect(pRenderer, m_DeathFadeState != DeathFadeState_FadingOut && m_DeathFadeState != DeathFadeState_Ended);
 
     Point windowSize = g_pApp->GetWindowSizeScaled();
@@ -2420,6 +2430,7 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
 
     if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);
+    g_EffectShownAt = SDL_GetTicks();
 }
 
 //=================================================================================================
@@ -2668,6 +2679,9 @@ void TeleportFadeInOutProcess::VOnUpdate(uint32 msDiff)
 void TeleportFadeInOutProcess::VRender(uint32 msDiff)
 {
     SDL_Renderer* pRenderer = g_pApp->GetRenderer();
+    // two game steps in one frame (catching up): one picture is enough
+    // (each one waits for the screen; drawing both made the effect late)
+    if (EffectShownJustNow()) return;
     DrawLevelUnderEffect(pRenderer, m_TeleportState == TeleportState_FadingIn);
 
     Point windowSize = g_pApp->GetWindowSizeScaled();
@@ -2711,4 +2725,5 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
 
     if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);
     Util::RenderForcePresent(pRenderer);
+    g_EffectShownAt = SDL_GetTicks();
 }
