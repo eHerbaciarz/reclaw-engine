@@ -1023,6 +1023,7 @@ void ScreenElementMenu::RefreshActivePageVisibility()
     {
         pItem->ReEvaluateVisibilityCondition();
     }
+    m_pActiveMenuPage->ApplyAutoLayout();
 }
 
 void ScreenElementMenu::SetMenuItemVisibleOnAllPages(const std::string& menuItemName, bool visible)
@@ -1463,33 +1464,11 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
     // needs no other position changes.
     if (TiXmlElement* pLayout = pElem->FirstChildElement("AutoLayout"))
     {
-        int top = 210, step = 35, bottom = 400;
-        pLayout->QueryIntAttribute("top", &top);
-        pLayout->QueryIntAttribute("step", &step);
-        pLayout->QueryIntAttribute("bottom", &bottom);
-        std::vector<double> rows;
-        std::map<double, bool> rowShown;
-        for (auto& pItem : m_MenuItems)
-        {
-            if (!pItem->IsButton() || !pItem->TakesPartInLayout()) continue;
-            double y = pItem->GetLayoutY();
-            if (std::find(rows.begin(), rows.end(), y) == rows.end()) rows.push_back(y);
-            rowShown[y] = rowShown[y] || pItem->VIsVisible();
-        }
-        rows.erase(std::remove_if(rows.begin(), rows.end(), [&](double y) { return !rowShown[y]; }), rows.end());
-        std::sort(rows.begin(), rows.end());
-        if (rows.size() > 1 && top + step * (int)(rows.size() - 1) > bottom)
-        {
-            step = std::max(20, (bottom - top) / (int)(rows.size() - 1));
-        }
-        std::map<double, double> newY;
-        for (size_t i = 0; i < rows.size(); ++i) newY[rows[i]] = top + step * (double)i;
-        for (auto& pItem : m_MenuItems)
-        {
-            if (!pItem->IsButton() || !pItem->TakesPartInLayout()) continue;
-            auto it = newY.find(pItem->GetLayoutY());
-            if (it != newY.end()) pItem->SetLayoutY(it->second);
-        }
+        m_bHasAutoLayout = true;
+        pLayout->QueryIntAttribute("top", &m_LayoutTop);
+        pLayout->QueryIntAttribute("step", &m_LayoutStep);
+        pLayout->QueryIntAttribute("bottom", &m_LayoutBottom);
+        ApplyAutoLayout();
     }
 
     // Load coin animation frames (/STATES/MENU/IMAGES/COINS/FRAME001.PID .. FRAME009.PID)
@@ -1761,6 +1740,35 @@ bool ScreenElementMenuPage::FocusMenuItemAtIdx(int idx, bool playSound)
     return true;
 }
 
+void ScreenElementMenuPage::ApplyAutoLayout()
+{
+    if (!m_bHasAutoLayout) return;
+    int top = m_LayoutTop, step = m_LayoutStep, bottom = m_LayoutBottom;
+    std::vector<double> rows;
+    std::map<double, bool> rowShown;
+    for (auto& pItem : m_MenuItems)
+    {
+        if (!pItem->IsButton() || !pItem->TakesPartInLayout()) continue;
+        double y = pItem->GetLayoutY();
+        if (std::find(rows.begin(), rows.end(), y) == rows.end()) rows.push_back(y);
+        rowShown[y] = rowShown[y] || pItem->VIsVisible();
+    }
+    rows.erase(std::remove_if(rows.begin(), rows.end(), [&](double y) { return !rowShown[y]; }), rows.end());
+    std::sort(rows.begin(), rows.end());
+    if (rows.size() > 1 && top + step * (int)(rows.size() - 1) > bottom)
+    {
+        step = std::max(20, (bottom - top) / (int)(rows.size() - 1));
+    }
+    std::map<double, double> newY;
+    for (size_t i = 0; i < rows.size(); ++i) newY[rows[i]] = top + step * (double)i;
+    for (auto& pItem : m_MenuItems)
+    {
+        if (!pItem->IsButton() || !pItem->TakesPartInLayout()) continue;
+        auto it = newY.find(pItem->GetLayoutY());
+        if (it != newY.end()) pItem->SetLayoutY(it->second);
+    }
+}
+
 void ScreenElementMenuPage::OnPageLoaded()
 {
     for (shared_ptr<ScreenElementMenuItem> pItem : m_MenuItems)
@@ -1768,6 +1776,7 @@ void ScreenElementMenuPage::OnPageLoaded()
         pItem->ReEvaluateVisibilityCondition();
         pItem->ReEvaluateStateCondition();
     }
+    ApplyAutoLayout();
 
     // Focus on first active button
     MoveToMenuItemIdx(m_MenuItems.size() - 1, 1, false);

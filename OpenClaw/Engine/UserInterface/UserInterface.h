@@ -218,6 +218,8 @@ public:
     bool Initialize(TiXmlElement* pElem);
 
     void OnPageLoaded();
+    // <AutoLayout>: rows for the items shown now
+    void ApplyAutoLayout();
 
     shared_ptr<ScreenElementMenuItem> FindMenuItemByName(std::string name);
     const MenuItemList& GetMenuItems() const { return m_MenuItems; }
@@ -234,6 +236,8 @@ private:
 
     MenuPage m_PageType;
     MenuItemList m_MenuItems;
+    bool m_bHasAutoLayout = false;
+    int m_LayoutTop = 210, m_LayoutStep = 35, m_LayoutBottom = 400;
 
     shared_ptr<Image> m_pBackground;
     SDL_Renderer* m_pRenderer;
@@ -359,11 +363,15 @@ public:
     // <AutoLayout> of the page: buttons are put in rows one under another.
     bool IsButton() const { return m_Type == MenuItemType_Button; }
     bool TakesPartInLayout() const { return m_bAutoLayout; }
-    double GetLayoutY() const { return m_DefaultPosition.y; }
-    void SetLayoutY(double y) { m_DefaultPosition.y = y; m_Position.y = y; }
+    // (the row given in the XML: the layout is worked out again from it when
+    // items appear or disappear)
+    double GetLayoutY() { if (!m_bXmlYKept) { m_XmlLayoutY = m_DefaultPosition.y; m_bXmlYKept = true; } return m_XmlLayoutY; }
+    void SetLayoutY(double y) { GetLayoutY(); m_DefaultPosition.y = y; m_Position.y = y; }
 
 private:
     bool m_bAutoLayout = true;
+    bool m_bXmlYKept = false;
+    double m_XmlLayoutY = 0;
     int m_DrawOffsetY = 0;          // GameFont pictures reach higher than the originals
     std::string m_Name;
     MenuItemState m_State;
