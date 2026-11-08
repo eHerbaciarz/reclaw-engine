@@ -284,10 +284,12 @@ bool BaseGameLogic::VEnterMenu(const char* xmlMenuResource)
         if (pGameView->VGetType() == GameView_Human)
         {
             shared_ptr<HumanView> pHumanView = static_pointer_cast<HumanView>(pGameView);
+            const Uint32 t0 = SDL_GetTicks();
             if (!pHumanView->EnterMenu(pXmlLevelRoot))
             {
                 return false;
             }
+            LOG_WARNING(std::string("menu ") + xmlMenuResource + " built in " + std::to_string(SDL_GetTicks() - t0) + " ms");
         }
     }
 

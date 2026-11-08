@@ -1,5 +1,7 @@
 #include "CrtEffect.h"
 #include "../Util/PortSettings.h"
+#include "../GameApp/BaseGameApp.h"
+#include "../GameApp/BaseGameLogic.h"
 
 #include <cmath>
 #include <vector>
@@ -90,6 +92,48 @@ namespace CrtEffect
         SDL_Rect all = { 0, 0, w, h };
         if (g_Lines) SDL_RenderCopy(r, g_Lines, NULL, &all);
         if (g_Vignette) SDL_RenderCopy(r, g_Vignette, NULL, &all);
+        SDL_RenderSetScale(r, sx, sy);
+    }
+
+    void BeforePresent(SDL_Renderer* r)
+    {
+        if (!r || !g_pApp || r != g_pApp->GetRenderer()) return;
+#ifdef __EMSCRIPTEN__
+        const bool classic = false;   // (the web page sizes its canvas itself)
+#else
+        const bool classic = BaseGameApp::AspectClassic();
+#endif
+        const bool crt = IsOn();
+        if (!classic && !crt) return;
+        int w = 0, h = 0;
+        if (SDL_Texture* target = SDL_GetRenderTarget(r)) SDL_QueryTexture(target, NULL, NULL, &w, &h);
+        else SDL_GetRendererOutputSize(r, &w, &h);
+        if (w <= 0 || h <= 0) return;
+        float sx = 1.0f, sy = 1.0f;
+        SDL_RenderGetScale(r, &sx, &sy);
+        SDL_RenderSetScale(r, 1.0f, 1.0f);
+        SDL_RenderSetViewport(r, NULL);
+        if (classic)
+        {
+            const int w43 = (h * 4 / 3) & ~1;
+            if (w43 + 8 < w)
+            {
+                const int bar = (w - w43) / 2;
+                SDL_Rect left = { 0, 0, bar, h }, right = { w - bar, 0, bar, h };
+                SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+                SDL_RenderFillRect(r, &left);
+                SDL_RenderFillRect(r, &right);
+            }
+        }
+        if (crt)
+        {
+            // the level: its pixels' size; menus, movies: made for 640x480
+            float scale = h / 480.0f;
+            if (BaseGameLogic* logic = g_pApp->GetGameLogic())
+                if (logic->GetGameState() == GameState_IngameRunning || logic->GetGameState() == GameState_IngamePaused)
+                    scale = (float)g_pApp->GetScale().x;
+            Render(r, w, h, scale);
+        }
         SDL_RenderSetScale(r, sx, sy);
     }
 }

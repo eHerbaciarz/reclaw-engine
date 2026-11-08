@@ -699,7 +699,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:100</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="205" align="center" />
+            <Position x="320" y="150" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>90</Percent>
@@ -735,7 +735,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:90</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="205" align="center" />
+            <Position x="320" y="150" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>80</Percent>
@@ -771,7 +771,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:80</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="205" align="center" />
+            <Position x="320" y="150" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>70</Percent>
@@ -807,7 +807,7 @@
             <VisibilityCondition>
                 <ConditionType>ViewZoom:70</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="205" align="center" />
+            <Position x="320" y="150" align="center" />
             <GeneratedEvent>
                 <Type>SetViewZoom</Type>
                 <Percent>100</Percent>
@@ -842,7 +842,7 @@
             <VisibilityCondition>
                 <ConditionType>SmoothOn</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
+            <Position x="320" y="185" align="center" />
             <GeneratedEvent>
                 <Type>SetSmooth</Type>
                 <IsEnabled>false</IsEnabled>
@@ -877,7 +877,7 @@
             <VisibilityCondition>
                 <ConditionType>SmoothOff</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="240" align="center" />
+            <Position x="320" y="185" align="center" />
             <GeneratedEvent>
                 <Type>SetSmooth</Type>
                 <IsEnabled>true</IsEnabled>
@@ -912,7 +912,7 @@
             <VisibilityCondition>
                 <ConditionType>AspectWide</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="275" align="center" />
+            <Position x="320" y="220" align="center" />
             <GeneratedEvent>
                 <Type>SetAspect</Type>
                 <Classic>true</Classic>
@@ -947,7 +947,7 @@
             <VisibilityCondition>
                 <ConditionType>AspectClassic</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="275" align="center" />
+            <Position x="320" y="220" align="center" />
             <GeneratedEvent>
                 <Type>SetAspect</Type>
                 <Classic>false</Classic>
@@ -983,7 +983,7 @@
             <VisibilityCondition>
                 <ConditionType>Filter:0</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="310" align="center" />
+            <Position x="320" y="255" align="center" />
             <GeneratedEvent>
                 <Type>SetFilter</Type>
                 <Kind>1</Kind>
@@ -1019,7 +1019,7 @@
             <VisibilityCondition>
                 <ConditionType>Filter:1</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="310" align="center" />
+            <Position x="320" y="255" align="center" />
             <GeneratedEvent>
                 <Type>SetFilter</Type>
                 <Kind>2</Kind>
@@ -1055,7 +1055,7 @@
             <VisibilityCondition>
                 <ConditionType>Filter:2</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="310" align="center" />
+            <Position x="320" y="255" align="center" />
             <GeneratedEvent>
                 <Type>SetFilter</Type>
                 <Kind>3</Kind>
@@ -1091,7 +1091,7 @@
             <VisibilityCondition>
                 <ConditionType>Filter:3</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="310" align="center" />
+            <Position x="320" y="255" align="center" />
             <GeneratedEvent>
                 <Type>SetFilter</Type>
                 <Kind>0</Kind>
@@ -1126,7 +1126,7 @@
             <VisibilityCondition>
                 <ConditionType>CrtOn</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="345" align="center" />
+            <Position x="320" y="290" align="center" />
             <GeneratedEvent>
                 <Type>SetCrt</Type>
                 <IsEnabled>false</IsEnabled>
@@ -1161,7 +1161,7 @@
             <VisibilityCondition>
                 <ConditionType>CrtOff</ConditionType>
             </VisibilityCondition>
-            <Position x="320" y="345" align="center" />
+            <Position x="320" y="290" align="center" />
             <GeneratedEvent>
                 <Type>SetCrt</Type>
                 <IsEnabled>true</IsEnabled>
@@ -1194,7 +1194,7 @@
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
-            <Position x="320" y="380" align="center" />
+            <Position x="320" y="325" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>

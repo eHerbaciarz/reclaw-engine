@@ -1,3 +1,4 @@
+#include "../Graphics2D/CrtEffect.h"
 #include "StartupSplash.h"
 
 // Dedication screen while the game loads - turned off for now.
@@ -86,6 +87,7 @@ namespace
             SDL_Rect d = { cx - g_TextW / 2, cy - g_TextH / 2, g_TextW, g_TextH };
             SDL_RenderCopy(r, g_pText, NULL, &d);
         }
+        CrtEffect::BeforePresent(r);
         SDL_RenderPresent(r);
     }
 

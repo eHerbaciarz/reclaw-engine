@@ -1,3 +1,4 @@
+#include "../Graphics2D/CrtEffect.h"
 #include "RaceUi.h"
 
 #include <SDL2/SDL_mixer.h>
@@ -243,6 +244,7 @@ namespace RaceUi
                 c.Line(c.small, line, y, kParchment);
                 y += 20;
             }
+            CrtEffect::BeforePresent(pRenderer);
             SDL_RenderPresent(pRenderer);
             SDL_Delay(15);
         }

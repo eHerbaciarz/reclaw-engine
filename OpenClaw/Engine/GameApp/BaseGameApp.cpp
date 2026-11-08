@@ -58,6 +58,7 @@ static void DrawRefilterProgress(int done, int total);
 #include "../Audio/Native/SoundFontTrim.h"
 #endif
 #include "../Util/PortSettings.h"
+#include "../Graphics2D/CrtEffect.h"
 #if defined(__PSL1GHT__)
 #include "../Platform/Input/Ps3Pad.h"
 #endif
@@ -271,6 +272,7 @@ static void ShowStartupProgress(SDL_Renderer* r, int percent)
   fill.w = barW * std::max(0, std::min(100, percent)) / 100;
   SDL_SetRenderDrawColor(r, 236, 196, 98, 255);
   SDL_RenderFillRect(r, &fill);
+  CrtEffect::BeforePresent(r);
   SDL_RenderPresent(r);
   SDL_PumpEvents();
   if (percent >= 100 && s_pTitle) { SDL_DestroyTexture(s_pTitle); s_pTitle = nullptr; }
@@ -1506,12 +1508,12 @@ void BaseGameApp::PresentFrame(bool present) {
 #if defined(RECLAW_GPU)
   // GPU drawing (3DS, PS3): the game's frame is the screen itself
   if (m_pRenderTarget && m_pRenderTarget == ReclawGpu_GameFrame()) {
-    if (present) SDL_RenderPresent(m_pRenderer);
+    if (present) { CrtEffect::BeforePresent(m_pRenderer); SDL_RenderPresent(m_pRenderer); }
     return;
   }
 #endif
   if (!m_pRenderTarget) {
-    if (present) SDL_RenderPresent(m_pRenderer);
+    if (present) { CrtEffect::BeforePresent(m_pRenderer); SDL_RenderPresent(m_pRenderer); }
     return;
   }
   float scaleX = 1.0f, scaleY = 1.0f;
@@ -1543,7 +1545,7 @@ void BaseGameApp::PresentFrame(bool present) {
   const Uint64 pf1 = SDL_GetPerformanceCounter();
   g_PerfRenderTicks[7] += pf1 - pf0;
 #endif
-  if (present) SDL_RenderPresent(m_pRenderer);
+  if (present) { CrtEffect::BeforePresent(m_pRenderer); SDL_RenderPresent(m_pRenderer); }
 #ifdef OPENCLAW_STARTUP_TRACE
   g_PerfRenderTicks[8] += SDL_GetPerformanceCounter() - pf1;
 #endif

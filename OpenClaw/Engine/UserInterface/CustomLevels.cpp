@@ -1,3 +1,4 @@
+#include "../Graphics2D/CrtEffect.h"
 #include "CustomLevels.h"
 
 #ifndef __EMSCRIPTEN__
@@ -475,6 +476,7 @@ namespace CustomLevels
                 SDL_RenderCopy(r, c->GetTexture(), NULL, &l);
                 SDL_RenderCopy(r, c->GetTexture(), NULL, &rr);
             }
+            CrtEffect::BeforePresent(r);
             SDL_RenderPresent(r);
             SDL_Delay(15);
         }

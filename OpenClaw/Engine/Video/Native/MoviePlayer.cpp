@@ -1,3 +1,4 @@
+#include "../../Graphics2D/CrtEffect.h"
 #include "../../Util/StartupTrace.h"
 #include "MoviePlayer.h"
 
@@ -378,6 +379,7 @@ namespace
             SDL_RenderClear(r);
             SDL_RenderCopy(r, tex, NULL, &dst);
             Subtitles::Render(r);
+            CrtEffect::BeforePresent(r);
             SDL_RenderPresent(r);
         };
 
@@ -395,6 +397,7 @@ namespace
                 {
                     SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
                     SDL_RenderClear(r);
+                    CrtEffect::BeforePresent(r);
                     SDL_RenderPresent(r);
                 }
             }
@@ -474,6 +477,7 @@ namespace
         if (tex) SDL_DestroyTexture(tex);
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);
+        CrtEffect::BeforePresent(r);
         SDL_RenderPresent(r);
         SDL_SetRenderTarget(r, pPrevTarget);
         smk_close(s);
@@ -659,6 +663,7 @@ namespace
                 SDL_RenderClear(r);
                 SDL_RenderCopy(r, tex, NULL, &dst);
                 Subtitles::Render(r);
+                CrtEffect::BeforePresent(r);
                 SDL_RenderPresent(r);
             }
             const Uint64 decodeT0 = SDL_GetPerformanceCounter();
@@ -714,6 +719,7 @@ namespace
         if (tex) SDL_DestroyTexture(tex);
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);
+        CrtEffect::BeforePresent(r);
         SDL_RenderPresent(r);
         SDL_SetRenderTarget(r, pPrevTarget);
         FlushInput();

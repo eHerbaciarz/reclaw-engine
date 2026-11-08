@@ -184,13 +184,6 @@ void HumanView::VOnRender(uint32 msDiff)
             }
             //LOG("SCREEN ELEMENTS: " + ToStr(m_ScreenElements.size()))
 
-            // Options > Graphics > CRT effect: over the level (and the menu over it)
-            if (m_pScene && m_pScene->VIsVisible() && !m_pCamera2)
-            {
-                const Point window = g_pApp->GetWindowSize();
-                CrtEffect::Render(renderer, (int)window.x, (int)window.y, (float)g_pApp->GetScale().x);
-            }
-
             g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
 
             RenderLevelReveal(renderer);

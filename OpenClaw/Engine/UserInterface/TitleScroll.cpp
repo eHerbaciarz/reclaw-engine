@@ -1,3 +1,4 @@
+#include "../Graphics2D/CrtEffect.h"
 #include "../Util/StartupTrace.h"
 #include "TitleScroll.h"
 
@@ -191,6 +192,7 @@ namespace
         SDL_RenderCopy(r, left.tex, NULL, &l);
         SDL_RenderCopyEx(r, right.tex, NULL, &rr, 0.0, NULL, SDL_FLIP_HORIZONTAL);
         if (s_traced < 2) STARTUP_TRACE("title scroll: rolls drawn");
+        CrtEffect::BeforePresent(r);
         SDL_RenderPresent(r);
         if (s_traced < 2) { ++s_traced; STARTUP_TRACE("title scroll: presented"); }
     }
@@ -333,6 +335,7 @@ namespace TitleScroll
 
         SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
         SDL_RenderClear(r);
+        CrtEffect::BeforePresent(r);
         SDL_RenderPresent(r);
         SDL_DestroyTexture(scaledTitle);
         if (left.tex) SDL_DestroyTexture(left.tex);

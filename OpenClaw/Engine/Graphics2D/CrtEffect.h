@@ -10,4 +10,9 @@ namespace CrtEffect
     // Over the whole frame (window size w x h at render scale 1); levelScale:
     // the level's pixels' size on the screen.
     void Render(SDL_Renderer* renderer, int w, int h, float levelScale);
+
+    // Just before every SDL_RenderPresent of the game's screen (menus,
+    // loading screens, movies, the level): the CRT effect and, in classic
+    // 4:3, black bars at the sides - on everything shown.
+    void BeforePresent(SDL_Renderer* renderer);
 }

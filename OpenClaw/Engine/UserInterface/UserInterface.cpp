@@ -911,7 +911,8 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
     // ---------- Background Music ----------
     //
     ParseValueFromXmlElem(&m_BackgroundMusicPath, pElem->FirstChildElement("BackgroundMusic"));
-    PlayBackgroundMusic();
+    // (started at the end, when the menu is ready: on the PS3 building it took
+    // seconds and the music played over a black screen)
 
     //
     // ---------- Enter Menu Sound ----------
@@ -929,11 +930,15 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
         MenuPage pageType = StringToMenuPageEnum(pageName);
 
         shared_ptr<ScreenElementMenuPage> pPage(new ScreenElementMenuPage(m_pRenderer));
+        const Uint32 pageT0 = SDL_GetTicks();
         if (!pPage->Initialize(pMenuPageElem))
         {
             LOG_ERROR("Could not initialize menu page: " + pageName);
             return false;
         }
+        // (the menu took seconds to appear on the PS3: which page)
+        const Uint32 pageMs = SDL_GetTicks() - pageT0;
+        if (pageMs >= 100) LOG_WARNING("menu page " + pageName + " built in " + std::to_string(pageMs) + " ms");
 
         m_MenuPageMap.insert(std::make_pair(pageType, pPage));
     }
@@ -986,6 +991,7 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
             WAP_PalDestroy(pPal);
     }
 
+    PlayBackgroundMusic();
     return true;
 }
 
@@ -1429,10 +1435,18 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
         pMenuItemElem = pMenuItemElem->NextSiblingElement("MenuItem"))
     {
         shared_ptr<ScreenElementMenuItem> pItem(new ScreenElementMenuItem(m_pRenderer));
+        const Uint32 itemT0 = SDL_GetTicks();
         if (!pItem->Initialize(pMenuItemElem))
         {
             LOG_ERROR("Could not initialize menu item");
             return false;
+        }
+        const Uint32 itemMs = SDL_GetTicks() - itemT0;
+        if (itemMs >= 40)
+        {
+            std::string itemName;
+            ParseValueFromXmlElem(&itemName, pMenuItemElem->FirstChildElement("Name"));
+            LOG_WARNING("  menu item " + itemName + " built in " + std::to_string(itemMs) + " ms");
         }
 
         m_MenuItems.push_back(pItem);

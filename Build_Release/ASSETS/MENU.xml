@@ -2645,7 +2645,7 @@
     <!-- GRAPHICS PAGE (ReClaw: Options > Graphics) -->
     <MenuPage>
         <PageName>MenuPage_Options_Graphics</PageName>
-        <AutoLayout top="230" step="40" bottom="410" />
+        <AutoLayout top="190" step="40" bottom="370" />
         <KeyboardEvent>
             <KeyType>Escape</KeyType>
             <GeneratedEvent>
@@ -2659,7 +2659,7 @@
             <GameFontUnderline>-2</GameFontUnderline>
             <Type>Text</Type>
             <State>Inactive</State>
-            <Position x="320" y="160" align="center" />
+            <Position x="320" y="125" align="center" />
         </MenuItem>
         <MenuItem>
             <!-- ReClaw: pictures smoothed or sharp pixels -->
