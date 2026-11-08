@@ -452,7 +452,8 @@ void ClawPhysics::VSerializeBodyState(uint32_t actorId, StateArchive& ar)
     float av = pBody ? pBody->GetAngularVelocity() : 0;
     float gravity = pBody ? pBody->GetGravityScale() : 1;
     uint8_t awake = pBody ? pBody->IsAwake() : 1;
-    uint8_t active = pBody ? pBody->IsActive() : 1;
+    // (a body only switched off for being far from the view counts as on)
+    uint8_t active = pBody ? (pBody->IsActive() || m_FarPaused.count(actorId) != 0) : 1;
     uint8_t fixedRotation = pBody ? pBody->IsFixedRotation() : 0;
     ar(px); ar(py); ar(angle); ar(vx); ar(vy); ar(av); ar(gravity);
     ar(awake); ar(active); ar(fixedRotation);

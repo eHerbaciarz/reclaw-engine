@@ -290,12 +290,31 @@ bool SaveStateManager::Restore(BaseGameLogic* pLogic, const Snapshot& snapshot)
     wanted.reserve(snapshot.actors.size() * 2);
     for (const ActorRecord& r : snapshot.actors) wanted.insert(r.guid);
 
+    // Bodies switched off far from the view (RECLAW_PAUSE_FAR_*) on again
+    // first: the stored state says what is on; the next step switches the
+    // far ones off again. (Otherwise a body restored as switched off stayed
+    // off for good, or the pause list named bodies that were gone.)
+    for (auto& kv : pLogic->m_ActorMap)
+    {
+        if (kv.second && kv.second->m_bPausedFar)
+        {
+            pPhysics->VSetFarPaused(kv.first, false);
+            kv.second->m_bPausedFar = false;
+        }
+    }
+
     // 1. Actors created after the snapshot (projectiles, loot, effects) go away.
     std::vector<uint32_t> toDestroy;
     for (auto& kv : pLogic->m_ActorMap)
     {
         // Actors the snapshot could not have recorded are left alone.
         if (!kv.second || !kv.second->GetCreationXml()) continue;
+        // Children made by an actor while it was created belong to it: a
+        // parent recreated by an earlier step back made them anew (new
+        // GUIDs); destroying them left the parent pointing at nothing - the
+        // game closed when R was held long (the same snapshot again).
+        const uint32_t parent = kv.second->GetParentGuid();
+        if (parent != 0 && pLogic->m_ActorMap.count(parent) && wanted.count(parent)) continue;
         if (!wanted.count(kv.first)) toDestroy.push_back(kv.first);
     }
     for (uint32_t guid : toDestroy)
