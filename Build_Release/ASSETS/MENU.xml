@@ -2872,6 +2872,76 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
+            <!-- ReClaw: frames per second in the lower left corner -->
+            <Name>FPS_ON_BUTTON</Name>
+            <GameFontText en="FPS COUNTER: ON">LICZNIK FPS: TAK</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FpsOn</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="370" align="center" />
+            <GeneratedEvent>
+                <Type>SetFpsCounter</Type>
+                <IsEnabled>false</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FPS_ON_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FPS_ON_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FPS_OFF_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FPS_OFF_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: frames per second in the lower left corner -->
+            <Name>FPS_OFF_BUTTON</Name>
+            <GameFontText en="FPS COUNTER: OFF">LICZNIK FPS: NIE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FpsOff</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="370" align="center" />
+            <GeneratedEvent>
+                <Type>SetFpsCounter</Type>
+                <IsEnabled>true</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FPS_OFF_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FPS_OFF_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FPS_ON_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FPS_ON_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <State>Inactive</State>

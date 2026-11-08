@@ -15,4 +15,9 @@ namespace CrtEffect
     // loading screens, movies, the level): the CRT effect and, in classic
     // 4:3, black bars at the sides - on everything shown.
     void BeforePresent(SDL_Renderer* renderer);
+
+    // Options > Graphics > FPS counter: frames per second in the lower left
+    // corner of the picture (drawn in BeforePresent).
+    bool FpsCounterOn();
+    void SetFpsCounter(bool on);
 }

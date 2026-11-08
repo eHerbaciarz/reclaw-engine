@@ -2541,6 +2541,30 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Fps_Counter
+// Options > Graphics > FPS counter (lower left corner).
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Fps_Counter : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Fps_Counter(bool enabled = false) : m_bEnabled(enabled) { }
+
+    bool IsEnabled() const { return m_bEnabled; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Fps_Counter(m_bEnabled)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Fps_Counter"; }
+
+private:
+    bool m_bEnabled;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Set_View_Zoom
 // 3DS (GPU drawing): how much of the level is seen (percent of the normal
 // zoom; less shows more of the level).

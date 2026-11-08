@@ -459,6 +459,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
         pEventData.reset(new EventData_Menu_Set_Crt(enabled));
     }
+    else if (eventType == "SetFpsCounter")
+    {
+        bool enabled = false;
+        ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
+        pEventData.reset(new EventData_Menu_Set_Fps_Counter(enabled));
+    }
     else if (eventType == "SetFilter")
     {
         int kind = 0;
@@ -2601,6 +2607,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
 #ifndef __EMSCRIPTEN__
         m_bVisible = true;
 #endif
+    }
+    else if (m_VisibilityConditionType == "FpsOn" || m_VisibilityConditionType == "FpsOff")
+    {
+        m_bVisible = CrtEffect::FpsCounterOn() == (m_VisibilityConditionType == "FpsOn");
     }
     else if (m_VisibilityConditionType == "CrtOn" || m_VisibilityConditionType == "CrtOff")
     {

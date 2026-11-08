@@ -142,6 +142,7 @@ protected:
     void SetAspectDelegate(IEventDataPtr pEventData);
     void SetFilterDelegate(IEventDataPtr pEventData);
     void SetCrtDelegate(IEventDataPtr pEventData);
+    void SetFpsCounterDelegate(IEventDataPtr pEventData);
     void OnCheatKey(CheatCode::Key key);
     bool OnMenuCheatKey(CheatCode::Key key);
     void StartRaceDelegate(IEventDataPtr pEventData);

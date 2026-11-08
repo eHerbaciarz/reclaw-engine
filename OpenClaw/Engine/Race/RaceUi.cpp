@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <memory>
 
 #include "../GameApp/BaseGameApp.h"
 #include "../Audio/Audio.h"
@@ -20,6 +21,7 @@
 #include "../Platform/Input/BlockingInput.h"
 #include "../Platform/Platform.h"
 #include "../UserInterface/Lang.h"
+#include "../UserInterface/GameFont.h"
 
 namespace
 {
@@ -42,6 +44,7 @@ namespace
 
     struct Text
     {
+        std::shared_ptr<Image> img;   // the game's menu letters (sizes in 640x480 units)
         SDL_Texture* tex = nullptr;
         int w = 0, h = 0;
     };
@@ -102,8 +105,28 @@ namespace
 
     void FreeText(Text& t)
     {
-        if (t.tex) SDL_DestroyTexture(t.tex);
+        if (t.tex && !t.img) SDL_DestroyTexture(t.tex);
         t = Text();
+    }
+
+    // The text in the game's own menu letters, like the menus (a '!' they
+    // do not have is left out); empty when a letter is missing (digits).
+    Text MakeGameText(const std::string& text, GameFont::Look look, int percent)
+    {
+        Text t;
+        std::string s;
+        for (char ch : text) if (ch != '!') s += ch;
+        while (!s.empty() && s.back() == ' ') s.pop_back();
+        if (s.empty() || !GameFont::Covers(s)) return t;
+        GameFont::Pixels px;
+        if (!GameFont::RenderPixels(s, look, -1, px)) return t;
+        if (percent != 100) px = GameFont::WithShadow(GameFont::Scale(px, percent), 2, 2, 200);
+        t.img = GameFont::ToImage(px);
+        if (!t.img) return Text();
+        t.tex = t.img->GetTexture();
+        t.w = t.img->GetWidth();
+        t.h = t.img->GetHeight();
+        return t;
     }
 
     void PlayMenuSound(const char* path)
@@ -183,15 +206,25 @@ namespace
             if (it == texts.end())
             {
                 if (texts.size() > 64) { for (auto& kv : texts) FreeText(kv.second); texts.clear(); }
-                it = texts.insert(std::make_pair(key + s, MakeText(r, font, s, fill, kEdge, outline))).first;
+                // the title and the items in the menu's letters, notes in the plain font
+                Text made;
+                if (font == title || font == item)
+                {
+                    const bool selected = fill.r == kGoldLight.r && fill.g == kGoldLight.g && fill.b == kGoldLight.b;
+                    made = MakeGameText(s, selected ? GameFont::Look::Active : GameFont::Look::Normal, font == title ? 100 : 80);
+                }
+                if (!made.tex) made = MakeText(r, font, s, fill, kEdge, outline);
+                it = texts.insert(std::make_pair(key + s, made)).first;
             }
             const Text& t = it->second;
             SDL_Rect dst = { 0, 0, 0, 0 };
             if (t.tex)
             {
+                // (menu letters: 640x480 units)
+                const double unit = t.img ? v.scale : 1.0;
                 double maxW = 560 * v.scale;
-                double shrink = t.w > maxW ? maxW / t.w : 1.0;
-                int w = (int)(t.w * shrink), h = (int)(t.h * shrink);
+                double shrink = t.w * unit > maxW ? maxW / (t.w * unit) : 1.0;
+                int w = (int)(t.w * unit * shrink), h = (int)(t.h * unit * shrink);
                 dst = { v.offX + (int)(kScreenW * v.scale - w) / 2, v.Map(0, y, 0, 0).y - h / 2, w, h };
                 SDL_RenderCopy(r, t.tex, NULL, &dst);
             }
@@ -331,14 +364,24 @@ namespace RaceUi
         if (it == g_TextCache.end())
         {
             if (g_TextCache.size() > 96) FreeTextCache();
-            Text t = MakeText(pRenderer, OpenFont(px), text, fill, kEdge, std::max(1, px / 14));
+            // the menu's letters where they can write it (no digits)
+            Text t = MakeGameText(text, GameFont::Look::Normal, 100);
+            if (!t.tex) t = MakeText(pRenderer, OpenFont(px), text, fill, kEdge, std::max(1, px / 14));
             it = g_TextCache.insert(std::make_pair(key, t)).first;
         }
         const Text& t = it->second;
         if (!t.tex) return;
         SDL_Rect dst = { x, y, t.w, t.h };
-        if (align == 0) dst.x -= t.w / 2;
-        else if (align > 0) dst.x -= t.w;
+        if (t.img)
+        {
+            // letters about as tall as the plain font's at px
+            const double k = px * 1.6 / std::max(1, t.h);
+            dst.w = (int)(t.w * k);
+            dst.h = (int)(t.h * k);
+            dst.y -= (dst.h - (int)(px * 1.2)) / 2;
+        }
+        if (align == 0) dst.x -= dst.w / 2;
+        else if (align > 0) dst.x -= dst.w;
         SDL_RenderCopy(pRenderer, t.tex, NULL, &dst);
     }
 

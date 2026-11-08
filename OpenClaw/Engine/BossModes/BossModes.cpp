@@ -86,6 +86,17 @@ namespace
         return std::string(Lang::Tr("poziom ", "level ")) + std::to_string(level);
     }
 
+    // In words: the list is drawn in the game's menu letters (no digits)
+    std::string LevelWords(int level)
+    {
+        static const char* pl[] = { "", "pierwszy", "drugi", "trzeci", "czwarty", "piąty", "szósty", "siódmy",
+                                    "ósmy", "dziewiąty", "dziesiąty", "jedenasty", "dwunasty", "trzynasty", "czternasty" };
+        static const char* en[] = { "", "one", "two", "three", "four", "five", "six", "seven",
+                                    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen" };
+        if (level < 1 || level > 14) return LevelText(level);
+        return Lang::Code() == "pl" ? std::string("poziom ") + pl[level] : std::string("level ") + en[level];
+    }
+
     std::string FormatTime(uint32_t ms)
     {
         if (ms == kNoTime) return "-";
@@ -336,32 +347,48 @@ namespace BossModes
     {
         if (!pRenderer) return 0;
         std::vector<int> levels;      // per list row; -1 = Boss Rush
+        std::vector<std::string> records;   // per row: the best time, if any
         RaceUi::ListScreen s;
         s.title = Lang::Tr("Skrzyżuj szpady ponownie", "Cross Swords Again");
         for (const auto& b : g_Bosses)
         {
             if (!IsBossReached(b.level)) continue;
-            std::string item = std::string(b.name) + " - " + LevelText(b.level);
-            if (!b.available) item += Lang::Tr(" (jeszcze niedostępny)", " (not available yet)");
-            else
-            {
-                uint32_t best = GetRecord(BossRecordKey(b.level));
-                if (best != kNoTime) item += "   " + FormatTime(best);
-            }
+            std::string item = std::string(b.name) + " - " + LevelWords(b.level);
+            if (!b.available) item += Lang::Tr(" - niedostępny", " - not ready");
+            // (the record under the list, for the selected boss: digits are
+            // not among the menu's letters)
+            uint32_t best = b.available ? GetRecord(BossRecordKey(b.level)) : kNoTime;
+            records.push_back(best == kNoTime ? std::string() :
+                              std::string(Lang::Tr("Rekord: ", "Record: ")) + FormatTime(best));
             s.items.push_back(item);
             levels.push_back(b.level);
         }
         bool rushOpen = IsGameCompleted();
-        std::string rush = Lang::Tr("Paruj i kontruj", "Parry & Thrust");
-        if (!rushOpen) rush += Lang::Tr(" (ukończ grę)", " (finish the game)");
+        std::string rush = Lang::Tr("Paruj i kontruj", "Parry and thrust");
+        if (!rushOpen) rush += Lang::Tr(" - ukończ grę", " - finish the game");
         s.items.push_back(rush);
         levels.push_back(-1);
+        {
+            int rushCount = 0;
+            for (const auto& b : g_Bosses) if (b.available) ++rushCount;
+            uint32_t best = rushOpen ? GetRecord("rush_best_" + std::to_string(rushCount)) : kNoTime;
+            records.push_back(best == kNoTime ? std::string() :
+                              std::string(Lang::Tr("Rekord: ", "Record: ")) + FormatTime(best));
+        }
 
         if (levels.size() == 1)
         {
             s.footer.push_back(Lang::Tr("Nie dotarłeś jeszcze do żadnego bossa.", "You have not reached any boss yet."));
         }
+        const size_t recordLine = s.footer.size();
+        s.footer.push_back("");
         s.footer.push_back(std::string(Platform::BackButtonName()) + Lang::Tr(" - wróć", " - back"));
+        s.tick = [records, recordLine](RaceUi::ListScreen& screen) -> int
+        {
+            if (recordLine < screen.footer.size() && screen.selected >= 0 && screen.selected < (int)records.size())
+                screen.footer[recordLine] = records[screen.selected];
+            return -2;
+        };
 
         while (true)
         {

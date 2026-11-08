@@ -844,6 +844,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetCrtDelegate), EventData_Menu_Set_Crt::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetFpsCounterDelegate), EventData_Menu_Set_Fps_Counter::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -919,6 +921,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::SetFilterDelegate), EventData_Menu_Set_Filter::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetCrtDelegate), EventData_Menu_Set_Crt::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetFpsCounterDelegate), EventData_Menu_Set_Fps_Counter::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1782,6 +1786,12 @@ void HumanView::SetCrtDelegate(IEventDataPtr pEventData)
     if (pCast) CrtEffect::SetOn(pCast->IsEnabled());
 }
 
+void HumanView::SetFpsCounterDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Fps_Counter> pCast = static_pointer_cast<EventData_Menu_Set_Fps_Counter>(pEventData);
+    if (pCast) CrtEffect::SetFpsCounter(pCast->IsEnabled());
+}
+
 void HumanView::StartRaceDelegate(IEventDataPtr pEventData)
 {
     Race::Setup setup;
@@ -2153,7 +2163,14 @@ void HumanView::CaptureEffectFrame()
         m_pEffectFrame = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
     if (!m_pEffectFrame) return;
     SDL_Texture* previous = SDL_GetRenderTarget(pRenderer);
+    float sx = 1.0f, sy = 1.0f;
+    SDL_RenderGetScale(pRenderer, &sx, &sy);
     if (SDL_SetRenderTarget(pRenderer, m_pEffectFrame) != 0) { DropEffectFrame(); return; }
+    // the same view as the screen's (a target starts at scale 1: on the PS3
+    // the level came out half-size in a corner, shrinking as it closed)
+    const Point scale = g_pApp->GetScale();
+    SDL_RenderSetScale(pRenderer, (float)scale.x, (float)scale.y);
+    SDL_RenderSetViewport(pRenderer, NULL);
     const bool wasRendering = m_bRendering, wasPostponed = m_bPostponeRenderPresent;
     m_bRendering = true;
     m_bPostponeRenderPresent = true;
@@ -2163,6 +2180,7 @@ void HumanView::CaptureEffectFrame()
     m_bRendering = wasRendering;
     m_bPostponeRenderPresent = wasPostponed;
     SDL_SetRenderTarget(pRenderer, previous);
+    SDL_RenderSetScale(pRenderer, sx, sy);
 }
 
 void HumanView::DrawEffectFrame(SDL_Renderer* pRenderer)

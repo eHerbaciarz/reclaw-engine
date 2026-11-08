@@ -31,6 +31,8 @@ namespace GameFont
 
     // True when the menu pictures of a known release (Polish, English) are there.
     bool Available();
+    // True when every letter of the text can be drawn (no digits, no '!').
+    bool Covers(const std::string& utf8);
 
     // Rows the pictures have above the top of an original 35-pixel menu
     // picture (room for accents); menu items draw them that much higher.

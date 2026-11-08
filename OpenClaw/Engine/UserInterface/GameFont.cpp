@@ -1074,6 +1074,18 @@ namespace GameFont
         return image;
     }
 
+    bool Covers(const std::string& utf8)
+    {
+        if (!Available()) return false;
+        for (uint32_t cp : Decode(utf8))
+        {
+            if (cp == ' ' || cp == '|' || cp == '\n') continue;
+            if (g_Glyphs.count(cp) || g_Glyphs.count(BaseLetter(cp))) continue;
+            return false;
+        }
+        return true;
+    }
+
     std::shared_ptr<Image> Render(const std::string& utf8, Look look, int underline)
     {
         Pixels p;
