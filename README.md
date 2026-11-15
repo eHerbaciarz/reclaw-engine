@@ -2,7 +2,7 @@
 
 **ReClaw** is an unofficial, fan-made engine for the platform game **Claw**
 (Monolith Productions, 1997), also known as Captain Claw / Kapitan Pazur.
-It runs the original game from your own copy of its data on PC and on
+It runs the original game from your own copy of its data on game
 consoles, and adds a few things of its own.
 
 > **ReClaw contains no game data.** You need `CLAW.REZ` (and, for the
@@ -15,15 +15,13 @@ consoles, and adds a few things of its own.
 | Platform | Package | ReClaw folder (CLAW.REZ goes to its `data/`) |
 |---|---|---|
 | Nintendo Switch | `reclaw.nro` | `sd:/switch/reclaw/` |
-| Linux x86_64 | `reclaw-linux-x86_64.tar.gz` | the folder of `run.sh` |
-| Windows x86_64 | `reclaw-windows-x86_64.zip` | the folder of `ReClaw.exe` |
 | PS Vita | `reclaw.vpk` | `ux0:data/reclaw/` |
-| Nintendo 3DS | `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
-| Wii U | `reclaw.wuhb` | `sd:/wiiu/apps/reclaw/` |
-| PS3 | `reclaw.pkg` / `reclaw.self` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
-| PS4 | `IV0001-RCLW00002_….pkg` | `/data/reclaw/` |
-| Android | `ReClaw.apk` | picked in the app on first start |
-| Web browser | see [claw-web](https://github.com/arthurboss/claw-web) | uploaded in the browser |
+| Nintendo 3DS | `reclaw.cia` / `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
+| PS3 | `reclaw.pkg` / `reclaw_hen.pkg` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
+
+These four are the ones tested on real hardware. The source tree still holds
+code for other platforms inherited from earlier work; it is untested and not
+released.
 
 Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Polish).
 
@@ -31,7 +29,7 @@ Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Po
 
 ```
 reclaw/
-├── reclaw.nro          (Switch; ReClaw.exe / run.sh on PC)
+├── reclaw.nro          (Switch)
 ├── data/
 │   ├── pl/             CLAW.REZ, CLAW.FEC of the Polish release (or an unpacked Assets)
 │   └── en/             CLAW.REZ, CLAW.FEC of the English release
@@ -43,7 +41,8 @@ reclaw/
 │   │   ├── subtitles/dialogue/   what Claw and the enemies say
 │   │   └── menu/strings.txt      texts of the port's menus and screens
 │   └── en/   (the same)
-└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log
+└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log,
+                        reclaw_previous.log (the last session's log)
 ```
 
 The game creates these folders on its first start.
@@ -58,8 +57,9 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 
 ## What ReClaw adds
 
-- Ports to Switch, Linux, Windows, PS Vita, 3DS, Wii U, PS3, PS4 and Android
-- Second screen on 3DS / Wii U: the menu map with the player's status
+- Ports to Switch, PS Vita, 3DS and PS3
+- GPU rendering with smoothing, 16:9 or classic 4:3, CRT effect, FPS counter
+- Second screen on 3DS: the menu map with the player's status
 - Race mode: split screen or two consoles over the local network
 - Save states (save / load / rewind), level map, carrying and throwing powder kegs
 - Subtitles from SRT files for the movies and spoken lines ([docs/NAPISY.md](docs/NAPISY.md))
@@ -78,13 +78,9 @@ ReClaw: Herbaciarz, made with the help of Claude (Anthropic).
 
 ## Building
 
-```
-git clone <this repository> reclaw-engine && cd reclaw-engine
-cmake -S platform/linux -B build-linux -DCMAKE_BUILD_TYPE=Release && cmake --build build-linux -j
-```
-
-Every platform is built by GitHub Actions (`.github/workflows/ports.yml` and
-`switch.yml`); the packages are under Actions → Artifacts.
+Each console has its folder in `platform/` (`switch`, `vita`, `3ds`, `ps3`)
+and is built with its homebrew SDK (devkitPro, VitaSDK, PSL1GHT) – see
+[docs/PORTY.md](docs/PORTY.md).
 
 ## License
 
