@@ -35,8 +35,11 @@ Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Po
 
 ReClaw is an alpha. Not working yet or incomplete:
 
-- **Level 14** – only the first stage works; Omar (the final boss) and the
-  chameleons are not there yet
+- **Level 14** – missing (it does not work)
+- **Level 13** – the chameleons are missing
+- **Claw's movement** – no acceleration (Claw does not speed up gradually as
+  in the original)
+- **Objects** – the logic of some objects differs a little from the original
 - **Bosses** – Gabriel (8) and Marrow (10) work; Le Rauxe (2), Katherine (4)
   and Wolvington (6) only have generic behaviour; Aquatis (12) and Red Tail
   (13) are simplified
@@ -139,8 +142,11 @@ Szczegóły (sterowanie, drugie ekrany, budowanie): [docs/PORTY.md](docs/PORTY.m
 
 ReClaw to wersja alfa. Jeszcze nie działa albo jest niekompletne:
 
-- **Poziom 14** – działa tylko pierwszy etap; nie ma jeszcze Omara
-  (ostatniego bossa) ani kameleonów
+- **Poziom 14** – brakuje go (nie działa)
+- **Poziom 13** – brakuje kameleonów
+- **Ruch Kapitana Pazura** – brak fizyki rozpędzania (Pazur nie nabiera
+  prędkości stopniowo jak w oryginale)
+- **Obiekty** – logika niektórych obiektów trochę różni się od oryginału
 - **Bossowie** – Gabriel (8) i Marrow (10) działają; Le Rauxe (2), Katherine
   (4) i Wolvington (6) mają tylko ogólne zachowanie; Aquatis (12) i Red Tail
   (13) są uproszczeni
