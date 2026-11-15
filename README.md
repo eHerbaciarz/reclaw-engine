@@ -42,8 +42,6 @@ ReClaw is an alpha. Not working yet or incomplete:
   (13) are simplified
 - **Powder kegs** – the flight physics of a thrown keg is not right yet
   (path, strength, bounces); the keg-carrying animations are placeholders
-- Hidden experimental modes (boss modes, save states / rewind) are not
-  finished and may crash
 
 Please report bugs with `reclaw.log` (or `reclaw_previous.log` after a crash)
 from the `save/` folder.
@@ -148,8 +146,6 @@ ReClaw to wersja alfa. Jeszcze nie działa albo jest niekompletne:
   (13) są uproszczeni
 - **Beczki z prochem** – fizyka lotu rzuconej beczki nie jest jeszcze
   poprawna (tor, siła, odbicia); animacje noszenia beczki są tymczasowe
-- Ukryte tryby eksperymentalne (tryby bossów, zapis stanu / cofanie czasu)
-  nie są skończone i mogą wyrzucić z gry
 
 Błędy najlepiej zgłaszać z plikiem `reclaw.log` (albo `reclaw_previous.log`
 po wywałce) z folderu `save/`.
