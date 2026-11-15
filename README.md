@@ -31,6 +31,23 @@ work; it is untested and not released.
 
 Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Polish).
 
+### Known issues
+
+ReClaw is an alpha. Not working yet or incomplete:
+
+- **Level 14** – only the first stage works; Omar (the final boss) and the
+  chameleons are not there yet
+- **Bosses** – Gabriel (8) and Marrow (10) work; Le Rauxe (2), Katherine (4)
+  and Wolvington (6) only have generic behaviour; Aquatis (12) and Red Tail
+  (13) are simplified
+- **Powder kegs** – the flight physics of a thrown keg is not right yet
+  (path, strength, bounces); the keg-carrying animations are placeholders
+- Hidden experimental modes (boss modes, save states / rewind) are not
+  finished and may crash
+
+Please report bugs with `reclaw.log` (or `reclaw_previous.log` after a crash)
+from the `save/` folder.
+
 ### The ReClaw folder
 
 ```
@@ -119,6 +136,23 @@ W kodzie zostały jeszcze inne platformy z wcześniejszych prac – nie są
 przetestowane ani wydawane.
 
 Szczegóły (sterowanie, drugie ekrany, budowanie): [docs/PORTY.md](docs/PORTY.md).
+
+### Znane problemy
+
+ReClaw to wersja alfa. Jeszcze nie działa albo jest niekompletne:
+
+- **Poziom 14** – działa tylko pierwszy etap; nie ma jeszcze Omara
+  (ostatniego bossa) ani kameleonów
+- **Bossowie** – Gabriel (8) i Marrow (10) działają; Le Rauxe (2), Katherine
+  (4) i Wolvington (6) mają tylko ogólne zachowanie; Aquatis (12) i Red Tail
+  (13) są uproszczeni
+- **Beczki z prochem** – fizyka lotu rzuconej beczki nie jest jeszcze
+  poprawna (tor, siła, odbicia); animacje noszenia beczki są tymczasowe
+- Ukryte tryby eksperymentalne (tryby bossów, zapis stanu / cofanie czasu)
+  nie są skończone i mogą wyrzucić z gry
+
+Błędy najlepiej zgłaszać z plikiem `reclaw.log` (albo `reclaw_previous.log`
+po wywałce) z folderu `save/`.
 
 ### Folder ReClaw
 
