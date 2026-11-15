@@ -60,8 +60,6 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 - Ports to Switch, PS Vita, 3DS and PS3
 - GPU rendering with smoothing, 16:9 or classic 4:3, CRT effect, FPS counter
 - Second screen on 3DS: the menu map with the player's status
-- Race mode: split screen or two consoles over the local network
-- Save states (save / load / rewind), level map, carrying and throwing powder kegs
 - Subtitles from SRT files for the movies and spoken lines ([docs/NAPISY.md](docs/NAPISY.md))
 - Polish and English texts of its own screens, controls page per platform
 
