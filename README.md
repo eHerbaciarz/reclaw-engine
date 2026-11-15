@@ -21,9 +21,13 @@ consoles, and adds a few things of its own.
 | Nintendo 3DS | `reclaw.cia` / `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
 | PS3 | `reclaw.pkg` / `reclaw_hen.pkg` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
 
-These four are the ones tested on real hardware. The source tree still holds
-code for other platforms inherited from earlier work; it is untested and not
-released.
+All four versions were tested on real hardware (Switch, PS Vita, New
+Nintendo 3DS, PS3) and run at a full 60 fps. On the New 3DS the stereoscopic
+3D mode and the second screen work too. The game has not been tested on the
+original (Old) 3DS / 2DS, so how well it runs there is unknown.
+
+The source tree still holds code for other platforms inherited from earlier
+work; it is untested and not released.
 
 Details (controls, second screens, building): [docs/PORTY.md](docs/PORTY.md) (Polish).
 
@@ -57,7 +61,7 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 
 - Ports to Switch, PS Vita, 3DS and PS3
 - GPU rendering with smoothing, 16:9 or classic 4:3, CRT effect, FPS counter
-- Second screen on 3DS: the menu map with the player's status
+- New 3DS: stereoscopic 3D and a second screen with the menu map and the player's status
 - Polish and English texts of its own screens, controls page per platform
 
 ## Based on
@@ -106,9 +110,13 @@ i dodaje kilka rzeczy od siebie.
 | Nintendo 3DS | `reclaw.cia` / `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
 | PS3 | `reclaw.pkg` / `reclaw_hen.pkg` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
 
-Te cztery wersje są sprawdzone na prawdziwym sprzęcie. W kodzie zostały
-jeszcze inne platformy z wcześniejszych prac – nie są przetestowane ani
-wydawane.
+Wszystkie cztery wersje przetestowałem na prawdziwym sprzęcie (Switch,
+PS Vita, New Nintendo 3DS, PS3) – działają w pełnych 60 klatkach na sekundę.
+Na New 3DS działa też tryb 3D i drugi ekran. Na starym 3DS / 2DS (Old 3DS)
+gra nie była testowana, więc nie wiadomo, jak wydajnie będzie tam działać.
+
+W kodzie zostały jeszcze inne platformy z wcześniejszych prac – nie są
+przetestowane ani wydawane.
 
 Szczegóły (sterowanie, drugie ekrany, budowanie): [docs/PORTY.md](docs/PORTY.md).
 
@@ -141,7 +149,7 @@ CLAW.REZ wrzucony prosto do `data/` też działa (jako jedyny język).
 
 - Porty na Switch, PS Vita, 3DS i PS3
 - Rysowanie przez GPU z wygładzaniem, tryb 16:9 lub klasyczny 4:3, efekt CRT, licznik FPS
-- Drugi ekran na 3DS: mapa z menu ze stanem gracza
+- New 3DS: tryb 3D i drugi ekran z mapą z menu i stanem gracza
 - Polskie i angielskie teksty własnych ekranów, strona sterowania dla każdej konsoli
 
 ### Na podstawie
