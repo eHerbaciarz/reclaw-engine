@@ -114,3 +114,4 @@ build-ps4/
 build-steamdeck/
 build-portmaster/
 build-windows/
+*.sdf
