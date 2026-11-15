@@ -1,5 +1,7 @@
 # ReClaw (reclaw-engine)
 
+*English below · [Opis po polsku](#po-polsku)*
+
 **ReClaw** is an unofficial, fan-made engine for the platform game **Claw**
 (Monolith Productions, 1997), also known as Captain Claw / Kapitan Pazur.
 It runs the original game from your own copy of its data on game
@@ -80,3 +82,86 @@ and is built with its homebrew SDK (devkitPro, VitaSDK, PSL1GHT) – see
 GPL-3.0, like the projects it is based on – see [LICENSE.txt](LICENSE.txt).
 Third-party parts keep their own licenses (Box2D, TinyXML, TinySoundFont,
 libsmacker, SDL2, fonts – see `ThirdParty/` and the font folders).
+
+---
+
+## Po polsku
+
+**ReClaw** to nieoficjalny, fanowski silnik platformówki **Claw**
+(Monolith Productions, 1997), znanej też jako Captain Claw / Kapitan Pazur.
+Uruchamia oryginalną grę z Twojej własnej kopii jej danych na konsolach
+i dodaje kilka rzeczy od siebie.
+
+> **ReClaw nie zawiera danych gry.** Potrzebujesz pliku `CLAW.REZ` (a do
+> filmów `CLAW.FEC`) z posiadanej kopii Clawa. ReClaw nie jest powiązany
+> z Monolith Productions ani Warner Bros. ani przez nie wspierany; „Claw”
+> i „Captain Claw” to ich znaki towarowe.
+
+### Platformy
+
+| Platforma | Paczka | Folder ReClaw (CLAW.REZ trafia do jego `data/`) |
+|---|---|---|
+| Nintendo Switch | `reclaw.nro` | `sd:/switch/reclaw/` |
+| PS Vita | `reclaw.vpk` | `ux0:data/reclaw/` |
+| Nintendo 3DS | `reclaw.cia` / `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
+| PS3 | `reclaw.pkg` / `reclaw_hen.pkg` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
+
+Te cztery wersje są sprawdzone na prawdziwym sprzęcie. W kodzie zostały
+jeszcze inne platformy z wcześniejszych prac – nie są przetestowane ani
+wydawane.
+
+Szczegóły (sterowanie, drugie ekrany, budowanie): [docs/PORTY.md](docs/PORTY.md).
+
+### Folder ReClaw
+
+```
+reclaw/
+├── reclaw.nro          (Switch)
+├── data/
+│   ├── pl/             CLAW.REZ, CLAW.FEC z polskiego wydania (albo rozpakowane Assets)
+│   └── en/             CLAW.REZ, CLAW.FEC z angielskiego wydania
+├── lang/
+│   ├── pl/
+│   │   └── menu/strings.txt      teksty menu i ekranów portu
+│   └── en/   (to samo)
+└── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log,
+                        reclaw_previous.log (log poprzedniej sesji)
+```
+
+Gra sama tworzy te foldery przy pierwszym uruchomieniu.
+
+Każdy podfolder `data/` z plikiem CLAW.REZ to jeden język (nazwa folderu to
+kod języka, działają też `de/`, `fr/`...). Przy jednym folderze gra używa
+tego języka, a Opcje → Język są wyszarzone. Przy kilku: przy pierwszym
+uruchomieniu angielski (`en`), potem język wybrany w **Opcje → Język** –
+zapisany w `save/config.xml`, działa od następnego uruchomienia gry.
+CLAW.REZ wrzucony prosto do `data/` też działa (jako jedyny język).
+
+### Co dodaje ReClaw
+
+- Porty na Switch, PS Vita, 3DS i PS3
+- Rysowanie przez GPU z wygładzaniem, tryb 16:9 lub klasyczny 4:3, efekt CRT, licznik FPS
+- Drugi ekran na 3DS: mapa z menu ze stanem gracza
+- Polskie i angielskie teksty własnych ekranów, strona sterowania dla każdej konsoli
+
+### Na podstawie
+
+ReClaw nie powstałby bez tych projektów (wszystkie na GPL-3.0):
+
+- [OpenClaw](https://github.com/pjasicek/OpenClaw) – Petr Jašíček, Pavel Löbl i inni – silnik
+- [claw-web](https://github.com/arthurboss/claw-web) – Arthur Boss – to repozytorium jest jego forkiem
+- [ClawSwitch](https://github.com/djmuted/ClawSwitch) – djmuted – pierwszy port na Switcha
+
+ReClaw: Herbaciarz, z pomocą Claude (Anthropic).
+
+### Budowanie
+
+Każda konsola ma swój folder w `platform/` (`switch`, `vita`, `3ds`, `ps3`)
+i buduje się jej homebrewowym SDK (devkitPro, VitaSDK, PSL1GHT) – zobacz
+[docs/PORTY.md](docs/PORTY.md).
+
+### Licencja
+
+GPL-3.0, tak jak projekty, na których się opiera – zobacz [LICENSE.txt](LICENSE.txt).
+Części zewnętrzne mają własne licencje (Box2D, TinyXML, TinySoundFont,
+libsmacker, SDL2, czcionki – zobacz `ThirdParty/` i foldery czcionek).
