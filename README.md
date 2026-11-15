@@ -33,7 +33,6 @@ reclaw/
 ├── data/
 │   ├── pl/             CLAW.REZ, CLAW.FEC of the Polish release (or an unpacked Assets)
 │   └── en/             CLAW.REZ, CLAW.FEC of the English release
-├── custom/             custom levels (.WWD)
 ├── lang/
 │   ├── pl/
 │   │   └── menu/strings.txt      texts of the port's menus and screens
