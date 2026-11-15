@@ -33,12 +33,9 @@ reclaw/
 ├── data/
 │   ├── pl/             CLAW.REZ, CLAW.FEC of the Polish release (or an unpacked Assets)
 │   └── en/             CLAW.REZ, CLAW.FEC of the English release
-├── movies/             remastered movies (not supported yet)
 ├── custom/             custom levels (.WWD)
 ├── lang/
 │   ├── pl/
-│   │   ├── subtitles/movies/     movie subtitles (movie_01.srt ...)
-│   │   ├── subtitles/dialogue/   what Claw and the enemies say
 │   │   └── menu/strings.txt      texts of the port's menus and screens
 │   └── en/   (the same)
 └── save/               config.xml, SAVES.XML, port_settings.txt, reclaw.log,
@@ -60,7 +57,6 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 - Ports to Switch, PS Vita, 3DS and PS3
 - GPU rendering with smoothing, 16:9 or classic 4:3, CRT effect, FPS counter
 - Second screen on 3DS: the menu map with the player's status
-- Subtitles from SRT files for the movies and spoken lines ([docs/NAPISY.md](docs/NAPISY.md))
 - Polish and English texts of its own screens, controls page per platform
 
 ## Based on
