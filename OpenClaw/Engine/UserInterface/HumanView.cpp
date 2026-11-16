@@ -97,6 +97,90 @@ void HumanView::RegisterConsoleCommandHandler(void(*handler)(const char*, void*)
     }
 }
 
+// "Pokonaj <boss>" / "Defeat <boss>" when a boss fight starts, as in the
+// original: two lines in the game's own letters slide down from the top,
+// stay a moment, then slide out to the right.
+namespace BossTitle
+{
+    const int kInMs = 600, kHoldMs = 2200, kOutMs = 500;
+    int g_Ms = -1;                              // -1: not shown
+    std::string g_Lines[2];
+    std::shared_ptr<Image> g_Images[2];
+
+    bool IsShown() { return g_Ms >= 0; }
+
+    void Start(int level)
+    {
+        std::string name;
+        for (const auto& b : BossModes::Bosses()) if (b.level == level) name = b.name;
+        if (name.empty()) return;
+        g_Lines[0] = Lang::Tr("Pokonaj", "Defeat");
+        g_Lines[1] = name;
+        for (int i = 0; i < 2; ++i)
+        {
+            std::string up;
+            for (char c : g_Lines[i]) up += (char)toupper((unsigned char)c);
+            g_Images[i].reset();
+            GameFont::Pixels px;
+            if (GameFont::Covers(up) && GameFont::RenderPixels(up, GameFont::Look::Normal, -1, px))
+            {
+                px = GameFont::WithShadow(GameFont::Scale(px, 125), 3, 3, 200);
+                g_Images[i] = GameFont::ToImage(px);
+            }
+        }
+        g_Ms = 0;
+    }
+
+    void Update(uint32 msDiff)
+    {
+        if (g_Ms < 0) return;
+        g_Ms += (int)msDiff;
+        if (g_Ms > kInMs + kHoldMs + kOutMs) { g_Ms = -1; g_Images[0].reset(); g_Images[1].reset(); }
+    }
+
+    void Stop() { g_Ms = -1; g_Images[0].reset(); g_Images[1].reset(); }
+
+    // viewport: the level's area in the screen's units
+    void Render(SDL_Renderer* r, const SDL_Rect& viewport)
+    {
+        if (g_Ms < 0) return;
+        const double unit = viewport.h / 480.0;     // menu letters: 640x480 units
+        int w[2] = { 0, 0 }, h[2] = { 0, 0 };
+        for (int i = 0; i < 2; ++i)
+            if (g_Images[i]) { w[i] = (int)(g_Images[i]->GetWidth() * unit); h[i] = (int)(g_Images[i]->GetHeight() * unit); }
+            else { w[i] = 0; h[i] = (int)(32 * unit); }
+        const int gap = (int)(-6 * unit);
+        const int blockH = h[0] + gap + h[1];
+        const int targetY = (int)(viewport.h * 0.30) - blockH / 2;
+        int y = targetY, dx = 0;
+        if (g_Ms < kInMs)
+        {
+            const double f = g_Ms / (double)kInMs;
+            const double e = 1.0 - (1.0 - f) * (1.0 - f);       // eases in
+            y = (int)(-blockH + (targetY + blockH) * e);
+        }
+        else if (g_Ms > kInMs + kHoldMs)
+        {
+            const double f = (g_Ms - kInMs - kHoldMs) / (double)kOutMs;
+            dx = (int)(f * f * (viewport.w + 50));
+        }
+        for (int i = 0; i < 2; ++i)
+        {
+            const int lineY = y + (i ? h[0] + gap : 0);
+            if (g_Images[i] && g_Images[i]->GetTexture())
+            {
+                SDL_Rect dst = { viewport.w / 2 - w[i] / 2 + dx, lineY, w[i], h[i] };
+                SDL_RenderCopy(r, g_Images[i]->GetTexture(), NULL, &dst);
+            }
+            else
+            {
+                const SDL_Color gold = { 246, 205, 86, 255 };
+                RaceUi::DrawText(r, g_Lines[i], (int)(24 * unit), viewport.w / 2 + dx, lineY, 0, gold);
+            }
+        }
+    }
+}
+
 void HumanView::VOnRender(uint32 msDiff)
 {
     //PROFILE_CPU("HumanView Render");
@@ -171,7 +255,7 @@ void HumanView::VOnRender(uint32 msDiff)
                     }
                     screenElement->VOnRender(msDiff);
                     if (pop || classic) SDL_RenderSetViewport(renderer, NULL);
-                    if (isScene && (Race::IsActive() || BossModes::IsActive() || Minimap::IsVisible()))
+                    if (isScene && (Race::IsActive() || BossModes::IsActive() || Minimap::IsVisible() || BossTitle::IsShown()))
                     {
                         Point scale = g_pApp->GetScale();
                         SDL_Rect full = { 0, 0, (int)(g_pApp->GetWindowSize().x / scale.x), (int)(g_pApp->GetWindowSize().y / scale.y) };
@@ -180,6 +264,7 @@ void HumanView::VOnRender(uint32 msDiff)
                         if (!SecondScreen::ShowsHud()) Minimap::Render(renderer, full, m_ActorId);
                         Race::RenderOverlay(renderer, 0, full);
                         BossModes::RenderOverlay(renderer, full);
+                        BossTitle::Render(renderer, full);
                         if (area43.w > 0) SDL_RenderSetViewport(renderer, NULL);
                     }
                 }
@@ -267,6 +352,12 @@ void HumanView::VOnRender(uint32 msDiff)
 void HumanView::VOnUpdate(uint32 msDiff)
 {
     m_pProcessMgr->UpdateProcesses(msDiff);
+
+    // (game time: stops with the pause menu)
+    if (g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->GetGameState() == GameState_IngameRunning)
+        BossTitle::Update(msDiff);
+    else if (g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->GetGameState() != GameState_IngamePaused)
+        BossTitle::Stop();
 
     m_pConsole->OnUpdate(msDiff);
 
@@ -808,6 +899,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ActorEnteredBossAreaDelegate), EventData_Entered_Boss_Area::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::BossFightStartedDelegate), EventData_Boss_Fight_Started::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::BossFightEndedDelegate), EventData_Boss_Fight_Ended::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::IngameMenuEndGameDelegate), EventData_IngameMenu_End_Game::sk_EventType);
@@ -885,6 +978,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::FinishedLevelDelegate), EventData_Finished_Level::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::ActorEnteredBossAreaDelegate), EventData_Entered_Boss_Area::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::BossFightStartedDelegate), EventData_Boss_Fight_Started::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::BossFightEndedDelegate), EventData_Boss_Fight_Ended::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1392,6 +1487,12 @@ void HumanView::EnterMenuDelegate(IEventDataPtr pEventData)
 void HumanView::FinishedLevelDelegate(IEventDataPtr pEventData)
 {
     
+}
+
+void HumanView::BossFightStartedDelegate(IEventDataPtr pEventData)
+{
+    if (!g_pApp->GetGameLogic() || !g_pApp->GetGameLogic()->GetCurrentLevelData()) return;
+    BossTitle::Start(g_pApp->GetGameLogic()->GetCurrentLevelData()->GetLevelNumber());
 }
 
 void HumanView::ActorEnteredBossAreaDelegate(IEventDataPtr pEventData)

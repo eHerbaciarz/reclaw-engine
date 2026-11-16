@@ -96,6 +96,7 @@ protected:
     void EnterMenuDelegate(IEventDataPtr pEventData);
     void FinishedLevelDelegate(IEventDataPtr pEventData);
     void ActorEnteredBossAreaDelegate(IEventDataPtr pEventData);
+    void BossFightStartedDelegate(IEventDataPtr pEventData);
     void BossFightEndedDelegate(IEventDataPtr pEventData);
     void IngameMenuEndGameDelegate(IEventDataPtr pEventData);
     #ifndef __EMSCRIPTEN__
