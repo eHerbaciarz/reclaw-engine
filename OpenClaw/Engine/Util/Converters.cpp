@@ -318,12 +318,37 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
             // TODO: missing logic
             continue;
         }
-        else if (logic == "AquatisCrack")
+        else if (levelNumber == 12 &&
+            (logic == "AquatisCrack" || logic == "AquatisDynamite" ||
+             logic == "Tentacle" || logic == "AquatisStalactite"))
         {
-            // TODO: missing logic
+            // Aquatis encounter (AquatisEncounter.cpp)
+            ActorPrototype aqProto = ActorPrototype_Level12_AquatisCrack;
+            if (logic == "AquatisDynamite") aqProto = ActorPrototype_Level12_AquatisDynamite;
+            else if (logic == "Tentacle") aqProto = ActorPrototype_Level12_AquatisTentacle;
+            else if (logic == "AquatisStalactite") aqProto = ActorPrototype_Level12_AquatisStalactite;
+
+            TiXmlElement* pAqElem = ActorTemplates::CreateXmlData_Actor(aqProto, Point(wwdObject->x, wwdObject->y));
+            if (pAqElem && aqProto == ActorPrototype_Level12_AquatisStalactite)
+            {
+                if (TiXmlElement* pComp = pAqElem->FirstChildElement("AquatisStalactiteComponent"))
+                {
+                    if (TiXmlElement* pOrder = pComp->FirstChildElement("Order"))
+                    {
+                        pComp->RemoveChild(pOrder);
+                    }
+                    TiXmlElement* pOrder = new TiXmlElement("Order");
+                    pOrder->LinkEndChild(new TiXmlText(ToStr(wwdObject->smarts).c_str()));
+                    pComp->LinkEndChild(pOrder);
+                }
+            }
+            if (pAqElem)
+            {
+                root->LinkEndChild(pAqElem);
+            }
             continue;
         }
-        else if (levelNumber == 12 && (logic == "AquatisDynamite" || logic == "Tentacle"))
+        else if (logic == "AquatisCrack")
         {
             continue;
         }

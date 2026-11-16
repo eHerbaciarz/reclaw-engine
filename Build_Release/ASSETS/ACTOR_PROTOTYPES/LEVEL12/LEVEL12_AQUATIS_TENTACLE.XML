@@ -1,0 +1,63 @@
+<Actor Type="Level12_AquatisTentacle" ActorPrototypeName="ActorPrototype_Level12_AquatisTentacle">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <ActorRenderComponent>
+        <Visible>true</Visible>
+        <Mirrored>false</Mirrored>
+        <Inverted>false</Inverted>
+        <ZCoord>2100</ZCoord>
+        <ImagePath>/LEVEL12/IMAGES/AQUATISTENTACLE/*.PID</ImagePath>
+        <Palette>/LEVEL12/PALETTES/MAIN.PAL</Palette>
+    </ActorRenderComponent>
+    <AnimationComponent>
+        <AnimationPath>/LEVEL12/ANIS/AQUATISTENTACLE/*.ANI</AnimationPath>
+    </AnimationComponent>
+    <HealthComponent>
+        <Health>10</Health>
+        <MaxHealth>10</MaxHealth>
+    </HealthComponent>
+    <PhysicsComponent>
+        <BodyType>Dynamic</BodyType>
+        <HasFootSensor>false</HasFootSensor>
+        <HasCapsuleShape>false</HasCapsuleShape>
+        <HasBulletBehaviour>false</HasBulletBehaviour>
+        <HasSensorBehaviour>false</HasSensorBehaviour>
+        <FixtureType>EnemyAI</FixtureType>
+        <PositionOffset x="0" y="0" />
+        <CollisionShape>Rectangle</CollisionShape>
+        <CollisionSize width="60" height="110" />
+        <HasInitialSpeed>false</HasInitialSpeed>
+        <HasInitialImpulse>false</HasInitialImpulse>
+        <InitialSpeed x="0" y="0" />
+        <CollisionFlag>4</CollisionFlag>
+        <CollisionMask>0</CollisionMask>
+        <Friction>0.000000</Friction>
+        <Density>0.000000</Density>
+        <Restitution>0.000000</Restitution>
+        <PrefabType></PrefabType>
+        <GravityScale>0</GravityScale>
+        <ClampToGround>false</ClampToGround>
+        <ActorFixture>
+            <FixtureType>EnemyAI</FixtureType>
+            <CollisionShape>Rectangle</CollisionShape>
+            <IsSensor>true</IsSensor>
+            <Size width="60" height="110" />
+            <Offset x="0" y="0" />
+            <CollisionFlag>4</CollisionFlag>
+            <CollisionMask>65592</CollisionMask>
+            <Friction>0.000000</Friction>
+            <Density>0.000000</Density>
+            <Restitution>0.000000</Restitution>
+        </ActorFixture>
+    </PhysicsComponent>
+    <AquatisTentacleComponent>
+        <!-- Seconds the tentacle stays under water after it is cut -->
+        <RespawnTime>4000</RespawnTime>
+        <AttackRange x="150" y="120" />
+        <AttackAreaSize width="110" height="70" />
+        <AttackOffsetX>55</AttackOffsetX>
+        <Damage>10</Damage>
+        <AttackInterval>900</AttackInterval>
+    </AquatisTentacleComponent>
+</Actor>

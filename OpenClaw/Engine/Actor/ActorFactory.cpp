@@ -138,6 +138,10 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<MarrowParrotAIStateComponent>();
     _componentFactory.Register<MarrowFloorComponent>();
     _componentFactory.Register<AquatisAIStateComponent>();
+    _componentFactory.Register<AquatisTentacleComponent>();
+    _componentFactory.Register<AquatisCrackComponent>();
+    _componentFactory.Register<AquatisStalactiteComponent>();
+    _componentFactory.Register<AquatisDynamiteComponent>();
     _componentFactory.Register<RedTailAIStateComponent>();
 }
 

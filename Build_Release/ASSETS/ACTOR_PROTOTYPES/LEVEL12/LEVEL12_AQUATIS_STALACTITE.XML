@@ -1,0 +1,21 @@
+<Actor Type="Level12_AquatisStalactite" ActorPrototypeName="ActorPrototype_Level12_AquatisStalactite">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <ActorRenderComponent>
+        <Visible>true</Visible>
+        <Mirrored>false</Mirrored>
+        <Inverted>false</Inverted>
+        <ZCoord>1000</ZCoord>
+        <ImagePath>/LEVEL12/IMAGES/PROJECTILES/STALACTITE/*.PID</ImagePath>
+        <Palette>/LEVEL12/PALETTES/MAIN.PAL</Palette>
+    </ActorRenderComponent>
+    <AnimationComponent>
+        <AnimationPath>/LEVEL12/ANIS/STALACTITE/*.ANI</AnimationPath>
+    </AnimationComponent>
+    <AquatisStalactiteComponent>
+        <Order>1</Order>
+        <TargetY>3530</TargetY>
+        <Damage>20</Damage>
+    </AquatisStalactiteComponent>
+</Actor>

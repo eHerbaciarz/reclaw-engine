@@ -1,0 +1,56 @@
+<Actor Type="Level12_AquatisCrack" ActorPrototypeName="ActorPrototype_Level12_AquatisCrack">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <ActorRenderComponent>
+        <Visible>true</Visible>
+        <Mirrored>false</Mirrored>
+        <Inverted>false</Inverted>
+        <ZCoord>900</ZCoord>
+        <ImagePath>/LEVEL12/IMAGES/AQUATISWALLCRACK/*.PID</ImagePath>
+        <Palette>/LEVEL12/PALETTES/MAIN.PAL</Palette>
+    </ActorRenderComponent>
+    <AnimationComponent>
+        <AnimationPath>/LEVEL12/ANIS/CRACKGLOW.ANI</AnimationPath>
+    </AnimationComponent>
+    <HealthComponent>
+        <Health>1000</Health>
+        <MaxHealth>1000</MaxHealth>
+    </HealthComponent>
+    <PhysicsComponent>
+        <BodyType>Dynamic</BodyType>
+        <HasFootSensor>false</HasFootSensor>
+        <HasCapsuleShape>false</HasCapsuleShape>
+        <HasBulletBehaviour>false</HasBulletBehaviour>
+        <HasSensorBehaviour>false</HasSensorBehaviour>
+        <FixtureType>EnemyAI</FixtureType>
+        <PositionOffset x="0" y="0" />
+        <CollisionShape>Rectangle</CollisionShape>
+        <CollisionSize width="160" height="200" />
+        <HasInitialSpeed>false</HasInitialSpeed>
+        <HasInitialImpulse>false</HasInitialImpulse>
+        <InitialSpeed x="0" y="0" />
+        <CollisionFlag>4</CollisionFlag>
+        <CollisionMask>0</CollisionMask>
+        <Friction>0.000000</Friction>
+        <Density>0.000000</Density>
+        <Restitution>0.000000</Restitution>
+        <PrefabType></PrefabType>
+        <GravityScale>0</GravityScale>
+        <ClampToGround>false</ClampToGround>
+        <ActorFixture>
+            <FixtureType>EnemyAI</FixtureType>
+            <CollisionShape>Rectangle</CollisionShape>
+            <IsSensor>true</IsSensor>
+            <Size width="160" height="200" />
+            <Offset x="0" y="0" />
+            <CollisionFlag>4</CollisionFlag>
+            <CollisionMask>16</CollisionMask>
+            <Friction>0.000000</Friction>
+            <Density>0.000000</Density>
+            <Restitution>0.000000</Restitution>
+        </ActorFixture>
+    </PhysicsComponent>
+    <AquatisCrackComponent>
+    </AquatisCrackComponent>
+</Actor>

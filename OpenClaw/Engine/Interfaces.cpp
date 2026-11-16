@@ -223,6 +223,10 @@ std::string EnumToString_ActorPrototype(ActorPrototype actorProto)
         { ActorPrototype_Level12_PathElevator, "ActorPrototype_Level12_PathElevator" },
         { ActorPrototype_Level12_BossStager, "ActorPrototype_Level12_BossStager" },
         { ActorPrototype_Level12_BossGem, "ActorPrototype_Level12_BossGem" },
+        { ActorPrototype_Level12_AquatisTentacle, "ActorPrototype_Level12_AquatisTentacle" },
+        { ActorPrototype_Level12_AquatisCrack, "ActorPrototype_Level12_AquatisCrack" },
+        { ActorPrototype_Level12_AquatisStalactite, "ActorPrototype_Level12_AquatisStalactite" },
+        { ActorPrototype_Level12_AquatisDynamite, "ActorPrototype_Level12_AquatisDynamite" },
 
         // Level 13
         { ActorPrototype_Level13_BearSailor, "ActorPrototype_Level13_BearSailor" },
@@ -478,6 +482,10 @@ ActorPrototype StringToEnum_ActorPrototype(const std::string& actorProtoStr)
         { "ActorPrototype_Level12_PathElevator", ActorPrototype_Level12_PathElevator },
         { "ActorPrototype_Level12_BossStager", ActorPrototype_Level12_BossStager },
         { "ActorPrototype_Level12_BossGem", ActorPrototype_Level12_BossGem },
+        { "ActorPrototype_Level12_AquatisTentacle", ActorPrototype_Level12_AquatisTentacle },
+        { "ActorPrototype_Level12_AquatisCrack", ActorPrototype_Level12_AquatisCrack },
+        { "ActorPrototype_Level12_AquatisStalactite", ActorPrototype_Level12_AquatisStalactite },
+        { "ActorPrototype_Level12_AquatisDynamite", ActorPrototype_Level12_AquatisDynamite },
 
         // Level 13
         { "ActorPrototype_Level13_BearSailor", ActorPrototype_Level13_BearSailor },

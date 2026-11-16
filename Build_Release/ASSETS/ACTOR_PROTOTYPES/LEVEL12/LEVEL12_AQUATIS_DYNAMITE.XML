@@ -1,0 +1,8 @@
+<Actor Type="Level12_AquatisDynamite" ActorPrototypeName="ActorPrototype_Level12_AquatisDynamite">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <AquatisDynamiteComponent>
+        <RespawnTime>4000</RespawnTime>
+    </AquatisDynamiteComponent>
+</Actor>

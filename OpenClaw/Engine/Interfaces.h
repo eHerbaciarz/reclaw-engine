@@ -505,6 +505,10 @@ enum ActorPrototype
     ActorPrototype_Level12_PathElevator,
     ActorPrototype_Level12_BossStager,
     ActorPrototype_Level12_BossGem,
+    ActorPrototype_Level12_AquatisTentacle,
+    ActorPrototype_Level12_AquatisCrack,
+    ActorPrototype_Level12_AquatisStalactite,
+    ActorPrototype_Level12_AquatisDynamite,
 
     // Level 13
     ActorPrototype_Level13_BearSailor,
