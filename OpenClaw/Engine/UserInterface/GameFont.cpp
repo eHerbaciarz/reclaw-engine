@@ -581,6 +581,49 @@ namespace
         }
         const int capTop = TopRow(g_Glyphs['O']);
         const int capMid = (capTop + kAbove) / 2;
+
+        // Ł: L with a slanted stroke across its stem, a little below the
+        // middle. The stroke is as thick as the font's bars and takes the
+        // stem's own colours row by row, with the letters' dark edge around it.
+        if (!bar.empty() && g_Glyphs.count('L'))
+        {
+            Glyph l = g_Glyphs['L'];
+            std::pair<int, int> stem = StemRange(l);
+            const int stemMid = (stem.first + stem.second) / 2;
+            const int thick = std::max(2, (int)bar.size() - 1);
+            const int midY = capMid + (kAbove - capMid) / 4;
+            // the edge colour: the stem's outermost ink, left of it at mid height
+            uint32_t edge = 0xFF000000u;
+            for (int x = 0; x <= stem.first; ++x)
+                if (InkAt(l, x, midY)) { edge = l.px[(size_t)midY * l.w + x]; break; }
+            const int reach = std::max(4, (stem.second - stem.first + 1) * 2 / 3 + 3);
+            const int x0 = std::max(0, stem.first - reach), x1 = std::min(l.w - 1, stem.second + reach);
+            Glyph out = l;
+            auto put = [&](int x, int y, uint32_t c) { if (x >= 0 && x < l.w && y >= 0 && y < H) out.px[(size_t)y * l.w + x] = c; };
+            for (int x = x0; x <= x1; ++x)
+            {
+                const int yc = midY + (int)std::lround((stemMid - x) * 0.6);
+                const int y0 = yc - thick / 2;
+                for (int k = 0; k < thick; ++k)
+                {
+                    int y = y0 + k;
+                    uint32_t c = InkAt(l, stemMid, y) ? l.px[(size_t)y * l.w + stemMid] : bar[std::min(k, (int)bar.size() - 1)];
+                    put(x, y, c);
+                }
+                // dark edge above and below, where there is no ink of the L
+                if (y0 - 1 >= 0 && !InkAt(l, x, y0 - 1)) put(x, y0 - 1, edge);
+                if (y0 + thick < H && !InkAt(l, x, y0 + thick)) put(x, y0 + thick, edge);
+            }
+            // the ends of the stroke
+            for (int k = -1; k <= thick; ++k)
+            {
+                int yl = midY + (int)std::lround((stemMid - (x0 - 1)) * 0.6) - thick / 2 + k;
+                int yr = midY + (int)std::lround((stemMid - (x1 + 1)) * 0.6) - thick / 2 + k;
+                if (x0 - 1 >= 0 && !InkAt(l, x0 - 1, yl)) put(x0 - 1, yl, edge);
+                if (x1 + 1 < l.w && !InkAt(l, x1 + 1, yr)) put(x1 + 1, yr, edge);
+            }
+            if (!Has(0x0141)) g_Glyphs[0x0141] = out;
+        }
         if (!bar.empty())
         {
             // H: two I stems joined by the bar, a little above the middle.
@@ -709,6 +752,7 @@ namespace
             case 0x0106: case 0x010C: return 'C';
             case 0x0118: return 'E';
             case 0x00CD: return 'I';
+            case 0x0141: return 'L';
             case 0x0143: return 'N';
             case 0x00D3: case 0x00D6: return 'O';
             case 0x015A: case 0x0160: return 'S';
@@ -738,8 +782,7 @@ namespace
                 case 0x0105: cp = 0x0104; break;   // ą
                 case 0x0107: cp = 0x0106; break;   // ć
                 case 0x0119: cp = 0x0118; break;   // ę
-                case 0x0142: cp = 'L'; break;      // ł (no Ł in the menus)
-                case 0x0141: cp = 'L'; break;
+                case 0x0142: cp = 0x0141; break;   // ł (Ł made from L)
                 case 0x0144: cp = 0x0143; break;   // ń
                 case 0x00F3: cp = 0x00D3; break;   // ó
                 case 0x015B: cp = 0x015A; break;   // ś
