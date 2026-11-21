@@ -56,6 +56,7 @@ const EventType EventData_Menu_Set_Filter::sk_EventType(0x58a3e6b2);
 const EventType EventData_Menu_Set_Crt::sk_EventType(0x1c94b7e3);
 const EventType EventData_Menu_Set_Fps_Counter::sk_EventType(0x4f7a2c19);
 const EventType EventData_Menu_Set_Menu_Font::sk_EventType(0x4f7a2c1b);
+const EventType EventData_Menu_Set_Difficulty::sk_EventType(0x4f7a2c1c);
 const EventType EventData_Menu_Boss_Modes::sk_EventType(0x5a1d0c43);
 const EventType EventData_Menu_Open_Language::sk_EventType(0x5a1d0c44);
 const EventType EventData_Reset_Save_Progress::sk_EventType(0xbf29c2f5);

@@ -5,6 +5,7 @@
 #include "CustomLevels.h"
 #include "../GameApp/BaseGameApp.h"
 #include "../GameApp/BaseGameLogic.h"
+#include "../GameApp/Difficulty.h"
 #include "../GameApp/GameSaves.h"
 #include "../GameApp/HapticFeedback.h"
 #include "../GameApp/SaveBridge.h"
@@ -941,6 +942,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetMenuFontDelegate), EventData_Menu_Set_Menu_Font::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetDifficultyDelegate), EventData_Menu_Set_Difficulty::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::ResetSaveProgressFromManageSavesDelegate), EventData_Reset_Save_Progress_From_Manage_Saves::sk_EventType);
@@ -1022,6 +1025,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::SetFpsCounterDelegate), EventData_Menu_Set_Fps_Counter::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetMenuFontDelegate), EventData_Menu_Set_Menu_Font::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetDifficultyDelegate), EventData_Menu_Set_Difficulty::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::WorldFinishedLoadingDelegate), EventData_World_Finished_Loading::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1693,7 +1698,7 @@ void HumanView::PersistSavesToFile()
     }
     TiXmlDocument saveGamesDoc;
     saveGamesDoc.LinkEndChild(pSaveMgr->ToXml());
-    std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
+    std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + Difficulty::SavesFile(g_pApp->GetGameConfig()->savesFile);
     if (!saveGamesDoc.SaveFile(savesFilePath.c_str()))
     {
         LOG_ERROR("Failed to write saves file: " + savesFilePath);
@@ -1895,6 +1900,16 @@ void HumanView::SetFpsCounterDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Menu_Set_Fps_Counter> pCast = static_pointer_cast<EventData_Menu_Set_Fps_Counter>(pEventData);
     if (pCast) CrtEffect::SetFpsCounter(pCast->IsEnabled());
+}
+
+void HumanView::SetDifficultyDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Difficulty> pCast = static_pointer_cast<EventData_Menu_Set_Difficulty>(pEventData);
+    if (!pCast) return;
+    Difficulty::Set(pCast->GetDifficulty());
+    // Every difficulty has its own progress: load its saves file
+    if (g_pApp->GetGameLogic()) g_pApp->GetGameLogic()->ReloadSaves();
+    LOG_WARNING(std::string("Difficulty: ") + Difficulty::Name(Difficulty::Get()));
 }
 
 void HumanView::SetMenuFontDelegate(IEventDataPtr pEventData)

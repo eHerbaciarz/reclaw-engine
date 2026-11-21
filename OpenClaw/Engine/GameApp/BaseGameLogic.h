@@ -27,6 +27,8 @@ public:
     virtual ~BaseGameLogic();
 
     bool Initialize();
+    // Options > Difficulty: load the saves file of the chosen difficulty
+    bool ReloadSaves();
 
     /*// IGameLogic interface
     virtual WeakActorPtr VGetActorPtr(const uint32 actorId);

@@ -31,6 +31,7 @@
 
 #include "GameSaves.h"
 #include "BaseGameLogic.h"
+#include "Difficulty.h"
 #include "../UserInterface/SecondScreen.h"
 #include "GameSaves.h"
 #include "HapticFeedback.h"
@@ -164,7 +165,7 @@ bool BaseGameLogic::Initialize()
     startCheckpoint.checkpointIdx = 0;
     startCheckpoint.score = 0;
     startCheckpoint.health = 100;
-    startCheckpoint.lives = 6;
+    startCheckpoint.lives = Difficulty::StartLives();
     startCheckpoint.bulletCount = 10;
     startCheckpoint.magicCount = 5;
     startCheckpoint.dynamiteCount = 3;
@@ -177,8 +178,23 @@ bool BaseGameLogic::Initialize()
 
     return true;
 #else
+    return ReloadSaves();
+#endif
+}
+
+// The saves file of the chosen difficulty (Options > Difficulty)
+bool BaseGameLogic::ReloadSaves()
+{
+#ifdef __EMSCRIPTEN__
+    return true;
+#else
+    if (!m_pGameSaveMgr->IsSaveSupported()) {
+        return m_pGameSaveMgr->Initialize(nullptr);
+    }
+    STARTUP_TRACE(std::string("saves: difficulty ") + Difficulty::Name(Difficulty::Get()));
+
     // Native platform: load from XML file
-    std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
+    std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + Difficulty::SavesFile(g_pApp->GetGameConfig()->savesFile);
 
     TiXmlDocument gameSaves(savesFilePath.c_str());
     gameSaves.LoadFile();
@@ -1066,7 +1082,7 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
 #else
             TiXmlDocument saveGamesDoc;
             saveGamesDoc.LinkEndChild(m_pGameSaveMgr->ToXml());
-            std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
+            std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + Difficulty::SavesFile(g_pApp->GetGameConfig()->savesFile);
             WriteSavesFile(saveGamesDoc, savesFilePath);
 #endif
         }
@@ -2096,7 +2112,7 @@ void BaseGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
 #else
         TiXmlDocument saveGamesDoc;
         saveGamesDoc.LinkEndChild(m_pGameSaveMgr->ToXml());
-        std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
+        std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + Difficulty::SavesFile(g_pApp->GetGameConfig()->savesFile);
         WriteSavesFile(saveGamesDoc, savesFilePath);
         LOG("Checkpoint saved to file");
 #endif

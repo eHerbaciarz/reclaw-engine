@@ -1,3 +1,4 @@
+#include "../../../GameApp/Difficulty.h"
 #include "EnemyAIStateComponent.h"
 
 #include "EnemyAIComponent.h"
@@ -1654,6 +1655,13 @@ void BaseBossAIStateComponennt::VPostInit()
 
     m_pHealthComponent = pHC.get();
     m_pHealthComponent->AddObserver(this);
+
+    // Options > Difficulty
+    const double bossMul = Difficulty::BossHealthMultiplier();
+    if (bossMul != 1.0)
+    {
+        m_pHealthComponent->ScaleMaxHealth(bossMul);
+    }
 
     m_DefaultPosition = m_pPositionComponent->GetPosition();
 

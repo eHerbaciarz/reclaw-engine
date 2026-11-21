@@ -46,6 +46,13 @@ public:
     int32 GetCurrentHealth() { return m_CurrentHealth; }
     bool HasMaxHealth() { return m_CurrentHealth >= m_MaxHealth; }
     void SetMaxHealth() { SetCurrentHealth(m_MaxHealth); }
+    // Changes the maximum (Options > Difficulty: bosses) and fills health up to it
+    void ScaleMaxHealth(double multiplier)
+    {
+        int32 m = (int32)(m_MaxHealth * multiplier + 0.5);
+        m_MaxHealth = m < 1 ? 1 : m;
+        m_CurrentHealth = m_MaxHealth;
+    }
 
     bool IsInvulnerable() { return m_bInvulnerable; }
     void SetInvulnerable(bool invulnerable) { m_bInvulnerable = invulnerable; }

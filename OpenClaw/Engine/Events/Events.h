@@ -2541,6 +2541,30 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Difficulty
+// Options > Difficulty: 0 super easy, 1 easy, 2 normal, 3 hard (Difficulty.h)
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Difficulty : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Difficulty(int difficulty = 2) : m_Difficulty(difficulty) { }
+
+    int GetDifficulty() const { return m_Difficulty; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Difficulty(m_Difficulty)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Difficulty"; }
+
+private:
+    int m_Difficulty;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Set_Menu_Font
 // Options > Graphics > Font: classic (the game's pictures) or ReClaw.
 //---------------------------------------------------------------------------------------------------------------------

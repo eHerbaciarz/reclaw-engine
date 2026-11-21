@@ -4,6 +4,7 @@
 #include "PositionComponent.h"
 #include "../../UserInterface/HumanView.h"
 #include "RenderComponent.h"
+#include "../../GameApp/Difficulty.h"
 
 const char* ProjectileSpawnerComponent::g_Name = "ProjectileSpawnerComponent";
 
@@ -178,6 +179,12 @@ void ProjectileSpawnerComponent::VOnAnimationEndedDelay(Animation* pAnimation)
 
 bool ProjectileSpawnerComponent::TryToFire()
 {
+    // Options > Difficulty > super easy: the traps that shoot stay quiet
+    if (Difficulty::ShootingTrapsOff())
+    {
+        return false;
+    }
+
     if (!m_bReady)
     {
         return false;

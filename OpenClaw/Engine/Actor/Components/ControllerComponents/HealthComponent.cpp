@@ -7,6 +7,8 @@
 
 #include "../../../GameApp/BaseGameApp.h"
 #include "../../../GameApp/HapticFeedback.h"
+#include "../../../GameApp/Difficulty.h"
+#include <cmath>
 
 const char* HealthComponent::g_Name = "HealthComponent";
 
@@ -68,6 +70,18 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
     {
         NotifyResistDamage(damageType, impactPoint);
         return;
+    }
+
+    // Options > Difficulty: what Claw takes and gets
+    if (m_IsController && health != 0 && damageType != DamageType_DeathTile)
+    {
+        double mul = health < 0 ? Difficulty::DamageTakenMultiplier() : Difficulty::HealMultiplier();
+        if (mul != 1.0)
+        {
+            int32 scaled = (int32)std::lround(health * mul);
+            if (scaled == 0) scaled = health < 0 ? -1 : 1;
+            health = scaled;
+        }
     }
 
     int32 oldHealth = m_CurrentHealth;

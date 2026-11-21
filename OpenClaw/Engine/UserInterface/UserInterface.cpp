@@ -1,3 +1,4 @@
+#include "../GameApp/Difficulty.h"
 #include "../Util/StartupTrace.h"
 #include <set>
 #include "UserInterface.h"
@@ -458,6 +459,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         bool enabled = false;
         ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
         pEventData.reset(new EventData_Menu_Set_Crt(enabled));
+    }
+    else if (eventType == "SetDifficulty")
+    {
+        int difficulty = 2;
+        ParseValueFromXmlElem(&difficulty, pElem->FirstChildElement("Difficulty"));
+        pEventData.reset(new EventData_Menu_Set_Difficulty(difficulty));
     }
     else if (eventType == "SetMenuFont")
     {
@@ -2707,6 +2714,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
 #ifndef __EMSCRIPTEN__
         m_bVisible = true;
 #endif
+    }
+    else if (m_VisibilityConditionType.size() == 11 && m_VisibilityConditionType.compare(0, 10, "Difficulty") == 0)
+    {
+        m_bVisible = Difficulty::Get() == m_VisibilityConditionType[10] - '0';
     }
     else if (m_VisibilityConditionType == "FontReclaw" || m_VisibilityConditionType == "FontClassic")
     {

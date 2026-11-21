@@ -2543,15 +2543,144 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
-            <Name>DIFFICULTY_BUTTON</Name>
+            <!-- ReClaw: Options > Difficulty (each one has its own saves file); a click picks the next one -->
+            <Name>DIFFICULTY_SUPEREASY_BUTTON</Name>
+            <GameFontText en="DIFFICULTY: SUPER EASY">POZIOM TRUDNOŚCI: SUPER ŁATWY</GameFontText>
+            <GameFontScale>90</GameFontScale>
             <Type>Button</Type>
-            <State>Active</State>
-            <InactiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/003_DIFFICULTY.PCX</InactiveImage>
-            <ActiveImage>/STATES/MENU/IMAGES/MAIN/OPTIONS/004_DIFFICULTY.PCX</ActiveImage>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Difficulty0</ConditionType>
+            </VisibilityCondition>
             <Position x="320" y="247" align="center" />
             <GeneratedEvent>
-                <Type>SwitchPage</Type>
-                <PageName>MenuPage_Options_Difficulty</PageName>
+                <Type>SetDifficulty</Type>
+                <Difficulty>1</Difficulty>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_SUPEREASY_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_SUPEREASY_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_EASY_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_EASY_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>DIFFICULTY_EASY_BUTTON</Name>
+            <GameFontText en="DIFFICULTY: EASY">POZIOM TRUDNOŚCI: ŁATWY</GameFontText>
+            <GameFontScale>90</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Difficulty1</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="247" align="center" />
+            <GeneratedEvent>
+                <Type>SetDifficulty</Type>
+                <Difficulty>2</Difficulty>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_EASY_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_EASY_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_NORMAL_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_NORMAL_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>DIFFICULTY_NORMAL_BUTTON</Name>
+            <GameFontText en="DIFFICULTY: NORMAL">POZIOM TRUDNOŚCI: NORMALNY</GameFontText>
+            <GameFontScale>90</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Difficulty2</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="247" align="center" />
+            <GeneratedEvent>
+                <Type>SetDifficulty</Type>
+                <Difficulty>3</Difficulty>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_NORMAL_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_NORMAL_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_HARD_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_HARD_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <Name>DIFFICULTY_HARD_BUTTON</Name>
+            <GameFontText en="DIFFICULTY: HARD">POZIOM TRUDNOŚCI: TRUDNY</GameFontText>
+            <GameFontScale>90</GameFontScale>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>Difficulty3</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="247" align="center" />
+            <GeneratedEvent>
+                <Type>SetDifficulty</Type>
+                <Difficulty>0</Difficulty>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_HARD_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_HARD_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>DIFFICULTY_SUPEREASY_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>DIFFICULTY_SUPEREASY_BUTTON</MenuItemName>
+                <State>Active</State>
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>

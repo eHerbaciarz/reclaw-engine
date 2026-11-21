@@ -1,6 +1,7 @@
 #ifndef __GAME_SAVES_H__
 #define __GAME_SAVES_H__
 
+#include "Difficulty.h"
 #include <cstdlib>
 #include "../SharedDefines.h"
 #include "BaseGameApp.h"
@@ -320,6 +321,7 @@ public:
             return false;
         }
 
+        m_LevelSaveMap.clear();   // (also when the saves of another difficulty are loaded)
         for (TiXmlElement* pLevel = pGameSaveData->FirstChildElement("Level");
             pLevel; pLevel = pLevel->NextSiblingElement("Level"))
         {
@@ -347,7 +349,7 @@ public:
         startingCheckpoint.checkpointIdx = 0;
         startingCheckpoint.dynamiteCount = 5;
         startingCheckpoint.health = 100;
-        startingCheckpoint.lives = 6;
+        startingCheckpoint.lives = Difficulty::StartLives();
         startingCheckpoint.magicCount = 5;
         startingCheckpoint.score = 0;
 
