@@ -1170,3 +1170,389 @@ namespace GameFont
         return out;
     }
 }
+
+// ---------------------------------------------------------------- MenuFont
+#include <SDL2/SDL_ttf.h>
+#include "../Platform/Platform.h"
+#include "../Util/PortSettings.h"
+
+namespace MenuFont
+{
+    namespace
+    {
+        int g_Reclaw = -1;   // -1: not read from the settings yet
+
+        struct PictureName { const char* file; const char* pl; const char* en; };
+        // By the end of the picture's path (the same picture is used on
+        // several pages). Polish texts as in the Polish release where known.
+        const PictureName kPictures[] = {
+            { "MAIN/014_TITLE.PCX", "Menu główne", "Main Menu" },
+            { "MAIN/001_SINGLEPLAYER.PCX", "Jeden gracz", "Single Player" },
+            { "MAIN/003_MULTIPLAYER.PCX", "Tryb wieloosobowy", "Multiplayer" },
+            { "MAIN/005_REPLAYMOVIES.PCX", "Odtwórz film", "Replay Movies" },
+            { "MAIN/008_OPTIONS.PCX", "Opcje", "Options" },
+            { "MAIN/015_CREDITS.PCX", "Twórcy", "Credits" },
+            { "MAIN/010_HELP.PCX", "Pomoc", "Help" },
+            { "MAIN/012_QUIT.PCX", "Wyjście", "Quit" },
+            { "REPLAYMOVIES/033_TITLE.PCX", "Odtwórz film", "Replay Movies" },
+            { "REPLAYMOVIES/001_MOVIEONE.PCX", "Film 1", "Movie 1" },
+            { "REPLAYMOVIES/004_MOVIETWO.PCX", "Film 2", "Movie 2" },
+            { "REPLAYMOVIES/007_MOVIETHREE.PCX", "Film 3", "Movie 3" },
+            { "REPLAYMOVIES/010_MOVIEFOUR.PCX", "Film 4", "Movie 4" },
+            { "REPLAYMOVIES/013_MOVIEFIVE.PCX", "Film 5", "Movie 5" },
+            { "REPLAYMOVIES/016_MOVIESIX.PCX", "Film 6", "Movie 6" },
+            { "REPLAYMOVIES/019_MOVIESEVEN.PCX", "Film 7", "Movie 7" },
+            { "REPLAYMOVIES/022_MOVIEEIGHT.PCX", "Film 8", "Movie 8" },
+            { "REPLAYMOVIES/025_MOVIENINE.PCX", "Film 9", "Movie 9" },
+            { "REPLAYMOVIES/028_MOVIETEN.PCX", "Film 10", "Movie 10" },
+            { "REPLAYMOVIES/031_BACK.PCX", "Powrót", "Back" },
+            { "SINGLEPLAYER/014_TITLE.PCX", "Jeden gracz", "Single Player" },
+            { "SINGLEPLAYER/001_NEWGAME.PCX", "Nowa gra", "New Game" },
+            { "SINGLEPLAYER/003_LOADGAME.PCX", "Wczytaj grę", "Load Game" },
+            { "SINGLEPLAYER/005_LOADCUSTOM.PCX", "Wczytaj poziom", "Load Custom Level" },
+            { "SINGLEPLAYER/012_PREVIOUSMENU.PCX", "Powrót", "Back" },
+            { "SINGLEPLAYER/NEW/001_TITLE.PCX", "Nowa gra", "New Game" },
+            { "LEVELS/001_LEVELONE.PCX", "1. La Roca", "1. La Roca" },
+            { "LEVELS/004_LEVELTWO.PCX", "2. Mury obronne", "2. The Battlements" },
+            { "LEVELS/007_LEVELTHREE.PCX", "3. Leśna ścieżka", "3. The Footpath" },
+            { "LEVELS/010_LEVELFOUR.PCX", "4. Ciemny las", "4. The Dark Woods" },
+            { "LEVELS/013_LEVELFIVE.PCX", "5. Osada", "5. The Township" },
+            { "LEVELS/016_LEVELSIX.PCX", "6. Puerto Lobos", "6. Puerto Lobos" },
+            { "LEVELS/019_LEVELSEVEN.PCX", "7. Doki", "7. The Docks" },
+            { "LEVELS/022_LEVELEIGHT.PCX", "8. Stocznia", "8. The Shipyards" },
+            { "LEVELS/025_LEVELNINE.PCX", "9. Zatoka Piratów", "9. Pirate's Cove" },
+            { "LEVELS/028_LEVELTEN.PCX", "10. Klify", "10. The Cliffs" },
+            { "LEVELS/031_LEVELELEVEN.PCX", "11. Jaskinie", "11. The Caverns" },
+            { "LEVELS/034_LEVELTWELVE.PCX", "12. Podwodne jaskinie", "12. Undersea Caves" },
+            { "LEVELS/037_LEVELTHIRTEEN.PCX", "13. Wyspa Tygrysa", "13. Tiger Island" },
+            { "LEVELS/040_LEVELFOURTEEN.PCX", "14. Świątynia", "14. The Temple" },
+            { "LEVELS/043_BACK.PCX", "Powrót", "Back" },
+            { "SAVE/001_PREVIOUSMENU.PCX", "Powrót", "Back" },
+            { "LOAD/001_TITLE.PCX", "Wczytaj grę", "Load Game" },
+            { "CHECKPOINTS/011_TITLE.PCX", "La Roca", "La Roca" },
+            { "CHECKPOINTS/012_TITLE.PCX", "Mury obronne", "The Battlements" },
+            { "CHECKPOINTS/013_TITLE.PCX", "Leśna ścieżka", "The Footpath" },
+            { "CHECKPOINTS/014_TITLE.PCX", "Ciemny las", "The Dark Woods" },
+            { "CHECKPOINTS/015_TITLE.PCX", "Osada", "The Township" },
+            { "CHECKPOINTS/016_TITLE.PCX", "Puerto Lobos", "Puerto Lobos" },
+            { "CHECKPOINTS/017_TITLE.PCX", "Doki", "The Docks" },
+            { "CHECKPOINTS/018_TITLE.PCX", "Stocznia", "The Shipyards" },
+            { "CHECKPOINTS/019_TITLE.PCX", "Zatoka Piratów", "Pirate's Cove" },
+            { "CHECKPOINTS/020_TITLE.PCX", "Klify", "The Cliffs" },
+            { "CHECKPOINTS/021_TITLE.PCX", "Jaskinie", "The Caverns" },
+            { "CHECKPOINTS/022_TITLE.PCX", "Podwodne jaskinie", "Undersea Caves" },
+            { "CHECKPOINTS/023_TITLE.PCX", "Wyspa Tygrysa", "Tiger Island" },
+            { "CHECKPOINTS/024_TITLE.PCX", "Świątynia", "The Temple" },
+            { "CHECKPOINTS/001_START.PCX", "Początek poziomu", "Start of the Level" },
+            { "CHECKPOINTS/003_SAVEONE.PCX", "Punkt zapisu 1", "Save Point 1" },
+            { "CHECKPOINTS/006_SAVETWO.PCX", "Punkt zapisu 2", "Save Point 2" },
+            { "CHECKPOINTS/009_PREVIOUSMENU.PCX", "Powrót", "Back" },
+            { "OPTIONS/014_TITLE.PCX", "Opcje", "Options" },
+            { "OPTIONS/001_EDITPLAYERS.PCX", "Gracze", "Edit Players" },
+            { "OPTIONS/003_DIFFICULTY.PCX", "Poziom trudności", "Difficulty" },
+            { "OPTIONS/005_CONTROLS.PCX", "Sterowanie", "Controls" },
+            { "OPTIONS/007_AUDIO.PCX", "Dźwięk", "Audio" },
+            { "OPTIONS/010_DISPLAY.PCX", "Obraz", "Display" },
+            { "OPTIONS/012_PREVIOUSMENU.PCX", "Powrót", "Back" },
+            { "AUDIO/019_TITLE.PCX", "Dźwięk", "Audio" },
+            { "AUDIO/001_SOUNDON.PCX", "Dźwięk: tak", "Sound: On" },
+            { "AUDIO/002_SOUNDOFF.PCX", "Dźwięk: nie", "Sound: Off" },
+            { "AUDIO/005_VOICEON.PCX", "Głosy: tak", "Voice: On" },
+            { "AUDIO/006_VOICDOFF.PCX", "Głosy: nie", "Voice: Off" },
+            { "AUDIO/009_AMBIENTON.PCX", "Odgłosy otoczenia: tak", "Ambient: On" },
+            { "AUDIO/010_AMBIENTOFF.PCX", "Odgłosy otoczenia: nie", "Ambient: Off" },
+            { "AUDIO/013_MUSICON.PCX", "Muzyka: tak", "Music: On" },
+            { "AUDIO/014_MUSICOFF.PCX", "Muzyka: nie", "Music: Off" },
+            { "DISPLAY/021_TITLE.PCX", "Obraz", "Display" },
+            { "DISPLAY/003_FULLSCREEN_ON.PNG", "Pełny ekran: tak", "Fullscreen: On" },
+            { "DISPLAY/005_FULLSCREEN_OFF.PNG", "Pełny ekran: nie", "Fullscreen: Off" },
+            { "DISPLAY/007_WIDESCREEN_ON.PNG", "Panorama: tak", "Widescreen: On" },
+            { "DISPLAY/009_WIDESCREEN_OFF.PNG", "Panorama: nie", "Widescreen: Off" },
+            { "INGAMEMENU/MAIN/001_RETURN.PID", "Powrót do gry", "Return to Game" },
+            { "INGAMEMENU/MAIN/005_OPTIONS.PID", "Opcje", "Options" },
+            { "INGAMEMENU/MAIN/007_HELP.PID", "Pomoc", "Help" },
+            { "INGAMEMENU/MAIN/009_ENDGAME.PID", "Zakończ grę", "End Game" },
+            { "INGAMEMENU/MAIN/OPTIONS/005_AUDIO.PID", "Dźwięk", "Audio" },
+            { "INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID", "Powrót", "Back" },
+            { "ENDGAME/005_AREYOUSURE.PID", "Na pewno zakończyć grę?", "Are You Sure?" },
+            { "ENDGAME/001_YES.PID", "Tak", "Yes" },
+            { "ENDGAME/003_NO.PID", "Nie", "No" },
+            { "CLAWICIDE/005_AREYOUSURE.PID", "Na pewno zakończyć życie?", "Are You Sure?" },
+            { "CLAWICIDE/001_YES.PID", "Tak", "Yes" },
+            { "CLAWICIDE/003_NO.PID", "Nie", "No" },
+        };
+
+        uint32_t Lower(uint32_t c)
+        {
+            if (c >= 'A' && c <= 'Z') return c + 32;
+            if (c >= 0xC0 && c <= 0xDE && c != 0xD7) return c + 32;
+            if ((c >= 0x100 && c <= 0x137) || (c >= 0x14A && c <= 0x177)) return (c % 2 == 0) ? c + 1 : c;
+            if ((c >= 0x139 && c <= 0x148) || (c >= 0x179 && c <= 0x17E)) return (c % 2 == 1) ? c + 1 : c;
+            return c;
+        }
+
+        std::vector<uint32_t> DecodeUtf8(const std::string& s)
+        {
+            std::vector<uint32_t> out;
+            for (size_t i = 0; i < s.size();)
+            {
+                unsigned char c = (unsigned char)s[i];
+                uint32_t cp = c; int n = 0;
+                if (c >= 0xF0) { cp = c & 0x07; n = 3; }
+                else if (c >= 0xE0) { cp = c & 0x0F; n = 2; }
+                else if (c >= 0xC0) { cp = c & 0x1F; n = 1; }
+                ++i;
+                for (int k = 0; k < n && i < s.size(); ++k, ++i) cp = (cp << 6) | ((unsigned char)s[i] & 0x3F);
+                out.push_back(cp);
+            }
+            return out;
+        }
+
+        void EncodeUtf8(uint32_t cp, std::string& out)
+        {
+            if (cp < 0x80) out += (char)cp;
+            else if (cp < 0x800) { out += (char)(0xC0 | (cp >> 6)); out += (char)(0x80 | (cp & 0x3F)); }
+            else if (cp < 0x10000) { out += (char)(0xE0 | (cp >> 12)); out += (char)(0x80 | ((cp >> 6) & 0x3F)); out += (char)(0x80 | (cp & 0x3F)); }
+            else { out += (char)(0xF0 | (cp >> 18)); out += (char)(0x80 | ((cp >> 12) & 0x3F)); out += (char)(0x80 | ((cp >> 6) & 0x3F)); out += (char)(0x80 | (cp & 0x3F)); }
+        }
+
+        bool EndsWith(const std::string& s, const char* end)
+        {
+            size_t n = strlen(end);
+            if (s.size() < n) return false;
+            for (size_t i = 0; i < n; ++i)
+            {
+                if (toupper((unsigned char)s[s.size() - n + i]) != (unsigned char)end[i]) return false;
+            }
+            return true;
+        }
+
+        TTF_Font* FontOfSize(int px)
+        {
+            static std::map<int, TTF_Font*> s_Fonts;
+            auto it = s_Fonts.find(px);
+            if (it != s_Fonts.end()) return it->second;
+            if (!TTF_WasInit() && TTF_Init() != 0) return nullptr;
+            TTF_Font* pFont = TTF_OpenFont(Platform::SplashFont().c_str(), px);
+            s_Fonts[px] = pFont;
+            return pFont;
+        }
+    }
+
+    bool IsReclaw()
+    {
+        if (g_Reclaw < 0) g_Reclaw = PortSettings::GetInt("menu_font", 0) != 0 ? 1 : 0;
+        return g_Reclaw == 1;
+    }
+
+    void SetReclaw(bool on)
+    {
+        g_Reclaw = on ? 1 : 0;
+        PortSettings::SetInt("menu_font", g_Reclaw);
+    }
+
+    const char* PictureText(const std::string& path, bool polish)
+    {
+        // The longest matching end wins (".../MAIN/014_TITLE.PCX" against
+        // ".../OPTIONS/014_TITLE.PCX").
+        const PictureName* pBest = nullptr;
+        size_t bestLen = 0;
+        for (const PictureName& p : kPictures)
+        {
+            size_t n = strlen(p.file);
+            if (n > bestLen && EndsWith(path, p.file) && path.size() > n && path[path.size() - n - 1] == '/')
+            {
+                pBest = &p;
+                bestLen = n;
+            }
+        }
+        if (!pBest) return nullptr;
+        return polish ? pBest->pl : pBest->en;
+    }
+
+    std::string Prettify(const std::string& upperUtf8, bool polish)
+    {
+        std::string out, word;
+        bool sentenceStart = true;
+        auto flush = [&]()
+        {
+            if (word.empty()) return;
+            std::vector<uint32_t> cps = DecodeUtf8(word);
+            std::string w;
+            if (word == "FPS" || word == "CRT") w = word;
+            else if (word == "RECLAW") w = "ReClaw";
+            else
+            {
+                bool capital = !polish || sentenceStart;
+                for (size_t i = 0; i < cps.size(); ++i) EncodeUtf8(i == 0 && capital ? cps[i] : Lower(cps[i]), w);
+            }
+            out += w;
+            word.clear();
+            sentenceStart = false;
+        };
+        for (uint32_t cp : DecodeUtf8(upperUtf8))
+        {
+            bool letter = (cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z') || cp >= 0xC0 || cp == '\'';
+            if (letter) { EncodeUtf8(cp, word); continue; }
+            flush();
+            if (cp == '|' || cp == '.' || cp == '?' || cp == '!') sentenceStart = true;
+            EncodeUtf8(cp, out);
+        }
+        flush();
+        return out;
+    }
+
+    std::shared_ptr<Image> Render(const std::string& utf8, int look, int sizePx)
+    {
+        if (!g_pApp || !g_pApp->GetRenderer()) return nullptr;
+
+        // Made at the size it is drawn at (sharp letters at 1080p and on the
+        // 3DS's small screen), placed by its size on the 640x480 menu.
+        double s = g_pApp->GetWindowSize().y / 480.0;
+        if (s < 0.5) s = 0.5;
+        if (s > 2.5) s = 2.5;
+        TTF_Font* pFont = FontOfSize(std::max(8, (int)(sizePx * s + 0.5)));
+        if (!pFont) return nullptr;
+
+        // Lines
+        std::vector<std::string> lines;
+        {
+            size_t start = 0, bar;
+            while ((bar = utf8.find('|', start)) != std::string::npos) { lines.push_back(utf8.substr(start, bar - start)); start = bar + 1; }
+            lines.push_back(utf8.substr(start));
+        }
+        std::vector<SDL_Surface*> surfaces;
+        int textW = 0, textH = 0;
+        for (const std::string& line : lines)
+        {
+            SDL_Surface* pLine = TTF_RenderUTF8_Blended(pFont, line.empty() ? " " : line.c_str(), SDL_Color{ 255, 255, 255, 255 });
+            if (pLine)
+            {
+                SDL_Surface* pConv = SDL_ConvertSurfaceFormat(pLine, SDL_PIXELFORMAT_ABGR8888, 0);
+                SDL_FreeSurface(pLine);
+                pLine = pConv;
+            }
+            surfaces.push_back(pLine);
+            if (pLine) { textW = std::max(textW, pLine->w); textH += pLine->h; }
+        }
+        if (textW == 0)
+        {
+            for (SDL_Surface* p : surfaces) if (p) SDL_FreeSurface(p);
+            return nullptr;
+        }
+
+        const int pad = std::max(2, (int)(3 * s + 0.5));   // room for the glow and the shadow
+        const int shadow = std::max(1, (int)(2 * s + 0.5));
+        const int W = textW + pad * 2, H = textH + pad * 2;
+        std::vector<uint8_t> alpha(W * H, 0);
+        std::vector<float> rowPos(H, 0.0f);   // 0 top .. 1 bottom of the line
+        {
+            int y0 = pad;
+            for (SDL_Surface* p : surfaces)
+            {
+                if (!p) continue;
+                int x0 = pad + (textW - p->w) / 2;
+                SDL_LockSurface(p);
+                for (int y = 0; y < p->h; ++y)
+                {
+                    const uint8_t* row = (const uint8_t*)p->pixels + y * p->pitch;
+                    for (int x = 0; x < p->w; ++x) alpha[(y0 + y) * W + x0 + x] = row[x * 4 + 3];
+                    rowPos[y0 + y] = p->h > 1 ? (float)y / (p->h - 1) : 0.0f;
+                }
+                SDL_UnlockSurface(p);
+                y0 += p->h;
+                SDL_FreeSurface(p);
+            }
+        }
+
+        // Colours: top -> bottom of the letters
+        struct C { float r, g, b; };
+        C top, bottom;
+        switch (look)
+        {
+            case 1: top = { 255, 255, 235 }; bottom = { 255, 196, 70 }; break;   // selected
+            case 2: top = { 150, 144, 130 }; bottom = { 96, 90, 80 }; break;     // greyed out
+            default: top = { 255, 226, 130 }; bottom = { 196, 120, 30 }; break;  // normal gold
+        }
+
+        GameFont::Pixels px;
+        px.w = W; px.h = H;
+        px.px.assign(W * H, 0);
+        auto blend = [&](int i, float r, float g, float b, float a)
+        {
+            // "over" onto what is there (premultiplied in float)
+            uint32_t d = px.px[i];
+            float da = ((d >> 24) & 0xFF) / 255.0f;
+            float dr = (d & 0xFF), dg = ((d >> 8) & 0xFF), db = ((d >> 16) & 0xFF);
+            float oa = a + da * (1 - a);
+            if (oa <= 0) return;
+            float orr = (r * a + dr * da * (1 - a)) / oa;
+            float og = (g * a + dg * da * (1 - a)) / oa;
+            float ob = (b * a + db * da * (1 - a)) / oa;
+            px.px[i] = ((uint32_t)(oa * 255 + 0.5f) << 24) | ((uint32_t)(ob + 0.5f) << 16) | ((uint32_t)(og + 0.5f) << 8) | (uint32_t)(orr + 0.5f);
+        };
+
+        // Selected: a soft warm glow around the letters
+        if (look == 1)
+        {
+            // (box blur, first along the rows, then along the columns)
+            const int r = pad;
+            std::vector<float> tmp(W * H, 0.0f), glow(W * H, 0.0f);
+            for (int y = 0; y < H; ++y)
+            {
+                int sum = 0;
+                for (int x = -r; x < W + r; ++x)
+                {
+                    int add = x + r < W && x + r >= 0 ? alpha[y * W + x + r] : 0;
+                    int sub = x - r - 1 >= 0 && x - r - 1 < W ? alpha[y * W + x - r - 1] : 0;
+                    sum += add - sub;
+                    if (x >= 0 && x < W) tmp[y * W + x] = (float)sum / (2 * r + 1);
+                }
+            }
+            for (int x = 0; x < W; ++x)
+            {
+                float sum = 0;
+                for (int y = -r; y < H + r; ++y)
+                {
+                    float add = y + r < H && y + r >= 0 ? tmp[(y + r) * W + x] : 0;
+                    float sub = y - r - 1 >= 0 && y - r - 1 < H ? tmp[(y - r - 1) * W + x] : 0;
+                    sum += add - sub;
+                    if (y >= 0 && y < H) glow[y * W + x] = sum / (2 * r + 1);
+                }
+            }
+            for (int i = 0; i < W * H; ++i)
+            {
+                float a = glow[i] / 255.0f * 1.2f;
+                if (a > 0.004f) blend(i, 255, 170, 60, std::min(0.85f, a));
+            }
+        }
+        // Dark shadow, down and to the right
+        for (int y = 0; y + shadow < H; ++y)
+            for (int x = 0; x + shadow < W; ++x)
+            {
+                uint8_t a = alpha[y * W + x];
+                if (a) blend((y + shadow) * W + x + shadow, 20, 10, 0, a / 255.0f * 0.8f);
+            }
+        // The letters
+        for (int y = 0; y < H; ++y)
+        {
+            float t = rowPos[y];
+            float r = top.r + (bottom.r - top.r) * t, g = top.g + (bottom.g - top.g) * t, b = top.b + (bottom.b - top.b) * t;
+            for (int x = 0; x < W; ++x)
+            {
+                uint8_t a = alpha[y * W + x];
+                if (a) blend(y * W + x, r, g, b, a / 255.0f);
+            }
+        }
+
+        SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(px.px.data(), W, H, 32, W * 4, SDL_PIXELFORMAT_ABGR8888);
+        if (!surface) return nullptr;
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(g_pApp->GetRenderer(), surface);
+        SDL_FreeSurface(surface);
+        if (!texture) return nullptr;
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+        std::shared_ptr<Image> image(new Image(texture));
+        image->SetLogicalSize((int)(W / s + 0.5), (int)(H / s + 0.5));
+        return image;
+    }
+}

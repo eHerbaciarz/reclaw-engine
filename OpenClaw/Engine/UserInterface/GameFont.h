@@ -61,3 +61,23 @@ namespace GameFont
     // own shadow shrinks away). The picture grows by dx, dy.
     Pixels WithShadow(const Pixels& p, int dx, int dy, int alpha);
 }
+
+// Options > Graphics > Font: "Classic" (the game's own menu pictures and the
+// letters above) or "ReClaw" (every menu text in the port's splash font,
+// Cinzel Decorative, coloured like the original menu).
+namespace MenuFont
+{
+    bool IsReclaw();
+    void SetReclaw(bool on);
+
+    // The text of one of the game's menu pictures (by its path), for drawing
+    // it in the ReClaw font; nullptr for pictures that are not texts.
+    const char* PictureText(const std::string& path, bool polish);
+    // "NIESKOŃCZONA AMUNICJA: NIE" -> "Nieskończona amunicja: nie" (Polish:
+    // sentence case; English: Title Case). The font's small letters are
+    // small capitals.
+    std::string Prettify(const std::string& upperUtf8, bool polish);
+    // look: 0 normal (gold), 1 selected (bright, glowing), 2 greyed out.
+    // sizePx: letter size on the 640x480 menu. Lines are separated by '|'.
+    std::shared_ptr<Image> Render(const std::string& utf8, int look, int sizePx);
+}

@@ -2541,6 +2541,30 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// EventData_Menu_Set_Menu_Font
+// Options > Graphics > Font: classic (the game's pictures) or ReClaw.
+//---------------------------------------------------------------------------------------------------------------------
+class EventData_Menu_Set_Menu_Font : public BaseEventData
+{
+public:
+    static const EventType sk_EventType;
+
+    explicit EventData_Menu_Set_Menu_Font(bool reclaw = false) : m_bReclaw(reclaw) { }
+
+    bool IsReclaw() const { return m_bReclaw; }
+
+    virtual const EventType& VGetEventType(void) const { return sk_EventType; }
+    virtual IEventDataPtr VCopy() const { return IEventDataPtr(new EventData_Menu_Set_Menu_Font(m_bReclaw)); }
+    virtual void VSerialize(std::ostringstream& out) const { }
+    virtual void VDeserialize(std::istringstream& in) { }
+
+    virtual const char* GetName(void) const { return "EventData_Menu_Set_Menu_Font"; }
+
+private:
+    bool m_bReclaw;
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // EventData_Menu_Set_Fps_Counter
 // Options > Graphics > FPS counter (lower left corner).
 //---------------------------------------------------------------------------------------------------------------------

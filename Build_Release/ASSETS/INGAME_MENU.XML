@@ -1114,13 +1114,83 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
+            <!-- ReClaw: menu texts in the game's pictures (classic) or in the ReClaw font -->
+            <Name>FONT_RECLAW_BUTTON</Name>
+            <GameFontText en="FONT: RECLAW">CZCIONKA: RECLAW</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FontReclaw</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="325" align="center" />
+            <GeneratedEvent>
+                <Type>SetMenuFont</Type>
+                <IsReclaw>false</IsReclaw>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FONT_RECLAW_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FONT_RECLAW_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FONT_CLASSIC_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FONT_CLASSIC_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: menu texts in the game's pictures (classic) or in the ReClaw font -->
+            <Name>FONT_CLASSIC_BUTTON</Name>
+            <GameFontText en="FONT: CLASSIC">CZCIONKA: KLASYCZNA</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FontClassic</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="325" align="center" />
+            <GeneratedEvent>
+                <Type>SetMenuFont</Type>
+                <IsReclaw>true</IsReclaw>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FONT_CLASSIC_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FONT_CLASSIC_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FONT_RECLAW_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FONT_RECLAW_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <Name>BACK_BUTTON</Name>
             <Type>Button</Type>
             <Hotkey>B</Hotkey>
             <State>Inactive</State>
             <InactiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/007_PREVIOUSMENU.PID</InactiveImage>
             <ActiveImage>/GAME/IMAGES/INGAMEMENU/MAIN/OPTIONS/008_PREVIOUSMENU.PID</ActiveImage>
-            <Position x="320" y="325" align="center" />
+            <Position x="320" y="360" align="center" />
             <GeneratedEvent>
                 <Type>SwitchPage</Type>
                 <PageName>MenuPage_Options</PageName>

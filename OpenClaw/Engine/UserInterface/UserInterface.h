@@ -387,6 +387,18 @@ private:
     SDL_Scancode m_Hotkey;
 
     MenuItemImageMap m_Images;
+
+    // Options > Graphics > Font: ReClaw - the item's text in the port's font
+    // (pictures made when the item is first drawn, dropped on a page change)
+    std::string m_ReclawText;
+    int m_ReclawSize = 30;
+    bool m_bCentered = false;
+    MenuItemImageMap m_ReclawImages;
+    shared_ptr<Image> GetReclawImage(MenuItemState state);
+    bool GetReclawRect(shared_ptr<Image>& pImage, SDL_Rect& rect);
+public:
+    void DropReclawImages() { m_ReclawImages.clear(); }
+private:
     //MenuItemImageContainerList m_MenuItemImageContainerList;
     SDL_Renderer* m_pRenderer;
 

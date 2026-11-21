@@ -459,6 +459,13 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
         pEventData.reset(new EventData_Menu_Set_Crt(enabled));
     }
+    else if (eventType == "SetMenuFont")
+    {
+        // <IsReclaw>true</IsReclaw>: set at once (drawing reads it every frame)
+        bool reclaw = false;
+        ParseValueFromXmlElem(&reclaw, pElem->FirstChildElement("IsReclaw"));
+        pEventData.reset(new EventData_Menu_Set_Menu_Font(reclaw));
+    }
     else if (eventType == "SetFpsCounter")
     {
         bool enabled = false;
@@ -1101,6 +1108,9 @@ void ScreenElementMenu::IngameMenuEndGameDelegate(IEventDataPtr pEventData)
 //
 //-----------------------------------------------------------------------------
 
+// (pages that exist: the ReClaw font pictures of the last shown one are dropped)
+static std::set<ScreenElementMenuPage*> s_LivePages;
+
 ScreenElementMenuPage::ScreenElementMenuPage(SDL_Renderer* pRenderer)
     :
     m_pBackground(NULL),
@@ -1113,11 +1123,13 @@ ScreenElementMenuPage::ScreenElementMenuPage(SDL_Renderer* pRenderer)
     m_LastMouseX(-1),
     m_LastMouseY(-1)
 {
+    s_LivePages.insert(this);
 
 }
 
 ScreenElementMenuPage::~ScreenElementMenuPage()
 {
+    s_LivePages.erase(this);
     m_MenuItems.clear();
 }
 
@@ -1777,6 +1789,15 @@ void ScreenElementMenuPage::ApplyAutoLayout()
 
 void ScreenElementMenuPage::OnPageLoaded()
 {
+    // ReClaw font pictures: only the shown page keeps them (memory)
+    {
+        static ScreenElementMenuPage* s_pLastPage = nullptr;
+        if (s_pLastPage && s_pLastPage != this && s_LivePages.count(s_pLastPage))
+        {
+            for (auto& pItem : s_pLastPage->m_MenuItems) pItem->DropReclawImages();
+        }
+        s_pLastPage = this;
+    }
     for (shared_ptr<ScreenElementMenuItem> pItem : m_MenuItems)
     {
         pItem->ReEvaluateVisibilityCondition();
@@ -1820,6 +1841,37 @@ ScreenElementMenuItem::ScreenElementMenuItem(SDL_Renderer* pRenderer)
 ScreenElementMenuItem::~ScreenElementMenuItem()
 {
 
+}
+
+shared_ptr<Image> ScreenElementMenuItem::GetReclawImage(MenuItemState state)
+{
+    if (state != MenuItemState_Active && state != MenuItemState_Disabled) state = MenuItemState_Inactive;
+    auto it = m_ReclawImages.find(state);
+    if (it != m_ReclawImages.end()) return it->second;
+    int look = state == MenuItemState_Active ? 1 : (state == MenuItemState_Disabled ? 2 : 0);
+    shared_ptr<Image> pImage = MenuFont::Render(m_ReclawText, look, m_ReclawSize);
+    m_ReclawImages[state] = pImage;   // (also a failed one: not tried again every frame)
+    return pImage;
+}
+
+// Where the ReClaw text goes, in menu coordinates: centred where the
+// original picture is (centred items) or from its left edge.
+bool ScreenElementMenuItem::GetReclawRect(shared_ptr<Image>& pImage, SDL_Rect& rect)
+{
+    pImage = GetReclawImage(m_State);
+    if (!pImage) return false;
+
+    shared_ptr<Image> pClassic = m_Images[MenuItemState_Inactive];
+    if (!pClassic) for (auto& kv : m_Images) if (kv.second) { pClassic = kv.second; break; }
+    int cw = pClassic ? pClassic->GetWidth() : 0;
+    int ch = pClassic ? pClassic->GetHeight() : 35;
+    int cy = (int)m_Position.y + (pClassic ? m_DrawOffsetY : 0) + ch / 2;
+
+    rect.w = pImage->GetWidth();
+    rect.h = pImage->GetHeight();
+    rect.x = m_bCentered ? (int)m_Position.x + cw / 2 - rect.w / 2 : (int)m_Position.x;
+    rect.y = cy - rect.h / 2;
+    return true;
 }
 
 void ScreenElementMenuItem::VOnUpdate(uint32 msDiff)
@@ -1897,6 +1949,22 @@ void ScreenElementMenuItem::SetVolumeFromPointerX(int menuX)
 
 void ScreenElementMenuItem::VOnRender(uint32 msDiff)
 {
+    // Options > Graphics > Font: ReClaw
+    if (MenuFont::IsReclaw() && !m_ReclawText.empty())
+    {
+        shared_ptr<Image> pImage;
+        SDL_Rect r;
+        if (GetReclawRect(pImage, r))
+        {
+            r.x = (int)(g_MenuOffset.x + r.x * g_MenuScale.x);
+            r.y = (int)(g_MenuOffset.y + r.y * g_MenuScale.y);
+            r.w = (int)(r.w * g_MenuScale.x);
+            r.h = (int)(r.h * g_MenuScale.y);
+            SDL_RenderCopy(m_pRenderer, pImage->GetTexture(), NULL, &r);
+            return;
+        }
+    }
+
     // Greyed out without a picture of its own: the normal picture, darkened.
     bool greyed = false;
     if (m_State == MenuItemState_Disabled && !m_Images[MenuItemState_Disabled] && m_Images[MenuItemState_Inactive])
@@ -2325,11 +2393,43 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         }
     }
 
+    // Options > Graphics > Font: ReClaw - the text this item shows
+    if ((m_Type == MenuItemType_Button || m_Type == MenuItemType_Text) &&
+        !pElem->FirstChildElement("GameFontCredits") && !pElem->FirstChildElement("GameFontControls") &&
+        (Lang::Code() == "pl" || Lang::Code() == "en"))
+    {
+        const bool polish = Lang::Code() == "pl";
+        if (TiXmlElement* pFontElem = pElem->FirstChildElement("GameFontText"))
+        {
+            const char* t = polish ? pFontElem->GetText() : pFontElem->Attribute("en");
+            if (t) m_ReclawText = MenuFont::Prettify(t, polish);
+        }
+        if (m_ReclawText.empty())
+        {
+            const char* names[] = { "InactiveImage", "ActiveImage", "DisabledImage" };
+            for (const char* n : names)
+            {
+                TiXmlElement* pImgElem = pElem->FirstChildElement(n);
+                if (!pImgElem || !pImgElem->GetText()) continue;
+                if (const char* t = MenuFont::PictureText(pImgElem->GetText(), polish))
+                {
+                    m_ReclawText = t;
+                    break;
+                }
+            }
+        }
+        m_ReclawSize = m_Type == MenuItemType_Text ? 38 : 30;
+        int scale = 100;
+        ParseValueFromXmlElem(&scale, pElem->FirstChildElement("GameFontScale"));
+        if (scale != 100) m_ReclawSize = m_ReclawSize * scale / 100;
+    }
+
     // <Position x="320" y="100" align="center" />: x is the item's centre, so
     // texts of any length (e.g. translated releases) stay centred.
     if (TiXmlElement* pPosElem = pElem->FirstChildElement("Position"))
     {
         const char* align = pPosElem->Attribute("align");
+        if (align && std::string(align) == "center") m_bCentered = true;
         if (align && std::string(align) == "center" && !m_Images.empty())
         {
             auto it = m_Images.find(MenuItemState_Inactive);
@@ -2608,6 +2708,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
         m_bVisible = true;
 #endif
     }
+    else if (m_VisibilityConditionType == "FontReclaw" || m_VisibilityConditionType == "FontClassic")
+    {
+        m_bVisible = MenuFont::IsReclaw() == (m_VisibilityConditionType == "FontReclaw");
+    }
     else if (m_VisibilityConditionType == "FpsOn" || m_VisibilityConditionType == "FpsOff")
     {
         m_bVisible = CrtEffect::FpsCounterOn() == (m_VisibilityConditionType == "FpsOn");
@@ -2711,6 +2815,12 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
 
 SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
 {
+    if (MenuFont::IsReclaw() && !m_ReclawText.empty())
+    {
+        shared_ptr<Image> pImage;
+        SDL_Rect r;
+        if (GetReclawRect(pImage, r)) return r;
+    }
     int itemWidth = 0, itemHeight = 0;
     shared_ptr<Image> pImage = m_Images[m_State];
     if (!pImage) for (auto& kv : m_Images) if (kv.second) { pImage = kv.second; break; }
