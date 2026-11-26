@@ -1,3 +1,4 @@
+#include "../Platform/Platform.h"
 #include "../PortFeatures.h"
 #include <map>
 #include <cstdio>
@@ -759,7 +760,19 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         pNextActorElem = pActorElem->NextSiblingElement("Actor");
         //LOG("Creating actor: " + std::string(pActorElem->Attribute("Type")));
         //if (std::string(pActorElem->Attribute("Type")) != "Plane") break;
-        StrongActorPtr pActor = VCreateActor(pActorElem, NULL);
+        StrongActorPtr pActor;
+        const char* pActorType = pActorElem->Attribute("Type");
+        try
+        {
+            pActor = VCreateActor(pActorElem, NULL);
+        }
+        catch (const std::exception& e)
+        {
+            // One broken actor must not end the game: say which and go on
+            LOG_ERROR(std::string("Exception while creating actor ") + (pActorType ? pActorType : "?") + ": " + e.what());
+            Platform::FlushLog();
+            continue;
+        }
 #ifdef OPENCLAW_STARTUP_TRACE
         {
             static int s_created = 0;
@@ -785,6 +798,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         }
         else
         {
+            LOG_ERROR(std::string("Could not create actor ") + (pActorType ? pActorType : "?"));
             return false;
         }
 
