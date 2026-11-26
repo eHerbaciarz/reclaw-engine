@@ -196,6 +196,8 @@ jobs:
             (cd /tmp/ps3toolchain && ./toolchain.sh 8)
           fi
           git clone --depth 1 https://github.com/ps3dev/ps3libraries /tmp/ps3libraries
+          # SDL2_mixer without libmikmod (not built here; ReClaw plays WAV and MIDI)
+          sed -i 's/--enable-music-mod-mikmod/--disable-music-mod-mikmod/' /tmp/ps3libraries/scripts/016-SDL2_mixer-2.0.4.sh
           # 1 zlib, 2 libpng, 4 freetype, 14 SDL2 (PSL1GHT port), 16 SDL2_mixer
           (cd /tmp/ps3libraries && ./libraries.sh 1 2 4 14 16)
           bash "$GITHUB_WORKSPACE/platform/ps3/build-sdl-addons.sh" /tmp/ps3-sdl-addons
@@ -208,6 +210,7 @@ jobs:
         run: |
           mkdir -p dist
           cp build-ps3/reclaw.pkg build-ps3/reclaw.self dist/
+          [ -f build-ps3/reclaw_hen.pkg ] && cp build-ps3/reclaw_hen.pkg dist/ || true
           echo "Copy CLAW.REZ from your own copy of Claw (1997) to /dev_hdd0/game/RCLW00001/USRDIR/data/CLAW.REZ" > dist/PUT_CLAW.REZ_HERE.txt
       - uses: actions/upload-artifact@v4
         with:
