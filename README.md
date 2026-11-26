@@ -109,6 +109,7 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 - **New 3DS** – stereoscopic 3D, and a second screen with the menu map and the
   player's status
 - **Controls page** – a controls screen made for each console's buttons
+- **Touch screen** – on the Switch and the PS Vita the menus work by touch
 
 ## Based on
 
@@ -243,6 +244,7 @@ CLAW.REZ wrzucony prosto do `data/` też działa (jako jedyny język).
 - **New 3DS** – tryb 3D i drugi ekran z mapą z menu i stanem gracza
 - **Strona sterowania** – ekran sterowania dopasowany do przycisków każdej
   konsoli
+- **Ekran dotykowy** – na Switchu i PS Vicie menu obsługuje się dotykiem
 
 ### Na podstawie
 
