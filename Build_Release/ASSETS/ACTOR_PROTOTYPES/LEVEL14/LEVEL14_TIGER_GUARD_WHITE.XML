@@ -1,0 +1,103 @@
+<Actor Type="Level14_TigerGuardWhite" Parent="ActorPrototype_BaseEnemy" ActorPrototypeName="ActorPrototype_Level14_TigerGuardWhite">
+    <ActorRenderComponent>
+        <ZCoord>0</ZCoord>
+        <ImagePath>/LEVEL14/IMAGES/TIGERWHITE/*</ImagePath>
+        <Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
+    </ActorRenderComponent>
+    <AnimationComponent>
+        <AnimationPath>/LEVEL14/ANIS/TIGERWHITE/*.ANI</AnimationPath>
+        <PauseOnStart>false</PauseOnStart>
+    </AnimationComponent>
+    <HealthComponent>
+        <Health>40</Health>
+        <MaxHealth>40</MaxHealth>
+    </HealthComponent>
+    <EnemyAIComponent>
+        <DeathAnimation>killfall</DeathAnimation>
+        <Sounds>
+            <Sound SoundType="TakeDamage" SoundName="/LEVEL1/SOUNDS/HIT1.WAV" />
+            <Sound SoundType="Death" SoundName="/LEVEL14/SOUNDS/TIGERGUARD/00510000.WAV" />
+            <Sound SoundType="MeleeAttack" SoundName="/LEVEL14/SOUNDS/TIGERGUARD/FLIP.WAV" />
+        </Sounds>
+        <MinTimeIntervalForSpeechSound>5000</MinTimeIntervalForSpeechSound>
+    </EnemyAIComponent>
+    <TakeDamageAIStateComponent>
+        <StatePriority>0</StatePriority>
+        <TakeDamageAnimation>hithigh</TakeDamageAnimation>
+        <InvulnerabilityTime>0</InvulnerabilityTime>
+    </TakeDamageAIStateComponent>
+    <PatrolEnemyAIStateComponent>
+        <IsAlwaysIdle>false</IsAlwaysIdle>
+        <StatePriority>0</StatePriority>
+        <PatrolSpeed>1.500000</PatrolSpeed>
+        <LeftPatrolBorder>0</LeftPatrolBorder> <!-- DEFINED IN CODE -->
+        <RightPatrolBorder>0</RightPatrolBorder> <!-- DEFINED IN CODE -->
+        <RetainDirection>false</RetainDirection>
+        <WalkAction>
+            <Animation>fastadvance</Animation>
+        </WalkAction>
+        <IdleAction>
+            <AnimationDelay>0</AnimationDelay>
+            <Animation>idle</Animation>
+        </IdleAction>
+        <IdleSpeech>
+            <IdleSpeechSound>/LEVEL14/SOUNDS/TIGERGUARD/00510004.WAV</IdleSpeechSound>
+            <IdleSpeechSound>/LEVEL14/SOUNDS/TIGERGUARD/00510006.WAV</IdleSpeechSound>
+            <IdleSpeechSound>/LEVEL14/SOUNDS/TIGERGUARD/00510009.WAV</IdleSpeechSound>
+            <IdleSpeechSoundMaxDistance>350</IdleSpeechSoundMaxDistance>
+            <IdleSpeechSoundPlayChance>40</IdleSpeechSoundPlayChance>
+        </IdleSpeech>
+    </PatrolEnemyAIStateComponent>
+    <MeleeAttackAIStateComponent>
+        <StatePriority>20</StatePriority>
+        <Attacks>
+            <AttackAction>
+                <Animation>strike1</Animation>
+                <AttackAnimFrameIdx>1</AttackAnimFrameIdx>
+                <AttackType>0</AttackType>
+                <AttackFxImageSet>NONE</AttackFxImageSet>
+                <AttackSpawnPositionOffset x="-40" y="-10" />
+                <AttackAreaSize width="110" height="60" />
+                <Damage>10</Damage>
+                <AgroSensorFixture>
+                    <FixtureType>EnemyAIMeleeSensor</FixtureType>
+                    <CollisionShape>Rectangle</CollisionShape>
+                    <IsSensor>true</IsSensor>
+                    <Size width="170" height="60" />
+                    <Offset x="0" y="0" />
+                    <CollisionFlag>4</CollisionFlag>
+                    <CollisionMask>2</CollisionMask>
+                    <Friction>0.000000</Friction>
+                    <Density>0.000000</Density>
+                    <Restitution>0.000000</Restitution>
+                </AgroSensorFixture>
+            </AttackAction>
+            <AttackAction>
+                <Animation>strike2</Animation>
+                <AttackAnimFrameIdx>4</AttackAnimFrameIdx>
+                <AttackType>0</AttackType>
+                <AttackFxImageSet>NONE</AttackFxImageSet>
+                <AttackSpawnPositionOffset x="-40" y="-10" />
+                <AttackAreaSize width="110" height="60" />
+                <Damage>15</Damage>
+                <AgroSensorFixture>
+                    <FixtureType>EnemyAIMeleeSensor</FixtureType>
+                    <CollisionShape>Rectangle</CollisionShape>
+                    <IsSensor>true</IsSensor>
+                    <Size width="170" height="60" />
+                    <Offset x="0" y="0" />
+                    <CollisionFlag>4</CollisionFlag>
+                    <CollisionMask>2</CollisionMask>
+                    <Friction>0.000000</Friction>
+                    <Density>0.000000</Density>
+                    <Restitution>0.000000</Restitution>
+                </AgroSensorFixture>
+            </AttackAction>
+        </Attacks>
+        <AttackSpeech>
+            <AttackSpeechSound>/LEVEL14/SOUNDS/TIGERGUARD/00510012.WAV</AttackSpeechSound>
+            <AttackSpeechSound>/LEVEL14/SOUNDS/TIGERGUARD/00510018.WAV</AttackSpeechSound>
+            <AttackSpeechSoundPlayChance>30</AttackSpeechSoundPlayChance>
+        </AttackSpeech>
+    </MeleeAttackAIStateComponent>
+</Actor>

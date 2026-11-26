@@ -530,6 +530,7 @@ enum ActorPrototype
     ActorPrototype_Level13_Chameleon,
     ActorPrototype_Level14_Chameleon,
     ActorPrototype_Level14_TigerGuard,
+    ActorPrototype_Level14_TigerGuardWhite,
     ActorPrototype_Level14_Omar,
     ActorPrototype_Level14_OmarFireShieldBall,
     ActorPrototype_Level14_OmarIceShieldBall,

@@ -759,6 +759,13 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
             return NULL;
         }
 
+        // Level 14: tiger guards with "smarts" 1 are the white ones
+        // (checked against the original game)
+        if (actorProto == ActorPrototype_Level14_TigerGuard && wwdObject->smarts == 1)
+        {
+            actorProto = ActorPrototype_Level14_TigerGuardWhite;
+        }
+
         std::vector<PickupType> loot;
         if (wwdObject->powerup > 0) { loot.push_back(PickupType(wwdObject->powerup)); }
         if (wwdObject->userRect1.left > 0) { loot.push_back(PickupType(wwdObject->userRect1.left)); }
