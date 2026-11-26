@@ -202,8 +202,17 @@ void PhysicsComponent::VPostInit()
                 MakeStrongPtr(m_pOwner->GetComponent<ActorRenderComponent>(ActorRenderComponent::g_Name));
             assert(pRenderComponent);
 
-            shared_ptr<Image> pImage = MakeStrongPtr(pRenderComponent->GetCurrentImage());
-            assert(pImage != nullptr);
+            shared_ptr<Image> pImage = pRenderComponent ? MakeStrongPtr(pRenderComponent->GetCurrentImage()) : nullptr;
+            if (!pImage)
+            {
+                // No picture to take the size from (wrong image path): a tiny
+                // body instead of a crash while the level loads
+                LOG_ERROR("Actor " + m_pOwner->GetName() + " has no image to size its body from");
+                if (fabs(m_ActorBodyDef.size.x) < DBL_EPSILON) m_ActorBodyDef.size.x = 1;
+                if (fabs(m_ActorBodyDef.size.y) < DBL_EPSILON) m_ActorBodyDef.size.y = 1;
+            }
+            else
+            {
 
             // Also offset position
             m_ActorBodyDef.position = Point(m_ActorBodyDef.position.x + pImage->GetOffsetX(), m_ActorBodyDef.position.y + pImage->GetOffsetY());
@@ -226,6 +235,7 @@ void PhysicsComponent::VPostInit()
 //            {
 //                pImage->SetOffset(0, 0);
 //            }
+            }
         }
 
         m_ActorBodyDef.position += m_ActorBodyDef.positionOffset;

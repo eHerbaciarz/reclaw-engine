@@ -242,8 +242,9 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
         tmpImageSet += ToStr(wwdObject->i) + ".PID";
     }
 
-    // Level 9 and 10 SHOOTERS_PUFFDARTLEFT is screwed
-    if ((levelNumber == 9 || levelNumber == 10 || levelNumber == 13) &&
+    // Level 9 and 10 SHOOTERS_PUFFDARTLEFT is screwed (the images are in
+    // SHOOTERS/PUFFDARTLEFT); level 14's SHOOTERS_LAUNCHLEFT likewise
+    if ((levelNumber == 9 || levelNumber == 10 || levelNumber == 13 || levelNumber == 14) &&
             tmpImageSet.find("SHOOTERS") != std::string::npos)
     {
         std::replace(tmpImageSet.begin(), tmpImageSet.end(), '_', '/');
