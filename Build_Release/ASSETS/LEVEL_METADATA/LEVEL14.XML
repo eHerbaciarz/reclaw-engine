@@ -22,9 +22,10 @@
         <LogicToActorPrototype logic="LavaHand" actorPrototype="ActorPrototype_Level14_LavaHand" />
         <LogicToActorPrototype logic="Chameleon" actorPrototype="ActorPrototype_Level14_Chameleon" />
         <LogicToActorPrototype logic="TigerGuard" actorPrototype="ActorPrototype_Level14_TigerGuard" />
+        <LogicToActorPrototype logic="Omar" actorPrototype="ActorPrototype_Level14_Omar" />
+        <LogicToActorPrototype logic="BossStager" actorPrototype="ActorPrototype_Level14_BossStager" />
 
         <!-- Not implemented yet: hidden instead of shown as static images -->
-        <LogicToActorPrototype logic="BossStager" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="JumpSwitch" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="CursePowerup" actorPrototype="ActorPrototype_Null" />
     </LogicsToActorPrototypes>

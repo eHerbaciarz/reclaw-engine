@@ -60,6 +60,7 @@
 #include "Components/EnemyAI/Marrow/MarrowEncounter.h"
 #include "Components/EnemyAI/Aquatis/AquatisEncounter.h"
 #include "Components/LavaHazardComponent.h"
+#include "Components/EnemyAI/Omar/OmarEncounter.h"
 #include "Components/EnemyAI/RedTail/RedTailEncounter.h"
 
 ActorFactory::ActorFactory()
@@ -144,6 +145,8 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<AquatisCrackComponent>();
     _componentFactory.Register<AquatisStalactiteComponent>();
     _componentFactory.Register<AquatisDynamiteComponent>();
+    _componentFactory.Register<OmarAIStateComponent>();
+    _componentFactory.Register<OmarSwordSpawnerComponent>();
     _componentFactory.Register<RedTailAIStateComponent>();
 }
 

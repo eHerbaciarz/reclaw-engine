@@ -31,6 +31,7 @@ enum EnemyAIState
     EnemyAIState_BrainMarrowParrot,
     EnemyAIState_BrainAquatis,
     EnemyAIState_BrainRedTail,
+    EnemyAIState_BrainOmar,
 };
 
 struct EnemyAIAction

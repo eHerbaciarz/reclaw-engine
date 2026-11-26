@@ -750,6 +750,7 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
              logic == "Aquatis" ||
              logic == "Chameleon" ||
              logic == "TigerGuard" ||
+             logic == "Omar" ||
              logic == "RedTail")
     {
         SAFE_DELETE(pActorElem);
@@ -867,6 +868,17 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
         }
 
         PickupType pickupType = ActorTemplates::StringToEnum_ImageSetToPickupType(wwdObject->imageSet);
+
+        // Level 14: the magic swords of the Omar fight come back after Claw
+        // takes them (WWD "damage" 1 marks them)
+        if (levelNumber == 14 && wwdObject->damage == 1 &&
+            (imageSet == "GAME_POWERUPS_FIRESWORD" || imageSet == "GAME_POWERUPS_ICESWORD"))
+        {
+            std::vector<XmlNodeOverride> spawnerOverrides;
+            spawnerOverrides.push_back(XmlNodeOverride("Actor.PositionComponent.Position", "x", actorPosition.x, "y", actorPosition.y));
+            spawnerOverrides.push_back(XmlNodeOverride("Actor.OmarSwordSpawnerComponent.PickupType", (int)pickupType));
+            return ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level14_OmarSwordSpawner, spawnerOverrides);
+        }
 
         return ActorTemplates::CreateXmlData_PickupActor(pickupType, Point(wwdObject->x, wwdObject->y), true, paramMap);
     }

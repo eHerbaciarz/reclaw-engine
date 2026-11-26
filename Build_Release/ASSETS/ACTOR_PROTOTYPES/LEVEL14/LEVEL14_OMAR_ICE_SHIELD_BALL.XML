@@ -1,0 +1,20 @@
+<Actor Type="Level14_OmarIceShieldBall" ActorPrototypeName="ActorPrototype_Level14_OmarIceShieldBall">
+    <PositionComponent>
+        <Position x="-1" y="-1" />
+    </PositionComponent>
+    <ActorRenderComponent>
+        <Visible>true</Visible>
+        <Mirrored>false</Mirrored>
+        <Inverted>false</Inverted>
+        <ZCoord>4100</ZCoord>
+        <ImagePath>/LEVEL14/IMAGES/ICESHIELD/*.PID</ImagePath>
+        <Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
+    </ActorRenderComponent>
+    <AnimationComponent>
+        <SpecialAnimation>
+            <Type>cycle</Type>
+            <FrameDuration>80</FrameDuration>
+            <HasPositionDelay>false</HasPositionDelay>
+        </SpecialAnimation>
+    </AnimationComponent>
+</Actor>

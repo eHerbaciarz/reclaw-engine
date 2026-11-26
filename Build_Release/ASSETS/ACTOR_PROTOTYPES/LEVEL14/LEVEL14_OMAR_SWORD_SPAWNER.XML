@@ -1,0 +1,9 @@
+<Actor Type="Level14_OmarSwordSpawner" ActorPrototypeName="ActorPrototype_Level14_OmarSwordSpawner">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <OmarSwordSpawnerComponent>
+        <PickupType>0</PickupType> <!-- DEFINED IN CODE -->
+        <RespawnTime>3000</RespawnTime>
+    </OmarSwordSpawnerComponent>
+</Actor>
