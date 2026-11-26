@@ -1856,7 +1856,34 @@ shared_ptr<Image> ScreenElementMenuItem::GetReclawImage(MenuItemState state)
     auto it = m_ReclawImages.find(state);
     if (it != m_ReclawImages.end()) return it->second;
     int look = state == MenuItemState_Active ? 1 : (state == MenuItemState_Disabled ? 2 : 0);
-    shared_ptr<Image> pImage = MenuFont::Render(m_ReclawText, look, m_ReclawSize);
+
+    // The text must fit where the game's picture was: a list in two columns
+    // (levels) ran into the next column. Left-aligned items get the picture's
+    // width (and a little), centred ones the menu's width. Worked out once,
+    // the same size for every state.
+    if (m_ReclawFitSize == 0)
+    {
+        // (lists of left-aligned items - the levels - are dense: a smaller
+        // size to start with, so most of them share it)
+        const int base = m_bCentered ? m_ReclawSize : std::min(m_ReclawSize, 21);
+        m_ReclawFitSize = base;
+        shared_ptr<Image> pProbe = MenuFont::Render(m_ReclawText, 0, base);
+        shared_ptr<Image> pClassic = m_Images[MenuItemState_Inactive];
+        if (!pClassic) for (auto& kv : m_Images) if (kv.second) { pClassic = kv.second; break; }
+        int maxW = 600;
+        if (!m_bCentered && pClassic && pClassic->GetWidth() > 0) maxW = pClassic->GetWidth() + 4;
+        if (pProbe && pProbe->GetWidth() > maxW)
+        {
+            m_ReclawFitSize = std::max(12, base * maxW / pProbe->GetWidth());
+        }
+        else if (pProbe && look == 0)
+        {
+            m_ReclawImages[state] = pProbe;
+            return pProbe;
+        }
+    }
+
+    shared_ptr<Image> pImage = MenuFont::Render(m_ReclawText, look, m_ReclawFitSize);
     m_ReclawImages[state] = pImage;   // (also a failed one: not tried again every frame)
     return pImage;
 }

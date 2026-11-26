@@ -392,6 +392,7 @@ private:
     // (pictures made when the item is first drawn, dropped on a page change)
     std::string m_ReclawText;
     int m_ReclawSize = 30;
+    int m_ReclawFitSize = 0;   // (0: not worked out yet)
     bool m_bCentered = false;
     MenuItemImageMap m_ReclawImages;
     shared_ptr<Image> GetReclawImage(MenuItemState state);
