@@ -26,6 +26,17 @@ The project was renamed from OpenClaw to ReClaw because searching for
 That was the main reason; on top of that, I plan to grow the project with new
 features over time.
 
+## Screenshots
+
+Photos of the real consoles, not emulators.
+
+| | |
+|---|---|
+| ![ReClaw on the Nintendo Switch OLED: the Polish main menu, FPS counter in the corner](docs/screenshots/switch-main-menu.jpg) | ![ReClaw on the PS Vita: the intro movie](docs/screenshots/vita-intro-movie.jpg) |
+| **Nintendo Switch OLED** – the main menu of the Polish release, with the FPS counter on | **PS Vita** – the game's movies play too |
+| ![ReClaw on the New Nintendo 3DS: La Roca on the upper screen, health, lives and weapons on the lower one](docs/screenshots/3ds-gameplay.jpg) | ![ReClaw on the New Nintendo 3DS: the controls page on both screens](docs/screenshots/3ds-controls.jpg) |
+| **New Nintendo 3DS** – La Roca above; score, health, lives and weapons on the lower screen | **New Nintendo 3DS** – the controls page, made for the 3DS buttons |
+
 ## Platforms
 
 | Platform | Package | ReClaw folder (CLAW.REZ goes to its `data/`) |
@@ -163,6 +174,17 @@ Projekt przemianowałem z OpenClawa na ReClawa, bo po wpisaniu „OpenClaw”
 w Google od razu wyskakuje OpenClaw – asystent AI o otwartym kodzie. To był
 główny powód zmiany nazwy; poza tym z czasem planuję poszerzyć projekt
 o nowe funkcje.
+
+### Zrzuty ekranu
+
+Zdjęcia prawdziwych konsol, nie emulatorów.
+
+| | |
+|---|---|
+| ![ReClaw na Nintendo Switch OLED: polskie menu główne, licznik FPS w rogu](docs/screenshots/switch-main-menu.jpg) | ![ReClaw na PS Vita: film wprowadzający](docs/screenshots/vita-intro-movie.jpg) |
+| **Nintendo Switch OLED** – menu główne polskiego wydania z włączonym licznikiem FPS | **PS Vita** – filmy z gry też działają |
+| ![ReClaw na New Nintendo 3DS: La Roca na górnym ekranie, życie, życia i broń na dolnym](docs/screenshots/3ds-gameplay.jpg) | ![ReClaw na New Nintendo 3DS: strona sterowania na obu ekranach](docs/screenshots/3ds-controls.jpg) |
+| **New Nintendo 3DS** – La Roca na górze; wynik, życie, życia i broń na dolnym ekranie | **New Nintendo 3DS** – strona sterowania dopasowana do przycisków 3DS |
 
 ### Platformy
 
