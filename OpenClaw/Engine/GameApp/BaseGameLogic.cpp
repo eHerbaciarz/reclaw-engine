@@ -762,6 +762,28 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         //if (std::string(pActorElem->Attribute("Type")) != "Plane") break;
         StrongActorPtr pActor;
         const char* pActorType = pActorElem->Attribute("Type");
+        // Temporary (level 14 stops loading after ~250 actors): name every
+        // actor from the 240th on, before it is made, so the last line of
+        // the log says which one hangs
+        {
+            static int s_tried = 0;
+            static int s_levelNumber = -1;
+            if (s_levelNumber != m_pCurrentLevel->GetLevelNumber()) { s_levelNumber = m_pCurrentLevel->GetLevelNumber(); s_tried = 0; }
+            if (++s_tried >= 240 && s_levelNumber == 14)
+            {
+                const char* pProto = nullptr;
+                if (TiXmlElement* pPos = pActorElem->FirstChildElement("PositionComponent"))
+                {
+                    if (TiXmlElement* pP = pPos->FirstChildElement("Position"))
+                    {
+                        SDL_Log("level 14: actor %d %s at %s,%s", s_tried, pActorType ? pActorType : "?",
+                            pP->Attribute("x") ? pP->Attribute("x") : "?", pP->Attribute("y") ? pP->Attribute("y") : "?");
+                        pProto = "";
+                    }
+                }
+                if (!pProto) SDL_Log("level 14: actor %d %s", s_tried, pActorType ? pActorType : "?");
+            }
+        }
         try
         {
             pActor = VCreateActor(pActorElem, NULL);
