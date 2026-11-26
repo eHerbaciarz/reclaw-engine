@@ -12,6 +12,20 @@ consoles, and adds a few things of its own.
 > with or endorsed by Monolith Productions or Warner Bros.; "Claw" and
 > "Captain Claw" are their trademarks.
 
+## Why ReClaw
+
+Claw is one of my favourite childhood games – and a devilishly hard one.
+I still have a real soft spot for it. I know about OpenClaw and a few web
+projects that bring it back, but what I was missing was playing it on the go:
+I rarely have time to sit down at a PC these days, and the 3DS, the Vita and
+the Switch are consoles I am especially fond of. So I decided to do something
+about it.
+
+The project was renamed from OpenClaw to ReClaw because searching for
+"OpenClaw" now mostly turns up an open-source AI assistant of the same name.
+That was the main reason; on top of that, I plan to grow the project with new
+features over time.
+
 ## Platforms
 
 | Platform | Package | ReClaw folder (CLAW.REZ goes to its `data/`) |
@@ -21,9 +35,15 @@ consoles, and adds a few things of its own.
 | Nintendo 3DS | `reclaw.cia` / `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
 | PS3 | `reclaw.pkg` / `reclaw_hen.pkg` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
 
-All four versions were tested on real hardware (Switch, PS Vita, New
-Nintendo 3DS, PS3) and run at a full 60 fps. On the New 3DS the stereoscopic
-3D mode and the second screen work too. The game has not been tested on the
+All four versions were tested on real hardware:
+
+- **New Nintendo 3DS** – Luma3DS, higher clock speed and L2 cache on
+- **PlayStation 3 Slim** – Evilnat CFW 4.93, stock clock
+- **Nintendo Switch OLED** – firmware 23.0.1, Atmosphère 1.12.1, stock clock
+- **PS Vita** – firmware 3.65, HENkaku Ensō, stock clock
+
+All of them run at a full 60 fps – even the New 3DS with the 3D mode on.
+On the New 3DS the second screen works too. The game has not been tested on the
 original (Old) 3DS / 2DS, so how well it runs there is unknown.
 
 The source tree still holds code for other platforms inherited from earlier
@@ -119,6 +139,19 @@ i dodaje kilka rzeczy od siebie.
 > z Monolith Productions ani Warner Bros. ani przez nie wspierany; „Claw”
 > i „Captain Claw” to ich znaki towarowe.
 
+### Dlaczego ReClaw
+
+Claw to jedna z moich ulubionych gier z dzieciństwa – i przy tym diabelnie
+trudna. Do dziś mam do niej ogromny sentyment. Wiem, że powstał projekt
+OpenClaw i kilka projektów webowych, ale brakowało mi grania przenośnie:
+przez brak czasu rzadko siadam przy komputerze, a 3DS-a, Vitę i Switcha
+szczególnie lubię. Postanowiłem więc coś z tym zrobić.
+
+Projekt przemianowałem z OpenClawa na ReClawa, bo po wpisaniu „OpenClaw”
+w Google od razu wyskakuje OpenClaw – asystent AI o otwartym kodzie. To był
+główny powód zmiany nazwy; poza tym z czasem planuję poszerzyć projekt
+o nowe funkcje.
+
 ### Platformy
 
 | Platforma | Paczka | Folder ReClaw (CLAW.REZ trafia do jego `data/`) |
@@ -128,9 +161,15 @@ i dodaje kilka rzeczy od siebie.
 | Nintendo 3DS | `reclaw.cia` / `reclaw.3dsx` | `sdmc:/3ds/reclaw/` |
 | PS3 | `reclaw.pkg` / `reclaw_hen.pkg` | `/dev_hdd0/game/RCLW00001/USRDIR/` |
 
-Wszystkie cztery wersje przetestowałem na prawdziwym sprzęcie (Switch,
-PS Vita, New Nintendo 3DS, PS3) – działają w pełnych 60 klatkach na sekundę.
-Na New 3DS działa też tryb 3D i drugi ekran. Na starym 3DS / 2DS (Old 3DS)
+Wszystkie cztery wersje przetestowałem na prawdziwym sprzęcie:
+
+- **New Nintendo 3DS** – Luma3DS, włączone wyższe taktowanie i pamięć L2
+- **PlayStation 3 Slim** – Evilnat CFW 4.93, fabryczne taktowanie
+- **Nintendo Switch OLED** – firmware 23.0.1, Atmosphère 1.12.1, fabryczne taktowanie
+- **PS Vita** – firmware 3.65, HENkaku Ensō, fabryczne taktowanie
+
+Wszystkie działają w pełnych 60 klatkach na sekundę – nawet New 3DS
+z włączonym trybem 3D. Na New 3DS działa też drugi ekran. Na starym 3DS / 2DS (Old 3DS)
 gra nie była testowana, więc nie wiadomo, jak wydajnie będzie tam działać.
 
 W kodzie zostały jeszcze inne platformy z wcześniejszych prac – nie są
