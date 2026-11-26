@@ -21,6 +21,9 @@
 #include "../Resource/Loaders/PcxLoader.h"
 #include "../Resource/Loaders/WavLoader.h"
 #include "../Video/Native/MoviePlayer.h"
+#include "../Events/Events.h"
+#include "../Events/EventMgr.h"
+#include "../SoundStrings.h"
 
 namespace
 {
@@ -209,6 +212,7 @@ namespace TitleScroll
         SDL_Surface* g_MenuPaper = nullptr;
         Roll g_MenuLeft, g_MenuRight;
         SDL_Renderer* g_MenuRollRenderer = nullptr;
+        int g_MenuSoundFrames = -1;   // frames until the unroll sound (-1: played)
 
         void FreeMenuRolls()
         {
@@ -239,9 +243,17 @@ namespace TitleScroll
             g_MenuUnrollActive = true;
             g_MenuUnrollElapsed = 0;
             g_MenuUnrollLastTick = now;
-            PlaySound(kUnrollSound);
+            // through the game's own sound system, a couple of frames in (the
+            // menu has started by then: nothing stops the sound right away)
+            g_MenuSoundFrames = 2;
         }
         if (!g_MenuUnrollActive) return;
+        if (g_MenuSoundFrames >= 0 && g_MenuSoundFrames-- == 0)
+        {
+            SoundInfo soundInfo(SOUND_MENU_UNROLL);
+            IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Request_Play_Sound(soundInfo)));
+            STARTUP_TRACE("menu unroll: sound");
+        }
 
         // At most 33 ms per frame, so a slow first frame does not skip it
         g_MenuUnrollElapsed += std::min<Uint32>(now - g_MenuUnrollLastTick, 33);

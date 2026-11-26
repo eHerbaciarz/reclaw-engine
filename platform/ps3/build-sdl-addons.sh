@@ -19,13 +19,29 @@ fetch() { # repo tag dir
     [ -d "$3" ] || git clone -q --depth 1 -b "$2" "https://github.com/libsdl-org/$1" "$3"
 }
 
+# libpng 1.6 (ps3libraries has 1.4, too old for SDL2_image's PNG loader -
+# with it IMG_png.c did not build and the PNG functions were missing)
+if [ ! -f "$PORTLIBS/include/libpng16/png.h" ]; then
+    [ -d libpng ] || git clone -q --depth 1 -b v1.6.43 https://github.com/pnggroup/libpng libpng
+    (cd libpng && rm -f *.o &&
+        cp scripts/pnglibconf.h.prebuilt pnglibconf.h &&
+        for f in png.c pngerror.c pngget.c pngmem.c pngpread.c pngread.c pngrio.c pngrtran.c \
+                 pngrutil.c pngset.c pngtrans.c pngwio.c pngwrite.c pngwtran.c pngwutil.c; do
+            $CC $CFLAGS -DPNG_ARM_NEON_OPT=0 -DPNG_POWERPC_VSX_OPT=0 -c "$f" -o "${f%.c}.o" || exit 1
+        done &&
+        $AR rcs libpng16.a *.o &&
+        mkdir -p "$PORTLIBS/include/libpng16" &&
+        install -m644 png.h pngconf.h pnglibconf.h "$PORTLIBS/include/libpng16/" &&
+        install -m644 libpng16.a "$PORTLIBS/lib/")
+fi
+
 # SDL2_image: BMP, PCX, PNG, TGA (the game uses PCX and PNG)
 fetch SDL_image release-2.0.5 SDL2_image
 (cd SDL2_image && rm -f *.o &&
     for f in IMG.c IMG_bmp.c IMG_gif.c IMG_jpg.c IMG_lbm.c IMG_pcx.c IMG_png.c IMG_pnm.c \
              IMG_svg.c IMG_tga.c IMG_tif.c IMG_webp.c IMG_xcf.c IMG_xpm.c IMG_xv.c IMG_xxx.c; do
         $CC $CFLAGS -I"$PORTLIBS/include/libpng16" -DLOAD_BMP -DLOAD_PCX -DLOAD_PNG -DLOAD_TGA \
-            -c "$f" -o "${f%.c}.o"
+            -c "$f" -o "${f%.c}.o" || exit 1
     done &&
     $AR rcs libSDL2_image.a *.o &&
     install -m644 libSDL2_image.a "$PORTLIBS/lib/" &&

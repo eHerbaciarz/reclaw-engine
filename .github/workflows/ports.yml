@@ -180,7 +180,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /opt/ps3dev
-          key: ps3dev-${{ steps.toolchain.outputs.url }}-sdl2-v1
+          key: ps3dev-${{ steps.toolchain.outputs.url }}-sdl2-v2
       - name: Toolchain, PSL1GHT and libraries
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
