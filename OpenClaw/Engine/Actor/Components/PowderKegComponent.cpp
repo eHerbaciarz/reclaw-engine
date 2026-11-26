@@ -13,7 +13,9 @@ const char* PowderKegComponent::g_Name = "PowderKegComponent";
 namespace
 {
     // Gravity of a flying keg (the keg lying on the ground uses its XML value).
-    const float kThrownGravityScale = 1.6f;
+    // Measured on the original (La Roca): the keg goes ~100 px above Claw's
+    // hands and lands ~180 px away after ~0.8 s - a high, short arc.
+    const float kThrownGravityScale = 2.2f;
     // Minimum flight time before hitting something counts (the keg starts
     // right next to Claw and may touch the floor he stands on).
     const int kArmTimeMs = 60;

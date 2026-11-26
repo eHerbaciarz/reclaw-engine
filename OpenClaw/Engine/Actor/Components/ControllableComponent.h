@@ -38,6 +38,8 @@ public:
     virtual void VOnRun() = 0;
     virtual void VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge) = 0;
     virtual void VOnStopClimbing() = 0;
+    // Climbed past the top of a ladder (now on the ladder's top)
+    virtual void VOnClimbFinished() { }
     virtual void OnAttack() = 0;
     virtual void OnFire(bool outOfAmmo = false) = 0;
     virtual void OnFireEnded() = 0;
@@ -147,6 +149,7 @@ public:
     virtual void VOnRun() override;
     virtual void VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge) override;
     virtual void VOnStopClimbing() override;
+    virtual void VOnClimbFinished() override;
     virtual void OnAttack() override;
     virtual void OnFire(bool outOfAmmo = false) override;
     virtual void OnFireEnded() override;
@@ -208,6 +211,7 @@ private:
 
     // Death as in the original: Claw drops off the bottom of the screen
     // (the camera stays), then the circle closes on where he died.
+    bool m_bLastClimbUp = false;   // (the last climbing step went up)
     bool m_bDeathFall = false;
     bool m_bDeathFinished = false;
     double m_DeathFallSpeed = 0.0;

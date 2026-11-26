@@ -625,7 +625,9 @@ void ClawControllableComponent::ThrowKeg()
     // Holding the button up to ~0.8 s throws farther.
     double power = std::min(1.0, (double)m_LiftChargeMs / 800.0);
     double facing = (m_Direction == Direction_Left) ? -1.0 : 1.0;
-    Point velocity(facing * (4.5 + 3.5 * power), -(3.0 + 2.0 * power));
+    // (m/s; 75 px per metre) a high arc as in the original: ~150 px away
+    // from a tap, ~370 px with the button held
+    Point velocity(facing * (2.6 + 3.4 * power), -(7.2 + 0.8 * power));
     Point start(m_pPositionComponent->GetX() + facing * 35, m_pPositionComponent->GetY() + PowderKegComponent::GetCarryOffset().y);
 
     m_CarriedKegId = 0;
@@ -749,6 +751,7 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
 {
     // TODO: Decide whether to keep it
     static bool useAlternativeClimbAnim = true;
+    m_bLastClimbUp = bIsClimbingUp;
     if (bIsOnTopEdge && useAlternativeClimbAnim)
     {
         if (!bIsClimbingUp)
@@ -774,6 +777,18 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
     
     m_pClawAnimationComponent->ResumeAnimation();
     m_State = ClawState_Climbing;
+}
+
+// As in the original: over the top of the ladder Claw stands up on it
+// (he stayed crouched in the last frame of the climb-over animation)
+void ClawControllableComponent::VOnClimbFinished()
+{
+    if (m_State == ClawState_Climbing && m_bLastClimbUp)
+    {
+        m_State = ClawState_Standing;
+        m_pClawAnimationComponent->ResumeAnimation();
+        SetClawAnimation("stand");
+    }
 }
 
 void ClawControllableComponent::VOnStopClimbing()

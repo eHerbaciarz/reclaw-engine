@@ -493,6 +493,7 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
         {
             m_IsClimbing = false;
             m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), m_GravityScale);
+            if (m_pControllableComponent) m_pControllableComponent->VOnClimbFinished();
         }
         else
         {

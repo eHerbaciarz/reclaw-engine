@@ -40,7 +40,7 @@ fetch SDL_image release-2.0.5 SDL2_image
 (cd SDL2_image && rm -f *.o &&
     for f in IMG.c IMG_bmp.c IMG_gif.c IMG_jpg.c IMG_lbm.c IMG_pcx.c IMG_png.c IMG_pnm.c \
              IMG_svg.c IMG_tga.c IMG_tif.c IMG_webp.c IMG_xcf.c IMG_xpm.c IMG_xv.c IMG_xxx.c; do
-        $CC $CFLAGS -I"$PORTLIBS/include/libpng16" -DLOAD_BMP -DLOAD_PCX -DLOAD_PNG -DLOAD_TGA \
+        $CC -I"$PORTLIBS/include/libpng16" $CFLAGS -DLOAD_BMP -DLOAD_PCX -DLOAD_PNG -DLOAD_TGA \
             -c "$f" -o "${f%.c}.o" || exit 1
     done &&
     $AR rcs libSDL2_image.a *.o &&
