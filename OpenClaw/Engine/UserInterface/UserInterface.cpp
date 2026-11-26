@@ -1871,6 +1871,7 @@ shared_ptr<Image> ScreenElementMenuItem::GetReclawImage(MenuItemState state)
         shared_ptr<Image> pClassic = m_Images[MenuItemState_Inactive];
         if (!pClassic) for (auto& kv : m_Images) if (kv.second) { pClassic = kv.second; break; }
         int maxW = 600;
+        if (ReclawTrackX() > 0) maxW = ReclawTrackX() - 12;
         if (!m_bCentered && pClassic && pClassic->GetWidth() > 0) maxW = pClassic->GetWidth() + 4;
         if (pProbe && pProbe->GetWidth() > maxW)
         {
@@ -1904,8 +1905,23 @@ bool ScreenElementMenuItem::GetReclawRect(shared_ptr<Image>& pImage, SDL_Rect& r
     rect.w = pImage->GetWidth();
     rect.h = pImage->GetHeight();
     rect.x = m_bCentered ? (int)m_Position.x + cw / 2 - rect.w / 2 : (int)m_Position.x;
+    // Sound and music: the picture's left part is the text, the rest the
+    // volume track (drawn from the picture) - the text centred in the left part
+    if (ReclawTrackX() > 0)
+    {
+        rect.x = (int)m_Position.x + (ReclawTrackX() - 8) / 2 - rect.w / 2;
+    }
     rect.y = cy - rect.h / 2;
     return true;
+}
+
+// Where the volume track begins in the sound / music picture (0: no track)
+int ScreenElementMenuItem::ReclawTrackX()
+{
+    if (m_Name.compare(0, 6, "SOUND_") != 0 && m_Name.compare(0, 6, "MUSIC_") != 0) return 0;
+    shared_ptr<Image> pClassic = m_Images[MenuItemState_Inactive];
+    if (!pClassic || pClassic->GetWidth() < 400) return 0;
+    return 300;
 }
 
 void ScreenElementMenuItem::VOnUpdate(uint32 msDiff)
@@ -1990,6 +2006,23 @@ void ScreenElementMenuItem::VOnRender(uint32 msDiff)
         SDL_Rect r;
         if (GetReclawRect(pImage, r))
         {
+            if (ReclawTrackX() > 0)
+            {
+                shared_ptr<Image> pClassic = m_Images[m_State] ? m_Images[m_State] : m_Images[MenuItemState_Inactive];
+                int texW = 0, texH = 0;
+                SDL_QueryTexture(pClassic->GetTexture(), NULL, NULL, &texW, &texH);
+                const int lw = pClassic->GetWidth(), lh = pClassic->GetHeight();
+                const int tx = ReclawTrackX();
+                if (lw > tx && texW > 0)
+                {
+                    SDL_Rect src = { tx * texW / lw, 0, texW - tx * texW / lw, texH };
+                    SDL_Rect dst = {
+                        (int)(g_MenuOffset.x + (m_Position.x + tx) * g_MenuScale.x),
+                        (int)(g_MenuOffset.y + (m_Position.y + m_DrawOffsetY) * g_MenuScale.y),
+                        (int)((lw - tx) * g_MenuScale.x), (int)(lh * g_MenuScale.y) };
+                    SDL_RenderCopy(m_pRenderer, pClassic->GetTexture(), &src, &dst);
+                }
+            }
             r.x = (int)(g_MenuOffset.x + r.x * g_MenuScale.x);
             r.y = (int)(g_MenuOffset.y + r.y * g_MenuScale.y);
             r.w = (int)(r.w * g_MenuScale.x);

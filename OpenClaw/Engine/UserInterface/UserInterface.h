@@ -397,6 +397,7 @@ private:
     MenuItemImageMap m_ReclawImages;
     shared_ptr<Image> GetReclawImage(MenuItemState state);
     bool GetReclawRect(shared_ptr<Image>& pImage, SDL_Rect& rect);
+    int ReclawTrackX();
 public:
     void DropReclawImages() { m_ReclawImages.clear(); }
 private:
