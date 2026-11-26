@@ -16,4 +16,9 @@ struct SDL_Renderer;
 namespace TitleScroll
 {
     void Play(SDL_Renderer* pRenderer);
+
+    // The main menu unrolling after the title (drawn over each frame of the
+    // menu until it is open; UNROLL sound).
+    void StartMenuUnroll();
+    void RenderMenuUnroll(SDL_Renderer* pRenderer);
 }

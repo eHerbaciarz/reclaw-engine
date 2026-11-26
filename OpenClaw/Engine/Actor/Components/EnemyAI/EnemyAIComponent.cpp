@@ -108,11 +108,41 @@ void EnemyAIComponent::VPostPostInit()
 
 void EnemyAIComponent::VUpdate(uint32 msDiff)
 {
+    if (m_bDead && m_bCorpseGone)
+    {
+        return;
+    }
     if (m_bDead)
     {
-        // I want it to disappear after ~900ms
-        Point moveDelta((600 / 900.0 * msDiff), (600 / 900.0f * msDiff));
-        m_pPositionComponent->SetPosition(m_pPositionComponent->GetX() + moveDelta.x, m_pPositionComponent->GetY() + moveDelta.y);
+        const double dt = msDiff / 1000.0;
+        m_CorpseTime += msDiff;
+        if (m_CorpseKickCooldown > 0) m_CorpseKickCooldown -= msDiff;
+
+        // Claw's sword sends the body flying again
+        StrongActorPtr pClaw = g_pApp->GetGameLogic() ? g_pApp->GetGameLogic()->GetClawActor() : nullptr;
+        if (pClaw && m_CorpseKickCooldown <= 0)
+        {
+            shared_ptr<ClawControllableComponent> pClawCtrl = MakeStrongPtr(pClaw->GetComponent<ClawControllableComponent>(ClawControllableComponent::g_Name));
+            if (pClawCtrl && pClawCtrl->IsMeleeAttacking())
+            {
+                const Point clawPos = pClaw->GetPositionComponent()->GetPosition();
+                const double facing = pClawCtrl->GetFacing() == Direction_Left ? -1.0 : 1.0;
+                const double dx = (m_pPositionComponent->GetX() - clawPos.x) * facing;
+                const double dy = m_pPositionComponent->GetY() - clawPos.y;
+                if (dx > -20 && dx < 110 && dy > -110 && dy < 80)
+                {
+                    m_CorpseVelocity.Set(facing * 260.0, -520.0);
+                    m_CorpseKickCooldown = 350;
+                    m_CorpseTime = std::min(m_CorpseTime, 500);
+                    Util::PlayRandomHitSound();
+                }
+            }
+        }
+
+        // Flies under gravity
+        m_CorpseVelocity.y += 1500.0 * dt;
+        m_pPositionComponent->SetPosition(m_pPositionComponent->GetX() + m_CorpseVelocity.x * dt,
+                                          m_pPositionComponent->GetY() + m_CorpseVelocity.y * dt);
 
         // This feels like a hack
         if (HumanView* pHumanView = g_pApp->GetHumanView())
@@ -123,8 +153,12 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
                 shared_ptr<EventData_Move_Actor> pEvent(new EventData_Move_Actor(m_pOwner->GetGUID(), m_pPositionComponent->GetPosition()));
                 IEventMgr::Get()->VTriggerEvent(pEvent);
 
+                // Gone below the screen (or out of sight for a while)
                 SDL_Rect renderRect = m_pRenderComponent->VGetPositionRect();
-                if (!pHumanView->IsRectInAnyView(renderRect))
+                SDL_Rect cam = pCamera->GetCameraRect();
+                const bool below = renderRect.y > cam.y + cam.h;
+                const bool lost = !pHumanView->IsRectInAnyView(renderRect) && m_CorpseTime > 3000;
+                if (below || lost)
                 {
                     shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
                     IEventMgr::Get()->VQueueEvent(pEvent);
@@ -133,6 +167,7 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
                     SoundInfo splashSound("/GAME/SOUNDS/SPLASH.WAV");
                     IEventMgr::Get()->VTriggerEvent(IEventDataPtr(
                         new EventData_Request_Play_Sound(splashSound)));
+                    m_bCorpseGone = true;   // (destroyed next frame: once only)
                 }
             }
             else
@@ -158,6 +193,15 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
 void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActorId)
 {
     m_bDead = true;
+    // The body flies up and away from Claw (it was a straight slide before)
+    {
+        double away = 1.0;
+        StrongActorPtr pClaw = g_pApp->GetGameLogic() ? g_pApp->GetGameLogic()->GetClawActor() : nullptr;
+        if (pClaw && pClaw->GetPositionComponent()->GetX() > m_pPositionComponent->GetX()) away = -1.0;
+        m_CorpseVelocity.Set(away * 220.0, -380.0);
+        m_CorpseTime = 0;
+        m_CorpseKickCooldown = 250;
+    }
     for (const auto &stateComponentIter : m_StateMap)
     {
         if (stateComponentIter.second->IsActive())

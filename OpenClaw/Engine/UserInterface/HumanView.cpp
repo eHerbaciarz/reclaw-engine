@@ -1,3 +1,4 @@
+#include "TitleScroll.h"
 #include <map>
 #include "../Util/StartupTrace.h"
 #include "HumanView.h"
@@ -275,6 +276,7 @@ void HumanView::VOnRender(uint32 msDiff)
             g_pApp->GetGameLogic()->VRenderDiagnostics(renderer, m_pCamera);
 
             RenderLevelReveal(renderer);
+            TitleScroll::RenderMenuUnroll(renderer);
             RenderToast(renderer);
 
             m_pConsole->OnRender(renderer);
@@ -2552,8 +2554,9 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
         fadeSpeed = &m_FadeOutSpeed;
     }
 
-    // The black closes in as a box on where Claw died, and opens again from
-    // the middle (the camera is on Claw, back at the checkpoint).
+    // As in the original: a black circle closes on where Claw died, and
+    // opens again from the middle (the camera is on Claw, back at the
+    // checkpoint). Drawn as one black span left and right of the circle per row.
     const double duration = (m_DeathFadeState == DeathFadeState_FadingOut) ? m_FadeOutDuration : m_FadeInDuration;
     double f = duration > 0 ? referenceTime / duration : 0.0;
     f = f < 0 ? 0 : (f > 1 ? 1 : f);
@@ -2561,15 +2564,31 @@ void DeathFadeInOutProcess::VRender(uint32 msDiff)
     double ex = W / 2, ey = H / 2;
     if (m_DeathFadeState != DeathFadeState_FadingOut && m_DeathFadeState != DeathFadeState_Ended)
     {
-        double px = m_Epicenter.x - (area.w > 0 ? 0 : 0), py = m_Epicenter.y;
+        double px = m_Epicenter.x, py = m_Epicenter.y;
         if (px >= 0 && px <= W && py >= 0 && py <= H) { ex = px; ey = py; }
     }
-    const int x0 = (int)(ex * f), x1 = (int)(W - (W - ex) * f);
-    const int y0 = (int)(ey * f), y1 = (int)(H - (H - ey) * f);
-    FillBlack(pRenderer, SDL_Rect{ 0, 0, x0, (int)H });
-    FillBlack(pRenderer, SDL_Rect{ x1, 0, (int)W - x1, (int)H });
-    FillBlack(pRenderer, SDL_Rect{ x0, 0, x1 - x0, y0 });
-    FillBlack(pRenderer, SDL_Rect{ x0, y1, x1 - x0, (int)H - y1 });
+    // radius 0 when closed; at the start it reaches the farthest corner
+    const double fx = std::max(ex, W - ex), fy = std::max(ey, H - ey);
+    const double rMax = sqrt(fx * fx + fy * fy) + 1.0;
+    const double r = rMax * (1.0 - f);
+    SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
+    static std::vector<SDL_Rect> s_Spans;
+    s_Spans.clear();
+    const int rows = (int)H;
+    for (int y = 0; y < rows; ++y)
+    {
+        const double dy = (y + 0.5) - ey;
+        if (fabs(dy) >= r)
+        {
+            s_Spans.push_back(SDL_Rect{ 0, y, (int)W, 1 });
+            continue;
+        }
+        const double dx = sqrt(r * r - dy * dy);
+        const int left = (int)(ex - dx), right = (int)ceil(ex + dx);
+        if (left > 0) s_Spans.push_back(SDL_Rect{ 0, y, left, 1 });
+        if (right < (int)W) s_Spans.push_back(SDL_Rect{ right, y, (int)W - right, 1 });
+    }
+    if (!s_Spans.empty()) SDL_RenderFillRects(pRenderer, s_Spans.data(), (int)s_Spans.size());
     (void)areaShare;
 
     if (area.w > 0) SDL_RenderSetViewport(pRenderer, NULL);

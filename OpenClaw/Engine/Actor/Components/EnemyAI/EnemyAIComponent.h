@@ -75,6 +75,13 @@ private:
 
     std::string m_DeathAnimation;
 
+    // The defeated enemy flies off as in the original and can be hit again
+    // with the sword while it is still on the screen.
+    Point m_CorpseVelocity;
+    int m_CorpseTime = 0;
+    int m_CorpseKickCooldown = 0;
+    bool m_bCorpseGone = false;
+
     shared_ptr<PositionComponent> m_pPositionComponent;
     shared_ptr<ActorRenderComponent> m_pRenderComponent;
 

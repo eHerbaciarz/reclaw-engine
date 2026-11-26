@@ -248,6 +248,12 @@ void ClawControllableComponent::VPostPostInit()
 
 void ClawControllableComponent::VUpdate(uint32 msDiff)
 {
+    if (m_bDeathFall)
+    {
+        UpdateDeathFall(msDiff);
+        return;
+    }
+
     if (m_State == ClawState_Standing ||
         m_State == ClawState_Idle)
     {
@@ -1256,51 +1262,113 @@ void ClawControllableComponent::VOnAnimationFrameChanged(Animation* pAnimation, 
     }
 }
 
+// Claw's falling death: a small hop, then down past the bottom of the
+// screen with the camera standing still (as in the original game).
+void ClawControllableComponent::UpdateDeathFall(uint32 msDiff)
+{
+    if (!m_bDeathFall) return;
+
+    m_DeathFallTime += msDiff;
+    const double dt = msDiff / 1000.0;
+    m_DeathFallSpeed += 2200.0 * dt;
+    Point pos = m_pPositionComponent->GetPosition();
+    pos.y += m_DeathFallSpeed * dt;
+    m_pPositionComponent->SetPosition(pos);
+    if (g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->VGetGamePhysics())
+    {
+        g_pApp->GetGameLogic()->VGetGamePhysics()->VSetPosition(m_pOwner->GetGUID(), pos);
+    }
+    IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Move_Actor(m_pOwner->GetGUID(), pos)));
+
+    // Off the screen (or, in any case, after 2.5 s): the circle closes
+    bool offScreen = false;
+    if (HumanView* pHumanView = g_pApp->GetHumanView())
+    {
+        if (shared_ptr<CameraNode> pCamera = pHumanView->GetCamera())
+        {
+            SDL_Rect cam = pCamera->GetCameraRect();
+            SDL_Rect body = m_pRenderComponent->VGetPositionRect();
+            offScreen = body.y > cam.y + cam.h;
+        }
+    }
+    if (offScreen || m_DeathFallTime > 2500)
+    {
+        Animation* pAnimation = m_pClawAnimationComponent->GetCurrentAnimation().get();
+        if (pAnimation) FinishDeath(pAnimation);
+        else m_bDeathFall = false;
+    }
+}
+
+void ClawControllableComponent::FinishDeath(Animation* pAnimation)
+{
+    shared_ptr<LifeComponent> pClawLifeComponent = MakeStrongPtr(m_pOwner->GetComponent<LifeComponent>());
+    assert(pClawLifeComponent != nullptr);
+
+    int remainingLives = pClawLifeComponent->GetLives() - 1;
+
+    // A falling death: the circle closes where Claw died, not where he
+    // left the screen; the camera follows him again.
+    const bool fell = m_bDeathFall;
+    m_bDeathFall = false;
+    if (fell)
+    {
+        if (HumanView* pHumanView = g_pApp->GetHumanView())
+        {
+            if (shared_ptr<CameraNode> pCamera = pHumanView->GetCamera()) pCamera->SetHold(false);
+        }
+        if (g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->VGetGamePhysics())
+        {
+            g_pApp->GetGameLogic()->VGetGamePhysics()->VActivate(m_pOwner->GetGUID());
+        }
+    }
+
+    shared_ptr<EventData_Claw_Died> pEvent(new EventData_Claw_Died(
+        m_pOwner->GetGUID(),
+        fell ? m_DeathPosition : m_pPositionComponent->GetPosition(),
+        remainingLives));
+    IEventMgr::Get()->VTriggerEvent(pEvent);
+
+    // On the final death (no lives left) there is no respawn — freeze Claw in
+    // his lying-down death pose instead of restoring physics/gravity/visibility,
+    // which would animate him back up to standing. The spikedeath animation is
+    // [0: falling, 1: lying down, 2: vanish]; pin to the lying-down frame (1),
+    // not the last frame (which is the disappear frame for the normal respawn).
+    if (remainingLives < 0)
+    {
+        // Freeze on the lying-down death frame. The spikedeath animation is
+        // [0: falling, 1: lying down, 2: vanish]; pin frame 1, not the last
+        // frame (the disappear frame used for the normal respawn).
+        uint32 frameCount = pAnimation->GetAnimFramesSize();
+        uint32 restFrame = frameCount >= 2 ? 1 : 0;
+        pAnimation->SetAnimationFrame(restFrame);
+        pAnimation->Pause();
+        // SetAnimationFrame only updates the animation's current-frame data; the
+        // rendered sprite is fed separately via the render component. Push the
+        // pinned frame's image directly so the lying-down sprite actually shows
+        // (otherwise the last image pushed — the loop-wrap frame — keeps drawing).
+        AnimationFrame* pRestFrame = pAnimation->GetCurrentAnimationFrame();
+        if (m_pRenderComponent && pRestFrame)
+        {
+            m_pRenderComponent->SetImage(pRestFrame->imageName);
+        }
+    }
+    else
+    {
+        SetCurrentPhysicsState();
+        m_pPhysicsComponent->RestoreGravityScale();
+        m_pRenderComponent->SetVisible(true);
+    }
+}
+
 void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
 {
     std::string animName = pAnimation->GetName();
     if (pAnimation->GetName().find("death") != std::string::npos)
     {
-        shared_ptr<LifeComponent> pClawLifeComponent = MakeStrongPtr(m_pOwner->GetComponent<LifeComponent>());
-        assert(pClawLifeComponent != nullptr);
-
-        int remainingLives = pClawLifeComponent->GetLives() - 1;
-
-        shared_ptr<EventData_Claw_Died> pEvent(new EventData_Claw_Died(
-            m_pOwner->GetGUID(),
-            m_pPositionComponent->GetPosition(),
-            remainingLives));
-        IEventMgr::Get()->VTriggerEvent(pEvent);
-
-        // On the final death (no lives left) there is no respawn — freeze Claw in
-        // his lying-down death pose instead of restoring physics/gravity/visibility,
-        // which would animate him back up to standing. The spikedeath animation is
-        // [0: falling, 1: lying down, 2: vanish]; pin to the lying-down frame (1),
-        // not the last frame (which is the disappear frame for the normal respawn).
-        if (remainingLives < 0)
+        // (a falling death ends when Claw is off the screen, not here)
+        if (!m_bDeathFall)
         {
-            // Freeze on the lying-down death frame. The spikedeath animation is
-            // [0: falling, 1: lying down, 2: vanish]; pin frame 1, not the last
-            // frame (the disappear frame used for the normal respawn).
-            uint32 frameCount = pAnimation->GetAnimFramesSize();
-            uint32 restFrame = frameCount >= 2 ? 1 : 0;
-            pAnimation->SetAnimationFrame(restFrame);
-            pAnimation->Pause();
-            // SetAnimationFrame only updates the animation's current-frame data; the
-            // rendered sprite is fed separately via the render component. Push the
-            // pinned frame's image directly so the lying-down sprite actually shows
-            // (otherwise the last image pushed — the loop-wrap frame — keeps drawing).
-            AnimationFrame* pRestFrame = pAnimation->GetCurrentAnimationFrame();
-            if (m_pRenderComponent && pRestFrame)
-            {
-                m_pRenderComponent->SetImage(pRestFrame->imageName);
-            }
-        }
-        else
-        {
-            SetCurrentPhysicsState();
-            m_pPhysicsComponent->RestoreGravityScale();
-            m_pRenderComponent->SetVisible(true);
+            FinishDeath(pAnimation);
         }
     }
     else if (animName == "damage1" ||
@@ -1344,6 +1412,31 @@ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int so
         SetClawAnimation("spikedeath");
         m_pPhysicsComponent->SetGravityScale(0.0f);
         m_State = ClawState_Dying;
+
+        // Not into a death tile: Claw falls off the screen (the camera stays)
+        if (damageType != DamageType_DeathTile)
+        {
+            m_bDeathFall = true;
+            m_DeathFallSpeed = -450.0;
+            m_DeathFallTime = 0;
+            m_DeathPosition = m_pPositionComponent->GetPosition();
+            if (g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->VGetGamePhysics())
+            {
+                g_pApp->GetGameLogic()->VGetGamePhysics()->VDeactivate(m_pOwner->GetGUID());
+            }
+            if (HumanView* pHumanView = g_pApp->GetHumanView())
+            {
+                if (shared_ptr<CameraNode> pCamera = pHumanView->GetCamera()) pCamera->SetHold(true);
+            }
+            // the falling pose (frame 0 of the death animation) all the way down
+            if (Animation* pAnimation = m_pClawAnimationComponent->GetCurrentAnimation().get())
+            {
+                pAnimation->SetAnimationFrame(0);
+                pAnimation->Pause();
+                AnimationFrame* pFrame = pAnimation->GetCurrentAnimationFrame();
+                if (pFrame) m_pRenderComponent->SetImage(pFrame->imageName);
+            }
+        }
 
         // Regular deaths use Claw's own death cry. (Upstream played the level 1
         // spike sound for every death; FALLDEATH.WAV was defined but unused.)

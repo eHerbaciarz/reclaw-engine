@@ -27,7 +27,7 @@ namespace
     // Layout of the original 640x480 screen.
     const int kScreenW = 640;
     const int kScreenH = 480;
-    const int kRollD = 30;          // roll diameter
+    const int kRollD = 78;          // roll diameter (as thick as in the original)
     const int kRollOverhang = 8;    // rolls stick out a little above/below the paper
 
     // Timing (ms).
@@ -186,7 +186,8 @@ namespace
         UpdateRoll(left, paper, turn);
         UpdateRoll(right, paper, -turn);
         if (s_traced < 2) STARTUP_TRACE("title scroll: rolls updated");
-        int lx = edge - kRollD / 2, rx = kScreenW - edge - kRollD / 2;
+        // (the rolls lie outside the open paper; closed, they meet in the middle)
+        int lx = edge - kRollD, rx = kScreenW - edge;
         SDL_Rect l = { mapX(lx), mapY(-kRollOverhang), mapX(lx + kRollD) - mapX(lx), mapY(kScreenH + kRollOverhang) - mapY(-kRollOverhang) };
         SDL_Rect rr = { mapX(rx), l.y, mapX(rx + kRollD) - mapX(rx), l.h };
         SDL_RenderCopy(r, left.tex, NULL, &l);
@@ -200,6 +201,114 @@ namespace
 
 namespace TitleScroll
 {
+    namespace
+    {
+        bool g_MenuUnrollPending = false;
+        Uint32 g_MenuUnrollElapsed = 0, g_MenuUnrollLastTick = 0;
+        bool g_MenuUnrollActive = false;
+        SDL_Surface* g_MenuPaper = nullptr;
+        Roll g_MenuLeft, g_MenuRight;
+        SDL_Renderer* g_MenuRollRenderer = nullptr;
+
+        void FreeMenuRolls()
+        {
+            if (g_MenuLeft.tex) SDL_DestroyTexture(g_MenuLeft.tex);
+            if (g_MenuRight.tex) SDL_DestroyTexture(g_MenuRight.tex);
+            g_MenuLeft.tex = g_MenuRight.tex = nullptr;
+            g_MenuLeft.pixels.clear();
+            g_MenuRight.pixels.clear();
+            if (g_MenuPaper) SDL_FreeSurface(g_MenuPaper);
+            g_MenuPaper = nullptr;
+            g_MenuRollRenderer = nullptr;
+        }
+    }
+
+    void StartMenuUnroll()
+    {
+        g_MenuUnrollPending = true;
+    }
+
+    void RenderMenuUnroll(SDL_Renderer* r)
+    {
+        if (!r) return;
+        const Uint32 now = SDL_GetTicks();
+        if (g_MenuUnrollPending)
+        {
+            g_MenuUnrollPending = false;
+            if (!HasResource(kPaperPath)) return;
+            g_MenuUnrollActive = true;
+            g_MenuUnrollElapsed = 0;
+            g_MenuUnrollLastTick = now;
+            PlaySound(kUnrollSound);
+        }
+        if (!g_MenuUnrollActive) return;
+
+        // At most 33 ms per frame, so a slow first frame does not skip it
+        g_MenuUnrollElapsed += std::min<Uint32>(now - g_MenuUnrollLastTick, 33);
+        g_MenuUnrollLastTick = now;
+        const double t = std::min(1.0, g_MenuUnrollElapsed / (double)kUnrollMs);
+        if (t >= 1.0)
+        {
+            g_MenuUnrollActive = false;
+            FreeMenuRolls();
+            return;
+        }
+
+        if (!g_MenuPaper || g_MenuRollRenderer != r)
+        {
+            FreeMenuRolls();
+            g_MenuPaper = LoadPaperSurface();
+            if (!g_MenuPaper) { g_MenuUnrollActive = false; return; }
+            for (Roll* roll : { &g_MenuLeft, &g_MenuRight })
+            {
+                roll->pixels.resize(kRollD * roll->h);
+                roll->tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, kRollD, roll->h);
+                if (roll->tex) SDL_SetTextureScaleMode(roll->tex, SDL_ScaleModeLinear);
+            }
+            g_MenuRollRenderer = r;
+        }
+        if (!g_MenuLeft.tex || !g_MenuRight.tex) { g_MenuUnrollActive = false; FreeMenuRolls(); return; }
+
+        // Over the menu just drawn: black outside the open part, the rolls at its edges
+        float sx = 1.0f, sy = 1.0f;
+        SDL_RenderGetScale(r, &sx, &sy);
+        SDL_RenderSetScale(r, 1.0f, 1.0f);
+        SDL_Rect oldVp;
+        SDL_RenderGetViewport(r, &oldVp);
+        SDL_RenderSetViewport(r, NULL);
+        int outW = 0, outH = 0;
+        if (SDL_Texture* target = SDL_GetRenderTarget(r)) SDL_QueryTexture(target, NULL, NULL, &outW, &outH);
+        else SDL_GetRendererOutputSize(r, &outW, &outH);
+        View v;
+        v.scale = std::min(outW / (double)kScreenW, outH / (double)kScreenH);
+        v.offX = (int)((outW - kScreenW * v.scale) / 2);
+        v.offY = (int)((outH - kScreenH * v.scale) / 2);
+        auto mapX = [&v](int x) { return v.offX + (int)std::lround(x * v.scale); };
+        auto mapY = [&v](int y) { return v.offY + (int)std::lround(y * v.scale); };
+
+        const double half = EaseOut(t) * (kScreenW / 2.0);
+        int edge = (int)std::lround(kScreenW / 2.0 - half);
+        edge = std::max(0, std::min(kScreenW / 2, edge));
+        SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
+        SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+        SDL_Rect leftBlack = { 0, 0, mapX(edge), outH };
+        SDL_Rect rightBlack = { mapX(kScreenW - edge), 0, outW - mapX(kScreenW - edge), outH };
+        if (leftBlack.w > 0) SDL_RenderFillRect(r, &leftBlack);
+        if (rightBlack.w > 0) SDL_RenderFillRect(r, &rightBlack);
+
+        double turn = kScreenW / 2.0 - edge;
+        UpdateRoll(g_MenuLeft, g_MenuPaper, turn);
+        UpdateRoll(g_MenuRight, g_MenuPaper, -turn);
+        int lx = edge - kRollD, rx = kScreenW - edge;
+        SDL_Rect l = { mapX(lx), mapY(-kRollOverhang), mapX(lx + kRollD) - mapX(lx), mapY(kScreenH + kRollOverhang) - mapY(-kRollOverhang) };
+        SDL_Rect rr = { mapX(rx), l.y, mapX(rx + kRollD) - mapX(rx), l.h };
+        SDL_RenderCopy(r, g_MenuLeft.tex, NULL, &l);
+        SDL_RenderCopyEx(r, g_MenuRight.tex, NULL, &rr, 0.0, NULL, SDL_FLIP_HORIZONTAL);
+
+        SDL_RenderSetViewport(r, &oldVp);
+        SDL_RenderSetScale(r, sx, sy);
+    }
+
     void Play(SDL_Renderer* r)
     {
         if (!r || !HasResource(kTitlePath) || !HasResource(kPaperPath)) return;
@@ -344,6 +453,9 @@ namespace TitleScroll
         SDL_SetRenderTarget(r, pPrevTarget);
         MoviePlayer::FlushSkipInput();
         STARTUP_TRACE("title scroll: done");
+
+        // As in the original, the main menu then unrolls the same way
+        StartMenuUnroll();
     }
 }
 
@@ -352,6 +464,8 @@ namespace TitleScroll
 namespace TitleScroll
 {
     void Play(SDL_Renderer*) { }
+    void StartMenuUnroll() { }
+    void RenderMenuUnroll(SDL_Renderer*) { }
 }
 
 #endif

@@ -467,7 +467,7 @@ void CameraNode::VRender(Scene* pScene)
 void CameraNode::SetViewPosition(Scene* pScene)
 {
     // If there is a target, make sure target is in the center of the camera
-    if (m_pTarget)
+    if (m_pTarget && !m_bHold)
     {
         // Use the target's interpolated position so the camera stays glued to the
         // smoothly-rendered player sprite instead of jittering against it.

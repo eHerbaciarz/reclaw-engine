@@ -195,6 +195,8 @@ public:
     void SetTarget(shared_ptr<SceneNode> pTarget) { m_pTarget = pTarget; }
     shared_ptr<SceneNode> GetTarget() { return m_pTarget; }
     void ClearTarget() { m_pTarget = shared_ptr<SceneNode>(); }
+    // Stays where it is although the target moves (Claw falling off the screen)
+    void SetHold(bool hold) { m_bHold = hold; }
 
     void SetSize(uint32 width, uint32 height) { m_Width = width; m_Height = height; CalcCameraRect(); }
     void SetScale(float scaleX, float scaleY) { m_ScaleX = scaleX; m_ScaleY = scaleY; }
@@ -242,6 +244,7 @@ protected:
     Point       m_CameraOffset;
     bool        m_Active;
     bool        m_DebugCamera;
+    bool        m_bHold = false;
 
     float m_ScaleX;
     float m_ScaleY;

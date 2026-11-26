@@ -169,6 +169,13 @@ public:
 
     bool IsHoldingRope() { return m_State == ClawState_HoldingRope; }
 
+    // A sword swing in progress (defeated enemies can be hit again)
+    bool IsMeleeAttacking() const
+    {
+        return m_State == ClawState_Attacking || m_State == ClawState_DuckAttacking || m_State == ClawState_JumpAttacking;
+    }
+    Direction GetFacing() const { return m_Direction; }
+
     void OnClawKilledEnemy(DamageType killDamageType, Actor* pKilledEnemyActor);
 
     // AnimationObserver API
@@ -198,6 +205,16 @@ private:
     uint32 m_CarriedKegId;
     bool m_bLiftHeld;
     int m_LiftChargeMs;
+
+    // Death as in the original: Claw drops off the bottom of the screen
+    // (the camera stays), then the circle closes on where he died.
+    bool m_bDeathFall = false;
+    bool m_bDeathFinished = false;
+    double m_DeathFallSpeed = 0.0;
+    int m_DeathFallTime = 0;
+    Point m_DeathPosition;
+    void UpdateDeathFall(uint32 msDiff);
+    void FinishDeath(Animation* pAnimation);
     int m_OneShotAnimLeftMs;
     std::string m_AnimLift;
     std::string m_AnimDuckLift;
