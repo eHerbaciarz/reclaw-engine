@@ -751,3 +751,19 @@ namespace Platform
 #endif
     }
 }
+
+// A failed assert() on the consoles only quits the game. Write it to the log
+// first (with the actor being created, if any) so a report says where.
+#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__)
+const char* g_ReclawCreatingActor = nullptr;
+extern "C" void __assert_func(const char* file, int line, const char* func, const char* expr)
+{
+    SDL_Log("FATAL: assert failed: %s (%s:%d, %s)%s%s", expr ? expr : "?", file ? file : "?", line,
+            func ? func : "?", g_ReclawCreatingActor ? ", creating actor " : "",
+            g_ReclawCreatingActor ? g_ReclawCreatingActor : "");
+    Platform::FlushLog();
+    std::abort();
+}
+#else
+const char* g_ReclawCreatingActor = nullptr;
+#endif

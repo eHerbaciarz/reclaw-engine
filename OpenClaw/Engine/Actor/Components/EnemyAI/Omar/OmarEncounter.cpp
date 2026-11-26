@@ -280,8 +280,15 @@ void OmarAIStateComponent::VUpdate(uint32 msDiff)
             OmarPlaySound(OMAR_SOUND_HIT, pos);
             DestroyShield();
 
+            // One segment of the bar whatever the difficulty scaled his health to
+            int hit = m_HitDamage;
+            if (pHealth->GetMaxHealth() > 0 && m_HitDamage > 0 && m_HitDamage <= 100)
+            {
+                hit = (pHealth->GetMaxHealth() * m_HitDamage + 99) / 100;
+            }
+
             m_bAllowDamage = true;
-            pHealth->AddHealth(-m_HitDamage, DamageType_MeleeAttack, pos, m_pOwner->GetGUID());
+            pHealth->AddHealth(-hit, DamageType_MeleeAttack, pos, m_pOwner->GetGUID());
             m_bAllowDamage = false;
 
             if (pHealth->GetCurrentHealth() <= 0)

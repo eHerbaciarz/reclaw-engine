@@ -8,7 +8,7 @@
         <AnimationPath>/LEVEL14/ANIS/OMAR/*.ANI</AnimationPath>
     </AnimationComponent>
     <HealthComponent>
-        <!-- 4 segments: every hit with the right magic sword takes 25 -->
+        <!-- 4 segments: every hit with the right magic sword takes HitDamage percent -->
         <Health>100</Health>
         <MaxHealth>100</MaxHealth>
     </HealthComponent>
@@ -99,7 +99,7 @@
     <OmarAIStateComponent>
         <StatePriority>100</StatePriority>
         <BossDialogAnimation>home</BossDialogAnimation>
-        <HitDamage>25</HitDamage>
+        <HitDamage>25</HitDamage> <!-- percent of max health -->
         <InvulnerableTime>1500</InvulnerableTime>
         <WarpDelay>600</WarpDelay>
         <ShieldBallCount>6</ShieldBallCount>

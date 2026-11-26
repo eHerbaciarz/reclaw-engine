@@ -173,8 +173,18 @@ StrongActorPtr ActorFactory::CreateActorWithGuid(TiXmlElement* pActorRoot, TiXml
     return CreateActorImpl(pActorRoot, overrides, guid);
 }
 
+extern const char* g_ReclawCreatingActor;   // Platform.cpp: named in a failed assert
+
 StrongActorPtr ActorFactory::CreateActorImpl(TiXmlElement* pActorRoot, TiXmlElement* overrides, uint32_t nextActorGUID)
 {
+    const char* pPrevCreating = g_ReclawCreatingActor;
+    g_ReclawCreatingActor = pActorRoot ? pActorRoot->Attribute("Type") : nullptr;
+    struct RestoreCreating
+    {
+        const char* prev;
+        ~RestoreCreating() { g_ReclawCreatingActor = prev; }
+    } restoreCreating{ pPrevCreating };
+
     //PROFILE_CPU("Create actor");
     StrongActorPtr actor(new Actor(nextActorGUID));
     if (!actor->Init(pActorRoot))
