@@ -131,6 +131,7 @@ ReClaw is and will stay free. If it made your day, you can buy me a tea 🍵 –
 one-time tips, no subscriptions:
 
 - **Ko-fi:** https://ko-fi.com/eherbaciarz
+- **Suppi** (BLIK, for Polish supporters): https://suppi.pl/eherbaciarz
 
 ## Based on
 
@@ -287,6 +288,7 @@ ReClaw jest i zostanie darmowy. Jeśli sprawił Ci radość, możesz postawić m
 herbatę 🍵 – jednorazowo, bez subskrypcji:
 
 - **Ko-fi:** https://ko-fi.com/eherbaciarz
+- **Suppi** (BLIK): https://suppi.pl/eherbaciarz
 
 ### Na podstawie
 
