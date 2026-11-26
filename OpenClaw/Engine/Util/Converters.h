@@ -748,6 +748,8 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
              logic == "Siren" ||
              logic == "Fish" ||
              logic == "Aquatis" ||
+             logic == "Chameleon" ||
+             logic == "TigerGuard" ||
              logic == "RedTail")
     {
         SAFE_DELETE(pActorElem);

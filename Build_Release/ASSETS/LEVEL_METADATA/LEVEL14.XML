@@ -20,12 +20,13 @@
         <LogicToActorPrototype logic="LavaGeyser" actorPrototype="ActorPrototype_Level14_LavaGeyser" />
         <LogicToActorPrototype logic="LavaMouth" actorPrototype="ActorPrototype_Level14_LavaMouth" />
         <LogicToActorPrototype logic="LavaHand" actorPrototype="ActorPrototype_Level14_LavaHand" />
+        <LogicToActorPrototype logic="Chameleon" actorPrototype="ActorPrototype_Level14_Chameleon" />
+        <LogicToActorPrototype logic="TigerGuard" actorPrototype="ActorPrototype_Level14_TigerGuard" />
 
         <!-- Not implemented yet: hidden instead of shown as static images -->
         <LogicToActorPrototype logic="BossStager" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="JumpSwitch" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="CursePowerup" actorPrototype="ActorPrototype_Null" />
-        <LogicToActorPrototype logic="Chameleon" actorPrototype="ActorPrototype_Null" />
     </LogicsToActorPrototypes>
     <ClawSpawnPositions>
         <!-- start, FirstSuperCheckpoint, SecondSuperCheckpoint -->

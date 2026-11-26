@@ -31,7 +31,7 @@
         <LogicToActorPrototype logic="RedTail" actorPrototype="ActorPrototype_Level13_RedTail" />
         <LogicToActorPrototype logic="RedTailWind" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="RedTailSpikes" actorPrototype="ActorPrototype_Null" />
-        <LogicToActorPrototype logic="Chameleon" actorPrototype="ActorPrototype_Null" />
+        <LogicToActorPrototype logic="Chameleon" actorPrototype="ActorPrototype_Level13_Chameleon" />
     </LogicsToActorPrototypes>
     <ClawSpawnPositions>
         <ClawSpawnPosition spawnNumber="0" x="710" y="2360" />
