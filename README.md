@@ -125,6 +125,13 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
   Select (Minus on the Switch; on the 3DS it shows on the lower screen). It
   shows the level's rooms and the treasures, but not the enemies
 
+## Support
+
+ReClaw is and will stay free. If it made your day, you can buy me a tea 🍵 –
+one-time tips, no subscriptions:
+
+- **Ko-fi:** https://ko-fi.com/eherbaciarz
+
 ## Based on
 
 ReClaw would not exist without these projects (all GPL-3.0):
@@ -273,6 +280,13 @@ CLAW.REZ wrzucony prosto do `data/` też działa (jako jedyny język).
 - **Mapa poziomu** – Pazur ma przecież mapę, więc teraz można do niej
   zajrzeć: przycisk Select (na Switchu Minus; na 3DS mapa jest na dolnym
   ekranie). Pokazuje pomieszczenia poziomu i skarby, bez przeciwników
+
+### Wsparcie
+
+ReClaw jest i zostanie darmowy. Jeśli sprawił Ci radość, możesz postawić mi
+herbatę 🍵 – jednorazowo, bez subskrypcji:
+
+- **Ko-fi:** https://ko-fi.com/eherbaciarz
 
 ### Na podstawie
 
