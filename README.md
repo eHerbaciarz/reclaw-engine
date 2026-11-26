@@ -97,10 +97,18 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
 
 ## What ReClaw adds
 
-- Ports to Switch, PS Vita, 3DS and PS3
-- GPU rendering with smoothing, 16:9 or classic 4:3, CRT effect, FPS counter
-- New 3DS: stereoscopic 3D and a second screen with the menu map and the player's status
-- Polish and English texts of its own screens, controls page per platform
+- **Four consoles** – Nintendo Switch, PS Vita, Nintendo 3DS and PS3, all
+  with GPU rendering and a full 60 fps
+- **Widescreen** – full 16:9 support, or the classic 4:3 picture
+- **Polish and English** – both releases of the game are supported and the
+  language can be switched in the menu; ReClaw's own screens are translated too
+- **Graphics filters** – smoothing and a CRT effect, each switchable on and off
+- **Zoom out** – the view can be widened in four steps (Normal, Wide, Wider,
+  Widest) to see more of the level
+- **FPS counter** – can be switched on in the graphics options
+- **New 3DS** – stereoscopic 3D, and a second screen with the menu map and the
+  player's status
+- **Controls page** – a controls screen made for each console's buttons
 
 ## Based on
 
@@ -222,10 +230,19 @@ CLAW.REZ wrzucony prosto do `data/` też działa (jako jedyny język).
 
 ### Co dodaje ReClaw
 
-- Porty na Switch, PS Vita, 3DS i PS3
-- Rysowanie przez GPU z wygładzaniem, tryb 16:9 lub klasyczny 4:3, efekt CRT, licznik FPS
-- New 3DS: tryb 3D i drugi ekran z mapą z menu i stanem gracza
-- Polskie i angielskie teksty własnych ekranów, strona sterowania dla każdej konsoli
+- **Cztery konsole** – Nintendo Switch, PS Vita, Nintendo 3DS i PS3,
+  wszystkie z rysowaniem przez GPU i w pełnych 60 klatkach na sekundę
+- **Panorama** – pełna obsługa 16:9 albo klasyczny obraz 4:3
+- **Polski i angielski** – obsługa obu wydań gry, język zmienia się w menu;
+  własne ekrany ReClaw też są przetłumaczone
+- **Filtry graficzne** – wygładzanie i efekt CRT, każdy do włączenia
+  i wyłączenia
+- **Oddalanie widoku** – widok można poszerzyć w czterech krokach (normalny,
+  szeroki, szerszy, najszerszy), żeby widzieć więcej poziomu
+- **Licznik FPS** – do włączenia w opcjach grafiki
+- **New 3DS** – tryb 3D i drugi ekran z mapą z menu i stanem gracza
+- **Strona sterowania** – ekran sterowania dopasowany do przycisków każdej
+  konsoli
 
 ### Na podstawie
 
