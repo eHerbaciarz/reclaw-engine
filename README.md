@@ -110,6 +110,9 @@ again. CLAW.REZ put straight into `data/` also works (as the only language).
   player's status
 - **Controls page** – a controls screen made for each console's buttons
 - **Touch screen** – on the Switch and the PS Vita the menus work by touch
+- **Level map** – Claw has a map in the game, so now you can look at it: press
+  Select (Minus on the Switch; on the 3DS it shows on the lower screen). It
+  shows the level's rooms and the treasures, but not the enemies
 
 ## Based on
 
@@ -245,6 +248,9 @@ CLAW.REZ wrzucony prosto do `data/` też działa (jako jedyny język).
 - **Strona sterowania** – ekran sterowania dopasowany do przycisków każdej
   konsoli
 - **Ekran dotykowy** – na Switchu i PS Vicie menu obsługuje się dotykiem
+- **Mapa poziomu** – Pazur ma przecież mapę, więc teraz można do niej
+  zajrzeć: przycisk Select (na Switchu Minus; na 3DS mapa jest na dolnym
+  ekranie). Pokazuje pomieszczenia poziomu i skarby, bez przeciwników
 
 ### Na podstawie
 
