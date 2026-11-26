@@ -83,6 +83,11 @@ private:
 
     b2Body* FindBox2DBody(uint32 actorId);
     void ProcessPendingChanges();
+
+    // (de)activations asked for while Box2D steps (from a contact callback,
+    // e.g. Claw dying of a hit) wait until the step is over
+    std::vector<std::pair<uint32_t, bool>> m_PendingActivations;
+    std::vector<std::pair<uint32_t, Point>> m_PendingPositions;
     uint32 FindActorId(b2Body* pBody);
     void ScheduleActorForRemoval(uint32 actorId) { m_ActorsToBeDestroyed.push_back(actorId); }
     void AddActorFixtureToBody(b2Body* pBody, const ActorFixtureDef* pFixtureDef);

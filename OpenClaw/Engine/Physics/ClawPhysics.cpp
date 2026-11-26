@@ -496,6 +496,28 @@ void ClawPhysics::VSerializeBodyState(uint32_t actorId, StateArchive& ar)
 
 void ClawPhysics::ProcessPendingChanges()
 {
+    if (!m_PendingActivations.empty() && !m_pWorld->IsLocked())
+    {
+        std::vector<std::pair<uint32_t, bool>> pending;
+        pending.swap(m_PendingActivations);
+        for (const auto& change : pending)
+        {
+            if (b2Body* pBody = FindBox2DBody(change.first))
+            {
+                pBody->SetActive(change.second);
+            }
+        }
+    }
+    if (!m_PendingPositions.empty() && !m_pWorld->IsLocked())
+    {
+        std::vector<std::pair<uint32_t, Point>> pending;
+        pending.swap(m_PendingPositions);
+        for (const auto& change : pending)
+        {
+            VSetPosition(change.first, change.second);
+        }
+    }
+
     // Remove actors form physics simulation which are scheduled to be destroyed
     for (uint32 actorId : m_ActorsToBeDestroyed)
     {
@@ -1242,6 +1264,11 @@ void ClawPhysics::VAddLinearSpeed(uint32_t actorId, const Point& speedIncrement)
 //
 void ClawPhysics::VSetPosition(uint32_t actorId, const Point& position)
 {
+    if (m_pWorld->IsLocked())
+    {
+        m_PendingPositions.push_back(std::make_pair(actorId, position));
+        return;
+    }
     b2Vec2 b2Position = PixelsToMeters(PointToB2Vec2(position));
     if (b2Body* pBody = FindBox2DBody(actorId))
     {
@@ -1267,6 +1294,11 @@ Point ClawPhysics::VGetPosition(uint32_t actorId)
 //
 void ClawPhysics::VActivate(uint32_t actorId)
 {
+    if (m_pWorld->IsLocked())
+    {
+        m_PendingActivations.push_back(std::make_pair(actorId, true));
+        return;
+    }
     if (b2Body* pBody = FindBox2DBody(actorId))
     {
         pBody->SetActive(true);
@@ -1280,6 +1312,11 @@ void ClawPhysics::VActivate(uint32_t actorId)
 //
 void ClawPhysics::VDeactivate(uint32_t actorId)
 {
+    if (m_pWorld->IsLocked())
+    {
+        m_PendingActivations.push_back(std::make_pair(actorId, false));
+        return;
+    }
     if (b2Body* pBody = FindBox2DBody(actorId))
     {
         pBody->SetActive(false);
