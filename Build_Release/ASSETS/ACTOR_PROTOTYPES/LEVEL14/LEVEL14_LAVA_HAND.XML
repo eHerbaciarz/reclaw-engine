@@ -1,0 +1,37 @@
+<Actor Type="Level14_LavaHand" ActorPrototypeName="ActorPrototype_Level14_LavaHand">
+	<PositionComponent>
+		<Position x="-1" y="-1" />
+	</PositionComponent>
+	<ActorRenderComponent>
+		<Visible>true</Visible>
+		<Mirrored>false</Mirrored>
+		<Inverted>false</Inverted>
+		<ZCoord>1010</ZCoord>
+		<ImagePath>OVERRIDDEN_IN_CODE</ImagePath>
+		<Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
+	</ActorRenderComponent>
+	<AnimationComponent>
+		<SpecialAnimation>
+			<Type>cycle</Type>
+			<FrameDuration>80</FrameDuration>
+			<HasPositionDelay>false</HasPositionDelay>
+		</SpecialAnimation>
+	</AnimationComponent>
+	<LavaHazardComponent>
+		<StartDelay>0</StartDelay>
+		<Pause>2000</Pause>
+		<ActiveFrameFrom>3</ActiveFrameFrom>
+		<ActiveFrameTo>12</ActiveFrameTo>
+		<HitboxInset x="12" y="12" />
+		<Damage>10</Damage>
+		<HitCooldown>1000</HitCooldown>
+		<Sound>/LEVEL14/SOUNDS/LAVAHAND.WAV</Sound>
+		<SoundVolume>60</SoundVolume>
+		<TriggerMin x="0" y="0" />
+		<TriggerMax x="0" y="0" />
+		<ThrowFrameIdx>11</ThrowFrameIdx>
+		<ProjectilePrototype>ActorPrototype_Level14_LavaHandProjectile</ProjectilePrototype>
+		<ProjectileOffset x="0" y="-40" />
+		<ProjectileFlightTime>900</ProjectileFlightTime>
+	</LavaHazardComponent>
+</Actor>

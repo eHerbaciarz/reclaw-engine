@@ -902,7 +902,22 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
         std::string shootAnim;
         Point projectileSpawnOffset;
 
-        if (imageSet.find("UP") != std::string::npos)
+        // Level 14: fire shooters in the walls. LAUNCHLEFT sits on a left wall
+        // and fires to the right (its trigger area is right of it), LAUNCHRIGHT
+        // the other way.
+        if (imageSet.find("LAUNCHLEFT") != std::string::npos)
+        {
+            shootAnim = "launchleft";
+            projectileProto = ActorPrototype_Level14_FireProjectile_Right;
+            projectileSpawnOffset.Set(40, 0);
+        }
+        else if (imageSet.find("LAUNCHRIGHT") != std::string::npos)
+        {
+            shootAnim = "launchright";
+            projectileProto = ActorPrototype_Level14_FireProjectile_Left;
+            projectileSpawnOffset.Set(-40, 0);
+        }
+        else if (imageSet.find("UP") != std::string::npos)
         {
             shootAnim = "puffdartup";
             projectileProto = ActorPrototype_Level9_DartProjectile_Up;
@@ -935,12 +950,50 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
             ((wwdObject->maxX + wwdObject->minX) / 2) - actorPosition.x, 
             ((wwdObject->maxY + wwdObject->minY) / 2) - actorPosition.y);
 
+        // Level 14 fire shooters store their firing period in "speed" (ms)
+        if (imageSet.find("LAUNCH") != std::string::npos && wwdObject->speed >= 300 && wwdObject->speed <= 5000)
+        {
+            xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.MinSpawnDelay", ToStr(wwdObject->speed)));
+            xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.MaxSpawnDelay", ToStr(wwdObject->speed)));
+        }
+
         xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.FireAnim", shootAnim));
         xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.ProjectilePrototype", EnumToString_ActorPrototype(projectileProto)));
         xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.ProjectileSpawnOffset", "x", projectileSpawnOffset.x, "y", projectileSpawnOffset.y));
         xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.TriggerAreaSize", "width", triggerSize.x, "height", triggerSize.y));
         xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.TriggerAreaOffset", "x", triggerAreaOffset.x, "y", triggerAreaOffset.y));
         
+        return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
+    }
+    else if (logic == "LavaGeyser" || logic == "LavaMouth" || logic == "LavaHand")
+    {
+        SAFE_DELETE(pActorElem);
+        if (actorProto == ActorPrototype_None)
+        {
+            return NULL;
+        }
+
+        if (logic == "LavaHand")
+        {
+            // The hand rises when Claw is in its area (minMax) and throws a
+            // lava ball every "speed" ms
+            if (wwdObject->speed > 0)
+            {
+                xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaHazardComponent.Pause", wwdObject->speed));
+            }
+            if (wwdObject->maxX > wwdObject->minX && wwdObject->maxY > wwdObject->minY)
+            {
+                xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaHazardComponent.TriggerMin", "x", wwdObject->minX, "y", wwdObject->minY));
+                xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaHazardComponent.TriggerMax", "x", wwdObject->maxX, "y", wwdObject->maxY));
+            }
+        }
+        else
+        {
+            // Geysers and mouths next to each other erupt one after another:
+            // "speed" is the offset of this one
+            xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaHazardComponent.StartDelay", wwdObject->speed > 0 ? wwdObject->speed : 0));
+        }
+
         return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
     }
     else if (logic == "BossStager")

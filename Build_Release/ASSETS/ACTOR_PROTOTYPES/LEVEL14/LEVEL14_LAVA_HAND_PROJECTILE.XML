@@ -1,0 +1,26 @@
+<Actor Type="Level14_LavaHandProjectile" Parent="ActorPrototype_BaseProjectile" ActorPrototypeName="ActorPrototype_Level14_LavaHandProjectile">
+	<ActorRenderComponent>
+		<ImagePath>/LEVEL14/IMAGES/LAVAHANDPROJECTILE/*.PID</ImagePath>
+		<Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
+	</ActorRenderComponent>
+	<AnimationComponent>
+		<SpecialAnimation>
+			<Type>cycle</Type>
+			<FrameDuration>40</FrameDuration>
+			<HasPositionDelay>false</HasPositionDelay>
+		</SpecialAnimation>
+	</AnimationComponent>
+	<ProjectileAIComponent>
+		<Damage>10</Damage>
+		<ProjectileType>DamageType_Bullet</ProjectileType>
+		<!-- velocity is set by the hand that throws it (an arc at Claw) -->
+		<ProjectileSpeed x="0.000000" y="0.000000" />
+	</ProjectileAIComponent>
+	<PhysicsComponent>
+        <GravityScale>1.000000</GravityScale>
+        <CollisionFlag>262144</CollisionFlag>
+        <CollisionMask>1048834</CollisionMask>
+		<CollisionSize width="24" height="24" />
+		<PositionOffset x="0" y="0" />
+    </PhysicsComponent>
+</Actor>

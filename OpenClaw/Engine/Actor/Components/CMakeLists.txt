@@ -53,6 +53,8 @@ target_sources(openclaw
     ${CMAKE_CURRENT_SOURCE_DIR}/PathElevatorComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FloorSpikeComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FloorSpikeComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/LavaHazardComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LavaHazardComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/RopeComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/RopeComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/SteppingGroundComponent.cpp

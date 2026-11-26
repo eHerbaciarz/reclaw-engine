@@ -59,6 +59,7 @@
 #include "Components/ConveyorBeltComponent.h"
 #include "Components/EnemyAI/Marrow/MarrowEncounter.h"
 #include "Components/EnemyAI/Aquatis/AquatisEncounter.h"
+#include "Components/LavaHazardComponent.h"
 #include "Components/EnemyAI/RedTail/RedTailEncounter.h"
 
 ActorFactory::ActorFactory()
@@ -119,6 +120,7 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<LaRauxBossAIStateComponent>(LaRauxBossAIStateComponent::GetIdFromName(LaRauxBossAIStateComponent::g_Name));
     _componentFactory.Register<PathElevatorComponent>(PathElevatorComponent::GetIdFromName(PathElevatorComponent::g_Name));
     _componentFactory.Register<FloorSpikeComponent>(FloorSpikeComponent::GetIdFromName(FloorSpikeComponent::g_Name));
+    _componentFactory.Register<LavaHazardComponent>(LavaHazardComponent::GetIdFromName(LavaHazardComponent::g_Name));
     _componentFactory.Register<RopeComponent>(RopeComponent::GetIdFromName(RopeComponent::g_Name));
     _componentFactory.Register<SteppingGroundComponent>(SteppingGroundComponent::GetIdFromName(SteppingGroundComponent::g_Name));
     _componentFactory.Register<SpringBoardComponent>(SpringBoardComponent::GetIdFromName(SpringBoardComponent::g_Name));

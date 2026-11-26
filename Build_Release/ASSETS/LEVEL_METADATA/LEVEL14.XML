@@ -16,8 +16,12 @@
         <LogicToActorPrototype logic="FloorSpike3" actorPrototype="ActorPrototype_Level14_FloorSpike" />
         <LogicToActorPrototype logic="FloorSpike4" actorPrototype="ActorPrototype_Level14_FloorSpike" />
 
-        <!-- Not implemented yet (stage 2-4): hidden instead of shown as static images -->
-        <LogicToActorPrototype logic="TProjectile" actorPrototype="ActorPrototype_Null" />
+        <LogicToActorPrototype logic="TProjectile" actorPrototype="ActorPrototype_Level14_FireShooter" />
+        <LogicToActorPrototype logic="LavaGeyser" actorPrototype="ActorPrototype_Level14_LavaGeyser" />
+        <LogicToActorPrototype logic="LavaMouth" actorPrototype="ActorPrototype_Level14_LavaMouth" />
+        <LogicToActorPrototype logic="LavaHand" actorPrototype="ActorPrototype_Level14_LavaHand" />
+
+        <!-- Not implemented yet: hidden instead of shown as static images -->
         <LogicToActorPrototype logic="BossStager" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="JumpSwitch" actorPrototype="ActorPrototype_Null" />
         <LogicToActorPrototype logic="CursePowerup" actorPrototype="ActorPrototype_Null" />

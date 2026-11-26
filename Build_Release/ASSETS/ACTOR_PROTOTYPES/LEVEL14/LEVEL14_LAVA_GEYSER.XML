@@ -1,0 +1,31 @@
+<Actor Type="Level14_LavaGeyser" ActorPrototypeName="ActorPrototype_Level14_LavaGeyser">
+	<PositionComponent>
+		<Position x="-1" y="-1" />
+	</PositionComponent>
+	<ActorRenderComponent>
+		<Visible>true</Visible>
+		<Mirrored>false</Mirrored>
+		<Inverted>false</Inverted>
+		<ZCoord>1010</ZCoord>
+		<ImagePath>OVERRIDDEN_IN_CODE</ImagePath>
+		<Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
+	</ActorRenderComponent>
+	<AnimationComponent>
+		<SpecialAnimation>
+			<Type>cycle</Type>
+			<FrameDuration>70</FrameDuration>
+			<HasPositionDelay>false</HasPositionDelay>
+		</SpecialAnimation>
+	</AnimationComponent>
+	<LavaHazardComponent>
+		<StartDelay>0</StartDelay>
+		<Pause>1500</Pause>
+		<ActiveFrameFrom>1</ActiveFrameFrom>
+		<ActiveFrameTo>17</ActiveFrameTo>
+		<HitboxInset x="10" y="10" />
+		<Damage>10</Damage>
+		<HitCooldown>1000</HitCooldown>
+		<Sound>/LEVEL14/SOUNDS/LAVAGEYSER1.WAV</Sound>
+		<SoundVolume>60</SoundVolume>
+	</LavaHazardComponent>
+</Actor>
