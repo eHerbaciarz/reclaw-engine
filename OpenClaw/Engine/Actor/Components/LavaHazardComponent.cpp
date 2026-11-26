@@ -29,6 +29,7 @@ LavaHazardComponent::LavaHazardComponent()
     m_ThrowFrameIdx(-1),
     m_ProjectileProto(ActorPrototype_None),
     m_ProjectileFlightTime(900),
+    m_bHideWhenIdle(true),
     m_pAnimationComponent(NULL),
     m_pARC(NULL),
     m_StartDelayLeft(0),
@@ -71,6 +72,9 @@ bool LavaHazardComponent::VInit(TiXmlElement* pData)
     }
     ParseValueFromXmlElem(&m_ProjectileOffset, pData->FirstChildElement("ProjectileOffset"), "x", "y");
     ParseValueFromXmlElem(&m_ProjectileFlightTime, pData->FirstChildElement("ProjectileFlightTime"));
+    // Between eruptions only the level's tiles show (a paused first frame of
+    // the lava drop looked like a red square under the mouth)
+    ParseValueFromXmlElem(&m_bHideWhenIdle, pData->FirstChildElement("HideWhenIdle"));
 
     if (m_ProjectileFlightTime < 200)
     {
@@ -96,6 +100,10 @@ void LavaHazardComponent::VPostInit()
 
     m_StartDelayLeft = m_StartDelay;
     m_bPlaying = false;
+    if (m_bHideWhenIdle)
+    {
+        m_pARC->SetVisible(false);
+    }
 }
 
 bool LavaHazardComponent::IsClawInTriggerArea()
@@ -127,6 +135,7 @@ void LavaHazardComponent::StartCycle()
     m_CurrentFrameIdx = 0;
     m_pAnimationComponent->ResetAnimation();
     m_pAnimationComponent->ResumeAnimation();
+    m_pARC->SetVisible(true);
 
     // Only make noise when the player can see it
     Point pos = m_pOwner->GetPositionComponent()->GetPosition();
@@ -290,4 +299,8 @@ void LavaHazardComponent::VOnAnimationLooped(Animation* pAnimation)
     m_pAnimationComponent->ResetAnimation();
     m_pAnimationComponent->PauseAnimation();
     m_PauseLeft = m_Pause;
+    if (m_bHideWhenIdle)
+    {
+        m_pARC->SetVisible(false);
+    }
 }

@@ -53,6 +53,7 @@ private:
     ActorPrototype m_ProjectileProto;
     Point m_ProjectileOffset;
     int m_ProjectileFlightTime;
+    bool m_bHideWhenIdle;
 
     // Internal state
     AnimationComponent* m_pAnimationComponent;
