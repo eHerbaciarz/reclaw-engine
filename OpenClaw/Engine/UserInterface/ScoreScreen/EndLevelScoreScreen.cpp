@@ -4,6 +4,7 @@
 #include "../../Video/Native/MoviePlayer.h"
 #include "../../Audio/Audio.h"
 #include "../../GameApp/BaseGameLogic.h"
+#include "../../GameApp/GameSaves.h"
 #include "../../Resource/Loaders/PalLoader.h"
 #include "../../Resource/Loaders/PcxLoader.h"
 #include "../../Resource/Loaders/PidLoader.h"
@@ -545,6 +546,14 @@ void ScreenElementScoreScreen::LoadNextLevel()
         MoviePlayer::PlayAfterLevel(g_pApp->GetRenderer(), nextLevelNum - 1);
     }
 #endif
+
+    // After the last level (Omar) the ending movie above closes the game:
+    // there is no level 15, back to the main menu
+    if (nextLevelNum > (int)LEVELS_COUNT)
+    {
+        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Enter_Menu()));
+        return;
+    }
 
     IEventDataPtr pEvent(new EventData_Menu_LoadGame(nextLevelNum, false, 0));
     IEventMgr::Get()->VQueueEvent(pEvent);
