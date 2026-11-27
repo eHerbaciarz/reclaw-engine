@@ -84,6 +84,12 @@ namespace CheatCode
             if (g_Recent[i] != kCode[i]) return false;
         }
         g_Recent.clear();
+        return Unlock();
+    }
+
+    bool Unlock()
+    {
+        if (IsUnlocked()) return false;
         g_SpecialMode = true;   // "Skrzyżuj szpady ponownie" in the main menu too
         // Shown whether subtitles are on or off.
         Subtitles::ShowText(Lang::Tr("Nie dość, że pirat to jeszcze oszust", "Not only a pirate, but a cheat as well"), 4000);

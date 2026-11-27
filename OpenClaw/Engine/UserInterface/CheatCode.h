@@ -22,6 +22,8 @@ namespace CheatCode
     // A button pressed during the game. Returns true when this press
     // completed the code (the message is already shown, the menu unlocked).
     bool Feed(Key key);
+    // The same as the code entered (console: konamicode); false if already open
+    bool Unlock();
     // How many presses of the code have been made so far (0: none).
     int Progress();
 

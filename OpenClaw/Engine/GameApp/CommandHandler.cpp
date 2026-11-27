@@ -1,5 +1,7 @@
 #include "BaseGameApp.h"
 #include "BaseGameLogic.h"
+#include "../UserInterface/HumanView.h"
+#include <algorithm>
 #include "../UserInterface/Console.h"
 
 #include "../Actor/Components/ControllerComponents/PowerupComponent.h"
@@ -80,6 +82,20 @@ void CommandHandler::HandleCommand(const char* command, void* userdata)
     COMMAND_SET_BOOL_VALUE("Invincible", g_pApp->m_GameCheats.clawInvincible);
     COMMAND_SET_BOOL_VALUE("InfiniteJump", g_pApp->m_GameCheats.clawInfiniteJump);
     COMMAND_SET_BOOL_VALUE("PhysicsDebug", g_pApp->m_GameCheats.showPhysicsDebug);
+
+    {
+        std::string lower = commandStr;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        if (lower == "konamicode" || lower == "konami code" || lower == "konami")
+        {
+            HumanView* pView = g_pApp->GetHumanView();
+            if (pView && pView->UnlockCheatsFromConsole())
+                pConsole->AddLine("Konami code: cheats unlocked.", COLOR_GREEN);
+            else
+                pConsole->AddLine("Konami code: already unlocked.", COLOR_WHITE);
+            wasCommandExecuted = true;
+        }
+    }
 
     if (commandStr == "catnip")
     {

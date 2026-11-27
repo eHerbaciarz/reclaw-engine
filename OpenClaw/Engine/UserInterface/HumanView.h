@@ -158,6 +158,10 @@ protected:
     void OpenLanguageDelegate(IEventDataPtr pEventData);
     void StartModeLevel(int level);
     virtual void VCreateSecondController(uint32 actorId) { }
+public:
+    // Console "konamicode": as if the Konami code was entered
+    bool UnlockCheatsFromConsole();
+protected:
     virtual void VDestroySecondController() { }
     shared_ptr<CameraNode> m_pCamera2;
     uint32 m_SecondActorId = 0;

@@ -1851,6 +1851,14 @@ bool HumanView::OnMenuCheatKey(CheatCode::Key key)
     return CheatCode::Progress() > 8;
 }
 
+bool HumanView::UnlockCheatsFromConsole()
+{
+    if (!CheatCode::Unlock()) return false;
+    if (m_pIngameMenu) m_pIngameMenu->SetMenuItemVisibleOnAllPages("CHEATS_BUTTON", true);
+    if (m_pMenu) m_pMenu->RefreshActivePageVisibility();
+    return true;
+}
+
 void HumanView::OnCheatKey(CheatCode::Key key)
 {
     if (CheatCode::Feed(key) && m_pIngameMenu)
