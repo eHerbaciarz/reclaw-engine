@@ -432,6 +432,20 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
         {
             DropKeg();
         }
+        else if (g_pApp->GetGlobalOptions()->originalMovement &&
+                 m_pPhysicsComponent->IsFalling() && !m_pPhysicsComponent->IsJumping())
+        {
+            // CLAW.EXE: stepping off a ledge with a keg lets it go - it
+            // flies on at walking speed (225 px/s) and Claw falls.
+            PowderKegComponent* pKeg = GetCarriedKeg();
+            double vx = m_pPhysicsComponent->GetVelocity().x;
+            double dir = vx < -0.01 ? -1.0 : (vx > 0.01 ? 1.0 : 0.0);
+            m_CarriedKegId = 0;
+            m_bLiftHeld = false;
+            m_LiftChargeMs = 0;
+            Point start(m_pPositionComponent->GetX(), m_pPositionComponent->GetY() + PowderKegComponent::GetCarryOffset().y);
+            pKeg->Throw(start, Point(dir * 225.0 / 75.0, 0), (float)(2000.0 / (9.8 * 75.0)));
+        }
         else if (m_bLiftHeld)
         {
             m_LiftChargeMs += msDiff;
@@ -622,16 +636,30 @@ void ClawControllableComponent::ThrowKeg()
         return;
     }
 
-    // Holding the button up to ~0.8 s throws farther.
-    double power = std::min(1.0, (double)m_LiftChargeMs / 800.0);
     double facing = (m_Direction == Direction_Left) ? -1.0 : 1.0;
-    // (m/s; 75 px per metre) a high arc as in the original: ~150 px away
-    // from a tap, ~370 px with the button held
-    Point velocity(facing * (2.6 + 3.4 * power), -(7.2 + 0.8 * power));
     Point start(m_pPositionComponent->GetX() + facing * 35, m_pPositionComponent->GetY() + PowderKegComponent::GetCarryOffset().y);
+    Point velocity;
+    float gravityScale = -1.0f;
+    if (g_pApp->GetGlobalOptions()->originalMovement)
+    {
+        // CLAW.EXE: holding the button winds up for up to 3 s (power
+        // 0..100); the keg flies at 200 + 3*power px/s forward and
+        // 600 + 2*power px/s up, under the objects' gravity of 2000 px/s².
+        // A tap lands ~120 px away, a full wind-up ~400 px.
+        double power = std::min(100.0, m_LiftChargeMs * 100.0 / 3000.0);
+        velocity = Point(facing * (200.0 + 3.0 * power) / 75.0, -(600.0 + 2.0 * power) / 75.0);
+        gravityScale = (float)(2000.0 / (9.8 * 75.0));
+    }
+    else
+    {
+        // Holding the button up to ~0.8 s throws farther.
+        double power = std::min(1.0, (double)m_LiftChargeMs / 800.0);
+        // (m/s; 75 px per metre) ~150 px away from a tap, ~370 px held
+        velocity = Point(facing * (2.6 + 3.4 * power), -(7.2 + 0.8 * power));
+    }
 
     m_CarriedKegId = 0;
-    pKeg->Throw(start, velocity);
+    pKeg->Throw(start, velocity, gravityScale);
 
     if (!PlayOneShotAnimation(m_AnimThrow))
     {

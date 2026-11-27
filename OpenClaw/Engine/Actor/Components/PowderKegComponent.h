@@ -39,7 +39,8 @@ public:
     // follows the carrier.
     void OnLifted(uint32 carrierId);
     // Thrown from `position` with `velocity` (Box2D units, like projectiles).
-    void Throw(const Point& position, const Point& velocity);
+    // gravityScale < 0: the default flight gravity.
+    void Throw(const Point& position, const Point& velocity, float gravityScale = -1.0f);
     // Put down at `position` without exploding (carrier got hurt, climbed...).
     void Drop(const Point& position);
 

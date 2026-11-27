@@ -58,12 +58,12 @@ void PowderKegComponent::OnLifted(uint32 carrierId)
     FollowCarrier();
 }
 
-void PowderKegComponent::Throw(const Point& position, const Point& velocity)
+void PowderKegComponent::Throw(const Point& position, const Point& velocity, float gravityScale)
 {
     shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
     MoveTo(position);
     pPhysics->VActivate(m_pOwner->GetGUID());
-    pPhysics->VSetGravityScale(m_pOwner->GetGUID(), kThrownGravityScale);
+    pPhysics->VSetGravityScale(m_pOwner->GetGUID(), gravityScale >= 0.0f ? gravityScale : kThrownGravityScale);
     pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), velocity);
 
     m_State = KegState_Thrown;

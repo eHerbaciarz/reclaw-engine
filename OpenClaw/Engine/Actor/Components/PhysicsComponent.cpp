@@ -678,6 +678,23 @@ set_velocity:
             else if (dir == 0 && grounded) { m_RunMs = 0; m_RunDir = 0; }
         }
 
+        // CLAW.EXE: carrying a keg Claw shuffles at 30 px/s, stands still
+        // while winding up a throw and cannot jump.
+        bool carrying = false, windingUp = false;
+        if (original)
+        {
+            if (auto pClaw = dynamic_cast<ClawControllableComponent*>(m_pControllableComponent))
+            {
+                carrying = pClaw->IsCarrying();
+                windingUp = carrying && pClaw->IsWindingUpThrow();
+            }
+            if (carrying && !m_OrigJump && ySpeed < 0)
+            {
+                ySpeed = 0;
+                m_CurrentSpeed.y = 0;
+            }
+        }
+
         if (original && !m_bIsForcedUp)
         {
             // The jump of CLAW.EXE: a 45 px hop that grows while the button is
@@ -744,6 +761,11 @@ set_velocity:
                 if (IsOnGround() && !IsInAir())
                 {
                     px = hasCatnip ? 300.0 : (m_RunMs >= 1500 ? 285.0 : 225.0);
+                }
+                if (carrying)
+                {
+                    px = windingUp ? 0.0 : 30.0;
+                    m_RunMs = 0;
                 }
                 runSpeed = px / 75.0;
             }

@@ -129,6 +129,7 @@ public:
     void OnLiftPressed();
     void OnLiftReleased();
     bool IsCarrying();
+    bool IsWindingUpThrow() const { return m_bLiftHeld; }
 
     ClawControllableComponent();
     virtual ~ClawControllableComponent();
