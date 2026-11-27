@@ -192,6 +192,9 @@ public:
 	/// the body transform.
 	const b2AABB& GetAABB(int32 childIndex) const;
 
+	/// ReClaw: number of broad-phase proxies (0 while the body is inactive).
+	int32 GetProxyCount() const { return m_proxyCount; }
+
 	/// Dump this fixture to the log file.
 	void Dump(int32 bodyIndex);
 

@@ -1,3 +1,4 @@
+#include "FixtureAABB.h"
 #include "../PortFeatures.h"
 #include "ClawPhysics.h"
 #include "../UserInterface/Minimap.h"
@@ -127,7 +128,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
             fixture = fixture->GetNext();
             continue;
         }
-        aabb.Combine(aabb, fixture->GetAABB(0));
+        aabb.Combine(aabb, ReclawFixtureAABB(fixture));
         fixture = fixture->GetNext();
     }
 
@@ -153,7 +154,7 @@ b2Fixture* GetLowermostFixture(b2Body* pBody, bool discardSensors)
         {
             pLowermostFixture = fixture;
         }
-        else if (fixture->GetAABB(0).upperBound.y > pLowermostFixture->GetAABB(0).upperBound.y)
+        else if (ReclawFixtureAABB(fixture).upperBound.y > ReclawFixtureAABB(pLowermostFixture).upperBound.y)
         {
             pLowermostFixture = fixture;
         }
@@ -1393,7 +1394,7 @@ SDL_Rect ClawPhysics::VGetAABB(uint32_t actorId, bool discardSensors)
         b2Fixture* pFixture = pBody->GetFixtureList();
         while (pFixture != NULL)
         {
-            aabb.Combine(aabb, pFixture->GetAABB(0));
+            aabb.Combine(aabb, ReclawFixtureAABB(pFixture));
             pFixture = pFixture->GetNext();
         }*/
 
@@ -1548,7 +1549,7 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
                     }
                     else
                     {
-                        if (fixture->GetAABB(0).lowerBound.y < pHeadCircleFixture->GetAABB(0).lowerBound.y)
+                        if (ReclawFixtureAABB(fixture).lowerBound.y < ReclawFixtureAABB(pHeadCircleFixture).lowerBound.y)
                         {
                             pHeadCircleFixture = fixture;
                         }
@@ -1562,7 +1563,7 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
                     }
                     else
                     {
-                        if (fixture->GetAABB(0).lowerBound.y < pBodyRectangleFixture->GetAABB(0).lowerBound.y)
+                        if (ReclawFixtureAABB(fixture).lowerBound.y < ReclawFixtureAABB(pBodyRectangleFixture).lowerBound.y)
                         {
                             pBodyRectangleFixture = fixture;
                         }

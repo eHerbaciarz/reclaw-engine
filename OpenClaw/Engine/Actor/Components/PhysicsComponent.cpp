@@ -1,3 +1,4 @@
+#include "../../Physics/FixtureAABB.h"
 #include "PhysicsComponent.h"
 #include "../../Physics/ClawPhysics.h"
 #include "../../GameApp/BaseGameLogic.h"
@@ -1017,7 +1018,7 @@ bool PhysicsComponent::AttachToLadder()
     for (const b2Fixture* pLadderFixture : m_OverlappingLaddersList)
     {
         // Assume ladder is rectangular which means I can aswell use its aabb for exact position
-        b2AABB aabb = pLadderFixture->GetAABB(0);
+        b2AABB aabb = ReclawFixtureAABB(pLadderFixture);
 
         b2Vec2 b2bottomRight = MetersToPixels(aabb.upperBound);
         Point bottomright = b2Vec2ToPoint(b2bottomRight);

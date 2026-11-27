@@ -1,3 +1,4 @@
+#include "FixtureAABB.h"
 #include <cstdint>
 #include "PhysicsContactListener.h"
 #include "ClawPhysics.h"
@@ -211,7 +212,7 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
 
                         //platformFaceY *= (width / height);
 
-                        const b2AABB& groundAABB = pFixtureA->GetAABB(0);
+                        const b2AABB& groundAABB = ReclawFixtureAABB(pFixtureA);
                         /*float width = aabb.upperBound.x - aabb.lowerBound.x;
                         float height = aabb.upperBound.y - aabb.lowerBound.y;
                         float ratio = width / height;
@@ -316,7 +317,7 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
 #if 0
                 b2AABB bodyAABB = GetBodyAABB(pFixtureB->GetBody());
                 if (/*pFixtureB->GetBody()->GetLinearVelocity().y >= 0 &&*/
-                    (bodyAABB.upperBound.y - PixelsToMeters(20)) < pFixtureA->GetAABB(0).lowerBound.y)
+                    (bodyAABB.upperBound.y - PixelsToMeters(20)) < ReclawFixtureAABB(pFixtureA).lowerBound.y)
                 {
                     
                     //pFixtureA->SetSensor(false);
