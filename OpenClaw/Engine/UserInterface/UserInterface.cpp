@@ -933,7 +933,12 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
     {
         m_pBackground = PcxResourceLoader::LoadAndReturnImage(backgroundImagePath.c_str());
     }
-    assert(m_pBackground != nullptr);
+    STARTUP_TRACE(std::string("menu: background ") + backgroundImagePath + (m_pBackground ? " ok" : " MISSING"));
+    if (!m_pBackground)
+    {
+        LOG_ERROR("Menu background could not be loaded: " + backgroundImagePath);
+        return false;
+    }
     LOG("Menu background loaded: " + backgroundImagePath + " (" + ToStr(m_pBackground->GetWidth()) + "x" + ToStr(m_pBackground->GetHeight()) + ")");
 
     //
@@ -959,6 +964,7 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
         MenuPage pageType = StringToMenuPageEnum(pageName);
 
         shared_ptr<ScreenElementMenuPage> pPage(new ScreenElementMenuPage(m_pRenderer));
+        STARTUP_TRACE("menu: page " + pageName);
         const Uint32 pageT0 = SDL_GetTicks();
         if (!pPage->Initialize(pMenuPageElem))
         {
@@ -1020,6 +1026,7 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
             WAP_PalDestroy(pPal);
     }
 
+    STARTUP_TRACE("menu: built");
     PlayBackgroundMusic();
     return true;
 }
