@@ -92,7 +92,7 @@ static bool Ps3CopyFile(const std::string& from, const std::string& to)
 
 #if !defined(_WIN32)
 #include <unistd.h>
-#if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__PS4__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(RECLAW_PS2)
+#if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__PS4__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(RECLAW_PS2) && !defined(RECLAW_DREAMCAST)
 #include <pwd.h>
 #endif
 #endif
@@ -295,6 +295,8 @@ namespace Platform
         return "macos";
 #elif defined(RECLAW_PS2)
         return "ps2";
+#elif defined(RECLAW_DREAMCAST)
+        return "dreamcast";
 #else
         return "linux";
 #endif
@@ -302,7 +304,7 @@ namespace Platform
 
     bool IsConsole()
     {
-#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__) || defined(RECLAW_PS2)
+#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__) || defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
         return true;
 #elif defined(OPENCLAW_PORTMASTER) || defined(OPENCLAW_STEAMDECK)
         // Linux handhelds and the Steam Deck: full screen, a gamepad, no
@@ -407,6 +409,11 @@ namespace Platform
 #elif defined(__WIIU__)
         g_RootDir = "fs:/vol/external01/wiiu/apps/reclaw/";
         g_BundleDir = "fs:/vol/content/";   // the .wuhb's content folder
+#elif defined(RECLAW_DREAMCAST)
+        // Dreamcast: everything on the disc (/cd/: data/pl/CLAW.REZ etc.);
+        // saves and the log in the RAM disk (lost when switched off).
+        g_RootDir = "/cd/";
+        g_BundleDir = "/cd/";
 #elif defined(__PSL1GHT__) || defined(__PS3__)
         g_RootDir = "/dev_hdd0/game/RCLW00001/USRDIR/";
         g_BundleDir = g_RootDir;
@@ -474,6 +481,9 @@ namespace Platform
         }
 #endif
         g_DataDir = g_RootDir + "save/";
+#if defined(RECLAW_DREAMCAST)
+        g_DataDir = "/ram/save/";
+#endif
 
 #if defined(__ANDROID__)
         // The tilt sensor is not a controller (it would hide the touch controls).

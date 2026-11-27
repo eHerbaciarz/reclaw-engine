@@ -1,4 +1,4 @@
-name: ReClaw ports (Linux, macOS, Windows, Vita, 3DS, Wii U, PS3, PS4, PS2, Android)
+name: ReClaw ports (Linux, macOS, Windows, Vita, 3DS, Wii U, PS3, PS4, PS2, Dreamcast, Android)
 
 # Every package contains the engine and the port's own files only. No game
 # data: players copy CLAW.REZ from their own copy of Claw (1997).
@@ -94,6 +94,56 @@ jobs:
         with:
           name: reclaw-ps2
           path: dist/
+
+  dreamcast:
+    name: Dreamcast (.elf, experimental)
+    runs-on: ubuntu-latest
+    container: kazade/dreamcast-sdk:latest
+    steps:
+      - name: Host packages
+        run: |
+          if command -v apt-get >/dev/null; then apt-get update && apt-get install -y --no-install-recommends git cmake make zip python3 ca-certificates; \
+          elif command -v apk >/dev/null; then apk add --no-cache bash git cmake make zip python3; \
+          elif command -v dnf >/dev/null; then dnf install -y git cmake make zip python3; fi
+          cmake --version
+      - uses: actions/checkout@v4
+      - name: Sources of SDL2 (Dreamcast port) and its add-ons
+        run: |
+          bash platform/deps/fetch.sh
+          git clone --depth 1 -b dreamcastSDL2 https://github.com/GPF/SDL2 /tmp/sdl2-dc
+      - name: Build
+        shell: bash
+        run: |
+          ENV=$(find / -path /proc -prune -o -name environ.sh -path "*kos*" -print 2>/dev/null | head -1)
+          echo "KOS environ: $ENV"; source "$ENV"
+          echo "KOS_BASE=$KOS_BASE KOS_PORTS=$KOS_PORTS"
+          ls "$KOS_BASE/utils/cmake" || true
+          ls "$KOS_BASE/../kos-ports" "$KOS_BASE/addons/lib/dreamcast" 2>/dev/null | head -50 || true
+          if [ ! -f "$KOS_BASE/addons/lib/dreamcast/libz.a" ] && [ -d "${KOS_PORTS:-$KOS_BASE/../kos-ports}/zlib" ]; then
+            make -C "${KOS_PORTS:-$KOS_BASE/../kos-ports}/zlib" install || true
+          fi
+          TC="$KOS_BASE/utils/cmake/dreamcast.toolchain.cmake"
+          cmake -S platform/dreamcast -B build-dc -DCMAKE_TOOLCHAIN_FILE="$TC" -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DRECLAW_DC_SDL=/tmp/sdl2-dc
+          cmake --build build-dc -j"$(nproc)"
+      - name: Package
+        shell: bash
+        run: |
+          ENV=$(find / -path /proc -prune -o -name environ.sh -path "*kos*" -print 2>/dev/null | head -1); source "$ENV"
+          mkdir -p dist/reclaw-dreamcast
+          cp build-dc/reclaw.elf dist/reclaw-dreamcast/
+          cp -r build-dc/disc dist/reclaw-dreamcast/disc
+          cp platform/dreamcast/README.txt dist/reclaw-dreamcast/
+          ${KOS_OBJCOPY:-sh-elf-objcopy} -R .stack -O binary build-dc/reclaw.elf /tmp/reclaw.bin
+          if command -v scramble >/dev/null || [ -x "$KOS_BASE/utils/scramble/scramble" ]; then
+            SCR=$(command -v scramble || echo "$KOS_BASE/utils/scramble/scramble")
+            "$SCR" /tmp/reclaw.bin dist/reclaw-dreamcast/disc/1ST_READ.BIN
+          fi
+          (cd dist && zip -qr reclaw-dreamcast.zip reclaw-dreamcast)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reclaw-dreamcast
+          path: dist/reclaw-dreamcast.zip
 
   windows:
     name: Windows x86_64
