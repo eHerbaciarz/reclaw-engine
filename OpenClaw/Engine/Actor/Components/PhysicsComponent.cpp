@@ -529,7 +529,19 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
         else
         {
             //LOG("ClimbingSpeed: " + ToStr(m_ClimbingSpeed.y));
-            m_pPhysics->VSetLinearSpeedEx(m_pOwner->GetGUID(), Point(0, m_ClimbingSpeed.y));
+            double climbVy = m_ClimbingSpeed.y;
+            if (g_pApp->GetGlobalOptions()->originalMovement && m_pOwner->GetName() == "Claw")
+            {
+                // CLAW.EXE climbs at 200 px/s (250 with catnip); the input
+                // sends 5 per full press.
+                bool catnip = false;
+                if (auto pPowerup = MakeStrongPtr(m_pOwner->GetComponent<PowerupComponent>()))
+                {
+                    catnip = pPowerup->HasPowerup(PowerupType_Catnip);
+                }
+                climbVy = m_ClimbingSpeed.y / 5.0 * (catnip ? 250.0 : 200.0) / 75.0;
+            }
+            m_pPhysics->VSetLinearSpeedEx(m_pOwner->GetGUID(), Point(0, climbVy));
             if (m_pControllableComponent && fabs(m_ClimbingSpeed.y) < DBL_EPSILON)
             {
                 m_pControllableComponent->VOnStopClimbing();
@@ -670,13 +682,13 @@ set_velocity:
         {
             // The jump of CLAW.EXE: a 45 px hop that grows while the button is
             // held, for up to 250 ms (0.58 px per ms, 0.68 after a run
-            // build-up or with catnip), rising on the curve of a 2250 px/s²
+            // build-up, 0.78 with catnip), rising on the curve of a 2250 px/s²
             // fall (speed = sqrt(2 g * height left)), so it slows to the top.
             if (ySpeed < 0 && !m_OrigJump && m_HeightInAir < 2)
             {
                 m_OrigJump = true;
                 m_OrigJumpHoldMs = 0;
-                m_OrigJumpRate = (hasCatnip || m_RunMs >= 1500) ? 0.68f : 0.58f;
+                m_OrigJumpRate = hasCatnip ? 0.78f : (m_RunMs >= 1500 ? 0.68f : 0.58f);
                 m_OrigJumpTarget = 45.0f;
                 m_OrigJumpLastHeight = m_HeightInAir;
                 m_OrigJumpFrames = 0;

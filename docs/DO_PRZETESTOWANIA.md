@@ -31,6 +31,7 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Drabina (27.11) | na szczycie staje, „w górę” nic nie robi, „w dół” schodzi; skok z drabiny | sprawdzone skryptem (poziom 1) |
 | Śmierć (27.11) | od wroga: animacja upadku, spada z miejsca przez podłogę; kolce/woda: jak dawniej; odrodzenie | sprawdzone skryptem (obrażenia z konsoli) |
 | Otwarcie poziomu (27.11) | wałek 100 px jedzie od lewej do prawej z zwiniętym obrazem poziomu, dźwięk flagi; płynność na 3DS/Vicie | sprawdzone zrzutami na PC |
+| Kocimiętka (myszka) (27.11) | skok do 195 px, bieg 300 px/s, wspinanie 250 px/s, miecz zadaje podwójne obrażenia (już nie zabija jednym ciosem); bez myszki wspinanie 200 px/s | sprawdzone skryptem (poziom 1) |
 | Własne poziomy (27.11) | wszystkie 16 od MK się wczytują (wcześniej 6 nie startowało lub wysypywało grę); czy da się je przejść; windy w TRC3 stoją (brak ścieżki w pliku) | wczytanie sprawdzone skryptem |
 | Zapis stanu (ZL / ZR / trzymane R) | zapis, wczytanie, cofanie; znajdźki, skrzynie, wrogowie, winda, lina, śmierć, walka z bossem (Marrow), płynność cofania | nieprzetestowane |
 | Plansza Opcje → Sterowanie | czy się otwiera, czy grafika dobrze leży, powrót B | nieprzetestowane |

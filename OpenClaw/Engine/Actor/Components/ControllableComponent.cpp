@@ -1251,7 +1251,9 @@ void ClawControllableComponent::VOnAnimationFrameChanged(Animation* pAnimation, 
                 }
                 if (m_pPowerupComponent->HasPowerup(PowerupType_Catnip))
                 {
-                    damage = 100;
+                    // CLAW.EXE: catnip doubles the sword damage (5 -> 10,
+                    // ducking 2 -> 4) instead of killing with one hit.
+                    damage = g_pApp->GetGlobalOptions()->originalMovement ? damage * 2 : 100;
                 }
 
                 ActorTemplates::CreateAreaDamage(

@@ -15,14 +15,22 @@ piksele, milisekundy.
 | Grawitacja | 2250 px/s² | 9,8 × 4 × 75 = 2940 px/s² | `0x40a19400` (double 2250) |
 | Najszybszy spadek | 1000 px/s | 1050 px/s | 0x416ee0, `FUN_00421de0(1000.0)` |
 | Skok | najmniej 45 px; trzymany do 250 ms rośnie o 0,58 px/ms (145 px) | stałe 8,8 m/s do 155 px | 0x41ca10 |
-| Skok po rozpędzie / z kocimiętką | 0,68 px/ms (170 px) | 205 px (kocimiętka) | 0x41cadb |
+| Skok po rozpędzie | 0,68 px/ms (170 px) | – | 0x41cb09 |
+| Skok z kocimiętką (biała/czerwona myszka) | 0,78 px/ms (195 px), jak kod „Super Jump” | 205 px | 0x41cad3 |
 | Kod „Super Jump” | 0,78 px/ms (195 px) | – | `DAT_00535938` |
 | Kształt skoku | prędkość liczona co klatkę tak, by przy grawitacji 2250 dojść dokładnie do wierzchołka (`sqrt(2·g·h)`): wolnieje ku górze | stała prędkość, potem ucięcie | 0x422070 |
 
 ## Drabiny (wdrożone)
 
+Wspinanie 200 px/s, z kocimiętką 250 px/s (0x41d0..; stary OpenClaw: 375 px/s).
+
 Na szczycie drabiny kapitan staje na niej; „w górę” nic już nie robi (patrzy w górę).
 W ReClaw puszczał się dalej w górę, skakał, spadał na drabinę i tak w kółko.
+
+## Kocimiętka a miecz (wdrożone)
+
+Miecz zadaje 5 (w kucki 2), z kocimiętką 10 (w kucki 4) – podwójnie, a nie zabija
+jednym ciosem jak w starym OpenClaw (100). W ReClaw: obrażenia ×2.
 
 ## Śmierć (wdrożone)
 
