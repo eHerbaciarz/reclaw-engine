@@ -204,6 +204,8 @@ private:
     std::string FindAnimation(std::initializer_list<const char*> candidates);
     bool PlayOneShotAnimation(const std::string& animName);
     class PowderKegComponent* GetCarriedKeg();
+    class EnemyAIComponent* GetCarriedEnemy();
+    void ReleaseCarried(const Point& start, const Point& velocityPxPerSec, float kegGravityScale);
     void DropKeg();
     void ThrowKeg();
 

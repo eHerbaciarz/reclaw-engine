@@ -20,6 +20,14 @@ public:
     // Faded out (the chameleon): cannot be hit, does not change state.
     void SetPhased(bool phased) { m_bPhased = phased; }
     bool IsPhased() const { return m_bPhased; }
+
+    // CLAW.EXE: Claw can lift ordinary enemies (not bosses) and throw them
+    bool CanBeLifted();
+    void OnLifted(uint32 carrierId);
+    void Throw(const Point& position, const Point& velocityPxPerSec);
+    void DropFromCarrier(const Point& position);
+    bool IsCarried() const { return m_LiftState == Lift_Carried; }
+    bool IsLiftedOrThrown() const { return m_LiftState != Lift_None; }
     // Save states (SaveState/ComponentStates.cpp)
     virtual void VSerializeState(StateArchive& ar) override;
 
@@ -85,6 +93,15 @@ private:
     int m_CorpseKickCooldown = 0;
     bool m_bCorpseGone = false;
     bool m_bPhased = false;
+
+    enum LiftState { Lift_None, Lift_Carried, Lift_Thrown };
+    void UpdateLift(uint32 msDiff);
+    void LandThrown(Actor* pHitEnemy);
+    void SetLiftAnimation(std::initializer_list<const char*> names);
+    LiftState m_LiftState = Lift_None;
+    uint32 m_CarrierId = 0;
+    Point m_ThrowVelocity;
+    int m_ThrowTime = 0;
 
     shared_ptr<PositionComponent> m_pPositionComponent;
     shared_ptr<ActorRenderComponent> m_pRenderComponent;

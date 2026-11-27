@@ -20,6 +20,7 @@
 
 #include "../../Util/ClawLevelUtil.h"
 #include "PowderKegComponent.h"
+#include "EnemyAI/EnemyAIComponent.h"
 #include "../../GameApp/BaseGameLogic.h"
 
 const char* ControllableComponent::g_Name = "ControllableComponent";
@@ -418,7 +419,7 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
     }
     if (m_CarriedKegId != 0)
     {
-        if (!GetCarriedKeg())
+        if (!IsCarrying())
         {
             m_CarriedKegId = 0;
             m_bLiftHeld = false;
@@ -437,14 +438,12 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
         {
             // CLAW.EXE: stepping off a ledge with a keg lets it go - it
             // flies on at walking speed (225 px/s) and Claw falls.
-            PowderKegComponent* pKeg = GetCarriedKeg();
             double vx = m_pPhysicsComponent->GetVelocity().x;
             double dir = vx < -0.01 ? -1.0 : (vx > 0.01 ? 1.0 : 0.0);
-            m_CarriedKegId = 0;
             m_bLiftHeld = false;
             m_LiftChargeMs = 0;
             Point start(m_pPositionComponent->GetX(), m_pPositionComponent->GetY() + PowderKegComponent::GetCarryOffset().y);
-            pKeg->Throw(start, Point(dir * 225.0 / 75.0, 0), (float)(2000.0 / (9.8 * 75.0)));
+            ReleaseCarried(start, Point(dir * 225.0, 0), (float)(2000.0 / (9.8 * 75.0)));
         }
         else if (m_bLiftHeld)
         {
@@ -531,9 +530,39 @@ PowderKegComponent* ClawControllableComponent::GetCarriedKeg()
     return (pKegComponent && pKegComponent->IsCarried()) ? pKegComponent : nullptr;
 }
 
+EnemyAIComponent* ClawControllableComponent::GetCarriedEnemy()
+{
+    if (m_CarriedKegId == 0)
+    {
+        return nullptr;
+    }
+    StrongActorPtr pActor = MakeStrongPtr(g_pApp->GetGameLogic()->VGetActor(m_CarriedKegId));
+    if (!pActor)
+    {
+        return nullptr;
+    }
+    EnemyAIComponent* pEnemy = MakeStrongPtr(pActor->GetComponent<EnemyAIComponent>(EnemyAIComponent::g_Name)).get();
+    return (pEnemy && pEnemy->IsCarried() && !pEnemy->IsDead()) ? pEnemy : nullptr;
+}
+
 bool ClawControllableComponent::IsCarrying()
 {
-    return GetCarriedKeg() != nullptr;
+    return GetCarriedKeg() != nullptr || GetCarriedEnemy() != nullptr;
+}
+
+void ClawControllableComponent::ReleaseCarried(const Point& start, const Point& velocityPxPerSec, float kegGravityScale)
+{
+    PowderKegComponent* pKeg = GetCarriedKeg();
+    EnemyAIComponent* pEnemy = GetCarriedEnemy();
+    m_CarriedKegId = 0;
+    if (pKeg)
+    {
+        pKeg->Throw(start, Point(velocityPxPerSec.x / 75.0, velocityPxPerSec.y / 75.0), kegGravityScale);
+    }
+    else if (pEnemy)
+    {
+        pEnemy->Throw(start, velocityPxPerSec);
+    }
 }
 
 void ClawControllableComponent::OnLiftPressed()
@@ -595,12 +624,47 @@ void ClawControllableComponent::OnLiftPressed()
             bestId = pActor->GetGUID();
         }
     }
-    if (!pBest)
+    // CLAW.EXE: ordinary enemies can be lifted too - in front within 64 px
+    // (20 px behind), feet level within 21 px
+    EnemyAIComponent* pBestEnemy = nullptr;
+    for (const auto& kv : g_pApp->GetGameLogic()->GetActorMap())
+    {
+        const StrongActorPtr& pActor = kv.second;
+        if (!pActor || !pActor->GetPositionComponent())
+        {
+            continue;
+        }
+        EnemyAIComponent* pEnemy = MakeStrongPtr(pActor->GetComponent<EnemyAIComponent>(EnemyAIComponent::g_Name)).get();
+        if (!pEnemy)
+        {
+            continue;
+        }
+        Point enemyPos = pActor->GetPositionComponent()->GetPosition();
+        double forward = (enemyPos.x - clawPos.x) * facing;
+        double dy = enemyPos.y - clawPos.y;
+        if (forward < -20 || forward > 64 || fabs(dy) > 21 || !pEnemy->CanBeLifted())
+        {
+            continue;
+        }
+        double distance = fabs(forward) + fabs(dy);
+        if (distance < bestDistance)
+        {
+            bestDistance = distance;
+            pBest = nullptr;
+            pBestEnemy = pEnemy;
+            bestId = pActor->GetGUID();
+        }
+    }
+
+    if (!pBest && !pBestEnemy)
     {
         return;
     }
 
-    pBest->OnLifted(m_pOwner->GetGUID());
+    if (pBest)
+        pBest->OnLifted(m_pOwner->GetGUID());
+    else
+        pBestEnemy->OnLifted(m_pOwner->GetGUID());
     m_CarriedKegId = bestId;
     m_bLiftHeld = false;
     m_LiftChargeMs = 0;
@@ -630,8 +694,7 @@ void ClawControllableComponent::OnLiftReleased()
 
 void ClawControllableComponent::ThrowKeg()
 {
-    PowderKegComponent* pKeg = GetCarriedKeg();
-    if (!pKeg)
+    if (!IsCarrying())
     {
         return;
     }
@@ -658,8 +721,8 @@ void ClawControllableComponent::ThrowKeg()
         velocity = Point(facing * (2.6 + 3.4 * power), -(7.2 + 0.8 * power));
     }
 
-    m_CarriedKegId = 0;
-    pKeg->Throw(start, velocity, gravityScale);
+    // (velocity in m/s here, 75 px per metre)
+    ReleaseCarried(start, Point(velocity.x * 75.0, velocity.y * 75.0), gravityScale);
 
     if (!PlayOneShotAnimation(m_AnimThrow))
     {
@@ -670,7 +733,13 @@ void ClawControllableComponent::ThrowKeg()
 void ClawControllableComponent::DropKeg()
 {
     PowderKegComponent* pKeg = GetCarriedKeg();
+    EnemyAIComponent* pEnemy = GetCarriedEnemy();
     m_CarriedKegId = 0;
+    if (pEnemy)
+    {
+        double facing = (m_Direction == Direction_Left) ? -1.0 : 1.0;
+        pEnemy->DropFromCarrier(Point(m_pPositionComponent->GetX() + facing * 40, m_pPositionComponent->GetY() - 20));
+    }
     m_bLiftHeld = false;
     m_LiftChargeMs = 0;
     if (pKeg)

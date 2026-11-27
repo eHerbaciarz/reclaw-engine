@@ -109,6 +109,11 @@ void EnemyAIComponent::VPostPostInit()
 
 void EnemyAIComponent::VUpdate(uint32 msDiff)
 {
+    if (m_LiftState != Lift_None && !m_bDead)
+    {
+        UpdateLift(msDiff);
+        return;
+    }
     if (m_bDead && m_bCorpseGone)
     {
         return;
@@ -267,6 +272,11 @@ void EnemyAIComponent::VOnResistDamage(DamageType damageType, Point impactPoint)
 
 bool EnemyAIComponent::VCanResistDamage(DamageType damageType, Point impactPoint)
 {
+    // Held above Claw's head or flying: nothing else hurts him
+    if (m_LiftState != Lift_None && damageType != DamageType_DeathTile)
+    {
+        return true;
+    }
     if (m_bPhased)
     {
         return true;
@@ -493,3 +503,221 @@ bool EnemyAIComponent::TryPlaySpeechSound(int chance, const SoundList& speechSou
 
     return found;
 }*/
+//=====================================================================================================================
+// Lifting and throwing (CLAW.EXE: LS_LIFTED / LS_THROWN / LS_DROPPED, 0x441440 / 0x4412b0 / 0x441a20)
+//=====================================================================================================================
+
+bool EnemyAIComponent::CanBeLifted()
+{
+    if (m_bDead || m_LiftState != Lift_None || m_bPhased)
+    {
+        return false;
+    }
+
+    // Bosses (CLAW.EXE clears the flag for Raux, Marrow and the others have
+    // their own classes) and enemies without the "lifted" picture stay down
+    for (const auto& kv : m_StateMap)
+    {
+        if (dynamic_cast<BaseBossAIStateComponennt*>(kv.second))
+        {
+            return false;
+        }
+    }
+    auto pAnim = MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>(AnimationComponent::g_Name));
+    std::string liftedName("lifted");
+    if (!pAnim || !pAnim->HasAnimation(liftedName))
+    {
+        return false;
+    }
+
+    // CLAW.EXE: not while he strikes (or shoots), jumps or jumps back;
+    // walking, waiting, blocking or reeling from a hit is fine
+    const std::string anim = pAnim->GetCurrentAnimationName();
+    // (ReClaw's enemies strike again and again without CLAW.EXE's waits in
+    // between, so the second half of a blow - after it landed - counts as
+    // that wait)
+    auto pCurAnim = pAnim->GetCurrentAnimation();
+    const bool swinging = anim.compare(0, 6, "strike") == 0 && pCurAnim && !pCurAnim->IsPaused() &&
+        pCurAnim->GetCurrentAnimationFrame()->idx * 2 < (int)pCurAnim->GetAnimFramesSize();
+    if (swinging || anim.compare(0, 4, "jump") == 0 ||
+        anim.compare(0, 4, "fall") == 0 || anim.compare(0, 4, "dead") == 0 || anim.compare(0, 4, "kill") == 0)
+    {
+        return false;
+    }
+    BaseEnemyAIStateComponent* pCurrent = GetCurrentState();
+    if (pCurrent && (pCurrent->VGetStateType() == EnemyAIState_Dying || pCurrent->VGetStateType() == EnemyAIState_Falling))
+    {
+        return false;
+    }
+    return true;
+}
+
+void EnemyAIComponent::SetLiftAnimation(std::initializer_list<const char*> names)
+{
+    auto pAnim = MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>(AnimationComponent::g_Name));
+    if (!pAnim)
+    {
+        return;
+    }
+    for (const char* cname : names)
+    {
+        std::string name(cname);
+        if (pAnim->HasAnimation(name))
+        {
+            if (pAnim->GetCurrentAnimationName() != name)
+            {
+                pAnim->SetAnimation(name);
+            }
+            return;
+        }
+    }
+}
+
+void EnemyAIComponent::OnLifted(uint32 carrierId)
+{
+    LeaveAllStates(NULL);
+    m_bPhased = true;   // no state may start while he is held or flies
+    m_LiftState = Lift_Carried;
+    m_CarrierId = carrierId;
+    m_ThrowTime = 0;
+    g_pApp->GetGameLogic()->VGetGamePhysics()->VDeactivate(m_pOwner->GetGUID());
+    SetLiftAnimation({ "lifted", "hithigh" });
+    UpdateLift(0);
+}
+
+void EnemyAIComponent::Throw(const Point& position, const Point& velocityPxPerSec)
+{
+    m_LiftState = Lift_Thrown;
+    m_ThrowVelocity = velocityPxPerSec;
+    m_ThrowTime = 0;
+    m_pPositionComponent->SetPosition(position);
+    if (m_pRenderComponent)
+    {
+        m_pRenderComponent->SetMirrored(velocityPxPerSec.x < 0);
+    }
+    SetLiftAnimation({ "thrown", "fall", "hithigh" });
+}
+
+void EnemyAIComponent::DropFromCarrier(const Point& position)
+{
+    // CLAW.EXE LS_DROPPED: he falls where he was held and goes on after a moment
+    m_LiftState = Lift_None;
+    m_CarrierId = 0;
+    m_bPhased = false;
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    pPhysics->VSetPosition(m_pOwner->GetGUID(), position);
+    m_pPositionComponent->SetPosition(position);
+    pPhysics->VActivate(m_pOwner->GetGUID());
+    pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
+    EnterBestState(true);
+}
+
+void EnemyAIComponent::UpdateLift(uint32 msDiff)
+{
+    if (m_LiftState == Lift_Carried)
+    {
+        StrongActorPtr pCarrier = MakeStrongPtr(g_pApp->GetGameLogic()->VGetActor(m_CarrierId));
+        if (!pCarrier || !pCarrier->GetPositionComponent())
+        {
+            DropFromCarrier(m_pPositionComponent->GetPosition());
+            return;
+        }
+        // above Claw's head, struggling, facing where Claw faces
+        Point pos = pCarrier->GetPositionComponent()->GetPosition() + Point(0, -80);
+        m_pPositionComponent->SetPosition(pos);
+        g_pApp->GetGameLogic()->VGetGamePhysics()->VSetPosition(m_pOwner->GetGUID(), pos);
+        if (auto pCtrl = MakeStrongPtr(pCarrier->GetComponent<ClawControllableComponent>(ClawControllableComponent::g_Name)))
+        {
+            if (m_pRenderComponent)
+            {
+                m_pRenderComponent->SetMirrored(pCtrl->GetFacing() == Direction_Left);
+            }
+            // CLAW.EXE: "lifted" while Claw picks him up, then "lifted2" above his head
+            auto pClawAnim = MakeStrongPtr(pCarrier->GetComponent<AnimationComponent>(AnimationComponent::g_Name));
+            const std::string clawAnim = pClawAnim ? pClawAnim->GetCurrentAnimationName() : "";
+            if (clawAnim == "lift" || clawAnim == "ducklift")
+                SetLiftAnimation({ "lifted", "hithigh" });
+            else
+                SetLiftAnimation({ "lifted2", "lifted", "hithigh" });
+        }
+        shared_ptr<EventData_Move_Actor> pEvent(new EventData_Move_Actor(m_pOwner->GetGUID(), pos));
+        IEventMgr::Get()->VTriggerEvent(pEvent);
+        return;
+    }
+
+    // Thrown: flies under the objects' gravity (2000 px/s²) until it hits
+    // a wall, the floor or another enemy
+    const double dt = msDiff / 1000.0;
+    m_ThrowTime += msDiff;
+    Point from = m_pPositionComponent->GetPosition();
+    m_ThrowVelocity.y += 2000.0 * dt;
+    Point to(from.x + m_ThrowVelocity.x * dt, from.y + m_ThrowVelocity.y * dt);
+
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    const double dirX = m_ThrowVelocity.x < 0 ? -1.0 : 1.0;
+    // body edges: ~25 px to the sides, ~45 px down to the feet
+    RaycastResult wall = pPhysics->VRayCast(Point(from.x, from.y), Point(to.x + dirX * 25, to.y), CollisionFlag_Solid);
+    RaycastResult floor;
+    if (m_ThrowVelocity.y > 0)
+    {
+        floor = pPhysics->VRayCast(Point(to.x, from.y), Point(to.x, to.y + 45), CollisionFlag_Solid | CollisionFlag_Ground);
+    }
+
+    m_pPositionComponent->SetPosition(to);
+    pPhysics->VSetPosition(m_pOwner->GetGUID(), to);
+    shared_ptr<EventData_Move_Actor> pEvent(new EventData_Move_Actor(m_pOwner->GetGUID(), to));
+    IEventMgr::Get()->VTriggerEvent(pEvent);
+
+    if (wall.foundIntersection || floor.foundIntersection || m_ThrowTime > 4000)
+    {
+        LandThrown(nullptr);
+        return;
+    }
+
+    // Another enemy in the way
+    SDL_Rect me = { (int)to.x - 25, (int)to.y - 40, 50, 80 };
+    for (const auto& kv : g_pApp->GetGameLogic()->GetActorMap())
+    {
+        const StrongActorPtr& pActor = kv.second;
+        if (!pActor || pActor.get() == m_pOwner.get())
+        {
+            continue;
+        }
+        shared_ptr<EnemyAIComponent> pOther = MakeStrongPtr(pActor->GetComponent<EnemyAIComponent>(EnemyAIComponent::g_Name));
+        if (!pOther || pOther->IsDead() || pOther->IsLiftedOrThrown())
+        {
+            continue;
+        }
+        SDL_Rect other = pPhysics->VGetAABB(pActor->GetGUID(), true);
+        if (other.w > 0 && SDL_HasIntersection(&me, &other))
+        {
+            LandThrown(pActor.get());
+            return;
+        }
+    }
+}
+
+void EnemyAIComponent::LandThrown(Actor* pHitEnemy)
+{
+    const uint32 thrower = m_CarrierId;
+    const Point pos = m_pPositionComponent->GetPosition();
+    m_LiftState = Lift_None;
+    m_CarrierId = 0;
+    m_bPhased = false;
+
+    // The enemy it hit is knocked out with it; both count as Claw's kills
+    if (pHitEnemy)
+    {
+        if (auto pHealth = MakeStrongPtr(pHitEnemy->GetComponent<HealthComponent>(HealthComponent::g_Name)))
+        {
+            pHealth->AddHealth(-(pHealth->GetCurrentHealth() + 1000), DamageType_MeleeAttack, pos, thrower);
+        }
+    }
+    if (auto pHealth = MakeStrongPtr(m_pOwner->GetComponent<HealthComponent>(HealthComponent::g_Name)))
+    {
+        if (pHealth->GetCurrentHealth() > 0)
+        {
+            pHealth->AddHealth(-(pHealth->GetCurrentHealth() + 1000), DamageType_MeleeAttack, pos, thrower);
+        }
+    }
+}
