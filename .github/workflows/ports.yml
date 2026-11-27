@@ -76,7 +76,7 @@ jobs:
           echo "PS2DEV=$PS2DEV PS2SDK=$PS2SDK"
           TC=$(find "$PS2SDK" "$PS2DEV" -name ps2dev.cmake 2>/dev/null | head -1)
           echo "toolchain: $TC"
-          cmake -S platform/ps2 -B build-ps2 -DCMAKE_TOOLCHAIN_FILE="$TC" -DCMAKE_BUILD_TYPE=Release
+          cmake -S platform/ps2 -B build-ps2 -DCMAKE_TOOLCHAIN_FILE="$TC" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
           cmake --build build-ps2 -j"$(nproc)"
       - name: Package
         run: |
