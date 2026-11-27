@@ -102,10 +102,10 @@ jobs:
       # Quick PS2 tests: every push to claw-ps2 replaces the files of the
       # "test-ps2" pre-release (scripts/test_ps2.ps1 runs it in PCSX2)
       - name: Test release files
-        if: github.ref == 'refs/heads/claw-ps2' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/claw-ps2'
         run: printf '%s\n' "${GITHUB_SHA}" > dist/commit.txt
       - name: Test release
-        if: github.ref == 'refs/heads/claw-ps2' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/claw-ps2'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: test-ps2
