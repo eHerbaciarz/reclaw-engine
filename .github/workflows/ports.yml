@@ -130,7 +130,10 @@ jobs:
           ls /tmp/kos-new/environ* /tmp/kos-new/doc/environ* 2>/dev/null || true
           rm -rf "$KOS_BASE" && mv /tmp/kos-new "$KOS_BASE" && cp /tmp/kos-env/environ*.sh "$KOS_BASE/"
           source "$ENV"
-          if ! make -C "$KOS_BASE" -j"$(nproc)" > /tmp/kos-build.log 2>&1; then
+          # (the host tools need image libraries the SDK image lacks: only the
+          # ones the build uses; the library itself: kernel + addons)
+          for u in scramble genromfs bin2o; do make -C "$KOS_BASE/utils/$u" >/dev/null 2>&1 || echo "utils/$u not built"; done
+          if ! { make -C "$KOS_BASE/kernel" -j"$(nproc)" && make -C "$KOS_BASE/addons" -j"$(nproc)"; } > /tmp/kos-build.log 2>&1; then
             grep -nE "error|Error" /tmp/kos-build.log | head -40; tail -30 /tmp/kos-build.log; exit 1
           fi
           source "$ENV"
