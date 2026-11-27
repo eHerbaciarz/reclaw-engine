@@ -33,6 +33,8 @@
         <LeftPatrolBorder>0</LeftPatrolBorder> <!-- DEFINED IN CODE -->
         <RightPatrolBorder>0</RightPatrolBorder> <!-- DEFINED IN CODE -->
         <RetainDirection>false</RetainDirection>
+        <!-- CLAW.EXE: fades out and reappears elsewhere on its path -->
+        <PhaseShift>true</PhaseShift>
         <WalkAction>
             <Animation>fastadvance</Animation>
         </WalkAction>

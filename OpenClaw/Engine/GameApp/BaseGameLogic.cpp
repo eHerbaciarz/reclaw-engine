@@ -835,7 +835,13 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     }
     const CheckpointSave* pCheckpointSave = (m_pCurrentLevel->IsCustomLevel() || BossModes::IsActive()) ? &customStart :
         m_pGameSaveMgr->GetCheckpointSave(m_pCurrentLevel->m_LeveNumber, m_pCurrentLevel->m_LoadedCheckpoint);
-    assert(pCheckpointSave != NULL);
+    if (pCheckpointSave == NULL)
+    {
+        // A level the save game has not reached (e.g. started from a test
+        // script): fresh stats instead of a crash.
+        LOG_WARNING("No checkpoint save for level " + ToStr(m_pCurrentLevel->m_LeveNumber) + ", fresh start");
+        pCheckpointSave = &customStart;
+    }
 
     loadingProgress = 95.0f;
     TraceLevel("actors created");

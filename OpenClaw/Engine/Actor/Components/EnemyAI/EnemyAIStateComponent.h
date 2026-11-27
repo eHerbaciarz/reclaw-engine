@@ -242,6 +242,19 @@ private:
     void ChangeDirection(Direction newDirection);
     void CommenceIdleBehaviour();
     bool TryChaseEnemy();
+    bool TryStartPhase();
+    void UpdatePhase(uint32 msDiff);
+
+    // The chameleon of CLAW.EXE (<PhaseShift>): fades out, reappears
+    // somewhere else on its patrol path, fades in.
+    bool m_bPhaseShift = false;
+    int m_PhaseStage = 0;           // 0 none, 1 fading out, 2 hidden, 3 fading in
+    int m_PhaseAlpha = 255;
+    int m_PhaseStepMs = 0;
+    int m_PhaseHiddenMs = 0;
+    int m_PhaseCooldownMs = 0;
+    int m_PhaseWalkMs = 0;
+    double m_PhaseTargetX = 0.0;
 
     bool m_bInitialized;
     bool m_bRetainDirection;

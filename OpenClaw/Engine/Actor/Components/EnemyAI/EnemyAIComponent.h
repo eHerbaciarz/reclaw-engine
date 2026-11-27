@@ -17,6 +17,9 @@ class EnemyAIComponent : public ActorComponent, public HealthObserver
 {
 public:
     bool IsDead() const { return m_bDead; }
+    // Faded out (the chameleon): cannot be hit, does not change state.
+    void SetPhased(bool phased) { m_bPhased = phased; }
+    bool IsPhased() const { return m_bPhased; }
     // Save states (SaveState/ComponentStates.cpp)
     virtual void VSerializeState(StateArchive& ar) override;
 
@@ -81,6 +84,7 @@ private:
     int m_CorpseTime = 0;
     int m_CorpseKickCooldown = 0;
     bool m_bCorpseGone = false;
+    bool m_bPhased = false;
 
     shared_ptr<PositionComponent> m_pPositionComponent;
     shared_ptr<ActorRenderComponent> m_pRenderComponent;

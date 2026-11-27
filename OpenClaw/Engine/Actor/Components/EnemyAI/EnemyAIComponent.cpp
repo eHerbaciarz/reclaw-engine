@@ -251,6 +251,10 @@ void EnemyAIComponent::VOnHealthChanged(int32 oldHealth, int32 newHealth, Damage
 
 void EnemyAIComponent::VOnResistDamage(DamageType damageType, Point impactPoint)
 {
+    if (m_bPhased)
+    {
+        return;
+    }
     if (HasState(EnemyAIState_Parry))
     {
         AcquireStateLock(GetState(EnemyAIState_Parry));
@@ -260,6 +264,10 @@ void EnemyAIComponent::VOnResistDamage(DamageType damageType, Point impactPoint)
 
 bool EnemyAIComponent::VCanResistDamage(DamageType damageType, Point impactPoint)
 {
+    if (m_bPhased)
+    {
+        return true;
+    }
     if (HasState(EnemyAIState_Parry))
     {
         shared_ptr<ParryEnemyAIStateComponent> pParryStateComponent =
@@ -330,6 +338,11 @@ void EnemyAIComponent::AcquireStateLock(BaseEnemyAIStateComponent* pNewState)
 
 bool EnemyAIComponent::EnterBestState(bool canForceEnter)
 {
+    if (m_bPhased)
+    {
+        return false;
+    }
+
     BaseEnemyAIStateComponent* pCurrentState = GetCurrentState();
 
     // If some other state has state lock we will not force him to exit.

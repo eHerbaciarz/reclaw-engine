@@ -355,6 +355,10 @@ bool PatrolEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
     {
         m_RightPatrolBorder = std::stoi(pElem->GetText());
     }  
+    if (TiXmlElement* pElem = pData->FirstChildElement("PhaseShift"))
+    {
+        m_bPhaseShift = pElem->GetText() && std::string(pElem->GetText()) == "true";
+    }
     if (TiXmlElement* pElem = pData->FirstChildElement("RetainDirection"))
     {
         m_bRetainDirection = std::string(pElem->GetText()) == "true";
@@ -463,6 +467,26 @@ void PatrolEnemyAIStateComponent::VUpdate(uint32 msDiff)
         return;
     }
 
+    if (m_bPhaseShift)
+    {
+        if (m_PhaseStage != 0)
+        {
+            UpdatePhase(msDiff);
+            return;
+        }
+        m_PhaseCooldownMs = std::max(0, m_PhaseCooldownMs - (int)msDiff);
+        // CLAW.EXE decides again each time an action ends; walking on and
+        // on is checked every 2 s here.
+        if (m_pWalkAction->isActive && (m_PhaseWalkMs += msDiff) >= 2000)
+        {
+            m_PhaseWalkMs = 0;
+            if (TryStartPhase())
+            {
+                return;
+            }
+        }
+    }
+
     // If this unit does not have room to move, just let it be idle
     if (m_IsAlwaysIdle)
     {
@@ -505,6 +529,14 @@ void PatrolEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrev
 void PatrolEnemyAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
 {
     m_IsActive = false;
+    if (m_PhaseStage != 0)
+    {
+        m_PhaseStage = 0;
+        m_PhaseAlpha = 255;
+        m_pRenderComponent->SetAlpha(255);
+        m_pRenderComponent->SetVisible(true);
+        m_pEnemyAIComponent->SetPhased(false);
+    }
 
     // Since this state set speed to this actor, we need to stop it moving
     if (pNextState && pNextState->VGetStateType() != EnemyAIState_Falling)
@@ -686,8 +718,105 @@ void PatrolEnemyAIStateComponent::ChangeDirection(Direction newDirection)
     }
 }
 
+// CLAW.EXE CChameleon (0x422e60, 0x422ff0, 0x4230c0, 0x423150, 0x423220):
+// when it picks its next action, one time in three it phases out (alpha
+// -10 every 5 ms), stays hidden 0-1.5 s, reappears at a random spot of its
+// patrol path (not where Claw stands), phases in (+10 every 5 ms) and does
+// not phase again for 1 s. While faded it cannot be hit.
+bool PatrolEnemyAIStateComponent::TryStartPhase()
+{
+    if (!m_bPhaseShift || m_PhaseStage != 0 || m_PhaseCooldownMs > 0 || m_IsAlwaysIdle)
+    {
+        return false;
+    }
+    if (rand() % 101 < 66)
+    {
+        return false;
+    }
+    m_PhaseStage = 1;
+    m_PhaseAlpha = 255;
+    m_PhaseStepMs = 0;
+    m_PhaseWalkMs = 0;
+    m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0.0, 0.0));
+    m_pEnemyAIComponent->SetPhased(true);
+    if (m_pIdleAction)
+    {
+        m_pWalkAction->isActive = false;
+        m_pIdleAction->isActive = true;
+        m_pIdleAction->activeAnimIdx = 0;
+        m_pAnimationComponent->SetAnimation(m_pIdleAction->animations[0]);
+    }
+    return true;
+}
+
+void PatrolEnemyAIStateComponent::UpdatePhase(uint32 msDiff)
+{
+    m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0.0, 0.0));
+    m_PhaseStepMs += msDiff;
+    const int steps = m_PhaseStepMs / 5;
+    m_PhaseStepMs %= 5;
+
+    if (m_PhaseStage == 1)
+    {
+        m_PhaseAlpha -= 10 * steps;
+        if (m_PhaseAlpha <= 0)
+        {
+            m_PhaseAlpha = 0;
+            m_pRenderComponent->SetVisible(false);
+            m_PhaseStage = 2;
+            m_PhaseHiddenMs = rand() % 1501;
+            // a random spot of the patrol path, unless Claw stands there
+            int left = std::min(m_LeftPatrolBorder, m_RightPatrolBorder);
+            int right = std::max(m_LeftPatrolBorder, m_RightPatrolBorder);
+            m_PhaseTargetX = m_pPositionComponent->GetX();
+            if (right > left)
+            {
+                double x = left + rand() % (right - left + 1);
+                StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+                double clawX = pClaw ? pClaw->GetPositionComponent()->GetX() : -1e9;
+                if (fabs(x - clawX) > 40)
+                {
+                    m_PhaseTargetX = x;
+                }
+            }
+        }
+        m_pRenderComponent->SetAlpha(m_PhaseAlpha);
+    }
+    else if (m_PhaseStage == 2)
+    {
+        m_PhaseHiddenMs -= msDiff;
+        if (m_PhaseHiddenMs <= 0)
+        {
+            m_pPhysics->VSetPosition(m_pOwner->GetGUID(), Point(m_PhaseTargetX, m_pPositionComponent->GetY()));
+            m_pRenderComponent->SetVisible(true);
+            m_PhaseStage = 3;
+            m_PhaseStepMs = 0;
+        }
+    }
+    else if (m_PhaseStage == 3)
+    {
+        m_PhaseAlpha += 10 * steps;
+        if (m_PhaseAlpha >= 255)
+        {
+            m_PhaseAlpha = 255;
+            m_PhaseStage = 0;
+            m_PhaseCooldownMs = 1000;
+            m_pEnemyAIComponent->SetPhased(false);
+            m_pRenderComponent->SetAlpha(255);
+            ChangeDirection(m_Direction);
+            m_pEnemyAIComponent->EnterBestState(true);
+            return;
+        }
+        m_pRenderComponent->SetAlpha(m_PhaseAlpha);
+    }
+}
+
 void PatrolEnemyAIStateComponent::CommenceIdleBehaviour()
 {
+    if (TryStartPhase())
+    {
+        return;
+    }
     if (m_pIdleAction)
     {
         m_pWalkAction->isActive = false;
