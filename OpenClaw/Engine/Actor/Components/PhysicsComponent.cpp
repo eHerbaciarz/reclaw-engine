@@ -540,7 +540,9 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
                 {
                     catnip = pPowerup->HasPowerup(PowerupType_Catnip);
                 }
-                climbVy = m_ClimbingSpeed.y / 5.0 * (catnip ? 250.0 : 200.0) / 75.0;
+                // MK's side-by-side recording: the original climbs ~241 px/s,
+                // about 1.2x what its code says - matched (catnip scaled alike)
+                climbVy = m_ClimbingSpeed.y / 5.0 * (catnip ? 301.0 : 241.0) / 75.0;
             }
             m_pPhysics->VSetLinearSpeedEx(m_pOwner->GetGUID(), Point(0, climbVy));
             if (m_pControllableComponent && fabs(m_ClimbingSpeed.y) < DBL_EPSILON)
@@ -768,12 +770,22 @@ set_velocity:
                     px = windingUp ? 0.0 : 30.0;
                     m_RunMs = 0;
                 }
-                runSpeed = px / 75.0;
                 // ...and the legs move faster (frame times x0.9 / x0.8)
                 if (auto pAnim = MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>()))
                 {
                     pAnim->SetFrameTimeScale(px == 300.0 ? 0.8f : (px == 285.0 ? 0.9f : 1.0f));
                 }
+                // On the ground the original moves faster than its code
+                // says: MK's side-by-side recordings measure 261 px/s walking
+                // and 321 after the build-up (catnip scaled alike: 338).
+                // The air speed (jumps) stays as in the code.
+                if (IsOnGround() && !IsInAir() && !carrying)
+                {
+                    if (px == 225.0) px = 261.0;
+                    else if (px == 285.0) px = 321.0;
+                    else if (px == 300.0) px = 338.0;
+                }
+                runSpeed = px / 75.0;
             }
             else if (hasCatnip)
             {
