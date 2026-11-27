@@ -1,3 +1,4 @@
+#include "KeyScancode.h"
 #include "../Logger/Logger.h"
 #include "../Platform/Platform.h"
 #include "Console.h"
@@ -436,7 +437,7 @@ bool Console::OnEvent(SDL_Event& event)
     if (!_isActive)
     {
         if (event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
-            SDL_GetScancodeFromKey(event.key.keysym.sym) == SDL_SCANCODE_GRAVE)
+            ReclawEventScancode(event.key.keysym) == SDL_SCANCODE_GRAVE)
         {
             eventEaten = true;
             _isActive = true;
@@ -463,7 +464,7 @@ bool Console::OnEvent(SDL_Event& event)
         }
         // Toggle console
         else if (event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
-            SDL_GetScancodeFromKey(event.key.keysym.sym) == SDL_SCANCODE_GRAVE)
+            ReclawEventScancode(event.key.keysym) == SDL_SCANCODE_GRAVE)
         {
             _isActive = false;
             return true;

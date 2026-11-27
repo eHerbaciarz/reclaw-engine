@@ -1,3 +1,4 @@
+#include "KeyScancode.h"
 #include "TitleScroll.h"
 #include <map>
 #include "../Util/StartupTrace.h"
@@ -451,7 +452,7 @@ bool HumanView::VOnEvent(SDL_Event& evt)
                     return true;
                 }
 
-                if (SDL_GetScancodeFromKey(evt.key.keysym.sym) == SDL_SCANCODE_ESCAPE &&
+                if (ReclawEventScancode(evt.key.keysym) == SDL_SCANCODE_ESCAPE &&
                     g_pApp->GetGameLogic()->GetGameState() == GameState_IngameRunning &&
                     m_pIngameMenu &&
                     !ingameMenuVisible)

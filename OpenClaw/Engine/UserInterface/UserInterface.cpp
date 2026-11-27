@@ -1,3 +1,4 @@
+#include "KeyScancode.h"
 #include "../GameApp/Difficulty.h"
 #include "../Util/StartupTrace.h"
 #include <set>
@@ -1232,7 +1233,7 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
         // Any keyboard input switches to keyboard mode
         m_bMouseMode = false;
 
-        SDL_Keycode keyCode = SDL_GetScancodeFromKey(evt.key.keysym.sym);
+        SDL_Keycode keyCode = ReclawEventScancode(evt.key.keysym);
         if (keyCode == SDL_SCANCODE_DOWN)
         {
             if (hasActiveItem) MoveToMenuItemIdx(activeMenuItemIdx, 1);
@@ -2107,7 +2108,7 @@ bool ScreenElementMenuItem::TryHandleKey(SDL_Keycode key)
 bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
 {
     if (evt.type == SDL_KEYDOWN && 
-        SDL_GetScancodeFromKey(evt.key.keysym.sym) == m_Hotkey &&
+        ReclawEventScancode(evt.key.keysym) == m_Hotkey &&
         m_bVisible)
     {
         return Press();
@@ -2121,7 +2122,7 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
 
     if (evt.type == SDL_KEYDOWN)
     {
-        auto findIt = m_KeyToEventMap.find(SDL_GetScancodeFromKey(evt.key.keysym.sym));
+        auto findIt = m_KeyToEventMap.find(ReclawEventScancode(evt.key.keysym));
         if (findIt != m_KeyToEventMap.end())
         {
             for (IEventDataPtr pEvent : findIt->second)

@@ -518,7 +518,13 @@ namespace Platform
         }
 #endif
 
-        if (IsConsole())
+        // Windows too: a GUI program has no console, so save/reclaw.log is
+        // the only place its log can be read.
+        bool keepLogFile = IsConsole();
+#if defined(_WIN32)
+        keepLogFile = true;
+#endif
+        if (keepLogFile)
         {
             MakeDirs(g_DataDir);
 #if defined(__PSL1GHT__)

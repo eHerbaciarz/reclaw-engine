@@ -1,3 +1,4 @@
+#include "../KeyScancode.h"
 #include "../../Util/StartupTrace.h"
 #include "EndLevelScoreScreen.h"
 #include "../../GameApp/BaseGameApp.h"
@@ -429,10 +430,10 @@ bool ScreenElementScoreScreen::VOnEvent(SDL_Event& evt)
         {
             if (evt.key.repeat == 0)
             {
-                if (SDL_GetScancodeFromKey(evt.key.keysym.sym) == SDL_SCANCODE_KP_ENTER ||
-                    SDL_GetScancodeFromKey(evt.key.keysym.sym) == SDL_SCANCODE_RETURN ||
-                    SDL_GetScancodeFromKey(evt.key.keysym.sym) == SDL_SCANCODE_SPACE ||
-                    SDL_GetScancodeFromKey(evt.key.keysym.sym) == SDL_SCANCODE_ESCAPE)
+                if (ReclawEventScancode(evt.key.keysym) == SDL_SCANCODE_KP_ENTER ||
+                    ReclawEventScancode(evt.key.keysym) == SDL_SCANCODE_RETURN ||
+                    ReclawEventScancode(evt.key.keysym) == SDL_SCANCODE_SPACE ||
+                    ReclawEventScancode(evt.key.keysym) == SDL_SCANCODE_ESCAPE)
                 {
                     ForceNextState();
                     return true;
