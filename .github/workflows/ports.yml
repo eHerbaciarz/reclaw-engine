@@ -24,6 +24,7 @@ concurrency:
 jobs:
   linux:
     name: Linux x86_64
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-22.04          # older glibc: the package runs on more distributions
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +46,7 @@ jobs:
 
   macos:
     name: macOS (Apple Silicon)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +70,8 @@ jobs:
 
   ps2:
     name: PlayStation 2 (.elf, experimental)
+    permissions:
+      contents: write   # the "test-ps2" release (claw-ps2)
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:latest
     steps:
@@ -95,8 +99,29 @@ jobs:
           name: reclaw-ps2
           path: dist/
 
+      # Quick PS2 tests: every push to claw-ps2 replaces the files of the
+      # "test-ps2" pre-release (scripts/test_ps2.ps1 runs it in PCSX2)
+      - name: Test release files
+        if: github.ref == 'refs/heads/claw-ps2' && github.event_name == 'push'
+        run: printf '%s\n' "${GITHUB_SHA}" > dist/commit.txt
+      - name: Test release
+        if: github.ref == 'refs/heads/claw-ps2' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-ps2
+          name: "Test build (PS2) - claw-ps2"
+          prerelease: true
+          make_latest: false
+          body: |
+            Automatic test build of claw-ps2, commit ${{ github.sha }}.
+            Not a release: for testing only (scripts/test_ps2.ps1).
+          files: |
+            dist/reclaw-ps2.zip
+            dist/commit.txt
+
   dreamcast:
     name: Dreamcast (.elf, experimental)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-latest
     container: kazade/dreamcast-sdk:latest
     steps:
@@ -177,6 +202,7 @@ jobs:
 
   windows:
     name: Windows x86_64
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: windows-latest
     defaults:
       run:
@@ -217,6 +243,7 @@ jobs:
 
   vita:
     name: PlayStation Vita (.vpk)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-latest
     container:
       image: vitasdk/vitasdk:latest
@@ -240,6 +267,7 @@ jobs:
 
   n3ds:
     name: Nintendo 3DS (.3dsx)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-latest
     container: devkitpro/devkitarm:latest
     steps:
@@ -264,6 +292,7 @@ jobs:
 
   wiiu:
     name: Wii U (.wuhb)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-latest
     container: devkitpro/devkitppc:latest
     steps:
@@ -294,6 +323,7 @@ jobs:
 
   ps3:
     name: PlayStation 3 (.pkg)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-latest
     env:
       PS3DEV: /opt/ps3dev
@@ -358,6 +388,7 @@ jobs:
 
   ps4:
     name: PS4 (.pkg, OpenOrbis)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -394,6 +425,7 @@ jobs:
 
   android:
     name: Android (.apk)
+    if: github.ref != 'refs/heads/claw-ps2'   # (claw-ps2: only the PS2 build, fast)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

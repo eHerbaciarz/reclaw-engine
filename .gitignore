@@ -117,3 +117,4 @@ build-windows/
 *.sdf
 scripts/test_switch.json
 build-linux/
+scripts/test_ps2.json

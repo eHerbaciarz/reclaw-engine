@@ -2,6 +2,8 @@ name: Native builds (Switch + Linux)
 
 on:
   push:
+    branches-ignore:
+      - claw-ps2   # (PS2 quick tests: only ports.yml's PS2 job)
     paths:
       - 'OpenClaw/**'
       - 'libwap/**'
