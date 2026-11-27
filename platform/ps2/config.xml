@@ -9,7 +9,7 @@
   </Display>
   <Audio>
     <Frequency>22050</Frequency>
-    <SoundChannels>2</SoundChannels>
+    <SoundChannels>1</SoundChannels>
     <MixingChannels>8</MixingChannels>
     <ChunkSize>2048</ChunkSize>
     <SoundVolume>50</SoundVolume>

@@ -24,9 +24,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/../cmake/BundledSDL.cmake")
 
 # Upstream SDL_image / SDL_mixer / SDL_ttf over the Dreamcast SDL2
 set(SDL_OPENGL OFF CACHE BOOL "" FORCE)
-# The native PVR renderer needs a newer KallistiOS than the CI image has
-# (pvr_scene_begin_rtt, PVR_LIST_NONE): SDL's software renderer for now.
-set(SDL_VIDEO_RENDER_DREAMCAST_PVR OFF CACHE BOOL "" FORCE)
+# SDL's native PVR renderer (GPF): the pictures drawn by the Dreamcast's GPU
+# from its video memory. Needs current KallistiOS (CI rebuilds it).
+set(SDL_VIDEO_RENDER_DREAMCAST_PVR ON CACHE BOOL "" FORCE)
 openclaw_add_game(openclaw)
 openclaw_bundled_sdl(openclaw SDL_DIR "${RECLAW_DC_SDL}")
 target_compile_definitions(openclaw PRIVATE RECLAW_DREAMCAST=1 OPENCLAW_STARTUP_TRACE=1 RECLAW_TEXTURE_16BIT=1)
