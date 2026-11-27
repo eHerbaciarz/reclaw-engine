@@ -1,6 +1,6 @@
 <Actor Type="Level7_BearSailor" Parent="ActorPrototype_BaseEnemy" ActorPrototypeName="ActorPrototype_Level7_BearSailor">
     <ActorRenderComponent>
-        <ZCoord>0</ZCoord>
+        <ZCoord>4000</ZCoord>
         <ImagePath>/LEVEL7/IMAGES/BEARSAILOR/*</ImagePath>
         <Palette>/LEVEL7/PALETTES/MAIN.PAL</Palette>
     </ActorRenderComponent>

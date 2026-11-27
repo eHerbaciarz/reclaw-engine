@@ -1,6 +1,6 @@
 <Actor Type="Level14_Chameleon" Parent="ActorPrototype_BaseEnemy" ActorPrototypeName="ActorPrototype_Level14_Chameleon">
     <ActorRenderComponent>
-        <ZCoord>0</ZCoord>
+        <ZCoord>4000</ZCoord>
         <ImagePath>/LEVEL14/IMAGES/CHAMELEON/*</ImagePath>
         <Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
     </ActorRenderComponent>

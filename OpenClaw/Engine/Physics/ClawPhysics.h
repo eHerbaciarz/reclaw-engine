@@ -1,3 +1,4 @@
+#include <functional>
 #include <set>
 #ifndef __CLAWPHYSICS_H__
 #define __CLAWPHYSICS_H__
@@ -88,6 +89,9 @@ private:
     // e.g. Claw dying of a hit) wait until the step is over
     std::vector<std::pair<uint32_t, bool>> m_PendingActivations;
     std::vector<std::pair<uint32_t, Point>> m_PendingPositions;
+    // Body creation / fixture changes asked for while the world steps
+    // (contact callbacks: Claw's death, spawned pickups...) run after Step.
+    std::vector<std::function<void()>> m_PendingCalls;
     uint32 FindActorId(b2Body* pBody);
     void ScheduleActorForRemoval(uint32 actorId) { m_ActorsToBeDestroyed.push_back(actorId); }
     void AddActorFixtureToBody(b2Body* pBody, const ActorFixtureDef* pFixtureDef);

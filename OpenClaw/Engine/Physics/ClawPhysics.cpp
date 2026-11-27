@@ -496,6 +496,12 @@ void ClawPhysics::VSerializeBodyState(uint32_t actorId, StateArchive& ar)
 
 void ClawPhysics::ProcessPendingChanges()
 {
+    if (!m_PendingCalls.empty() && !m_pWorld->IsLocked())
+    {
+        std::vector<std::function<void()>> calls;
+        calls.swap(m_PendingCalls);
+        for (auto& call : calls) call();
+    }
     if (!m_PendingActivations.empty() && !m_pWorld->IsLocked())
     {
         std::vector<std::pair<uint32_t, bool>> pending;
@@ -680,6 +686,7 @@ void ClawPhysics::VAddStaticGeometry(const Point& position, const Point& size, C
 // TODO: This is only applicable to Claw... make him use ActorBodyDef
 void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
 {
+    if (m_pWorld->IsLocked()) { m_PendingCalls.push_back([=]() mutable { VAddDynamicActor(pActor); }); return; }
     //LOG("Creating dynamic actor");
 
     StrongActorPtr pStrongActor = MakeStrongPtr(pActor);
@@ -763,6 +770,7 @@ void ClawPhysics::VAddKinematicBody(WeakActorPtr pActor)
 
 void ClawPhysics::VAddStaticBody(WeakActorPtr pActor, const Point& bodySize, CollisionType collisionType)
 {
+    if (m_pWorld->IsLocked()) { m_PendingCalls.push_back([=]() mutable { VAddStaticBody(pActor, bodySize, collisionType); }); return; }
     //LOG("Creating static actor");
 
     StrongActorPtr pStrongActor = MakeStrongPtr(pActor);
@@ -1059,6 +1067,7 @@ void ClawPhysics::VRenderDiagnostics(SDL_Renderer* pRenderer, shared_ptr<CameraN
 //
 void ClawPhysics::VCreateTrigger(WeakActorPtr pActor, const Point& pos, Point& size, bool isStatic)
 {
+    if (m_pWorld->IsLocked()) { m_PendingCalls.push_back([=]() mutable { VCreateTrigger(pActor, pos, size, isStatic); }); return; }
     StrongActorPtr pStrongActor = MakeStrongPtr(pActor);
     if (!pStrongActor)
     {
@@ -1327,6 +1336,7 @@ int g_PerfBodiesMoving = 0, g_PerfBodiesAwake = 0, g_PerfContacts = 0, g_PerfPhy
 
 void ClawPhysics::VSetFarPaused(uint32_t actorId, bool far)
 {
+    if (m_pWorld->IsLocked()) { m_PendingCalls.push_back([=]() mutable { VSetFarPaused(actorId, far); }); return; }
     b2Body* pBody = FindBox2DBody(actorId);
     if (!pBody) { m_FarPaused.erase(actorId); return; }
     if (far)
@@ -1514,6 +1524,7 @@ RaycastResult ClawPhysics::VRayCast(const Point& fromPoint, const Point& toPoint
 // THIS IS TIGHTLY COUPLED TO CLAW'S CROUCHING
 void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
 {
+    if (m_pWorld->IsLocked()) { m_PendingCalls.push_back([=]() mutable { VScaleActor(actorId, scale); }); return; }
     if (b2Body* pBody = FindBox2DBody(actorId))
     {
         if (scale < 1.0)

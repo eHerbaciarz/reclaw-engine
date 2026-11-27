@@ -432,7 +432,13 @@ namespace
     void Build()
     {
         g_Tried = true;
-        if (!g_pApp || !g_pApp->GetResourceMgr()) return;
+        if (!g_pApp || !g_pApp->GetResourceMgr())
+        {
+            // too early (no resources yet): try again on the next call
+            LOG_WARNING("GameFont: resources not ready yet");
+            g_Tried = false;
+            return;
+        }
         if (Lang::Code() == "pl")
         {
             kSources = kSourcesPl; kSourceCount = (int)(sizeof(kSourcesPl) / sizeof(kSourcesPl[0]));
@@ -446,7 +452,12 @@ namespace
             kUnderlineSource = 9;   // the O of OPTIONS
             kUnderlineX0 = 5; kUnderlineX1 = 31;
         }
-        else return;
+        else
+        {
+            LOG_WARNING("GameFont: no menu letters for language " + Lang::Code());
+            return;
+        }
+        LOG_WARNING("GameFont: building the menu letters (" + Lang::Code() + ")");
         g_Pics.resize(kSourceCount);
         for (int i = 0; i < kSourceCount; ++i)
         {

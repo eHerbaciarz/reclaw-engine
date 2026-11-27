@@ -1,6 +1,6 @@
 <Actor Type="Level14_TigerGuardWhite" Parent="ActorPrototype_BaseEnemy" ActorPrototypeName="ActorPrototype_Level14_TigerGuardWhite">
     <ActorRenderComponent>
-        <ZCoord>0</ZCoord>
+        <ZCoord>4000</ZCoord>
         <ImagePath>/LEVEL14/IMAGES/TIGERWHITE/*</ImagePath>
         <Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
     </ActorRenderComponent>

@@ -2000,7 +2000,7 @@ void ScreenElementMenuItem::SetVolumeFromPointerX(int menuX)
 void ScreenElementMenuItem::VOnRender(uint32 msDiff)
 {
     // Options > Graphics > Font: ReClaw
-    if (MenuFont::IsReclaw() && !m_ReclawText.empty())
+    if ((MenuFont::IsReclaw() || m_bTextFallback) && !m_ReclawText.empty())
     {
         shared_ptr<Image> pImage;
         SDL_Rect r;
@@ -2008,20 +2008,33 @@ void ScreenElementMenuItem::VOnRender(uint32 msDiff)
         {
             if (ReclawTrackX() > 0)
             {
-                shared_ptr<Image> pClassic = m_Images[m_State] ? m_Images[m_State] : m_Images[MenuItemState_Inactive];
-                int texW = 0, texH = 0;
-                SDL_QueryTexture(pClassic->GetTexture(), NULL, NULL, &texW, &texH);
+                // The volume track drawn in the ReClaw style (gold bar with a
+                // dark edge, - and + at its ends) where the picture's track is;
+                // the knob is still the game's own.
+                shared_ptr<Image> pClassic = m_Images[MenuItemState_Inactive];
                 const int lw = pClassic->GetWidth(), lh = pClassic->GetHeight();
-                const int tx = ReclawTrackX();
-                if (lw > tx && texW > 0)
+                const float x0 = m_Position.x + ReclawTrackX() + 2, x1 = m_Position.x + lw - 2;
+                const float cy = m_Position.y + m_DrawOffsetY + lh / 2.0f;
+                auto box = [&](float x, float y, float w, float h, SDL_Color c)
                 {
-                    SDL_Rect src = { tx * texW / lw, 0, texW - tx * texW / lw, texH };
-                    SDL_Rect dst = {
-                        (int)(g_MenuOffset.x + (m_Position.x + tx) * g_MenuScale.x),
-                        (int)(g_MenuOffset.y + (m_Position.y + m_DrawOffsetY) * g_MenuScale.y),
-                        (int)((lw - tx) * g_MenuScale.x), (int)(lh * g_MenuScale.y) };
-                    SDL_RenderCopy(m_pRenderer, pClassic->GetTexture(), &src, &dst);
-                }
+                    SDL_Rect rr = { (int)(g_MenuOffset.x + x * g_MenuScale.x), (int)(g_MenuOffset.y + y * g_MenuScale.y),
+                                    std::max(1, (int)(w * g_MenuScale.x)), std::max(1, (int)(h * g_MenuScale.y)) };
+                    SDL_SetRenderDrawColor(m_pRenderer, c.r, c.g, c.b, c.a);
+                    SDL_RenderFillRect(m_pRenderer, &rr);
+                };
+                const SDL_Color edge = { 40, 20, 5, 200 }, gold = { 226, 182, 92, 255 }, light = { 250, 224, 150, 255 };
+                SDL_SetRenderDrawBlendMode(m_pRenderer, SDL_BLENDMODE_BLEND);
+                // - and +
+                box(x0 - 1, cy - 2.5f, 10, 5, edge);
+                box(x0, cy - 1.5f, 8, 3, gold);
+                box(x1 - 9, cy - 2.5f, 10, 5, edge);
+                box(x1 - 6.5f, cy - 5.5f, 5, 11, edge);
+                box(x1 - 8, cy - 1.5f, 8, 3, gold);
+                box(x1 - 5.5f, cy - 4.5f, 3, 9, gold);
+                // the bar
+                box(x0 + 11, cy - 3.5f, (x1 - 12) - (x0 + 11), 7, edge);
+                box(x0 + 12, cy - 2.5f, (x1 - 13) - (x0 + 12), 5, gold);
+                box(x0 + 12, cy - 2.5f, (x1 - 13) - (x0 + 12), 1.5f, light);
             }
             r.x = (int)(g_MenuOffset.x + r.x * g_MenuScale.x);
             r.y = (int)(g_MenuOffset.y + r.y * g_MenuScale.y);
@@ -2414,7 +2427,9 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         else if (fontText && m_Images.empty())
         {
             // The game's letters could not be made (an unknown release of
-            // the game): the text in an ordinary font, so the menu still works.
+            // the game): the text in an ordinary font, so the menu still works
+            // (and drawn in the ReClaw font when that text is known, below).
+            m_bTextFallback = true;
             static TTF_Font* s_pFallback = TTF_OpenFont(Platform::BundlePath("subtitles.ttf").c_str(), 30);
             if (!s_pFallback) s_pFallback = TTF_OpenFont(Platform::SplashFont().c_str(), 30);
             const std::pair<MenuItemState, SDL_Color> looks[] = {
@@ -2886,7 +2901,7 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
 
 SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
 {
-    if (MenuFont::IsReclaw() && !m_ReclawText.empty())
+    if ((MenuFont::IsReclaw() || m_bTextFallback) && !m_ReclawText.empty())
     {
         shared_ptr<Image> pImage;
         SDL_Rect r;
