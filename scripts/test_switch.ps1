@@ -121,10 +121,15 @@ if (-not (Test-Path (Join-Path $gameDir 'data\pl\CLAW.REZ')) -and -not (Test-Pat
 $started = Get-Date
 Say 'Uruchamiam Ryujinxa...'
 if ($settings.RunAsTrustLevel) {
-    # jak startRyujinx.bat: runas /trustlevel:0x20000 /machine:amd64 "Ryujinx.exe" + gra
-    $cmd = '\"' + $ryuExe + '\" \"' + $nroPath + '\"'
-    Start-Process -FilePath 'runas.exe' -WorkingDirectory $ryuDir -WindowStyle Hidden `
-        -ArgumentList @("/trustlevel:$($settings.RunAsTrustLevel)", '/machine:amd64', ('"' + $cmd + '"'))
+    # jak startRyujinx.bat: runas /trustlevel:0x20000 /machine:amd64 ...
+    # runas gubi argumenty w cudzysłowach, więc gra jest podawana przez mały
+    # plik .cmd w folderze bez spacji (C:\Users\Public)
+    $launcher = Join-Path $env:PUBLIC 'reclaw_start_ryujinx.cmd'
+    $lines = @('@echo off', ('cd /d "' + $ryuDir + '"'), ('start "" "' + $ryuExe + '" "' + $nroPath + '"'))
+    Set-Content -Path $launcher -Value $lines -Encoding Default
+    Say "Start: $ryuExe `"$nroPath`""
+    Start-Process -FilePath 'runas.exe' -WindowStyle Hidden `
+        -ArgumentList @("/trustlevel:$($settings.RunAsTrustLevel)", '/machine:amd64', $launcher)
 } else {
     Start-Process -FilePath $ryuExe -ArgumentList ('"' + $nroPath + '"') -WorkingDirectory $ryuDir | Out-Null
 }
