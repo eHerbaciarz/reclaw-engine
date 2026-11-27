@@ -732,8 +732,18 @@ namespace
     }
 
     // A movie by index: the remastered file if there is one, else CLAW.FEC.
+    // Full-screen pictures are placed in output pixels: the game's render
+    // scale (a window with Scale > 1) must not enlarge them once more.
+    struct UnscaledRender
+    {
+        SDL_Renderer* r; float sx = 1.0f, sy = 1.0f;
+        explicit UnscaledRender(SDL_Renderer* rr) : r(rr) { if (r) { SDL_RenderGetScale(r, &sx, &sy); SDL_RenderSetScale(r, 1.0f, 1.0f); } }
+        ~UnscaledRender() { if (r) SDL_RenderSetScale(r, sx, sy); }
+    };
+
     PlayResult PlayIndex(SDL_Renderer* r, int index)
     {
+        UnscaledRender unscaled(r);
         bool isMp4 = false;
         std::string remaster = RemasterPath(index, &isMp4);
         if (!remaster.empty())

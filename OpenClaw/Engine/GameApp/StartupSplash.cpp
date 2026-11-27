@@ -51,6 +51,11 @@ namespace
 
     void Draw(SDL_Renderer* r, Uint8 alpha)
     {
+        // placed in output pixels: no game render scale on top (Scale > 1)
+        float sx = 1.0f, sy = 1.0f;
+        SDL_RenderGetScale(r, &sx, &sy);
+        SDL_RenderSetScale(r, 1.0f, 1.0f);
+        struct Restore { SDL_Renderer* r; float sx, sy; ~Restore() { SDL_RenderSetScale(r, sx, sy); } } restore{ r, sx, sy };
         int outW = 0, outH = 0;
         SDL_GetRendererOutputSize(r, &outW, &outH);
 

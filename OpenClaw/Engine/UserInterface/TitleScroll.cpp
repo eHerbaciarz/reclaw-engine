@@ -325,6 +325,14 @@ namespace TitleScroll
     {
         if (!r || !HasResource(kTitlePath) || !HasResource(kPaperPath)) return;
 
+        // placed in output pixels: no game render scale on top (Scale > 1)
+        struct UnscaledRender
+        {
+            SDL_Renderer* r; float sx = 1.0f, sy = 1.0f;
+            explicit UnscaledRender(SDL_Renderer* rr) : r(rr) { SDL_RenderGetScale(r, &sx, &sy); SDL_RenderSetScale(r, 1.0f, 1.0f); }
+            ~UnscaledRender() { SDL_RenderSetScale(r, sx, sy); }
+        } unscaled(r);
+
         STARTUP_TRACE("title scroll: begin");
         shared_ptr<Image> pTitle = PcxResourceLoader::LoadAndReturnImage(kTitlePath);
         STARTUP_TRACE("title scroll: title picture");
