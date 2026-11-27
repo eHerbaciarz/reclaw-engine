@@ -269,7 +269,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Tools and libraries
         run: |
-          dkp-pacman -Sy --noconfirm --needed wiiu-dev ppc-zlib
+          # (pkg.devkitpro.org sometimes answers 403: the image already has the
+          # libraries most of the time, else three tries)
+          if [ ! -d "$DEVKITPRO/wut" ] || [ ! -f "$DEVKITPRO/portlibs/ppc/lib/libz.a" ]; then
+            for i in 1 2 3; do dkp-pacman -Sy --noconfirm --needed wiiu-dev ppc-zlib && break; sleep 30; done
+          fi
+          ls -d "$DEVKITPRO/wut" "$DEVKITPRO/portlibs/ppc/lib/libz.a"
           (apt-get update && apt-get install -y --no-install-recommends zip python3 git ca-certificates) || true
           platform/deps/fetch.sh wiiu
       - name: Build
