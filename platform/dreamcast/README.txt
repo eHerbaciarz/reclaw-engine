@@ -2,19 +2,22 @@ ReClaw - Sega Dreamcast (EXPERIMENTAL)
 
 EN
 An experiment: the Dreamcast has 16 MB of RAM and the engine was designed for
-much more, so the game is not expected to start a level (maybe not even the
-menu). Use an emulator (Flycast, Redream) first.
-The disc/ folder holds the files that go on the disc. Add data/en/ or data/pl/
-with CLAW.REZ (and CLAW.FEC) from YOUR copy of Claw (1997), then make a
-disc image with 1ST_READ.BIN as the boot file, e.g.
-  mkdcdisc -e reclaw.elf -d disc -o reclaw.cdi
-Saves and the log are kept in the RAM disk only (lost when switched off).
+much more, so the game may not get far. Test in an emulator first (Flycast,
+Redream).
+Make the disc image on your computer (Python 3, nothing to install):
+  python reclaw_disc.py --package reclaw-dreamcast.zip --rez CLAW.REZ --fec CLAW.FEC --lang en
+CLAW.REZ / CLAW.FEC come from YOUR copy of Claw (1997); they are only copied
+into the image. Open reclaw-gdi/disc.gdi in Flycast or Redream (or put the
+folder on a GDEMU). Saves and the log are kept in the RAM disk only (lost when
+switched off). reclaw.elf is for dcload / a CD-R made with mkdcdisc.
 
 PL
 Eksperyment: Dreamcast ma 16 MB RAM, a silnik był pisany pod dużo więcej
-pamięci, więc gra najpewniej nie dojdzie do planszy (może nawet do menu).
-Najpierw testuj w emulatorze (Flycast, Redream).
-Folder disc/ zawiera pliki na płytę. Dodaj data/pl/ (albo data/en/) z CLAW.REZ
-(i CLAW.FEC) z TWOJEJ kopii Claw (1997) i zrób obraz płyty, np.
-  mkdcdisc -e reclaw.elf -d disc -o reclaw.cdi
-Zapisy i log są tylko w RAM-dysku (znikają po wyłączeniu).
+pamięci, więc gra może nie zajść daleko. Najpierw testuj w emulatorze
+(Flycast, Redream).
+Obraz płyty robisz na swoim komputerze (Python 3, nic nie trzeba instalować):
+  python reclaw_disc.py --package reclaw-dreamcast.zip --rez CLAW.REZ --fec CLAW.FEC --lang pl
+CLAW.REZ / CLAW.FEC z TWOJEJ kopii Claw (1997) są tylko kopiowane do obrazu.
+Otwórz reclaw-gdi/disc.gdi we Flycaście albo Redream (albo wgraj folder na
+GDEMU). Zapisy i log są tylko w RAM-dysku (znikają po wyłączeniu). reclaw.elf
+jest dla dcload / płyty CD-R zrobionej narzędziem mkdcdisc.
