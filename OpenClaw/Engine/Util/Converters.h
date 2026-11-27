@@ -115,8 +115,10 @@ inline TiXmlElement* EyeCandyToXml(WwdObject* pWwdObject)
 {
     if (std::string(pWwdObject->logic).find("Ani") != std::string::npos)
     {
+        // CLAW.EXE (0x4638b0, 0x463820, 0x494e60): animated decorations
+        // (candles, torches...) cycle GAME_CYCLE100 - 100 ms a frame
         TiXmlElement* animElem = new TiXmlElement("AnimationComponent");
-        XML_ADD_1_PARAM_ELEMENT("Animation", "type", "cycle150", animElem);
+        XML_ADD_1_PARAM_ELEMENT("Animation", "type", "cycle100", animElem);
 
         return animElem;
     }

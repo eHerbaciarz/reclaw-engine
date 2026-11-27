@@ -100,3 +100,16 @@ w locie nie można go podnieść.
 
 `RECLAW_AUTOPLAY=skrypt.txt ./openclaw` (tylko komputer) – skrypt wejścia
 i zapis ruchu kapitana; opis komend w `OpenClaw/Engine/Util/Autoplay.cpp`.
+
+## Nagranie MK 27.11 (oryginał i ReClaw obok siebie, to samo wejście)
+
+Przesunięcie kamery mierzone korelacją fazową co 10 klatek (skala okien sprawdzona odległością świeczek – identyczna):
+
+| | oryginał | ReClaw |
+|---|---|---|
+| chód | 261–274 px/s | 221–227 px/s |
+| po rozpędzie | 321 px/s | 281–288 px/s |
+| wspinaczka | 241 px/s | 201 px/s |
+| klatki świeczek | ~104 ms (GAME_CYCLE100) | 150 ms → poprawione na 100 |
+
+ReClaw zgadza się z liczbami z kodu (225 / 285 / 200), oryginał na tym PC rusza się ~16% szybciej niż wynika z kodu (czas: timeGetTime, krok ≤18 ms, ułamki przenoszone – w kodzie nie widać skąd). Animacje oryginału idą w normalnym tempie (świeczki 100 ms), więc to nie przyspieszony zegar. Wcześniejsze nagranie dało to samo (258 / 333 px/s).
