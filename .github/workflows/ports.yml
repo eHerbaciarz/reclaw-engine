@@ -122,6 +122,11 @@ jobs:
           if [ ! -f "$KOS_BASE/addons/lib/dreamcast/libz.a" ] && [ -d "${KOS_PORTS:-$KOS_BASE/../kos-ports}/zlib" ]; then
             make -C "${KOS_PORTS:-$KOS_BASE/../kos-ports}/zlib" install || true
           fi
+          # GPF's SDL2 compiles its OpenGL glue (GLdc headers) even without OpenGL
+          if ! find "$KOS_PORTS" "$KOS_BASE/addons" -path "*GL/glkos.h" 2>/dev/null | grep -q .; then
+            make -C "$KOS_PORTS/libGL" install || true
+          fi
+          find "$KOS_PORTS" "$KOS_BASE/addons" -path "*GL/glkos.h" 2>/dev/null | head -3
           TC="$KOS_BASE/utils/cmake/kallistios.toolchain.cmake"
           cmake -S platform/dreamcast -B build-dc -DCMAKE_TOOLCHAIN_FILE="$TC" -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=/tmp/dc-install -DRECLAW_DC_SDL=/tmp/sdl2-dc
