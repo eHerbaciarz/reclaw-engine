@@ -127,7 +127,7 @@ jobs:
           mkdir -p /tmp/kos-env && cp "$KOS_BASE"/environ*.sh /tmp/kos-env/ && ls /tmp/kos-env
           rm -rf /tmp/kos-new && git clone -q --depth 1 https://github.com/KallistiOS/KallistiOS /tmp/kos-new
           git -C /tmp/kos-new log -1 --format="KallistiOS %h %ad"
-          ls /tmp/kos-new/environ* /tmp/kos-new/doc/environ* 2>/dev/null
+          ls /tmp/kos-new/environ* /tmp/kos-new/doc/environ* 2>/dev/null || true
           rm -rf "$KOS_BASE" && mv /tmp/kos-new "$KOS_BASE" && cp /tmp/kos-env/environ*.sh "$KOS_BASE/"
           source "$ENV"
           if ! make -C "$KOS_BASE" -j"$(nproc)" > /tmp/kos-build.log 2>&1; then
