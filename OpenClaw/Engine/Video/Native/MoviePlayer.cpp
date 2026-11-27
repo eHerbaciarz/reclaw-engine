@@ -2,7 +2,8 @@
 #include "../../Util/StartupTrace.h"
 #include "MoviePlayer.h"
 
-#ifndef __EMSCRIPTEN__
+// PS2 (for now): no movies - too slow to decode there (10-16 FPS)
+#if !defined(__EMSCRIPTEN__) && !defined(RECLAW_PS2)
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>

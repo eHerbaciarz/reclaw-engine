@@ -509,6 +509,39 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
         SDL_SetColorKey(pSurface, SDL_TRUE, SDL_MapRGB(pSurface->format, colorKey.r, colorKey.g, colorKey.b));
     }
 
+    // A picture larger than the GPU's textures (PS2: 1024x1024, e.g. the
+    // widened menu background) is made smaller; the image keeps its size,
+    // so it is simply drawn stretched.
+    const int fullW = pSurface->w, fullH = pSurface->h;
+    {
+        SDL_RendererInfo info;
+        if (SDL_GetRendererInfo(renderer, &info) == 0 && info.max_texture_width > 0 && info.max_texture_height > 0 &&
+            (fullW > info.max_texture_width || fullH > info.max_texture_height))
+        {
+            int w = fullW, h = fullH;
+            while (w > info.max_texture_width || h > info.max_texture_height) { w = (w + 1) / 2; h = (h + 1) / 2; }
+            SDL_Surface* pFull = SDL_ConvertSurfaceFormat(pSurface, SDL_PIXELFORMAT_ARGB8888, 0);
+            SDL_Surface* pSmall = pFull ? SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888) : NULL;
+            if (pSmall)
+            {
+                SDL_SetSurfaceBlendMode(pFull, SDL_BLENDMODE_NONE);
+                SDL_BlitScaled(pFull, NULL, pSmall, NULL);
+                Uint32 key = 0;
+                if (SDL_GetColorKey(pSurface, &key) == 0)
+                {
+                    Uint8 r, g, b;
+                    SDL_GetRGB(key, pSurface->format, &r, &g, &b);
+                    SDL_SetColorKey(pSmall, SDL_TRUE, SDL_MapRGB(pSmall->format, r, g, b));
+                }
+                SDL_FreeSurface(pSurface);
+                pSurface = pSmall;
+                LOG_WARNING("Picture " + std::to_string(fullW) + "x" + std::to_string(fullH) +
+                            " larger than the GPU allows: made " + std::to_string(w) + "x" + std::to_string(h));
+            }
+            if (pFull) SDL_FreeSurface(pFull);
+        }
+    }
+
     SDL_Texture* pTexture = SDL_CreateTextureFromSurface(renderer, pSurface);
     SDL_FreeSurface(pSurface);
 
@@ -526,6 +559,8 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
         SDL_DestroyTexture(pTexture);
         return NULL;
     }
+    pImage->m_Width = fullW;    // (drawn at the full size)
+    pImage->m_Height = fullH;
 
     return pImage;
 }
