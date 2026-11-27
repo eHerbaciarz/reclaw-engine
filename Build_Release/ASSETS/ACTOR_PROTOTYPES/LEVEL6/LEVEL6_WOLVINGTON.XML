@@ -43,6 +43,8 @@
             <ParryChance DamageType="DamageType_Bullet" Chance="100" />
             <ParryChance DamageType="DamageType_Magic" Chance="100" />
             <ParryChance DamageType="DamageType_Explosion" Chance="100" />
+            <!-- CLAW.EXE 0x4a42e0: blocks a sword swing aimed at him half the time -->
+            <ParryChance DamageType="DamageType_MeleeAttack" Chance="50" />
         </ParryChances>
         <ParrySounds>
             <ParrySound>/LEVEL6/SOUNDS/BLOCK2.WAV</ParrySound>

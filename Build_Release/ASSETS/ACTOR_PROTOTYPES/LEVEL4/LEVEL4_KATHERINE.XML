@@ -25,6 +25,22 @@
         <TakeDamageAnimation>hithigh</TakeDamageAnimation>
         <InvulnerabilityTime>1000</InvulnerabilityTime>
     </TakeDamageAIStateComponent>
+    <!-- CLAW.EXE (0x456160, 0x456290): projectiles always deflected, sword blows blocked 6 times in 10 -->
+    <ParryEnemyAIStateComponent>
+        <StatePriority>0</StatePriority>
+        <ParryChances>
+            <ParryChance DamageType="DamageType_Bullet" Chance="100" />
+            <ParryChance DamageType="DamageType_Magic" Chance="100" />
+            <ParryChance DamageType="DamageType_Explosion" Chance="100" />
+            <ParryChance DamageType="DamageType_MeleeAttack" Chance="60" />
+        </ParryChances>
+        <ParrySounds>
+            <ParrySound>/LEVEL4/SOUNDS/KATHERINE/BLOCK1.WAV</ParrySound>
+            <ParrySound>/LEVEL4/SOUNDS/KATHERINE/BLOCK2.WAV</ParrySound>
+        </ParrySounds>
+        <ParryAnimFrameIdx>0</ParryAnimFrameIdx>
+        <ParryAnimation>blockhigh</ParryAnimation>
+    </ParryEnemyAIStateComponent>
     <PatrolEnemyAIStateComponent>
         <IsAlwaysIdle>false</IsAlwaysIdle>
         <StatePriority>0</StatePriority>
