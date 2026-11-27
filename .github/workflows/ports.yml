@@ -144,6 +144,10 @@ jobs:
             SCR=$(command -v scramble || echo "$KOS_BASE/utils/scramble/scramble")
             "$SCR" /tmp/reclaw.bin dist/reclaw-dreamcast/disc/1ST_READ.BIN
           fi
+          ${KOS_STRIP:-sh-elf-strip} dist/reclaw-dreamcast/reclaw.elf || true
+          ${KOS_SIZE:-sh-elf-size} dist/reclaw-dreamcast/reclaw.elf || true
+          ls -la dist/reclaw-dreamcast dist/reclaw-dreamcast/disc
+          command -v mkdcdisc || ls /opt/toolchains/dc/bin 2>/dev/null || true
           (cd dist && zip -qr reclaw-dreamcast.zip reclaw-dreamcast)
       - uses: actions/upload-artifact@v4
         with:
