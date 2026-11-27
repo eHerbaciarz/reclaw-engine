@@ -31,7 +31,8 @@
             <ParryChance DamageType="DamageType_Bullet" Chance="100" />
             <ParryChance DamageType="DamageType_Magic" Chance="100" />
             <ParryChance DamageType="DamageType_Explosion" Chance="100" />
-            <ParryChance DamageType="DamageType_MeleeAttack" Chance="50" />
+            <!-- CLAW.EXE: projectiles always, sword blows 1 in 10 (0x481810) -->
+            <ParryChance DamageType="DamageType_MeleeAttack" Chance="10" />
         </ParryChances>
         <ParrySounds>
             <ParrySound>/LEVEL2/SOUNDS/RAUX/BLOCK1.WAV</ParrySound>

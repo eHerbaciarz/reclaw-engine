@@ -37,6 +37,7 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Kameleony (poziomy 13–14, 27.11) | jak w oryginale znikają (ok. 0,13 s), po 0–1,5 s pojawiają się w innym miejscu swojej ścieżki, raz na sekundę najwyżej; niewidoczne nie dają się trafić | sprawdzone skryptem (poziom 14) |
 | Tygrysy (poziom 14, 27.11) | co 1,25–2 s: skok-cios (przysiad 0,5 s, skok, 20 obrażeń), seria 2–4 cięć (po 15), salto w przód + cięcie, czasem salto w tył; blokują 40% ciosów z przodu (dźwięk BLOCK1); w trakcie skoku/salta się nie zatrzymują od ciosu, w salcie nie da się ich trafić; po trafieniu kontratakują od razu; zdrowie 30 (było 40) | sprawdzone skryptem (poziom 14): ataki, blok, trafienie, śmierć |
 | Klejnot bossa (27.11) | po śmierci bossa klejnot leci powolnym łukiem (ok. 1–2 s) w stałe miejsce z pliku poziomu i tam wisi; w locie nie da się go złapać (wcześniej spadał i odbijał się po podłodze) | sprawdzone skryptem (poziom 2) |
+| Raux (poziom 2, 27.11) | blokuje 1 na 10 ciosów miecza (było 1 na 2), strzały dalej zawsze | nie sprawdzone w walce |
 | Własne poziomy (27.11) | wszystkie 16 od MK się wczytują (wcześniej 6 nie startowało lub wysypywało grę); czy da się je przejść; windy w TRC3 stoją (brak ścieżki w pliku) | wczytanie sprawdzone skryptem |
 | Zapis stanu (ZL / ZR / trzymane R) | zapis, wczytanie, cofanie; znajdźki, skrzynie, wrogowie, winda, lina, śmierć, walka z bossem (Marrow), płynność cofania | nieprzetestowane |
 | Plansza Opcje → Sterowanie | czy się otwiera, czy grafika dobrze leży, powrót B | nieprzetestowane |
