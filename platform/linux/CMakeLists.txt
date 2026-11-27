@@ -25,6 +25,15 @@ find_package(Threads REQUIRED)
 
 openclaw_add_game(openclaw)
 target_link_libraries(openclaw PRIVATE PkgConfig::SDL2LIBS Threads::Threads)
+# The engine includes <SDL2/SDL.h>: the parents of pkg-config's .../include/SDL2
+# (on macOS /opt/homebrew/include is not searched by default, and the old
+# SDL 2.0.4 headers in ThirdParty/ would be picked up instead).
+foreach(_dir ${SDL2LIBS_INCLUDE_DIRS})
+    if (_dir MATCHES "/SDL2$")
+        get_filename_component(_parent "${_dir}" DIRECTORY)
+        target_include_directories(openclaw BEFORE PRIVATE "${_parent}")
+    endif()
+endforeach()
 if (SDL2GFX_FOUND)
     target_link_libraries(openclaw PRIVATE PkgConfig::SDL2GFX)
 else()

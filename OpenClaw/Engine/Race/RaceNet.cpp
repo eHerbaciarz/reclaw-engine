@@ -5,9 +5,9 @@
 
 #include "../SharedDefines.h"
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(RECLAW_PS2)
 
-// No UDP in the browser: network races are not offered there.
+// No UDP in the browser (and no network stack in the PS2 build): network races are not offered there.
 namespace RaceNet
 {
     bool Open(bool) { return false; }
