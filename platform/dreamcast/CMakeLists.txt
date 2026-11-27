@@ -3,7 +3,7 @@
 #
 #   source /opt/toolchains/dc/kos/environ.sh
 #   cmake -S platform/dreamcast -B build-dc \
-#         -DCMAKE_TOOLCHAIN_FILE=$KOS_BASE/utils/cmake/dreamcast.toolchain.cmake \
+#         -DCMAKE_TOOLCHAIN_FILE=$KOS_BASE/utils/cmake/kallistios.toolchain.cmake \
 #         -DRECLAW_DC_SDL=<GPF/SDL2 dreamcastSDL2 checkout>
 #   cmake --build build-dc -j
 #

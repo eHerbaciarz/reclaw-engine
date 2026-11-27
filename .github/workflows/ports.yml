@@ -122,9 +122,9 @@ jobs:
           if [ ! -f "$KOS_BASE/addons/lib/dreamcast/libz.a" ] && [ -d "${KOS_PORTS:-$KOS_BASE/../kos-ports}/zlib" ]; then
             make -C "${KOS_PORTS:-$KOS_BASE/../kos-ports}/zlib" install || true
           fi
-          TC="$KOS_BASE/utils/cmake/dreamcast.toolchain.cmake"
+          TC="$KOS_BASE/utils/cmake/kallistios.toolchain.cmake"
           cmake -S platform/dreamcast -B build-dc -DCMAKE_TOOLCHAIN_FILE="$TC" -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DRECLAW_DC_SDL=/tmp/sdl2-dc
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=/tmp/dc-install -DRECLAW_DC_SDL=/tmp/sdl2-dc
           cmake --build build-dc -j"$(nproc)"
       - name: Package
         shell: bash
