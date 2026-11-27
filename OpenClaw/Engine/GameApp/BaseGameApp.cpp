@@ -378,9 +378,9 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   // Menu and UI assets load first, level assets load on-demand
   LOG("Loading critical assets (menu/UI)...");
   ShowStartupProgress(m_pRenderer, 40);
-#if !defined(__PSL1GHT__)
-  // (PS3: the menu's pictures load when shown - all of them up front took
-  // ~57 MB, and the level then ran out of memory)
+#if !defined(__PSL1GHT__) && !defined(RECLAW_PS2) && !defined(RECLAW_DREAMCAST)
+  // (PS3, PS2, Dreamcast: the menu's pictures and sounds load when used - all
+  // of them up front took ~57 MB on the PS3; the PS2 stopped here)
   STARTUP_TRACE("preload " "/STATES/MENU/*");
   m_pResourceMgr->VPreload("/STATES/MENU/*", NULL, ORIGINAL_RESOURCE);
 #endif
@@ -389,6 +389,7 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   m_pResourceMgr->VPreload("/GAME/FONTS/*", NULL, ORIGINAL_RESOURCE);
   STARTUP_TRACE("preload " "/GAME/IMAGES/MENU/*");
   m_pResourceMgr->VPreload("/GAME/IMAGES/MENU/*", NULL, ORIGINAL_RESOURCE);
+  STARTUP_TRACE(std::string("  memory: ") + MemStats::Report());
 
   // Load custom assets
   ShowStartupProgress(m_pRenderer, 92);
@@ -973,6 +974,7 @@ void BaseGameApp::OnEvent(SDL_Event &event) {
   switch (event.type) {
   case SDL_QUIT:
   case SDL_APP_TERMINATING: {
+    STARTUP_TRACE(event.type == SDL_QUIT ? "quit requested (SDL_QUIT)" : "quit requested (SDL_APP_TERMINATING)");
     m_IsRunning = false;
     break;
   }
@@ -2851,6 +2853,7 @@ void BaseGameApp::RemoveAllDelegates() {
 }
 
 void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData) {
+  STARTUP_TRACE("quit requested (EventData_Quit_Game)");
   Terminate();
   exit(0);
 }
