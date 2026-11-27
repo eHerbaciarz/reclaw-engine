@@ -1,5 +1,6 @@
 #include "../Graphics2D/CrtEffect.h"
 #include "CustomLevels.h"
+#include "Lang.h"
 
 #ifndef __EMSCRIPTEN__
 
@@ -326,9 +327,21 @@ namespace CustomLevels
             normal.push_back(MakeText(r, font, label, gold, edge, outline));
             active.push_back(MakeText(r, font, label, goldLight, edge, outline));
         }
-        Text empty;
+        // Nothing found: say so in the player's language, and where the
+        // folder is on this machine (two lines - the path is long)
+        Text empty, emptyPath;
         if (levels.empty())
-            empty = MakeText(r, small, "No .WWD files in the custom folder (e.g. /switch/reclaw/custom)", parchment, edge, 1);
+        {
+            empty = MakeText(r, small, Lang::Tr("Brak własnych poziomów (plików .WWD) w folderze:",
+                                                "No custom levels (.WWD files) in the folder:"), parchment, edge, 1);
+            std::string folder = g_Roots.empty() ? std::string("custom") : g_Roots.front();
+            if (!folder.empty() && folder.back() != '/' && folder.back() != '\\') folder += "/";
+            folder += "custom";
+#if defined(_WIN32)
+            std::replace(folder.begin(), folder.end(), '/', '\\');
+#endif
+            emptyPath = MakeText(r, small, folder, parchment, edge, 1);
+        }
 
         // Selection: 0..n-1 levels, n = back.
         int count = (int)levels.size();
@@ -437,6 +450,14 @@ namespace CustomLevels
             {
                 SDL_Rect dst = { v.offX + (int)(kScreenW * v.scale - empty.w) / 2, v.Map(0, 260, 0, 0).y, empty.w, empty.h };
                 SDL_RenderCopy(r, empty.tex, NULL, &dst);
+                if (emptyPath.tex)
+                {
+                    // a long path is squeezed to the screen's width
+                    int w = std::min(emptyPath.w, (int)(kScreenW * v.scale) - 2 * (int)(10 * v.scale));
+                    int h = emptyPath.w > 0 ? emptyPath.h * w / emptyPath.w : emptyPath.h;
+                    SDL_Rect dp = { v.offX + (int)(kScreenW * v.scale - w) / 2, dst.y + empty.h + (int)(6 * v.scale), w, h };
+                    SDL_RenderCopy(r, emptyPath.tex, NULL, &dp);
+                }
             }
 
             shared_ptr<Image> back = (sel == count && pBackActive) ? pBackActive : pBack;
@@ -485,6 +506,7 @@ namespace CustomLevels
         for (Text& t : active) FreeText(t);
         for (Text& t : details) FreeText(t);
         FreeText(empty);
+        FreeText(emptyPath);
         TTF_CloseFont(font);
         TTF_CloseFont(small);
         SDL_SetRenderTarget(r, pPrevTarget);
