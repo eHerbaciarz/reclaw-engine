@@ -45,6 +45,7 @@ bool LeapAIStateComponent::VDelegateInit(TiXmlElement* pData)
     ParseValueFromXmlElem(&m_Chance, pData->FirstChildElement("Chance"));
     ParseValueFromXmlElem(&m_CheckEveryMs, pData->FirstChildElement("CheckEveryMs"));
     ParseValueFromXmlElem(&m_CooldownMs, pData->FirstChildElement("CooldownMs"));
+    ParseValueFromXmlElem(&m_ClawMinRange, pData->FirstChildElement("ClawMinRange"));
     if (m_MaxDistance < m_MinDistance) m_MaxDistance = m_MinDistance;
     return true;
 }
@@ -62,7 +63,7 @@ bool LeapAIStateComponent::FindTarget(double& outX)
     }
     const Point me = m_pPositionComponent->GetPosition();
     const Point claw = pClaw->GetPositionComponent()->GetPosition();
-    if (fabs(claw.y - me.y) > 50 || fabs(claw.x - me.x) > 300)
+    if (fabs(claw.y - me.y) > 50 || fabs(claw.x - me.x) > 300 || fabs(claw.x - me.x) < m_ClawMinRange)
     {
         return false;
     }
@@ -200,6 +201,137 @@ void LeapAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
     {
         // interrupted (hit, fight over): land where it is now
         m_CooldownLeftMs = m_CooldownMs;
+    }
+    m_IsActive = false;
+}
+
+//=====================================================================================================================
+// StepAIStateComponent
+//=====================================================================================================================
+
+const char* StepAIStateComponent::g_Name = "StepAIStateComponent";
+
+StepAIStateComponent::StepAIStateComponent()
+    : BaseEnemyAIStateComponent("StepState")
+{
+}
+
+bool StepAIStateComponent::VDelegateInit(TiXmlElement* pData)
+{
+    ParseValueFromXmlElem(&m_Animation, pData->FirstChildElement("Animation"));
+    ParseValueFromXmlElem(&m_NearRange, pData->FirstChildElement("NearRange"));
+    ParseValueFromXmlElem(&m_BackChance, pData->FirstChildElement("BackChance"));
+    ParseValueFromXmlElem(&m_BackMin, pData->FirstChildElement("BackMin"));
+    ParseValueFromXmlElem(&m_BackMax, pData->FirstChildElement("BackMax"));
+    ParseValueFromXmlElem(&m_MidRange, pData->FirstChildElement("MidRange"));
+    ParseValueFromXmlElem(&m_AheadChance, pData->FirstChildElement("AheadChance"));
+    ParseValueFromXmlElem(&m_AheadMin, pData->FirstChildElement("AheadMin"));
+    ParseValueFromXmlElem(&m_AheadMax, pData->FirstChildElement("AheadMax"));
+    ParseValueFromXmlElem(&m_Speed, pData->FirstChildElement("Speed"));
+    ParseValueFromXmlElem(&m_CheckEveryMs, pData->FirstChildElement("CheckEveryMs"));
+    return true;
+}
+
+bool StepAIStateComponent::Plan()
+{
+    StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+    if (!pClaw)
+    {
+        return false;
+    }
+    const Point me = m_pPositionComponent->GetPosition();
+    const Point claw = pClaw->GetPositionComponent()->GetPosition();
+    const double dx = fabs(claw.x - me.x);
+    if (fabs(claw.y - me.y) > 50 || dx > m_MidRange)
+    {
+        return false;
+    }
+    const double toward = claw.x < me.x ? -1.0 : 1.0;
+    const int roll = rand() % 100;
+    double move;
+    if (dx <= m_NearRange)
+    {
+        if (roll >= m_BackChance) return false;
+        move = -toward * (m_BackMin + rand() % (std::max(0, m_BackMax - m_BackMin) + 1));
+    }
+    else
+    {
+        if (roll >= m_AheadChance) return false;
+        move = toward * (m_AheadMin + rand() % (std::max(0, m_AheadMax - m_AheadMin) + 1));
+    }
+    double x = me.x + move;
+    // inside its own patrol range, and floor under the spot (0x421ad0)
+    if (auto pPatrol = MakeStrongPtr(m_pOwner->GetComponent<PatrolEnemyAIStateComponent>(PatrolEnemyAIStateComponent::g_Name)))
+    {
+        const int l = pPatrol->GetLeftPatrolBorder(), r = pPatrol->GetRightPatrolBorder();
+        if (l < r && (x < l || x > r)) return false;
+    }
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    if (pPhysics->VRayCast(Point(me.x, me.y - 20), Point(x, me.y - 20), CollisionFlag_Solid).foundIntersection) return false;
+    if (!pPhysics->VRayCast(Point(x, me.y), Point(x, me.y + 120), CollisionFlag_Solid | CollisionFlag_Ground).foundIntersection) return false;
+    m_TargetX = x;
+    m_Dir = move < 0 ? -1.0 : 1.0;
+    m_FaceRight = toward > 0;
+    return true;
+}
+
+void StepAIStateComponent::VUpdate(uint32 msDiff)
+{
+    if (!m_IsActive)
+    {
+        BaseEnemyAIStateComponent* pCurrent = m_pEnemyAIComponent->GetCurrentState();
+        if (!pCurrent || m_pEnemyAIComponent->IsDead() ||
+            (pCurrent->VGetStateType() != EnemyAIState_Patrolling &&
+             pCurrent->VGetStateType() != EnemyAIState_MeleeAttacking))
+        {
+            m_CheckMs = 0;
+            return;
+        }
+        if ((m_CheckMs += msDiff) < m_CheckEveryMs)
+        {
+            return;
+        }
+        m_CheckMs = 0;
+        if (Plan())
+        {
+            m_bWant = true;
+            m_pEnemyAIComponent->EnterBestState(true);
+            m_bWant = false;
+        }
+        return;
+    }
+
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    Point vel = pPhysics->VGetVelocity(m_pOwner->GetGUID());
+    pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(m_Dir * m_Speed / 75.0, vel.y));
+    m_pRenderComponent->SetMirrored(m_FaceRight);
+    m_TimeLeft -= (int)msDiff;
+    const double x = m_pPositionComponent->GetX();
+    if ((m_Dir > 0 && x >= m_TargetX) || (m_Dir < 0 && x <= m_TargetX) || m_TimeLeft <= 0)
+    {
+        pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, vel.y));
+        m_IsActive = false;
+        m_pEnemyAIComponent->EnterBestState(true);
+    }
+}
+
+void StepAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState)
+{
+    m_IsActive = true;
+    const double dist = fabs(m_TargetX - m_pPositionComponent->GetX());
+    m_TimeLeft = (int)(dist / m_Speed * 1000.0) + 300;
+    m_pRenderComponent->SetMirrored(m_FaceRight);
+    if (!m_Animation.empty())
+    {
+        m_pAnimationComponent->SetAnimation(m_Animation);
+    }
+}
+
+void StepAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
+{
+    if (m_IsActive)
+    {
+        g_pApp->GetGameLogic()->VGetGamePhysics()->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
     }
     m_IsActive = false;
 }

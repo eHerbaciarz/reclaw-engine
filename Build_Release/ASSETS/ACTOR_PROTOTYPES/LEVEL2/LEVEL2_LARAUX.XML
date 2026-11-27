@@ -89,7 +89,25 @@
         <Chance>17</Chance>
         <CheckEveryMs>500</CheckEveryMs>
         <CooldownMs>2000</CooldownMs>
+        <!-- CLAW.EXE 0x481a60: only when Claw is 150-300 px away -->
+        <ClawMinRange>150</ClawMinRange>
     </LeapAIStateComponent>
+    <!-- CLAW.EXE 0x481a60: Claw within 100 px - half the time Raux backs off
+         75-125 px; 100-150 px - one time in six he steps 40-80 px in -->
+    <StepAIStateComponent>
+        <StatePriority>30</StatePriority>
+        <Animation>advance</Animation>
+        <NearRange>100</NearRange>
+        <BackChance>50</BackChance>
+        <BackMin>75</BackMin>
+        <BackMax>125</BackMax>
+        <MidRange>150</MidRange>
+        <AheadChance>17</AheadChance>
+        <AheadMin>40</AheadMin>
+        <AheadMax>80</AheadMax>
+        <Speed>150</Speed>
+        <CheckEveryMs>500</CheckEveryMs>
+    </StepAIStateComponent>
     <LaRauxBossAIStateComponent>
         <StatePriority>100</StatePriority>
         <BossDialogAnimation>idle</BossDialogAnimation>

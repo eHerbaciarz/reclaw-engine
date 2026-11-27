@@ -34,6 +34,7 @@ enum EnemyAIState
     EnemyAIState_BrainOmar,
     EnemyAIState_TigerGuard,
     EnemyAIState_Leap,
+    EnemyAIState_Step,
 };
 
 struct EnemyAIAction
