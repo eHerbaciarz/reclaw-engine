@@ -21,6 +21,19 @@ strip -x "$APP/Contents/MacOS/openclaw" || true
 # Homebrew's SDL2 libraries into the app, with paths relative to it
 dylibbundler -of -cd -b -x "$APP/Contents/MacOS/openclaw" \
     -d "$APP/Contents/Frameworks/" -p "@executable_path/../Frameworks/"
+# Homebrew's SDL2 is sdl2-compat: it loads SDL3 with dlopen() at run time,
+# which dylibbundler cannot see. It looks next to itself (@loader_path) first.
+SDL3=""
+if command -v brew >/dev/null && [ -d "$(brew --prefix sdl3 2>/dev/null)/lib" ]; then
+    SDL3="$(brew --prefix sdl3)/lib/libSDL3.0.dylib"
+fi
+if [ -n "$SDL3" ] && [ -f "$SDL3" ]; then
+    cp -L "$SDL3" "$APP/Contents/Frameworks/libSDL3.0.dylib"
+    chmod u+w "$APP/Contents/Frameworks/libSDL3.0.dylib"
+    install_name_tool -id "@loader_path/libSDL3.0.dylib" "$APP/Contents/Frameworks/libSDL3.0.dylib"
+    # SDL3's own non-system dependencies (normally none)
+    otool -L "$APP/Contents/Frameworks/libSDL3.0.dylib" | tail -n +2 | awk '{print $1}' | grep -E "^/opt/homebrew|^/usr/local" || true
+fi
 
 # Icon (macOS makes the .icns from a set of PNG sizes)
 ICONSET="$OUT/ReClaw.iconset"
@@ -57,6 +70,10 @@ PLIST
 
 # No Apple developer certificate: an ad-hoc signature (Apple Silicon does not
 # run unsigned code at all). The first start needs right click > Open.
+# Nothing may still point into Homebrew (the player's Mac has no Homebrew)
+LEFT=$(for f in "$APP/Contents/MacOS/openclaw" "$APP/Contents/Frameworks/"*.dylib; do otool -L "$f" | tail -n +2 | awk '{print $1}'; done | grep -E "^/opt/homebrew|^/usr/local" | sort -u || true)
+if [ -n "$LEFT" ]; then echo "still linked to Homebrew:"; echo "$LEFT"; exit 1; fi
+ls "$APP/Contents/Frameworks"
 codesign --force --deep --sign - "$APP"
 
 cp "$REPO/platform/macos/README.txt" "$OUT/README.txt"
