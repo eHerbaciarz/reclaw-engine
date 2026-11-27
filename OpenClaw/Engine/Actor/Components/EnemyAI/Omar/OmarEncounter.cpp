@@ -15,6 +15,7 @@
 #include "OmarEncounter.h"
 
 #include <cmath>
+#include <algorithm>
 
 const char* OmarAIStateComponent::g_Name = "OmarAIStateComponent";
 const char* OmarSwordSpawnerComponent::g_Name = "OmarSwordSpawnerComponent";
@@ -59,6 +60,11 @@ OmarAIStateComponent::OmarAIStateComponent()
     m_WarpLeft(0),
     m_PositionIdx(0),
     m_bPendingHit(false),
+    m_bPendingHeal(false),
+    m_Phase(1),
+    m_MoveTime(2000),
+    m_MoveLeft(0),
+    m_ShieldDir(-1.0),
     m_bAllowDamage(false),
     m_bDead(false)
 {
@@ -83,20 +89,29 @@ bool OmarAIStateComponent::VDelegateInit(TiXmlElement* pData)
     ParseValueFromXmlElem(&m_ShieldRadius, pData->FirstChildElement("ShieldRadius"));
     ParseValueFromXmlElem(&m_ShieldSpeed, pData->FirstChildElement("ShieldSpeed"));
     ParseValueFromXmlElem(&m_ShieldDamage, pData->FirstChildElement("ShieldDamage"));
+    ParseValueFromXmlElem(&m_ShieldBallSpacing, pData->FirstChildElement("ShieldBallSpacing"));
 
-    // Extra spots he teleports to, in order. His start position is the first one.
-    if (TiXmlElement* pPositions = pData->FirstChildElement("WarpPositions"))
+    ParseValueFromXmlElem(&m_MoveTime, pData->FirstChildElement("MoveTime"));
+
+    // CLAW.EXE: two spots by the lava (ring phase) and two up on the ledge
+    // reached by the lift (second phase).
+    auto parsePositions = [pData](const char* name, std::vector<Point>& out)
     {
-        for (TiXmlElement* pElem = pPositions->FirstChildElement("Position");
-            pElem != NULL; pElem = pElem->NextSiblingElement("Position"))
+        if (TiXmlElement* pPositions = pData->FirstChildElement(name))
         {
-            Point pos;
-            if (ParseValueFromXmlElem(&pos, pElem, "x", "y"))
+            for (TiXmlElement* pElem = pPositions->FirstChildElement("Position");
+                pElem != NULL; pElem = pElem->NextSiblingElement("Position"))
             {
-                m_Positions.push_back(pos);
+                Point pos;
+                if (ParseValueFromXmlElem(&pos, pElem, "x", "y"))
+                {
+                    out.push_back(pos);
+                }
             }
         }
-    }
+    };
+    parsePositions("WarpPositions", m_Positions);
+    parsePositions("Phase2Positions", m_Phase2Positions);
 
     return true;
 }
@@ -136,19 +151,38 @@ bool OmarAIStateComponent::VCanResistDamage(DamageType damageType, Point impactP
         return false;
     }
 
-    // Everything bounces off. The right sword is counted in VUpdate, one
-    // segment per hit, whatever the projectile's own damage is.
-    if (m_bBossFightStarted && !m_bDead && m_InvulnerableLeft <= 0 && m_WarpLeft <= 0 &&
-        IsHitByRightSword(damageType))
+    // Everything bounces off; hits are counted in VUpdate, one segment each,
+    // whatever the projectile's own damage is. While he flies he can't be hit.
+    if (damageType == DamageType_DeathTile)
     {
+        return true;
+    }
+    const bool canBeHit = m_bBossFightStarted && !m_bDead && m_InvulnerableLeft <= 0 && m_MoveLeft <= 0;
+    if (m_Phase == 1)
+    {
+        // CLAW.EXE: only the opposite magic sword hurts him; the other magic
+        // sword gives him a segment back.
+        if (canBeHit && IsHitByRightSword(damageType))
+        {
+            m_bPendingHit = true;
+            m_InvulnerableLeft = m_InvulnerableTime;
+            return true;
+        }
+        if (canBeHit && (damageType == DamageType_FireSword || damageType == DamageType_FrostSword))
+        {
+            m_bPendingHeal = true;
+            m_InvulnerableLeft = m_InvulnerableTime;
+        }
+    }
+    else if (canBeHit)
+    {
+        // Second phase: no ring, any hit takes a segment
         m_bPendingHit = true;
         m_InvulnerableLeft = m_InvulnerableTime;
-    }
-    else if (damageType != DamageType_DeathTile)
-    {
-        OmarPlaySound(OMAR_SOUND_BLOCK, m_pOwner->GetPositionComponent()->GetPosition());
+        return true;
     }
 
+    OmarPlaySound(OMAR_SOUND_BLOCK, m_pOwner->GetPositionComponent()->GetPosition());
     return true;
 }
 
@@ -191,11 +225,9 @@ void OmarAIStateComponent::UpdateShield(uint32 msDiff)
         return;
     }
 
-    m_ShieldAngle += m_ShieldSpeed * msDiff / 1000.0;
-    if (m_ShieldAngle >= 360.0)
-    {
-        m_ShieldAngle -= 360.0;
-    }
+    m_ShieldAngle += m_ShieldDir * m_ShieldSpeed * msDiff / 1000.0;
+    while (m_ShieldAngle >= 360.0) m_ShieldAngle -= 360.0;
+    while (m_ShieldAngle < 0.0) m_ShieldAngle += 360.0;
 
     Point center = m_pOwner->GetPositionComponent()->GetPosition() + Point(0, -10);
     StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
@@ -210,7 +242,8 @@ void OmarAIStateComponent::UpdateShield(uint32 msDiff)
         m_ShieldHitCooldown -= (int)msDiff;
     }
 
-    const double step = 360.0 / (double)m_ShieldBalls.size();
+    // CLAW.EXE: balls 33 degrees apart, so a 9-ball ring has a gap
+    const double step = (m_ShieldBallSpacing > 0.0) ? m_ShieldBallSpacing : 360.0 / (double)m_ShieldBalls.size();
     for (size_t i = 0; i < m_ShieldBalls.size(); i++)
     {
         StrongActorPtr pBall = m_ShieldBalls[i].lock();
@@ -255,6 +288,37 @@ void OmarAIStateComponent::WarpTo(int positionIdx)
     OmarPlaySound(OMAR_SOUND_WARP, target);
 }
 
+void OmarAIStateComponent::StartMove(const Point& target)
+{
+    m_MoveFrom = m_pOwner->GetPositionComponent()->GetPosition();
+    m_MoveTo = target;
+    m_MoveLeft = std::max(1, m_MoveTime);
+    OmarPlaySound(OMAR_SOUND_WARP, m_MoveFrom);
+}
+
+void OmarAIStateComponent::UpdateMove(uint32 msDiff)
+{
+    m_MoveLeft -= (int)msDiff;
+    double t = 1.0 - (double)std::max(0, m_MoveLeft) / (double)std::max(1, m_MoveTime);
+    Point pos(m_MoveFrom.x + (m_MoveTo.x - m_MoveFrom.x) * t, m_MoveFrom.y + (m_MoveTo.y - m_MoveFrom.y) * t);
+
+    // He flies: no gravity on the way, faces where he goes
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    pPhysics->VSetPosition(m_pOwner->GetGUID(), pos);
+    pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
+    OmarMoveActor(m_pOwner.get(), pos);
+
+    if (m_MoveLeft <= 0)
+    {
+        m_MoveLeft = 0;
+        if (m_Phase == 1)
+        {
+            CreateShield();
+        }
+        m_pEnemyAIComponent->EnterBestState(true);
+    }
+}
+
 void OmarAIStateComponent::VUpdate(uint32 msDiff)
 {
     // The ring and the hits are handled whatever state (patrol, melee, ranged)
@@ -269,26 +333,53 @@ void OmarAIStateComponent::VUpdate(uint32 msDiff)
         m_InvulnerableLeft -= (int)msDiff;
     }
 
+    HealthComponent* pHealth = m_pOwner->GetRawComponent<HealthComponent>(true);
+    int segment = m_HitDamage;
+    if (pHealth && pHealth->GetMaxHealth() > 0 && m_HitDamage > 0 && m_HitDamage <= 100)
+    {
+        segment = (pHealth->GetMaxHealth() * m_HitDamage + 99) / 100;
+    }
+
+    if (m_bPendingHeal)
+    {
+        m_bPendingHeal = false;
+        if (pHealth && pHealth->GetCurrentHealth() > 0)
+        {
+            int heal = std::min(segment, pHealth->GetMaxHealth() - pHealth->GetCurrentHealth());
+            if (heal > 0)
+            {
+                m_bAllowDamage = true;
+                pHealth->AddHealth(heal, DamageType_None, Point(), m_pOwner->GetGUID());
+                m_bAllowDamage = false;
+            }
+        }
+    }
+
     if (m_bPendingHit)
     {
         m_bPendingHit = false;
 
-        HealthComponent* pHealth = m_pOwner->GetRawComponent<HealthComponent>(true);
         if (pHealth && pHealth->GetCurrentHealth() > 0)
         {
             Point pos = m_pOwner->GetPositionComponent()->GetPosition();
             OmarPlaySound(OMAR_SOUND_HIT, pos);
-            DestroyShield();
 
-            // One segment of the bar whatever the difficulty scaled his health to
-            int hit = m_HitDamage;
-            if (pHealth->GetMaxHealth() > 0 && m_HitDamage > 0 && m_HitDamage <= 100)
+            if (m_Phase == 1 && pHealth->GetCurrentHealth() - segment <= 0 && !m_Phase2Positions.empty())
             {
-                hit = (pHealth->GetMaxHealth() * m_HitDamage + 99) / 100;
+                // CLAW.EXE: the ring phase over, he flies up to the ledge the
+                // lift leads to, with his bar full again.
+                DestroyShield();
+                m_bAllowDamage = true;
+                pHealth->AddHealth(pHealth->GetMaxHealth() - pHealth->GetCurrentHealth(), DamageType_None, Point(), m_pOwner->GetGUID());
+                m_bAllowDamage = false;
+                m_Phase = 2;
+                m_PositionIdx = 0;
+                StartMove(m_Phase2Positions[0]);
+                return;
             }
 
             m_bAllowDamage = true;
-            pHealth->AddHealth(-hit, DamageType_MeleeAttack, pos, m_pOwner->GetGUID());
+            pHealth->AddHealth(-segment, DamageType_MeleeAttack, pos, m_pOwner->GetGUID());
             m_bAllowDamage = false;
 
             if (pHealth->GetCurrentHealth() <= 0)
@@ -297,19 +388,26 @@ void OmarAIStateComponent::VUpdate(uint32 msDiff)
                 return;
             }
 
-            m_WarpLeft = m_WarpDelay;
+            // To the other spot of this phase
+            std::vector<Point>& spots = (m_Phase == 1) ? m_Positions : m_Phase2Positions;
+            if (!spots.empty())
+            {
+                m_PositionIdx = (m_PositionIdx + 1) % (int)spots.size();
+                if (m_Phase == 1)
+                {
+                    DestroyShield();
+                    m_Shield = (m_Shield == Shield_Fire) ? Shield_Ice : Shield_Fire;
+                    m_ShieldDir = -m_ShieldDir;
+                }
+                StartMove(spots[m_PositionIdx]);
+                return;
+            }
         }
     }
 
-    if (m_WarpLeft > 0)
+    if (m_MoveLeft > 0)
     {
-        m_WarpLeft -= (int)msDiff;
-        if (m_WarpLeft <= 0)
-        {
-            WarpTo(m_PositionIdx + 1);
-            m_Shield = (m_Shield == Shield_Fire) ? Shield_Ice : Shield_Fire;
-            CreateShield();
-        }
+        UpdateMove(msDiff);
         return;
     }
 
@@ -322,8 +420,12 @@ void OmarAIStateComponent::VOnBossFightStarted()
 
     m_bDead = false;
     m_bPendingHit = false;
+    m_bPendingHeal = false;
     m_InvulnerableLeft = 0;
     m_WarpLeft = 0;
+    m_MoveLeft = 0;
+    m_Phase = 1;
+    m_ShieldDir = -1.0;
     m_Shield = Shield_Fire;
     if (m_PositionIdx != 0)
     {
@@ -353,11 +455,11 @@ void OmarAIStateComponent::VOnBossFightEnded(bool isBossDead)
     else
     {
         // Claw died: back to the start, full health, fire ring
-        if (m_PositionIdx != 0)
-        {
-            WarpTo(0);
-        }
+        m_MoveLeft = 0;
+        m_Phase = 1;
+        WarpTo(0);
         m_Shield = Shield_Fire;
+        m_ShieldDir = -1.0;
         g_pApp->GetGameLogic()->VGetGamePhysics()->VDeactivate(m_pOwner->GetGUID());
     }
 }

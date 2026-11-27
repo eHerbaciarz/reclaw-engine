@@ -78,7 +78,8 @@
                 <Animation>strike3</Animation>
                 <AttackAnimFrameIdx>3</AttackAnimFrameIdx>
                 <ProjectilePrototype>ActorPrototype_Level14_OmarProjectile</ProjectilePrototype>
-                <AttackSpawnPositionOffset x="-60" y="-10" />
+                <!-- CLAW.EXE: 65 px in front, 20 up, 300 px/s straight ahead -->
+                <AttackSpawnPositionOffset x="-65" y="-20" />
                 <AttackAreaSize width="0" height="0" />
                 <Damage>15</Damage>
                 <AgroSensorFixture>
@@ -101,14 +102,22 @@
         <BossDialogAnimation>home</BossDialogAnimation>
         <HitDamage>25</HitDamage> <!-- percent of max health -->
         <InvulnerableTime>1500</InvulnerableTime>
-        <WarpDelay>600</WarpDelay>
-        <ShieldBallCount>6</ShieldBallCount>
+        <!-- CLAW.EXE: after each hit he flies (2 s) to his other spot -->
+        <MoveTime>2000</MoveTime>
+        <!-- 9 balls 33 degrees apart (a gap in the ring), 250 degrees/s, turning the other way after every hit -->
+        <ShieldBallCount>9</ShieldBallCount>
+        <ShieldBallSpacing>33</ShieldBallSpacing>
         <ShieldRadius>75</ShieldRadius>
-        <ShieldSpeed>160</ShieldSpeed>
+        <ShieldSpeed>250</ShieldSpeed>
         <ShieldDamage>10</ShieldDamage>
-        <!-- where he teleports after each hit; the start spot is the first one -->
+        <!-- ring phase: his start spot and this one, by the lava -->
         <WarpPositions>
-            <Position x="41409" y="2468" />
+            <Position x="41400" y="2485" />
         </WarpPositions>
+        <!-- after the 4 ring hits: up on the ledge the lift leads to, any hit counts, 4 more -->
+        <Phase2Positions>
+            <Position x="42320" y="1077" />
+            <Position x="41325" y="1077" />
+        </Phase2Positions>
     </OmarAIStateComponent>
 </Actor>

@@ -2,16 +2,19 @@
 
 #include "../EnemyAIStateComponent.h"
 
-// Level 14 final boss: Omar.
+// Level 14 final boss: Omar (CLAW.EXE 0x4665a0-0x4670d0).
 //
-// Omar stands behind a ring of fire or ice balls. Only the opposite magic
-// sword hurts him (ice sword against the fire ring, fire sword against the
-// ice ring) - its projectiles or a swipe while the sword is active. Every such
-// hit takes one segment of his bar (4 in total); he then teleports to the
-// other side of the throne and his ring changes element. Meanwhile he throws
-// energy balls that Claw has to dodge (RangedAttackAIStateComponent) and
-// strikes when Claw comes close (MeleeAttackAIStateComponent).
-// When he falls the gem appears and picking it up ends the game.
+// Ring phase, by the lava: Omar stands behind a ring of 9 fire or ice balls
+// (33 degrees apart, 250 degrees/s). Only the opposite magic sword hurts him
+// (ice sword against the fire ring, fire sword against the ice ring); every
+// such hit takes a quarter of his bar, he flies (2 s) to his other spot and
+// the ring changes element and turns the other way. The wrong magic sword
+// gives him a quarter back.
+// When the ring phase bar is empty he flies up to the ledge the lift leads to,
+// bar full again, no ring: there any hit takes a quarter, and he flies
+// between two spots up there. Energy balls (300 px/s, straight ahead) and a
+// strike when Claw comes close in both phases. When he falls the gem appears
+// and picking it up ends the game.
 class OmarAIStateComponent : public BaseBossAIStateComponennt, public AnimationObserver
 {
 public:
@@ -45,6 +48,8 @@ private:
     void DestroyShield();
     void UpdateShield(uint32 msDiff);
     void WarpTo(int positionIdx);
+    void StartMove(const Point& target);
+    void UpdateMove(uint32 msDiff);
     bool IsHitByRightSword(DamageType damageType) const;
 
     // XML
@@ -55,7 +60,9 @@ private:
     double m_ShieldRadius;
     double m_ShieldSpeed; // degrees per second
     int m_ShieldDamage;
-    std::vector<Point> m_Positions;
+    std::vector<Point> m_Positions;        // ring phase, by the lava (start spot first)
+    std::vector<Point> m_Phase2Positions;  // second phase, up on the ledge
+    double m_ShieldBallSpacing = 0.0;      // degrees; 0 = spread over the circle
 
     // State
     ShieldType m_Shield;
@@ -66,6 +73,13 @@ private:
     int m_WarpLeft;
     int m_PositionIdx;
     bool m_bPendingHit;
+    bool m_bPendingHeal;
+    int m_Phase;
+    int m_MoveTime;
+    int m_MoveLeft;
+    double m_ShieldDir;
+    Point m_MoveFrom;
+    Point m_MoveTo;
     bool m_bAllowDamage;
     bool m_bDead;
 };

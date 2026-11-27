@@ -201,21 +201,25 @@ namespace
         else if (!strcmp(cmd, "shot")) s_Shot = rest;
         else if (!strcmp(cmd, "damage"))
         {
-            // damage NAME N: damage the nearest actor whose name has NAME (from Claw)
-            char name[128] = {0}; int n = 10;
-            sscanf(rest.c_str(), "%127s %d", name, &n);
+            // damage NAME N [TYPE]: damage the nearest actor whose name has NAME (from Claw)
+            char name[128] = {0}; int n = 10, type = 0;
+            sscanf(rest.c_str(), "%127s %d %d", name, &n, &type);
             StrongActorPtr c = g_pApp->GetGameLogic()->GetClawActor();
             StrongActorPtr best; double bestD = 1e18;
             for (const auto &kv : g_pApp->GetGameLogic()->GetActorMap())
             {
                 const StrongActorPtr &a = kv.second;
-                if (!a || !c || a->GetName().find(name) == std::string::npos || !a->GetPositionComponent()) continue;
+                if (!a || !c || !a->GetPositionComponent()) continue;
+                // NAME exact ("Level14_Omar") or NAME#ID as "watch" prints it
+                std::string full = a->GetName() + "#" + std::to_string(a->GetGUID());
+                if (a->GetName() != name && full != name && a->GetName().find(name) == std::string::npos) continue;
                 double d = (a->GetPositionComponent()->GetPosition() - c->GetPositionComponent()->GetPosition()).Length();
+                if (a->GetName() == name || full == name) d -= 1e9;   // exact match wins
                 if (d < bestD) { bestD = d; best = a; }
             }
             if (best)
                 if (auto hc = MakeStrongPtr(best->GetComponent<HealthComponent>(HealthComponent::g_Name)))
-                    hc->AddHealth(-n, DamageType_MeleeAttack, best->GetPositionComponent()->GetPosition(), c ? c->GetGUID() : INVALID_ACTOR_ID);
+                    hc->AddHealth(-n, (DamageType)type, best->GetPositionComponent()->GetPosition(), c ? c->GetGUID() : INVALID_ACTOR_ID);
         }
         else if (!strcmp(cmd, "hurt"))
         {

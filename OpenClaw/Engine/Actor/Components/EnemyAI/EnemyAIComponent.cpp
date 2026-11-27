@@ -236,7 +236,8 @@ void EnemyAIComponent::VOnHealthChanged(int32 oldHealth, int32 newHealth, Damage
 {
     // If he died we do not care
     auto pTiger = MakeStrongPtr(m_pOwner->GetComponent<TigerGuardAIStateComponent>(TigerGuardAIStateComponent::g_Name));
-    if (newHealth >= 0 && !(pTiger && pTiger->IsUnflinching()))
+    // A heal (Omar given a segment back) is no hit
+    if (newHealth >= 0 && newHealth < oldHealth && !(pTiger && pTiger->IsUnflinching()))
     {
         if (HasState("TakeDamageState"))
         {
