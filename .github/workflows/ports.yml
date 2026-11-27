@@ -52,9 +52,11 @@ jobs:
         run: brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf sdl2_gfx pkg-config dylibbundler
       - name: Build
         run: |
-          pkg-config --cflags sdl2 SDL2_mixer
-          echo '#include <SDL2/SDL_thread.h>' | c++ -x c++ -E -H $(pkg-config --cflags sdl2) -I"$(pkg-config --variable=includedir sdl2)" - 2>&1 >/dev/null | head -5
-          grep -n "CreateThreadWithStackSize" "$(pkg-config --variable=includedir sdl2)/SDL2/SDL_thread.h" | head -5
+          # SDL2_mixer -> fluidsynth -> readline (keg-only in Homebrew)
+          export PKG_CONFIG_PATH="$(brew --prefix readline)/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+          pkg-config --cflags sdl2 SDL2_mixer || true
+          echo '#include <SDL2/SDL_thread.h>' | c++ -x c++ -E -H $(pkg-config --cflags sdl2) -I"$(pkg-config --variable=includedir sdl2)" - 2>&1 >/dev/null | head -5 || true
+          grep -n "CreateThreadWithStackSize" "$(pkg-config --variable=includedir sdl2)/SDL2/SDL_thread.h" | head -5 || true
           cmake -S platform/linux -B build-macos -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
           cmake --build build-macos -j"$(sysctl -n hw.ncpu)"
       - name: Package
