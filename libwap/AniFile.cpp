@@ -5,7 +5,7 @@
 #include <exception>
 
 #include "libwap.h"
-#include "IO.h"
+#include "WapIO.h"
 #include "Util.h"
 
 WapAni* WAP_AniLoadFromDataImpl(char* data, size_t size)

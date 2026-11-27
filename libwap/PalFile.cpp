@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include "libwap.h"
-#include "IO.h"
+#include "WapIO.h"
 
 WapPal* WAP_PalLoadFromData(char* data, size_t size)
 {

@@ -11,7 +11,7 @@
 #include <cctype>
 
 #include "libwap.h"
-#include "IO.h"
+#include "WapIO.h"
 #include <iostream>
 
 using namespace std;

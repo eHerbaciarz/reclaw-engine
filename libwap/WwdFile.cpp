@@ -7,7 +7,7 @@
 #include <exception>
 
 #include "libwap.h"
-#include "IO.h"
+#include "WapIO.h"
 #include "Miniz.h"
 #include "Util.h"
 

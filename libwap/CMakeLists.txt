@@ -9,7 +9,7 @@ add_library(libwap STATIC "")
 
 target_sources(libwap
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/IO.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/WapIO.h
     ${CMAKE_CURRENT_SOURCE_DIR}/libwap.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Miniz.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Util.h
