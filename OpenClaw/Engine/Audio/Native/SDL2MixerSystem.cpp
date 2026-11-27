@@ -216,9 +216,17 @@ bool SDL2MixerSystem::Initialize()
     // as the synth is ready.
     // stb_vorbis allocates its decode scratch buffers with alloca(); the
     // default pthread stack on the Switch is far too small for that.
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    // PS2, Dreamcast: no music - the 8 MB soundfont (and decoding it) does
+    // not fit next to the game in 32 / 16 MB.
+    LOG("Music (soundfont) not loaded on this console");
+    m_pLoaderThread = NULL;
+    if (false)
+#else
     m_pLoaderThread = SDL_CreateThreadWithStackSize(&SDL2MixerSystem::SoundFontLoaderThread, "SoundFontLoader",
                                                     4 * 1024 * 1024, this);
     if (!m_pLoaderThread)
+#endif
     {
         LOG_WARNING("Could not start soundfont loader thread, loading synchronously");
         SoundFontLoaderThread(this);
