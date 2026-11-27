@@ -353,6 +353,7 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     return false;
 
   STARTUP_TRACE("begin ReadActorXmlPrototypes");
+  STARTUP_TRACE(std::string("  memory: ") + MemStats::Report());
   if (!ReadActorXmlPrototypes(m_GameOptions)) {
     STARTUP_TRACE("FAILED ReadActorXmlPrototypes");
     return false;
@@ -2168,6 +2169,7 @@ bool BaseGameApp::ReadActorXmlPrototypes(GameOptions &gameOptions) {
     LOG_TRACE("Detected reload of actor prototypes !");
     m_ActorXmlPrototypeMap.clear();
   }
+  m_ActorXmlPrototypeFiles.clear();
 
   std::vector<std::string> xmlActorPrototypeFiles =
       m_pResourceMgr->VMatch("/ACTOR_PROTOTYPES/*.XML");
@@ -2183,6 +2185,11 @@ bool BaseGameApp::ReadActorXmlPrototypes(GameOptions &gameOptions) {
     } else {
       // LOG(protoFile + ": " + protoName);
       ActorPrototype actorProto = StringToEnum_ActorPrototype(protoName);
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+      // (the XML of all ~190 prototypes would take several MB)
+      m_ActorXmlPrototypeFiles[actorProto] = protoFile;
+      continue;
+#endif
 
       // Create our own pointer
       TiXmlNode *pDuplicateNode = pActorProtoElem->Clone();
@@ -2210,7 +2217,8 @@ bool BaseGameApp::ReadActorXmlPrototypes(GameOptions &gameOptions) {
        actorPrototypeIdx < ActorPrototype_Max; actorPrototypeIdx++) {
     auto findIt =
         m_ActorXmlPrototypeMap.find(ActorPrototype(actorPrototypeIdx));
-    if (findIt == m_ActorXmlPrototypeMap.end()) {
+    if (findIt == m_ActorXmlPrototypeMap.end() &&
+        m_ActorXmlPrototypeFiles.find(ActorPrototype(actorPrototypeIdx)) == m_ActorXmlPrototypeFiles.end()) {
       LOG_ERROR("Actor prototype: \"" +
                 EnumToString_ActorPrototype(ActorPrototype(actorPrototypeIdx)) +
                 std::string("\" was not found !"));
@@ -2763,6 +2771,20 @@ private:
 // responsible for freeing this copy !
 TiXmlElement *BaseGameApp::GetActorPrototypeElem(ActorPrototype proto) {
   auto findIt = m_ActorXmlPrototypeMap.find(proto);
+  if (findIt == m_ActorXmlPrototypeMap.end()) {
+    // (low-memory consoles: read on first use)
+    auto fileIt = m_ActorXmlPrototypeFiles.find(proto);
+    if (fileIt != m_ActorXmlPrototypeFiles.end()) {
+      TiXmlElement *pElem =
+          XmlResourceLoader::LoadAndReturnRootXmlElement(fileIt->second.c_str());
+      if (pElem) {
+        TiXmlElement *pOwn = pElem->Clone()->ToElement();
+        findIt = m_ActorXmlPrototypeMap.insert(std::make_pair(proto, pOwn)).first;
+      } else {
+        LOG_ERROR("Could not read actor prototype " + fileIt->second);
+      }
+    }
+  }
   if (findIt == m_ActorXmlPrototypeMap.end()) {
     LOG_ERROR("Failed to find ActorPrototype: " + ToStr((int)proto));
   }

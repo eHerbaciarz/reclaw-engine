@@ -394,6 +394,19 @@ namespace Platform
             size_t slash = p.find_last_of("/\\");
             if (slash != std::string::npos) g_BinaryDir = p.substr(0, slash + 1);
         }
+#if defined(RECLAW_PS2)
+        // PCSX2 / ps2sdk: "host:", "host:/" or "host://" -> "host:" (the ELF's
+        // folder); "host://data" made mkdir go outside the folder.
+        {
+            size_t colon = g_BinaryDir.find(':');
+            if (colon != std::string::npos)
+            {
+                std::string rest = g_BinaryDir.substr(colon + 1);
+                while (!rest.empty() && rest[0] == '/') rest.erase(0, 1);
+                g_BinaryDir = g_BinaryDir.substr(0, colon + 1) + (rest.empty() ? "" : WithSlash(rest));
+            }
+        }
+#endif
 
 #if defined(__SWITCH__)
         romfsInit();

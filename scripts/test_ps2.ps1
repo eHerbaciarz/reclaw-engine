@@ -114,6 +114,9 @@ if ($Force -or $settings.LastCommit -ne $commit -or -not (Test-Path $elf)) {
     New-Item -ItemType Directory -Force -Path $gameDir | Out-Null
     # pliki gry nadpisane; data\ (CLAW.REZ) i save\ zostają
     Copy-Item -Path (Join-Path $unz 'reclaw\*') -Destination $gameDir -Recurse -Force
+    # (bez soundfontu: 8 MB z 32 MB pamięci PS2; starsze buildy go miały)
+    $sf = Join-Path $gameDir 'music'
+    if ((Test-Path $sf) -and -not (Test-Path (Join-Path $unz 'reclaw\music'))) { Remove-Item -Recurse -Force $sf }
     Remove-Item -Recurse -Force $unz, $zip
     $settings.LastCommit = $commit
     Save-Settings

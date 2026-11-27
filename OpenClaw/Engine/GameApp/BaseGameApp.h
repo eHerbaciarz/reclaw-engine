@@ -473,6 +473,9 @@ private:
   DebugOptions m_DebugOptions;
 
   ActorXmlPrototypeMap m_ActorXmlPrototypeMap;
+  // Low-memory consoles (PS2, Dreamcast): only where each prototype is; its
+  // XML is read the first time an actor of that kind is made.
+  std::map<ActorPrototype, std::string> m_ActorXmlPrototypeFiles;
   LevelMetadataMap m_LevelMetadataMap;
 
   // Fixed timestep variables for frame-rate independent game logic

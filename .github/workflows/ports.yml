@@ -91,6 +91,8 @@ jobs:
         run: |
           mkdir -p dist
           cp build-ps2/reclaw.elf build-ps2/reclaw/
+          # no 8 MB soundfont in 32 MB of RAM (music is off in config.xml)
+          rm -rf build-ps2/reclaw/music
           mkdir -p build-ps2/reclaw/data/en build-ps2/reclaw/data/pl
           cp platform/ps2/README.txt build-ps2/
           (cd build-ps2 && zip -qr ../dist/reclaw-ps2.zip reclaw README.txt)
