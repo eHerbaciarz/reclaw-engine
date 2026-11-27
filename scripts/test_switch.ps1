@@ -10,6 +10,10 @@
 # Opcje:  -Force    pobierz nawet gdy ten build już jest wgrany
 #         -NoLogs   nie czekaj na zamknięcie Ryujinxa, nie zbieraj logów
 #         -Setup    wybierz ponownie Ryujinxa (ścieżka zapisana w test_switch.json)
+#
+# Ryujinx startuje jak w startRyujinx.bat MK: przez runas /trustlevel:0x20000
+# (bez uprawnień administratora), od razu z grą. Ustawienie "RunAsTrustLevel"
+# w test_switch.json ("" = zwykłe uruchomienie).
 
 param(
     [switch]$Force,
@@ -27,7 +31,7 @@ $SettingsFile = Join-Path $PSScriptRoot 'test_switch.json'
 function Say($text, $color = 'Gray') { Write-Host $text -ForegroundColor $color }
 
 # ------------------------------------------------------------ ustawienia
-$settings = [ordered]@{ RyujinxExe = ''; LastCommit = '' }
+$settings = [ordered]@{ RyujinxExe = 'D:\Gry\Emulatory\Ryujinx\Ryujinx.exe'; RunAsTrustLevel = '0x20000'; LastCommit = '' }
 if (Test-Path $SettingsFile) {
     $loaded = Get-Content $SettingsFile -Raw | ConvertFrom-Json
     foreach ($p in $loaded.PSObject.Properties) { $settings[$p.Name] = $p.Value }
@@ -116,9 +120,23 @@ if (-not (Test-Path (Join-Path $gameDir 'data\pl\CLAW.REZ')) -and -not (Test-Pat
 # ------------------------------------------------------------ uruchomienie
 $started = Get-Date
 Say 'Uruchamiam Ryujinxa...'
-$proc = Start-Process -FilePath $ryuExe -ArgumentList ('"' + $nroPath + '"') -WorkingDirectory $ryuDir -PassThru
+if ($settings.RunAsTrustLevel) {
+    # jak startRyujinx.bat: runas /trustlevel:0x20000 /machine:amd64 "Ryujinx.exe" + gra
+    $cmd = '\"' + $ryuExe + '\" \"' + $nroPath + '\"'
+    Start-Process -FilePath 'runas.exe' -WorkingDirectory $ryuDir -WindowStyle Hidden `
+        -ArgumentList @("/trustlevel:$($settings.RunAsTrustLevel)", '/machine:amd64', ('"' + $cmd + '"'))
+} else {
+    Start-Process -FilePath $ryuExe -ArgumentList ('"' + $nroPath + '"') -WorkingDirectory $ryuDir | Out-Null
+}
 if ($NoLogs) { exit 0 }
 
+# runas wraca od razu: czekam, aż Ryujinx się pojawi, potem aż się zamknie
+$proc = $null
+for ($i = 0; $i -lt 40 -and -not $proc; $i++) {
+    Start-Sleep -Milliseconds 500
+    $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $ryuExe } | Select-Object -First 1
+}
+if (-not $proc) { Say 'Ryujinx się nie uruchomił (sprawdź ścieżkę: -Setup).' Red; exit 1 }
 Say 'Graj - po zamknięciu Ryujinxa zbiorę logi.'
 $proc.WaitForExit()
 
