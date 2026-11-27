@@ -40,13 +40,14 @@ if (-not $BezPobierania) {
         throw "Brak GitHub CLI. Zainstaluj: winget install --id GitHub.cli, potem: gh auth login"
     }
     # pierwsze uruchomienie: logowanie do GitHuba (otworzy przegladarke)
-    gh auth status *> $null
+    # przez cmd: w PowerShell 5 komunikat gh na stderr przerwalby skrypt
+    cmd /c "gh auth status >nul 2>&1"
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Nie jestes zalogowany w GitHub CLI - logowanie (jednorazowo)." -ForegroundColor Yellow
-        gh auth login --hostname github.com --git-protocol https --web
+        cmd /c "gh auth login --hostname github.com --git-protocol https --web"
         if ($LASTEXITCODE -ne 0) { throw "Logowanie do GitHuba nie powiodlo sie." }
     }
-    $json = gh api "repos/$Repo/actions/artifacts?name=reclaw-windows-x86_64&per_page=50"
+    $json = cmd /c "gh api `"repos/$Repo/actions/artifacts?name=reclaw-windows-x86_64&per_page=50`" 2>nul"
     if ($LASTEXITCODE -ne 0) { throw "gh api nie zadzialalo - czy jestes zalogowany (gh auth login)?" }
     $art = ($json | ConvertFrom-Json).artifacts |
         Where-Object { -not $_.expired -and $_.workflow_run.head_branch -eq $Galaz } |
