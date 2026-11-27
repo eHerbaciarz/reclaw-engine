@@ -1,3 +1,4 @@
+#include <set>
 #include "RenderComponent.h"
 #include "../../GameApp/BaseGameApp.h"
 #include "../../GameApp/BaseGameLogic.h"
@@ -682,7 +683,22 @@ bool TilePlaneRenderComponent::VDelegateInit(TiXmlElement* pXmlData)
         }
         else if (m_PlaneProperties.name == "Action") // Fill image ?. First occurance on level 8
         {
-            m_TileImageList.push_back(m_pFillImage.get());
+            // Only WAP's "filled" tile (0xEEEEEEEE) is drawn in the plane's
+            // fill colour; a tile whose picture is missing stays empty (it
+            // was a solid square, e.g. above the stairs in level 14).
+            if (tileId == (int32)0xEEEEEEEE)
+            {
+                m_TileImageList.push_back(m_pFillImage.get());
+            }
+            else
+            {
+                static std::set<std::string> s_Reported;
+                if (s_Reported.insert(tileFileName).second)
+                {
+                    LOG_WARNING("Action plane: no picture for tile " + tileFileName + " (left empty)");
+                }
+                m_TileImageList.push_back(NULL);
+            }
         }
         else
         {
