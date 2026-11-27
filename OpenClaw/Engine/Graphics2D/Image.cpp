@@ -50,6 +50,18 @@ void Image::SetSmooth(bool on)
 #endif
 }
 
+// Memory report (Util/MemStats.h): the bytes of the pictures' textures
+// (width x height x 4, mirrored copies included).
+#include "../Util/MemStats.h"
+static void TrackTexture(SDL_Texture* t, int sign)
+{
+    if (!t) return;
+    int w = 0, h = 0;
+    SDL_QueryTexture(t, NULL, NULL, &w, &h);
+    MemStats::g_TextureBytes += sign * (int64_t)w * h * 4;
+    MemStats::g_TextureCount += sign;
+}
+
 Image::Image()
     :
     m_Width(0),
@@ -69,6 +81,7 @@ Image::Image(SDL_Texture* pSDLTexture)
 {
     assert(pSDLTexture != NULL);
     SDL_QueryTexture(pSDLTexture, NULL, NULL, &m_Width, &m_Height);
+    TrackTexture(pSDLTexture, +1);
 }
 
 Image::~Image()
@@ -77,10 +90,12 @@ Image::~Image()
     RemoveSmoothTexture(m_pMirrored);
     RemoveSmoothTexture(m_pTexture);
     if (m_pMirrored) {
+        TrackTexture(m_pMirrored, -1);
         SDL_DestroyTexture(m_pMirrored);
         m_pMirrored = NULL;
     }
     if (m_pTexture) {
+        TrackTexture(m_pTexture, -1);
         SDL_DestroyTexture(m_pTexture);
         m_pTexture = NULL;
     }
@@ -128,6 +143,7 @@ SDL_Texture* Image::GetMirroredTexture(SDL_Renderer* pRenderer)
     SDL_SetTextureColorMod(m_pTexture, r, g, b);
     SDL_SetTextureBlendMode(mirrored, blend);
     m_pMirrored = mirrored;
+    TrackTexture(m_pMirrored, +1);
     if (SmoothTextures().count(m_pTexture)) AddSmoothTexture(m_pMirrored);
     return m_pMirrored;
 }
@@ -339,9 +355,10 @@ bool Image::Rebuild(WapPid* pid, SDL_Renderer* renderer)
     if (!tex) return false;
     RemoveSmoothTexture(m_pMirrored);
     RemoveSmoothTexture(m_pTexture);
-    if (m_pMirrored) { SDL_DestroyTexture(m_pMirrored); m_pMirrored = NULL; }
-    if (m_pTexture) SDL_DestroyTexture(m_pTexture);
+    if (m_pMirrored) { TrackTexture(m_pMirrored, -1); SDL_DestroyTexture(m_pMirrored); m_pMirrored = NULL; }
+    if (m_pTexture) { TrackTexture(m_pTexture, -1); SDL_DestroyTexture(m_pTexture); }
     m_pTexture = tex;
+    TrackTexture(m_pTexture, +1);
     m_TexScale = scale;
     AddSmoothTexture(m_pTexture);
     return true;
@@ -546,6 +563,7 @@ bool Image::Initialize(WapPid* pid, SDL_Renderer* renderer, bool filterable)
     {
         return false;
     }
+    TrackTexture(m_pTexture, +1);
     AddSmoothTexture(m_pTexture);
 
     return true;
@@ -561,6 +579,7 @@ bool Image::Initialize(SDL_Texture* pTexture)
     SDL_QueryTexture(pTexture, NULL, NULL, &m_Width, &m_Height);
     m_OffsetX = m_OffsetY = 0;
     m_pTexture = pTexture;
+    TrackTexture(m_pTexture, +1);
 
     return true;
 }

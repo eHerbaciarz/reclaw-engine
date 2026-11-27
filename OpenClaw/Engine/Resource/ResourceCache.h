@@ -189,6 +189,7 @@ public:
     bool IsUsingDevelopmentDirectories() { assert(_resourceFile != NULL); return _resourceFile->VIsUsingDevelopmentDIrectories(); }
 
     void MemoryHasBeenFreed(uint32 size);
+    uint64 GetAllocated() const { return _allocated; }
 
 protected:
     bool MakeRoom(uint32 size);

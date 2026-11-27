@@ -10,6 +10,8 @@ target_sources(openclaw
     ${CMAKE_CURRENT_SOURCE_DIR}/Profilers.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StringUtil.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Util.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MemStats.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MemStats.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Converters.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Converters.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PrimeSearch.cpp

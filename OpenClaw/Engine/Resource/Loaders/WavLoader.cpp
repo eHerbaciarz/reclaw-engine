@@ -1,3 +1,4 @@
+#include "../../Util/MemStats.h"
 #include "../../PortFeatures.h"
 #include <cstring>
 #include <algorithm>
@@ -23,6 +24,7 @@
 // Custom deallocator for SDL stuff
 void DeleteMixChunk(Mix_Chunk* sound)
 {
+    if (sound) { MemStats::g_SoundBytes -= sound->alen; MemStats::g_SoundCount--; }
     Mix_FreeChunk(sound);
 }
 
@@ -145,6 +147,7 @@ void WavResourceExtraData::LoadWavSound(char* rawBuffer, uint32 size)
         _sound = nullptr;
         return;
     }
+    MemStats::g_SoundBytes += pChunk->alen; MemStats::g_SoundCount++;
     _sound = shared_ptr<Mix_Chunk>(pChunk, DeleteMixChunk);
     return;
 #endif
@@ -158,6 +161,7 @@ void WavResourceExtraData::LoadWavSound(char* rawBuffer, uint32 size)
     _sound->abuf = new Uint8[size];
     memcpy(_sound->abuf, rawBuffer, size);
     _sound->alen = size;
+    MemStats::g_SoundBytes += size; MemStats::g_SoundCount++;
     _sound->allocated = 1; // Mark as allocated so SDL will free it
 
     // The actual audio loading will be handled by the Audio class when PlaySound is called
@@ -265,6 +269,7 @@ shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resource
             Mix_Chunk* pChunk = Mix_LoadWAV(filePath.c_str());
             if (pChunk)
             {
+                MemStats::g_SoundBytes += pChunk->alen; MemStats::g_SoundCount++;
                 shared_ptr<Mix_Chunk> pSound(pChunk, DeleteMixChunk);
                 s_LooseCache[key] = pSound;
                 return pSound;

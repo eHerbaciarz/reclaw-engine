@@ -1,3 +1,4 @@
+#include "../Util/MemStats.h"
 #include "../PortFeatures.h"
 #include <map>
 #include <SDL2/SDL_ttf.h>
@@ -432,6 +433,7 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
 #endif
 
   STARTUP_TRACE("Initialize done");
+  STARTUP_TRACE(std::string("  memory: ") + MemStats::Report());
   m_IsRunning = true;
 
   StartupSplash::Finish(m_pRenderer);
@@ -879,6 +881,7 @@ void BaseGameApp::StepLoop() {
                        g_PerfBodiesMoving / n, g_PerfBodiesAwake / n, g_PerfContacts / n);
               g_PerfBodiesMoving = g_PerfBodiesAwake = g_PerfContacts = g_PerfPhysicsSteps = 0;
               STARTUP_TRACE(phys);
+              STARTUP_TRACE(std::string("perf memory: ") + MemStats::Report());
             }
             std::string top = "perf: " + std::to_string(g_PerfActorUpdates / std::max(1, s_perfUpdates)) + " actor updates/step; components:";
             std::vector<std::pair<Uint64, std::string>> v;

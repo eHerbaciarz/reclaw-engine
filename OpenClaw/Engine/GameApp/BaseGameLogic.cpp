@@ -1,3 +1,4 @@
+#include "../Util/MemStats.h"
 #include "../Platform/Platform.h"
 #include "../PortFeatures.h"
 #include <map>
@@ -538,6 +539,7 @@ static void TraceLevel(const char* step)
     snprintf(line, sizeof(line), "level: %s (heap used %d KB)", step, (int)(mi.uordblks / 1024));
 #endif
     STARTUP_TRACE(line);
+    STARTUP_TRACE(std::string("  memory: ") + MemStats::Report());
 }
 #else
 #define TraceLevel(step) do {} while (0)
