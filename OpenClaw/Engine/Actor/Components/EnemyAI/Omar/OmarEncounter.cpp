@@ -345,7 +345,7 @@ void OmarAIStateComponent::VUpdate(uint32 msDiff)
         m_bPendingHeal = false;
         if (pHealth && pHealth->GetCurrentHealth() > 0)
         {
-            int heal = std::min(segment, pHealth->GetMaxHealth() - pHealth->GetCurrentHealth());
+            int heal = std::min<int>(segment, (int)(pHealth->GetMaxHealth() - pHealth->GetCurrentHealth()));
             if (heal > 0)
             {
                 m_bAllowDamage = true;
