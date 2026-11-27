@@ -1,5 +1,7 @@
 #include "PowderKegComponent.h"
 #include "PositionComponent.h"
+#include "RenderComponent.h"
+#include "AnimationComponent.h"
 #include "ControllerComponents/HealthComponent.h"
 #include "EnemyAI/EnemyAIComponent.h"
 
@@ -50,8 +52,24 @@ void PowderKegComponent::MoveTo(const Point& position)
     IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Move_Actor(m_pOwner->GetGUID(), position)));
 }
 
+void PowderKegComponent::ShowFrame(int imageId)
+{
+    if (m_ShownFrame == imageId)
+    {
+        return;
+    }
+    m_ShownFrame = imageId;
+    if (auto pRender = MakeStrongPtr(m_pOwner->GetComponent<ActorRenderComponent>()))
+    {
+        char name[16];
+        snprintf(name, sizeof(name), "frame%03d", imageId);
+        pRender->SetImage(name);
+    }
+}
+
 void PowderKegComponent::OnLifted(uint32 carrierId)
 {
+    ShowFrame(1);
     m_State = KegState_Carried;
     m_CarrierId = carrierId;
     g_pApp->GetGameLogic()->VGetGamePhysics()->VDeactivate(m_pOwner->GetGUID());
@@ -81,6 +99,7 @@ void PowderKegComponent::Drop(const Point& position)
 
     m_State = KegState_Idle;
     m_CarrierId = 0;
+    ShowFrame(1);
 }
 
 void PowderKegComponent::FollowCarrier()
@@ -111,7 +130,21 @@ void PowderKegComponent::VUpdate(uint32 msDiff)
     if (m_State == KegState_Carried)
     {
         FollowCarrier();
+        // turned on its side once Claw holds it above his head (after "lift")
+        StrongActorPtr pCarrier = MakeStrongPtr(g_pApp->GetGameLogic()->VGetActor(m_CarrierId));
+        auto pAnim = pCarrier ? MakeStrongPtr(pCarrier->GetComponent<AnimationComponent>(AnimationComponent::g_Name)) : nullptr;
+        const std::string anim = pAnim ? pAnim->GetCurrentAnimationName() : "";
+        if (anim != "lift" && anim != "ducklift")
+        {
+            ShowFrame(14);
+        }
         return;
+    }
+    if (m_State == KegState_Thrown)
+    {
+        // spins: 14, 16, 15, 17, 150 ms each
+        static const int kSpin[] = { 14, 16, 15, 17 };
+        ShowFrame(kSpin[(m_FlightTime / 150) % 4]);
     }
     if (m_State != KegState_Thrown)
     {

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "../Actor/Components/PickupComponents/PickupComponent.h"
 #include <cstring>
 #include "Converters.h"
@@ -120,11 +121,27 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
         plane->LinkEndChild(planeRenderComponentElem);
 
         //---- [Level::Actor::TilePlaneRenderComponent::Images]
+        // The plane's own tile set (BACK / ACTION / FRONT) as the level file
+        // names it; the plane name only when that is missing (edited levels).
         std::string tileDirName;
-        if (std::string(wwdPlane.properties.name) == "Background") { tileDirName = "BACK"; }
-        else if (std::string(wwdPlane.properties.name) == "Action") { tileDirName = "ACTION"; }
-        else if (std::string(wwdPlane.properties.name) == "Front") { tileDirName = "FRONT"; }
-        else { LOG_ERROR("Unknown tile plane name: " + std::string(wwdPlane.properties.name)); }
+        if (wwdPlane.properties.imageSetsCount > 0 && wwdPlane.imageSets && wwdPlane.imageSets[0] && wwdPlane.imageSets[0][0])
+        {
+            tileDirName = wwdPlane.imageSets[0];
+            std::transform(tileDirName.begin(), tileDirName.end(), tileDirName.begin(), ::toupper);
+        }
+        else
+        {
+            std::string planeName = wwdPlane.properties.name;
+            std::transform(planeName.begin(), planeName.end(), planeName.begin(), ::tolower);
+            if (planeName == "background") { tileDirName = "BACK"; }
+            else if (planeName == "action") { tileDirName = "ACTION"; }
+            else if (planeName == "front") { tileDirName = "FRONT"; }
+            else
+            {
+                tileDirName = (wwdPlane.properties.flags & WAP_PLANE_FLAG_MAIN_PLANE) ? "ACTION" : (mainPlaneIdx < 0 ? "BACK" : "FRONT");
+                LOG_ERROR("Unknown tile plane name: " + std::string(wwdPlane.properties.name) + ", using " + tileDirName);
+            }
+        }
         std::string planeImageDirPath = tileRootDirPath + "/" + tileDirName + "/*";
         XML_ADD_TEXT_ELEMENT("ImagePath", planeImageDirPath.c_str(), planeRenderComponentElem);
 

@@ -52,6 +52,10 @@ private:
     void Explode();
     void MoveTo(const Point& position);
 
+    // CLAW.EXE LEVEL_POWDERKEG LIFTED / LIFTED2 / THROWN: upright while
+    // being lifted, on its side above Claw's head, spinning in flight.
+    void ShowFrame(int imageId);
+    int m_ShownFrame = 0;
     KegState m_State;
     uint32 m_CarrierId;
     int m_FlightTime;
