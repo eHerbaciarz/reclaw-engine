@@ -40,6 +40,10 @@ private:
     int m_CheckEveryMs;
     int m_CooldownMs;
     int m_ClawMinRange = 0;   // Claw at least this far (Raux: 150 - his "zone 2")
+    int m_ClawMaxRange = 300;
+    // Katherine (0x456060): rolled when Claw starts a blow facing her
+    bool m_OnClawAttack = false;
+    bool m_ClawWasAttacking = false;
 
     int m_CheckMs;
     int m_CooldownLeftMs;

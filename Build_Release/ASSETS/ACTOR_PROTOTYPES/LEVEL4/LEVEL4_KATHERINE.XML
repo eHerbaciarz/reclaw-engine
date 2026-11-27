@@ -87,9 +87,12 @@
         <Sound>/LEVEL4/SOUNDS/KATHERINE/FLIP1.WAV</Sound>
         <MinDistance>200</MinDistance>
         <MaxDistance>400</MaxDistance>
-        <Chance>15</Chance>
-        <CheckEveryMs>600</CheckEveryMs>
-        <CooldownMs>4000</CooldownMs>
+        <!-- CLAW.EXE 0x456060: when Claw swings at her from the front within
+             150 px, one time in five she flips away (0x456550) -->
+        <OnClawAttack>true</OnClawAttack>
+        <Chance>20</Chance>
+        <ClawMaxRange>150</ClawMaxRange>
+        <CooldownMs>1000</CooldownMs>
     </LeapAIStateComponent>
     <KatherineBossAIStateComponent>
         <StatePriority>100</StatePriority>

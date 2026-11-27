@@ -46,6 +46,8 @@ bool LeapAIStateComponent::VDelegateInit(TiXmlElement* pData)
     ParseValueFromXmlElem(&m_CheckEveryMs, pData->FirstChildElement("CheckEveryMs"));
     ParseValueFromXmlElem(&m_CooldownMs, pData->FirstChildElement("CooldownMs"));
     ParseValueFromXmlElem(&m_ClawMinRange, pData->FirstChildElement("ClawMinRange"));
+    ParseValueFromXmlElem(&m_ClawMaxRange, pData->FirstChildElement("ClawMaxRange"));
+    ParseValueFromXmlElem(&m_OnClawAttack, pData->FirstChildElement("OnClawAttack"));
     if (m_MaxDistance < m_MinDistance) m_MaxDistance = m_MinDistance;
     return true;
 }
@@ -63,7 +65,7 @@ bool LeapAIStateComponent::FindTarget(double& outX)
     }
     const Point me = m_pPositionComponent->GetPosition();
     const Point claw = pClaw->GetPositionComponent()->GetPosition();
-    if (fabs(claw.y - me.y) > 50 || fabs(claw.x - me.x) > 300 || fabs(claw.x - me.x) < m_ClawMinRange)
+    if (fabs(claw.y - me.y) > 50 || fabs(claw.x - me.x) > m_ClawMaxRange || fabs(claw.x - me.x) < m_ClawMinRange)
     {
         return false;
     }
@@ -130,13 +132,32 @@ void LeapAIStateComponent::VUpdate(uint32 msDiff)
             m_CheckMs = 0;
             return;
         }
-        if ((m_CheckMs += msDiff) < m_CheckEveryMs)
+        bool roll;
+        if (m_OnClawAttack)
         {
-            return;
+            // a new blow by Claw, facing the boss
+            bool attacking = false;
+            StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+            auto pCtrl = pClaw ? MakeStrongPtr(pClaw->GetComponent<ClawControllableComponent>(ClawControllableComponent::g_Name)) : nullptr;
+            if (pCtrl && pCtrl->IsMeleeAttacking())
+            {
+                const bool bossRight = m_pPositionComponent->GetX() > pClaw->GetPositionComponent()->GetX();
+                attacking = (pCtrl->GetFacing() == Direction_Right) == bossRight;
+            }
+            roll = attacking && !m_ClawWasAttacking;
+            m_ClawWasAttacking = attacking;
         }
-        m_CheckMs = 0;
+        else
+        {
+            if ((m_CheckMs += msDiff) < m_CheckEveryMs)
+            {
+                return;
+            }
+            m_CheckMs = 0;
+            roll = true;
+        }
         double x;
-        if (rand() % 100 < m_Chance && FindTarget(x))
+        if (roll && rand() % 100 < m_Chance && FindTarget(x))
         {
             m_PlannedX = x;
             m_bWantLeap = true;
