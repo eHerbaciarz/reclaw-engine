@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "BaseGameApp.h"
 #include "MainLoop.h"
 #include "../Util/StartupTrace.h"
@@ -62,7 +63,11 @@ static std::vector<std::string> ResolveRezArchive(GameOptions* pOptions, int arg
 
 // Shows a readable error instead of silently quitting (consoles have no
 // console window). Works whether or not the engine managed to create its window.
-static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
+// `desktopLines`/`title`/`info` (optional): what the desktop message box
+// says instead; `info` shows it as a notice (yellow) rather than an error.
+static void ShowFatalErrorScreen(const std::vector<std::string>& lines,
+                                 const std::vector<std::string>& desktopLines = {},
+                                 const char* title = "ReClaw", bool info = false)
 {
     for (const std::string& line : lines)
     {
@@ -71,8 +76,8 @@ static void ShowFatalErrorScreen(const std::vector<std::string>& lines)
     if (!Platform::IsConsole())
     {
         std::string text;
-        for (const std::string& line : lines) text += line + "\n";
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ReClaw", text.c_str(), NULL);
+        for (const std::string& line : (desktopLines.empty() ? lines : desktopLines)) text += line + "\n";
+        SDL_ShowSimpleMessageBox(info ? SDL_MESSAGEBOX_WARNING : SDL_MESSAGEBOX_ERROR, title, text.c_str(), NULL);
         return;
     }
 
@@ -240,7 +245,26 @@ int RunGameEngine(int argc, char** argv)
         }
         lines.push_back("");
         lines.push_back("Press any button to exit.");
-        ShowFatalErrorScreen(lines);
+
+        // Desktop: a plain notice - nothing is broken, the game data is
+        // simply not there yet (the folders searched go to the log).
+        std::string pl = Platform::GameDir() + "pl", en = Platform::GameDir() + "en";
+#ifdef _WIN32
+        std::replace(pl.begin(), pl.end(), '/', '\\');
+        std::replace(en.begin(), en.end(), '/', '\\');
+#endif
+        std::vector<std::string> desktop = {
+            "Almost ready - ReClaw just needs the game data.",
+            "",
+            "Copy CLAW.REZ from your own Claw (1997) CD or installation",
+            "into one of these folders (they are already created):",
+            "",
+            "    " + pl + "        (Polish release)",
+            "    " + en + "        (English release)",
+            "",
+            "CLAW.FEC (the movies) can go there too - it is optional.",
+            "Then start ReClaw again."};
+        ShowFatalErrorScreen(lines, desktop, "ReClaw - game data needed", true);
         return -1;
     }
 #endif

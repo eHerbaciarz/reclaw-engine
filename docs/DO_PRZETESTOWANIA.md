@@ -33,7 +33,8 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 | Otwarcie poziomu (27.11) | wałek 100 px jedzie od lewej do prawej z zwiniętym obrazem poziomu, dźwięk flagi; płynność na 3DS/Vicie | sprawdzone zrzutami na PC |
 | Kocimiętka (myszka) (27.11) | skok do 195 px, bieg 300 px/s, wspinanie 250 px/s, miecz zadaje podwójne obrażenia (już nie zabija jednym ciosem); bez myszki wspinanie 200 px/s | sprawdzone skryptem (poziom 1) |
 | Beczki z prochem (27.11) | z beczką 30 px/s, bez skoku; trzymanie rzutu do 3 s = dalej (krótki ok. 150 px, pełny ok. 450 px); zejście z krawędzi z beczką – beczka leci dalej, kapitan spada | chód, skok i rzuty sprawdzone skryptem (poziom 1); zejście z krawędzi nie |
-| Lustrzane klawisze (Windows, 27.11) | `ReClaw-mirror.bat`: ReClaw w tle powtarza strzałki, Spację, lewy Ctrl/Alt/Shift, Z, X, 1–5 wciśnięte w oknie oryginału | skompilowane (MinGW), nie uruchomione na Windows |
+| Lustrzane klawisze (Windows, 27.11) | `ReClaw-mirror.bat`: okno 4:3 (960×720, widać 640×480 planszy jak w oryginale); ReClaw w tle powtarza strzałki, Spację, Enter, lewy Ctrl/Alt/Shift, Z, X, 1–5 wciśnięte w oknie oryginału | skompilowane (MinGW), nie uruchomione na Windows |
+| Kameleony (poziomy 13–14, 27.11) | jak w oryginale znikają (ok. 0,13 s), po 0–1,5 s pojawiają się w innym miejscu swojej ścieżki, raz na sekundę najwyżej; niewidoczne nie dają się trafić | sprawdzone skryptem (poziom 14) |
 | Własne poziomy (27.11) | wszystkie 16 od MK się wczytują (wcześniej 6 nie startowało lub wysypywało grę); czy da się je przejść; windy w TRC3 stoją (brak ścieżki w pliku) | wczytanie sprawdzone skryptem |
 | Zapis stanu (ZL / ZR / trzymane R) | zapis, wczytanie, cofanie; znajdźki, skrzynie, wrogowie, winda, lina, śmierć, walka z bossem (Marrow), płynność cofania | nieprzetestowane |
 | Plansza Opcje → Sterowanie | czy się otwiera, czy grafika dobrze leży, powrót B | nieprzetestowane |

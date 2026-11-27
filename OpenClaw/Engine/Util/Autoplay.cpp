@@ -9,6 +9,8 @@
 //   down KEY / up KEY     press / release a key (SDL key name: Left, Space, Left Ctrl, z ...)
 //   tap KEY MS            press, wait MS, release
 //   log MS                every MS ms log Claw: position, velocity, state, animation (0 = off)
+//   watch NAME [MS]       every MS ms (default 250, 0 = off) log actors whose name has NAME
+//                         within 800 px of Claw: position, visibility, alpha, animation
 //   mark TEXT             a line in the log
 //   cmd TEXT              console command (teleport X Y, catnip, ...)
 //   shot NAME             save the next frame as NAME.bmp
@@ -16,7 +18,7 @@
 //   quit                  end the game
 //
 // Windows only: RECLAW_MIRROR_KEYS=1 - while the ReClaw window is NOT focused,
-// it follows the keys held on the keyboard anyway (arrows, Space, left Ctrl /
+// it follows the keys held on the keyboard anyway (arrows, Space, Enter, left Ctrl /
 // Alt / Shift, Z, X, 1-5), so the original CLAW.EXE in the focused window and
 // ReClaw beside it get the same input - for side-by-side recordings.
 #include "Autoplay.h"
@@ -33,6 +35,8 @@
 #include "../Actor/Actor.h"
 #include "../Actor/Components/PositionComponent.h"
 #include "../Actor/Components/PhysicsComponent.h"
+#include "../Actor/Components/RenderComponent.h"
+#include "../Actor/Components/EnemyAI/EnemyAIComponent.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -92,6 +96,32 @@ namespace
         SDL_Keycode k = SDL_GetKeyFromName(name.c_str());
         if (k == SDLK_UNKNOWN) fprintf(stderr, "[autoplay] unknown key '%s'\n", name.c_str());
         return k;
+    }
+
+    std::string s_Watch;
+    int s_WatchEvery = 0, s_WatchAcc = 0;
+
+    void LogWatch()
+    {
+        if (s_Watch.empty() || !g_pApp || !g_pApp->GetGameLogic()) return;
+        StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+        if (!pClaw) return;
+        const Point c = pClaw->GetPositionComponent()->GetPosition();
+        for (const auto &kv : g_pApp->GetGameLogic()->GetActorMap())
+        {
+            const StrongActorPtr &a = kv.second;
+            if (!a || a->GetName().find(s_Watch) == std::string::npos || !a->GetPositionComponent()) continue;
+            const Point p = a->GetPositionComponent()->GetPosition();
+            if (fabs(p.x - c.x) > 800 || fabs(p.y - c.y) > 800) continue;
+            auto r = MakeStrongPtr(a->GetComponent<ActorRenderComponent>());
+            auto an = MakeStrongPtr(a->GetComponent<AnimationComponent>(AnimationComponent::g_Name));
+            auto ai = MakeStrongPtr(a->GetComponent<EnemyAIComponent>(EnemyAIComponent::g_Name));
+            fprintf(stderr, "[autoplay] t=%lld watch %s#%u pos=%.1f,%.1f vis=%d alpha=%d anim=%s%s\n",
+                    (long long)s_TimeMs, a->GetName().c_str(), (unsigned)a->GetGUID(), p.x, p.y,
+                    r ? (int)r->IsVisible() : -1, r ? r->GetAlpha() : -1,
+                    an ? an->GetCurrentAnimationName().c_str() : "-",
+                    ai ? (ai->IsDead() ? " dead" : (ai->IsPhased() ? " phased" : "")) : "");
+        }
     }
 
     void LogClaw(const char *why)
@@ -154,6 +184,12 @@ namespace
             Key(kc, true);
             s_Ups.push_back({kc, s_TimeMs + ms});
         }
+        else if (!strcmp(cmd, "watch"))
+        {
+            std::istringstream in(rest); in >> s_Watch; s_WatchEvery = 250; in >> s_WatchEvery; s_WatchAcc = 0;
+            if (!s_WatchEvery) s_Watch.clear();
+            LogWatch();
+        }
         else if (!strcmp(cmd, "log")) { s_LogEvery = atoi(rest.c_str()); s_LogAcc = 0; LogClaw("log"); }
         else if (!strcmp(cmd, "mark")) LogClaw(rest.c_str());
         else if (!strcmp(cmd, "cmd"))
@@ -197,7 +233,7 @@ static void MirrorKeys()
     static const struct { int vk; SDL_Keycode key; } kMap[] = {
         { VK_LEFT, SDLK_LEFT }, { VK_RIGHT, SDLK_RIGHT }, { VK_UP, SDLK_UP }, { VK_DOWN, SDLK_DOWN },
         { VK_SPACE, SDLK_SPACE }, { VK_LCONTROL, SDLK_LCTRL }, { VK_LMENU, SDLK_LALT },
-        { VK_LSHIFT, SDLK_LSHIFT }, { 'Z', SDLK_z }, { 'X', SDLK_x },
+        { VK_LSHIFT, SDLK_LSHIFT }, { 'Z', SDLK_z }, { 'X', SDLK_x }, { VK_RETURN, SDLK_RETURN },
         { '1', SDLK_1 }, { '2', SDLK_2 }, { '3', SDLK_3 }, { '4', SDLK_4 }, { '5', SDLK_5 },
     };
     static bool s_Down[sizeof(kMap) / sizeof(kMap[0])] = {};
@@ -222,6 +258,7 @@ void Autoplay::Tick(uint32_t ms)
         if (s_Ups[i].at <= s_TimeMs) { Key(s_Ups[i].key, false); s_Ups.erase(s_Ups.begin() + i); }
         else ++i;
     if (s_LogEvery && (s_LogAcc += ms) >= s_LogEvery) { s_LogAcc = 0; LogClaw("log"); }
+    if (s_WatchEvery && (s_WatchAcc += ms) >= s_WatchEvery) { s_WatchAcc = 0; LogWatch(); }
     if (s_WaitMs > 0) { s_WaitMs -= ms; return; }
     while (s_State > 0 && s_WaitMs <= 0 && s_Pc < s_Lines.size())
     {

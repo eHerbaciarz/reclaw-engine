@@ -1141,6 +1141,23 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
         &m_GameOptions.isFullscreenDesktop,
         displayElem->FirstChildElement("IsFullscreenDesktop"));
   }
+#if !defined(__EMSCRIPTEN__)
+  // RECLAW_WINDOW=WxH[@SCALE] (desktop): a window of this size, not
+  // fullscreen - e.g. 1280x960@2 shows 640x480 of the level, like CLAW.EXE.
+  if (const char *win = getenv("RECLAW_WINDOW"))
+  {
+    int w = 0, h = 0;
+    double sc = 0.0;
+    if (sscanf(win, "%dx%d@%lf", &w, &h, &sc) >= 2 && w > 0 && h > 0)
+    {
+      m_GameOptions.windowWidth = w;
+      m_GameOptions.windowHeight = h;
+      if (sc > 0.0) m_GameOptions.scale = sc;
+      m_GameOptions.isFullscreen = false;
+      m_GameOptions.isFullscreenDesktop = false;
+    }
+  }
+#endif
 
 #ifdef __EMSCRIPTEN__
   // Default to 4:3 (640x480) in windowed mode
