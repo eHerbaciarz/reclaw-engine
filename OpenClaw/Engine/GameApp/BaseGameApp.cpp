@@ -2186,8 +2186,16 @@ bool BaseGameApp::ReadActorXmlPrototypes(GameOptions &gameOptions) {
       // LOG(protoFile + ": " + protoName);
       ActorPrototype actorProto = StringToEnum_ActorPrototype(protoName);
 #if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
-      // (the XML of all ~190 prototypes would take several MB)
+      // (the XML of all ~190 prototypes would take several MB: the cache
+      // counts only the file sizes, not the parsed XML, so it is emptied
+      // every few files)
       m_ActorXmlPrototypeFiles[actorProto] = protoFile;
+      if (m_ActorXmlPrototypeFiles.size() % 10 == 0) {
+        m_pResourceMgr->VFlush(CUSTOM_RESOURCE);
+      }
+      if (m_ActorXmlPrototypeFiles.size() % 50 == 0) {
+        STARTUP_TRACE("  prototypes: " + std::to_string(m_ActorXmlPrototypeFiles.size()) + ", " + MemStats::Report());
+      }
       continue;
 #endif
 
@@ -2210,6 +2218,10 @@ bool BaseGameApp::ReadActorXmlPrototypes(GameOptions &gameOptions) {
     }
   }
 
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+  m_pResourceMgr->VFlush(CUSTOM_RESOURCE);
+  STARTUP_TRACE("  prototypes: " + std::to_string(m_ActorXmlPrototypeFiles.size()) + " files, " + MemStats::Report());
+#endif
   bool loadedAllRequired = true;
 
   // When I provide specific purpose API, I should be very dilligent
