@@ -7,8 +7,9 @@
         <AnimationPath>/LEVEL4/ANIS/KATHERINE/*.ANI</AnimationPath>
     </AnimationComponent>
     <HealthComponent>
-        <Health>150</Health>
-        <MaxHealth>150</MaxHealth>
+        <!-- CLAW.EXE: every boss has 100 HP against a 5-point sword; ReClaw's sword hits for 10, so 200 keeps the same 20 sword hits -->
+        <Health>200</Health>
+        <MaxHealth>200</MaxHealth>
     </HealthComponent>
     <LootComponent>
         <Item>60</Item>
