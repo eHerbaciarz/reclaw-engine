@@ -53,6 +53,36 @@ static void LiftButton(uint32 actorId, bool pressed)
     }
 }
 
+bool ActorController::TryAttackLift()
+{
+    ClawControllableComponent* pClaw = GetClawControl(m_pControlledObject->VGetProperties()->GetActorId());
+    if (!pClaw)
+    {
+        return false;
+    }
+    const bool upOnly = m_InputKeys[SDLK_UP] && !m_InputKeys[SDLK_LEFT] && !m_InputKeys[SDLK_RIGHT];
+    if ((pClaw->IsCarrying() || upOnly) && pClaw->OnLiftPressed())
+    {
+        m_bAttackLift = true;
+        return true;
+    }
+    return false;
+}
+
+bool ActorController::EndAttackLift()
+{
+    if (!m_bAttackLift)
+    {
+        return false;
+    }
+    m_bAttackLift = false;
+    if (ClawControllableComponent* pClaw = GetClawControl(m_pControlledObject->VGetProperties()->GetActorId()))
+    {
+        pClaw->OnLiftReleased();
+    }
+    return true;
+}
+
 void ActorController::HandleAction(ActionType actionType)
 {
     switch(actionType)
@@ -234,7 +264,10 @@ bool ActorController::VOnKeyDown(SDL_Keycode key)
         }
         else if (SDL_GetScancodeFromKey(key) == SDL_SCANCODE_LCTRL)
         {
-            HandleAction(ActionType_Attack);
+            if (!TryAttackLift())
+            {
+                HandleAction(ActionType_Attack);
+            }
             return true;
         }
         else if (SDL_GetScancodeFromKey(key) == SDL_SCANCODE_LSHIFT)
@@ -260,6 +293,10 @@ bool ActorController::VOnKeyUp(SDL_Keycode key)
     }
     else
     {
+        if (SDL_GetScancodeFromKey(key) == SDL_SCANCODE_LCTRL && EndAttackLift())
+        {
+            return true;
+        }
         if (SDL_GetScancodeFromKey(key) == SDL_SCANCODE_LALT)
         {
             shared_ptr<EventData_Actor_Fire_Ended> pFireEndedEvent(new EventData_Actor_Fire_Ended(m_pControlledObject->VGetProperties()->GetActorId()));
@@ -504,7 +541,11 @@ bool ActorController::VOnGamepadButtonDown(GamepadButton button, float value)
         case GamepadButton::A:  // Jump
             return VOnKeyDown(SDLK_SPACE);
 
-        case GamepadButton::X:  // Attack (sword)
+        case GamepadButton::X:  // Attack (sword); with Up: lift, carrying: throw
+            if (TryAttackLift())
+            {
+                return true;
+            }
             HapticFeedback::Trigger(HapticPreset::Attack);
             HandleAction(ActionType_Attack);
             return true;
@@ -582,6 +623,10 @@ bool ActorController::VOnGamepadButtonUp(GamepadButton button)
         case GamepadButton::Y:
             LiftButton(m_pControlledObject->VGetProperties()->GetActorId(), false);
             return true;
+
+        case GamepadButton::X:
+            EndAttackLift();
+            return false;
 
         default:
             return false;

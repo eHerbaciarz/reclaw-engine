@@ -50,6 +50,11 @@ private:
 
     bool m_MouseLeftButtonDown;
     bool m_MouseRightButtonDown;
+    // CLAW.EXE: attack with Up held (no Left/Right) lifts a keg or an enemy;
+    // attack while carrying throws (held = farther)
+    bool TryAttackLift();
+    bool EndAttackLift();
+    bool m_bAttackLift = false;
 
     // Gamepad analog stick state
     float m_GamepadMoveX = 0.0f;

@@ -565,7 +565,7 @@ void ClawControllableComponent::ReleaseCarried(const Point& start, const Point& 
     }
 }
 
-void ClawControllableComponent::OnLiftPressed()
+bool ClawControllableComponent::OnLiftPressed()
 {
     if (m_bFrozen ||
         m_State == ClawState_Dying ||
@@ -575,7 +575,7 @@ void ClawControllableComponent::OnLiftPressed()
         m_State == ClawState_Climbing ||
         IsAttackingOrShooting())
     {
-        return;
+        return false;
     }
 
     if (IsCarrying())
@@ -583,12 +583,12 @@ void ClawControllableComponent::OnLiftPressed()
         // Second press: start winding up, the keg flies when released.
         m_bLiftHeld = true;
         m_LiftChargeMs = 0;
-        return;
+        return true;
     }
 
     if (m_pPhysicsComponent->IsFalling() || m_pPhysicsComponent->IsJumping())
     {
-        return;
+        return false;
     }
 
     // The nearest keg in front of Claw, within arm's reach.
@@ -658,7 +658,7 @@ void ClawControllableComponent::OnLiftPressed()
 
     if (!pBest && !pBestEnemy)
     {
-        return;
+        return false;
     }
 
     if (pBest)
@@ -680,6 +680,7 @@ void ClawControllableComponent::OnLiftPressed()
     {
         SetClawAnimation(m_State == ClawState_Walking ? "walk" : "stand");
     }
+    return true;
 }
 
 void ClawControllableComponent::OnLiftReleased()

@@ -126,7 +126,7 @@ public:
 
     // Lifting and throwing powder kegs: press to lift a keg in front of
     // Claw, press again and release to throw it (hold longer = farther).
-    void OnLiftPressed();
+    bool OnLiftPressed();
     void OnLiftReleased();
     bool IsCarrying();
     bool IsWindingUpThrow() const { return m_bLiftHeld; }
