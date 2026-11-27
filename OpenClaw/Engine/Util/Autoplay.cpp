@@ -14,6 +14,11 @@
 //   shot NAME             save the next frame as NAME.bmp
 //   custom FILE           start custom/FILE (.WWD)
 //   quit                  end the game
+//
+// Windows only: RECLAW_MIRROR_KEYS=1 - while the ReClaw window is NOT focused,
+// it follows the keys held on the keyboard anyway (arrows, Space, left Ctrl /
+// Alt / Shift, Z, X, 1-5), so the original CLAW.EXE in the focused window and
+// ReClaw beside it get the same input - for side-by-side recordings.
 #include "Autoplay.h"
 #if !defined(__EMSCRIPTEN__) && !defined(__SWITCH__) && !defined(__vita__) && !defined(__3DS__) && !defined(__PSL1GHT__) && !defined(_EE) && !defined(__WIIU__) && !defined(_arch_dreamcast) && !defined(__ORBIS__) && !defined(__ANDROID__)
 #include "../GameApp/BaseGameApp.h"
@@ -28,6 +33,9 @@
 #include "../Actor/Actor.h"
 #include "../Actor/Components/PositionComponent.h"
 #include "../Actor/Components/PhysicsComponent.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "../Actor/Components/AnimationComponent.h"
 #include "../Actor/Components/ControllableComponent.h"
 #include "../Actor/Components/ControllerComponents/HealthComponent.h"
@@ -175,8 +183,39 @@ namespace
 
 bool Autoplay::Active() { if (s_State < 0) Load(); return s_State > 0; }
 
+#ifdef _WIN32
+static void MirrorKeys()
+{
+    static int s_On = -1;
+    if (s_On < 0)
+    {
+        const char *e = getenv("RECLAW_MIRROR_KEYS");
+        s_On = (e && *e && *e != '0') ? 1 : 0;
+        if (s_On) fprintf(stderr, "[mirror] following the keyboard while unfocused\n");
+    }
+    if (!s_On || !g_pApp) return;
+    static const struct { int vk; SDL_Keycode key; } kMap[] = {
+        { VK_LEFT, SDLK_LEFT }, { VK_RIGHT, SDLK_RIGHT }, { VK_UP, SDLK_UP }, { VK_DOWN, SDLK_DOWN },
+        { VK_SPACE, SDLK_SPACE }, { VK_LCONTROL, SDLK_LCTRL }, { VK_LMENU, SDLK_LALT },
+        { VK_LSHIFT, SDLK_LSHIFT }, { 'Z', SDLK_z }, { 'X', SDLK_x },
+        { '1', SDLK_1 }, { '2', SDLK_2 }, { '3', SDLK_3 }, { '4', SDLK_4 }, { '5', SDLK_5 },
+    };
+    static bool s_Down[sizeof(kMap) / sizeof(kMap[0])] = {};
+    // Focused: SDL delivers the keys itself; let go of what the mirror held.
+    const bool focused = SDL_GetKeyboardFocus() != nullptr;
+    for (size_t i = 0; i < sizeof(kMap) / sizeof(kMap[0]); ++i)
+    {
+        const bool down = !focused && (GetAsyncKeyState(kMap[i].vk) & 0x8000) != 0;
+        if (down != s_Down[i]) { s_Down[i] = down; Key(kMap[i].key, down); }
+    }
+}
+#endif
+
 void Autoplay::Tick(uint32_t ms)
 {
+#ifdef _WIN32
+    MirrorKeys();
+#endif
     if (!Active()) return;
     s_TimeMs += ms;
     for (size_t i = 0; i < s_Ups.size();)
