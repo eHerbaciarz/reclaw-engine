@@ -4,7 +4,7 @@
 #     z GitHuba - tylko gdy jest nowsza niz ta, ktora juz masz.
 #  2. Rozpakowuje ja do <Folder>\reclaw (zapisy i ustawienia w save\ zostaja).
 #  3. Podpina dane gry z oryginalu: <Folder>\orginal\Assets jako data\pl\Assets
-#     (dowiazanie, nic sie nie kopiuje) i kopiuje CLAW.fec (filmy).
+#     (dowiazanie, nic sie nie kopiuje). Filmow (CLAW.FEC) nie kopiuje.
 #  4. Uruchamia oryginal (orginal\CLAW.EXE) i ReClaw w trybie lustra
 #     (okno 4:3, powtarza klawisze wciskane w oknie oryginalu).
 #  5. Ustawia oba okna obok siebie: oryginal z lewej, ReClaw z prawej.
@@ -115,13 +115,6 @@ if ((Test-Path $rezSrc) -and (Get-Item $rezSrc).Length -gt 1000000) {
 # atrapa CLAW.REZ (1 KB) w data\pl przeslonilaby folder Assets
 $atrapa = Join-Path $dataPl "CLAW.REZ"
 if ((Test-Path $atrapa) -and (Get-Item $atrapa).Length -lt 1000000) { Remove-Item $atrapa -Force }
-foreach ($fec in @((Join-Path $Folder "CLAW.fec"), (Join-Path $Oryginal "CLAW.FEC"))) {
-    if (Test-Path $fec) {
-        $fecDst = Join-Path $dataPl "CLAW.FEC"
-        if (-not (Test-Path $fecDst)) { Copy-Item $fec $fecDst; Write-Host "CLAW.FEC skopiowany." }
-        break
-    }
-}
 
 # --- 3. Uruchomienie -----------------------------------------------------------
 Krok "Uruchamiam oryginal i ReClaw"
