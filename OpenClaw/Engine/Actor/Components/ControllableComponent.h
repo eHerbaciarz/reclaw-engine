@@ -222,6 +222,7 @@ private:
     void UpdateDeathFall(uint32 msDiff);
     void FinishDeath(Animation* pAnimation);
     int m_OneShotAnimLeftMs;
+    bool ShouldTeeter(Direction& outGapDir);
     std::string m_AnimLift;
     std::string m_AnimDuckLift;
     std::string m_AnimThrow;

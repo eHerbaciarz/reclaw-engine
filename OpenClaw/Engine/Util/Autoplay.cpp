@@ -19,7 +19,7 @@
 //   quit                  end the game
 //
 // Windows only: RECLAW_MIRROR_KEYS=1 - while the ReClaw window is NOT focused,
-// it follows the keys held on the keyboard anyway (arrows, Space, Enter, left Ctrl /
+// it follows the keys held on the keyboard anyway (arrows, Space, Enter, Esc, left Ctrl /
 // Alt / Shift, Z, X, 1-5), so the original CLAW.EXE in the focused window and
 // ReClaw beside it get the same input - for side-by-side recordings.
 #include "Autoplay.h"
@@ -252,7 +252,7 @@ static void MirrorKeys()
     static const struct { int vk; SDL_Keycode key; } kMap[] = {
         { VK_LEFT, SDLK_LEFT }, { VK_RIGHT, SDLK_RIGHT }, { VK_UP, SDLK_UP }, { VK_DOWN, SDLK_DOWN },
         { VK_SPACE, SDLK_SPACE }, { VK_LCONTROL, SDLK_LCTRL }, { VK_LMENU, SDLK_LALT },
-        { VK_LSHIFT, SDLK_LSHIFT }, { 'Z', SDLK_z }, { 'X', SDLK_x }, { VK_RETURN, SDLK_RETURN },
+        { VK_LSHIFT, SDLK_LSHIFT }, { 'Z', SDLK_z }, { 'X', SDLK_x }, { VK_RETURN, SDLK_RETURN }, { VK_ESCAPE, SDLK_ESCAPE },
         { '1', SDLK_1 }, { '2', SDLK_2 }, { '3', SDLK_3 }, { '4', SDLK_4 }, { '5', SDLK_5 },
     };
     static bool s_Down[sizeof(kMap) / sizeof(kMap[0])] = {};

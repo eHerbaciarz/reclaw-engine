@@ -55,6 +55,7 @@
 #include "Components/ActorSpawnerComponent.h"
 #include "Components/EnemyAI/PunkRatAIStateComponent.h"
 #include "Components/EnemyAI/TigerGuardAIStateComponent.h"
+#include "Components/EnemyAI/LeapAIStateComponent.h"
 #include "Components/EnemyAI/Gabriel/GabrielEncounter.h"
 #include "Components/SawBladeComponent.h"
 #include "Components/ConveyorBeltComponent.h"
@@ -133,6 +134,7 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<ActorSpawnerComponent>(ActorSpawnerComponent::GetIdFromName(ActorSpawnerComponent::g_Name));
     _componentFactory.Register<PunkRatAIStateComponent>(PunkRatAIStateComponent::GetIdFromName(PunkRatAIStateComponent::g_Name));
     _componentFactory.Register<TigerGuardAIStateComponent>(TigerGuardAIStateComponent::GetIdFromName(TigerGuardAIStateComponent::g_Name));
+    _componentFactory.Register<LeapAIStateComponent>(LeapAIStateComponent::GetIdFromName(LeapAIStateComponent::g_Name));
     _componentFactory.Register<GabrielAIStateComponent>(GabrielAIStateComponent::GetIdFromName(GabrielAIStateComponent::g_Name));
     _componentFactory.Register<GabrielCannonButtonComponent>(GabrielCannonButtonComponent::GetIdFromName(GabrielCannonButtonComponent::g_Name));
     _componentFactory.Register<GabrielCannonComponent>(GabrielCannonComponent::GetIdFromName(GabrielCannonComponent::g_Name));

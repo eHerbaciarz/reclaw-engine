@@ -1138,6 +1138,7 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
       renderSizeElem->Attribute("width", &m_GameOptions.renderWidth);
       renderSizeElem->Attribute("height", &m_GameOptions.renderHeight);
     }
+    ParseValueFromXmlElem(&m_GameOptions.maxFps, displayElem->FirstChildElement("MaxFps"));
     ParseValueFromXmlElem(&m_GameOptions.useVerticalSync,
                           displayElem->FirstChildElement("UseVerticalSync"));
     ParseValueFromXmlElem(&m_GameOptions.isFullscreen,
@@ -1572,7 +1573,29 @@ void BaseGameApp::SetViewZoom(int percent) {
   }
 }
 
+// Without vsync a fast PC drew 1000+ frames a second for nothing: wait out
+// the rest of the frame (<MaxFps>, default 60; 0 = no cap). Desktop only.
+static void LimitFrameRate(const GameOptions& options) {
+#if !defined(__EMSCRIPTEN__) && !defined(__SWITCH__) && !defined(__vita__) && !defined(__3DS__) && !defined(__PSL1GHT__) && !defined(_EE) && !defined(__WIIU__) && !defined(_arch_dreamcast) && !defined(__ORBIS__) && !defined(__ANDROID__)
+  if (options.useVerticalSync || options.maxFps <= 0) return;
+  static Uint64 s_Next = 0;
+  const Uint64 freq = SDL_GetPerformanceFrequency();
+  const Uint64 frame = freq / (Uint64)options.maxFps;
+  Uint64 now = SDL_GetPerformanceCounter();
+  if (s_Next == 0 || now > s_Next + frame) s_Next = now;   // first frame / fell behind
+  while (now < s_Next) {
+    const Uint64 leftMs = (s_Next - now) * 1000 / freq;
+    if (leftMs > 1) SDL_Delay((Uint32)(leftMs - 1));
+    now = SDL_GetPerformanceCounter();
+  }
+  s_Next += frame;
+#else
+  (void)options;
+#endif
+}
+
 void BaseGameApp::PresentFrame(bool present) {
+  if (present) LimitFrameRate(m_GameOptions);
 #if defined(RECLAW_GPU)
   // GPU drawing (3DS, PS3): the game's frame is the screen itself
   if (m_pRenderTarget && m_pRenderTarget == ReclawGpu_GameFrame()) {
@@ -2796,6 +2819,7 @@ TiXmlElement *CreateDefaultDisplayConfig() {
                           ToStr(768).c_str(), display);
   XML_ADD_TEXT_ELEMENT("Scale", "1", display);
   XML_ADD_TEXT_ELEMENT("UseVerticalSync", "true", display);
+  XML_ADD_TEXT_ELEMENT("MaxFps", "60", display);
   XML_ADD_TEXT_ELEMENT("IsFullscreen", "false", display);
   XML_ADD_TEXT_ELEMENT("IsFullscreenDesktop", "false", display);
 

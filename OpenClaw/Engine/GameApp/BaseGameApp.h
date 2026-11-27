@@ -84,6 +84,8 @@ struct GameOptions {
   int renderHeight;
   double scale;
   bool useVerticalSync;
+  // frames per second cap when vsync is off (0 = no cap)
+  int maxFps = 60;
   bool isFullscreen;
   bool isFullscreenDesktop;
 

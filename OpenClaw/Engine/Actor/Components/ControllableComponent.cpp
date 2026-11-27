@@ -756,10 +756,61 @@ void ClawControllableComponent::VOnStopMoving()
 
     if (m_pClawAnimationComponent->GetCurrentAnimationName() != "land")
     {
-        SetClawAnimation("stand");
+        // CLAW.EXE: standing with nothing under the middle of his feet,
+        // Claw teeters (CLAW_TEETER, looped), facing the drop, and with a
+        // 45% chance says CLAW_1021.
+        Direction teeterDir = Direction_Right;
+        if (!IsCarrying() && m_OneShotAnimLeftMs <= 0 && ShouldTeeter(teeterDir) &&
+            !FindAnimation({"teeter"}).empty())
+        {
+            if (m_pClawAnimationComponent->GetCurrentAnimationName() != "teeter")
+            {
+                m_pPhysicsComponent->SetDirection(teeterDir);
+                SetClawAnimation("teeter");
+                if (rand() % 100 < 45)
+                {
+                    static std::string s_TeeterSound("/CLAW/SOUNDS/1021.WAV");
+                    SoundInfo soundInfo(s_TeeterSound);
+                    IEventMgr::Get()->VTriggerEvent(IEventDataPtr(
+                        new EventData_Request_Play_Sound(soundInfo)));
+                }
+            }
+        }
+        else
+        {
+            SetClawAnimation("stand");
+        }
     }
     
     m_State = ClawState_Standing;
+}
+
+bool ClawControllableComponent::ShouldTeeter(Direction& outGapDir)
+{
+    IGamePhysics* pPhysics = g_pApp->GetGameLogic() ? g_pApp->GetGameLogic()->VGetGamePhysics().get() : nullptr;
+    if (!pPhysics || !m_pPhysicsComponent->IsOnGround()) return false;
+
+    SDL_Rect aabb = pPhysics->VGetAABB(m_pOwner->GetGUID(), true);
+    if (aabb.w <= 0 || aabb.h <= 0) return false;
+
+    const double footY = aabb.y + aabb.h;
+    const double centerX = aabb.x + aabb.w / 2.0;
+    const uint32 mask = CollisionFlag_Solid | CollisionFlag_Ground;
+    auto groundAt = [&](double x) -> bool
+    {
+        RaycastResult r = pPhysics->VRayCast(Point(x, footY - 4), Point(x, footY + 6), mask);
+        return r.foundIntersection;
+    };
+
+    if (groundAt(centerX)) return false;
+
+    const double side = aabb.w / 2.0 - 1.0;
+    const bool left = groundAt(centerX - side);
+    const bool right = groundAt(centerX + side);
+    if (left == right) return false;   // both: tiny hole; neither: standing on something else
+
+    outGapDir = left ? Direction_Right : Direction_Left;
+    return true;
 }
 
 void ClawControllableComponent::VOnRun()

@@ -10,6 +10,8 @@ target_sources(openclaw
     ${CMAKE_CURRENT_SOURCE_DIR}/PunkRatAIStateComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TigerGuardAIStateComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TigerGuardAIStateComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/LeapAIStateComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LeapAIStateComponent.h
 )
 
 add_subdirectory(Gabriel)

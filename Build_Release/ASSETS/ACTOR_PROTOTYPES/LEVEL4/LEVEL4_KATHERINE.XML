@@ -78,6 +78,18 @@
             </AttackAction>
         </Attacks>
     </MeleeAttackAIStateComponent>
+    <!-- CLAW.EXE 0x456550: a flip that puts 200-400 px between her and Claw -->
+    <LeapAIStateComponent>
+        <StatePriority>30</StatePriority>
+        <Mode>Away</Mode>
+        <Animation>flip</Animation>
+        <Sound>/LEVEL4/SOUNDS/KATHERINE/FLIP1.WAV</Sound>
+        <MinDistance>200</MinDistance>
+        <MaxDistance>400</MaxDistance>
+        <Chance>15</Chance>
+        <CheckEveryMs>600</CheckEveryMs>
+        <CooldownMs>4000</CooldownMs>
+    </LeapAIStateComponent>
     <KatherineBossAIStateComponent>
         <StatePriority>100</StatePriority>
         <BossDialogAnimation>idle</BossDialogAnimation>

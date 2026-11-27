@@ -78,6 +78,17 @@
             </AttackAction>
         </Attacks>
     </MeleeAttackAIStateComponent>
+    <!-- CLAW.EXE 0x481ba0: with Claw behind him, now and then jumps over him -->
+    <LeapAIStateComponent>
+        <StatePriority>30</StatePriority>
+        <Mode>Over</Mode>
+        <Animation>jump</Animation>
+        <MinDistance>20</MinDistance>
+        <MaxDistance>20</MaxDistance>
+        <Chance>17</Chance>
+        <CheckEveryMs>500</CheckEveryMs>
+        <CooldownMs>2000</CooldownMs>
+    </LeapAIStateComponent>
     <LaRauxBossAIStateComponent>
         <StatePriority>100</StatePriority>
         <BossDialogAnimation>idle</BossDialogAnimation>
