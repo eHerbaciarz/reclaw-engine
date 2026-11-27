@@ -1,4 +1,5 @@
 #include "LeapAIStateComponent.h"
+#include "../PhysicsComponent.h"
 #include "EnemyAIComponent.h"
 #include "../../Actor.h"
 #include "../AnimationComponent.h"
@@ -70,9 +71,10 @@ bool LeapAIStateComponent::FindTarget(double& outX)
     double x;
     if (m_Mode == "Over")
     {
-        // only when Claw is behind (the boss faces away from him)
-        const bool facingRight = m_pRenderComponent->IsMirrored();
-        if ((side > 0) == facingRight)
+        // CLAW.EXE (Raux, 0x481ba0): over a Claw who stands on the ground,
+        // landing 20 px past him, inside the boss's own range
+        auto pClawPhysics = pClaw->GetPhysicsComponent();
+        if (pClawPhysics && (!pClawPhysics->IsOnGround() || pClawPhysics->IsInAir()))
         {
             return false;
         }
