@@ -125,7 +125,9 @@ Start-Sleep -Milliseconds 500
 $claw = Start-Process (Join-Path $Oryginal "CLAW.EXE") -WorkingDirectory $Oryginal -PassThru
 Start-Sleep -Seconds 2
 $env:RECLAW_MIRROR_KEYS = "1"
-$env:RECLAW_WINDOW = "960x720@1.5"
+# rozmiar jak okno oryginalu (cnc-ddraw: 1148x861) przy skalowaniu Windows 150%:
+# 765x574 punktow = 1148x861 pikseli; skala 1.195 = widac 640x480 planszy
+$env:RECLAW_WINDOW = "765x574@1.195"
 $reclaw = Start-Process (Join-Path $ReClawDir "ReClaw.exe") -WorkingDirectory $ReClawDir -PassThru
 
 # --- 4. Okna obok siebie -------------------------------------------------------
