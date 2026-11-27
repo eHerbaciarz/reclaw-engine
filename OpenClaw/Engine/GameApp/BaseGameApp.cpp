@@ -970,7 +970,21 @@ int32 BaseGameApp::Run() {
   return 0;
 }
 
+static double s_PixelDensity = 1.0;   // window points -> renderer pixels (high DPI)
+
 void BaseGameApp::OnEvent(SDL_Event &event) {
+  if (s_PixelDensity != 1.0) {
+    // mouse in points; the game works in pixels
+    if (event.type == SDL_MOUSEMOTION) {
+      event.motion.x = (Sint32)(event.motion.x * s_PixelDensity);
+      event.motion.y = (Sint32)(event.motion.y * s_PixelDensity);
+      event.motion.xrel = (Sint32)(event.motion.xrel * s_PixelDensity);
+      event.motion.yrel = (Sint32)(event.motion.yrel * s_PixelDensity);
+    } else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+      event.button.x = (Sint32)(event.button.x * s_PixelDensity);
+      event.button.y = (Sint32)(event.button.y * s_PixelDensity);
+    }
+  }
   switch (event.type) {
   case SDL_QUIT:
   case SDL_APP_TERMINATING: {
@@ -1706,6 +1720,15 @@ void BaseGameApp::RegisterEngineEvents() {
 bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   LOG(">>>>> Initializing display...");
 
+#if defined(_WIN32)
+  // Sharp on a scaled desktop (125% / 150%...): without DPI awareness
+  // Windows (or SDL3 under sdl2-compat) draws the game at the window's
+  // nominal size and blows the picture up - blurry next to CLAW.EXE with
+  // cnc-ddraw. The window keeps its size on screen; the game draws in
+  // real pixels (below: pixel density).
+  SDL_SetHint("SDL_WINDOWS_DPI_AWARENESS", "permonitorv2");
+  SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1");
+#endif
   STARTUP_TRACE("SDL_Init");
   if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO) != 0) {
     LOG_ERROR("Failed to initialize SDL2 library. Error: %s" +
@@ -1715,6 +1738,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
 
   STARTUP_TRACE("SDL_CreateWindow");
   Uint32 windowFlags = SDL_WINDOW_SHOWN;
+#if defined(_WIN32) || (defined(__APPLE__) && !defined(__IPHONEOS__))
+  windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
+#endif
 #ifdef __WIIU__
   // The game on the TV; the GamePad shows the status screen (SecondScreen).
   windowFlags |= SDL_WINDOW_WIIU_TV_ONLY;
@@ -1776,6 +1802,30 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
   }
 
   STARTUP_TRACE("renderer created");
+
+#if defined(_WIN32) || (defined(__APPLE__) && !defined(__IPHONEOS__))
+  {
+    // High-DPI window: the renderer has more pixels than the window has
+    // points. Everything below works in pixels, so the window size and the
+    // game's scale grow by that density (125% desktop: x1.25).
+    int outW = 0, outH = 0, winW = 0, winH = 0;
+    SDL_GetRendererOutputSize(m_pRenderer, &outW, &outH);
+    SDL_GetWindowSize(m_pWindow, &winW, &winH);
+    if (winW > 0 && outW > winW) {
+      const double density = (double)outW / winW;
+      LOG_WARNING("Window " + ToStr(winW) + "x" + ToStr(winH) + " points, " + ToStr(outW) + "x" + ToStr(outH) +
+                  " pixels: drawing at the pixel size (density " + ToStr(density) + ")");
+      gameOptions.windowWidth = outW;
+      gameOptions.windowHeight = outH;
+      m_GameOptions.windowWidth = outW;
+      m_GameOptions.windowHeight = outH;
+      if (gameOptions.scale > 0.0) gameOptions.scale *= density;
+      if (&gameOptions != &m_GameOptions && m_GameOptions.scale > 0.0) m_GameOptions.scale *= density;
+      m_WindowSize.Set(outW, outH);
+      s_PixelDensity = density;
+    }
+  }
+#endif
 
 #if defined(__ANDROID__) || defined(OPENCLAW_PORTMASTER) || defined(OPENCLAW_STEAMDECK)
   // Phones, tablets, Linux handhelds and the Steam Deck: the same 480 lines
