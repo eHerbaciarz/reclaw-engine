@@ -229,6 +229,9 @@ namespace TitleScroll
 
     void StartMenuUnroll()
     {
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        return;   // (too heavy for the PS2 / Dreamcast: 2 FPS, then out of memory)
+#endif
         g_MenuUnrollPending = true;
     }
 
@@ -323,6 +326,12 @@ namespace TitleScroll
 
     void Play(SDL_Renderer* r)
     {
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        // PS2, Dreamcast: no unrolling scroll before the menu (big pictures
+        // copied and scaled every frame: 2 FPS, then out of memory)
+        STARTUP_TRACE("title scroll: skipped on this console");
+        return;
+#endif
         if (!r || !HasResource(kTitlePath) || !HasResource(kPaperPath)) return;
 
         // placed in output pixels: no game render scale on top (Scale > 1)
