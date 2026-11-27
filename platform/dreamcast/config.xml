@@ -15,7 +15,7 @@
     <SoundVolume>50</SoundVolume>
     <MusicVolume>25</MusicVolume>
     <SoundOn>true</SoundOn>
-    <MusicOn>true</MusicOn>
+    <MusicOn>false</MusicOn>
     <MusicRpcServerPath></MusicRpcServerPath>
   </Audio>
   <Font>

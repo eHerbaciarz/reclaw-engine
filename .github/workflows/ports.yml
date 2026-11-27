@@ -138,6 +138,8 @@ jobs:
           mkdir -p dist/reclaw-dreamcast
           cp build-dc/reclaw.elf dist/reclaw-dreamcast/
           cp -r build-dc/disc dist/reclaw-dreamcast/disc
+          # no 8 MB soundfont in 16 MB of RAM (music is off in config.xml)
+          rm -rf dist/reclaw-dreamcast/disc/music
           cp platform/dreamcast/README.txt dist/reclaw-dreamcast/
           ${KOS_OBJCOPY:-sh-elf-objcopy} -R .stack -O binary build-dc/reclaw.elf /tmp/reclaw.bin
           if command -v scramble >/dev/null || [ -x "$KOS_BASE/utils/scramble/scramble" ]; then
