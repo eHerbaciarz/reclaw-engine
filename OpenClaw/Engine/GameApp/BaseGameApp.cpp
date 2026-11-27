@@ -744,8 +744,13 @@ void BaseGameApp::StepLoop() {
         // moved on the current tick (stationary actors render flat, no shake).
         m_logicTick++;
 
-        // Convert fixed timestep back to milliseconds for game logic
-        uint32 fixedDeltaMs = static_cast<uint32>(m_fixedTimestep * 1000.0);
+        // Convert fixed timestep back to milliseconds for game logic. The
+        // fraction is carried over (16.67 ms = 16, 17, 17, ...): cutting it
+        // off made the whole game run 4% slower than real time.
+        static double s_LogicMsCarry = 0.0;
+        s_LogicMsCarry += m_fixedTimestep * 1000.0;
+        uint32 fixedDeltaMs = static_cast<uint32>(s_LogicMsCarry);
+        s_LogicMsCarry -= fixedDeltaMs;
 #ifdef OPENCLAW_STARTUP_TRACE
         // One step much longer than a frame: what it was spent on (reclaw.log).
         extern Uint64 g_PerfLogicTicks[4];
