@@ -383,6 +383,9 @@ public:
   static bool SmoothSupported();
   static bool Smooth();
   // Options > Graphics: the level in classic 4:3 (false: widescreen)
+  // Options > Graphics: the front plane drawn (CLAW.EXE "No front plane")
+  static bool FrontPlane();
+  static void SetFrontPlane(bool on);
   static bool AspectClassic();
   static void SetAspectClassic(bool classic);
   // Options > Graphics: pixel filter of the level's pictures (experimental;

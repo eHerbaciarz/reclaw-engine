@@ -948,6 +948,8 @@ void HumanView::RegisterAllDelegates()
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetFpsCounterDelegate), EventData_Menu_Set_Fps_Counter::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
+        this, &HumanView::SetFrontPlaneDelegate), EventData_Menu_Set_Front_Plane::sk_EventType);
+    IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetMenuFontDelegate), EventData_Menu_Set_Menu_Font::sk_EventType);
     IEventMgr::Get()->VAddListener(MakeDelegate(
         this, &HumanView::SetDifficultyDelegate), EventData_Menu_Set_Difficulty::sk_EventType);
@@ -1031,6 +1033,8 @@ void HumanView::RemoveAllDelegates()
         this, &HumanView::SetCrtDelegate), EventData_Menu_Set_Crt::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetFpsCounterDelegate), EventData_Menu_Set_Fps_Counter::sk_EventType);
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(
+        this, &HumanView::SetFrontPlaneDelegate), EventData_Menu_Set_Front_Plane::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &HumanView::SetMenuFontDelegate), EventData_Menu_Set_Menu_Font::sk_EventType);
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
@@ -1913,6 +1917,12 @@ void HumanView::SetFpsCounterDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Menu_Set_Fps_Counter> pCast = static_pointer_cast<EventData_Menu_Set_Fps_Counter>(pEventData);
     if (pCast) CrtEffect::SetFpsCounter(pCast->IsEnabled());
+}
+
+void HumanView::SetFrontPlaneDelegate(IEventDataPtr pEventData)
+{
+    shared_ptr<EventData_Menu_Set_Front_Plane> pCast = static_pointer_cast<EventData_Menu_Set_Front_Plane>(pEventData);
+    if (pCast) BaseGameApp::SetFrontPlane(pCast->IsEnabled());
 }
 
 void HumanView::SetDifficultyDelegate(IEventDataPtr pEventData)

@@ -27,6 +27,12 @@ void SDL2TilePlaneSceneNode::VRender(Scene* pScene)
     const TilePlaneProperties* pProperties = pRenderComponent->GetTilePlaneProperties();
     const TileImageList* pImageList = pRenderComponent->GetTileImageList();
 
+    // Options > Graphics > "No front plane" (as in CLAW.EXE)
+    if (!pProperties->isMainPlane && pProperties->name == "Front" && !BaseGameApp::FrontPlane())
+    {
+        return;
+    }
+
     shared_ptr<CameraNode> camera = pScene->GetCamera();
     SDL_Renderer* renderer = pScene->GetRenderer();
 

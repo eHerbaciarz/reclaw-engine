@@ -29,4 +29,12 @@
 // do them in their GPU layers (RECLAW_GPU).
 #if defined(__SWITCH__) || defined(__vita__)
 #define RECLAW_SDL_SMOOTH 1
+#define RECLAW_SDL_VIEW_ZOOM 1
+#endif
+// PC (Windows, Linux, macOS): smoothing only (off by default - sharp pixels
+// as in the original); the view zoom stays with the window's own scale.
+#if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && \
+    (defined(_WIN32) || defined(__linux__) || defined(__APPLE__)) && !defined(RECLAW_SDL_SMOOTH)
+#define RECLAW_SDL_SMOOTH 1
+#define RECLAW_SDL_SMOOTH_DEFAULT_OFF 1
 #endif

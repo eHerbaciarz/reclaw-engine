@@ -148,6 +148,7 @@ protected:
     void SetFilterDelegate(IEventDataPtr pEventData);
     void SetCrtDelegate(IEventDataPtr pEventData);
     void SetFpsCounterDelegate(IEventDataPtr pEventData);
+    void SetFrontPlaneDelegate(IEventDataPtr pEventData);
     void SetMenuFontDelegate(IEventDataPtr pEventData);
     void SetDifficultyDelegate(IEventDataPtr pEventData);
     void OnCheatKey(CheatCode::Key key);

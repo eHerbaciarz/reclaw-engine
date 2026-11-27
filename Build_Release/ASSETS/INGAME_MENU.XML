@@ -682,6 +682,7 @@
     <!-- GRAPHICS PAGE (ReClaw) -->
     <MenuPage>
         <PageName>MenuPage_Options_Graphics</PageName>
+        <AutoLayout top="150" step="35" bottom="395" />
         <KeyboardEvent>
             <KeyType>Escape</KeyType>
             <GeneratedEvent>
@@ -1110,6 +1111,76 @@
             <GeneratedEvent>
                 <Type>ModifyMenuItemState</Type>
                 <MenuItemName>FPS_ON_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: the front plane drawn or not (CLAW.EXE "No front plane") -->
+            <Name>FRONT_ON_BUTTON</Name>
+            <GameFontText en="FRONT PLANE: ON">PIERWSZY PLAN: TAK</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FrontOn</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="291" align="center" />
+            <GeneratedEvent>
+                <Type>SetFrontPlane</Type>
+                <IsEnabled>false</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: the front plane drawn or not (CLAW.EXE "No front plane") -->
+            <Name>FRONT_OFF_BUTTON</Name>
+            <GameFontText en="FRONT PLANE: OFF">PIERWSZY PLAN: NIE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FrontOff</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="291" align="center" />
+            <GeneratedEvent>
+                <Type>SetFrontPlane</Type>
+                <IsEnabled>true</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
                 <State>Active</State>
             </GeneratedEvent>
         </MenuItem>

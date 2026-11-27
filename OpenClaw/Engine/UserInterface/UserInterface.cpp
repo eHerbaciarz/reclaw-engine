@@ -480,6 +480,12 @@ static IEventDataPtr XmlElemToGeneratedEvent(TiXmlElement* pElem)
         ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
         pEventData.reset(new EventData_Menu_Set_Fps_Counter(enabled));
     }
+    else if (eventType == "SetFrontPlane")
+    {
+        bool enabled = true;
+        ParseValueFromXmlElem(&enabled, pElem->FirstChildElement("IsEnabled"));
+        pEventData.reset(new EventData_Menu_Set_Front_Plane(enabled));
+    }
     else if (eventType == "SetFilter")
     {
         int kind = 0;
@@ -2354,7 +2360,8 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             ReEvaluateVisibilityCondition();
         }
         else if (conditionTypeStr.compare(0, 18, "LanguageAvailable:") == 0 ||
-                 conditionTypeStr.compare(0, 5, "Cheat") == 0 || conditionTypeStr == "SpecialModeUnlocked")
+                 conditionTypeStr.compare(0, 5, "Cheat") == 0 || conditionTypeStr == "SpecialModeUnlocked" ||
+                 conditionTypeStr == "FrontOn" || conditionTypeStr == "FrontOff")
         {
             ReEvaluateVisibilityCondition();
         }
@@ -2798,6 +2805,10 @@ void ScreenElementMenuItem::ReEvaluateVisibilityCondition()
     else if (m_VisibilityConditionType == "FontReclaw" || m_VisibilityConditionType == "FontClassic")
     {
         m_bVisible = MenuFont::IsReclaw() == (m_VisibilityConditionType == "FontReclaw");
+    }
+    else if (m_VisibilityConditionType == "FrontOn" || m_VisibilityConditionType == "FrontOff")
+    {
+        m_bVisible = BaseGameApp::FrontPlane() == (m_VisibilityConditionType == "FrontOn");
     }
     else if (m_VisibilityConditionType == "FpsOn" || m_VisibilityConditionType == "FpsOff")
     {

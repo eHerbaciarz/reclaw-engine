@@ -1472,7 +1472,7 @@ bool BaseGameApp::ViewZoomSupported() {
 #if defined(RECLAW_GPU)
   if (ReclawGpu_Active()) return true;
 #endif
-#if defined(RECLAW_SDL_SMOOTH)
+#if defined(RECLAW_SDL_VIEW_ZOOM)
   return s_ViewBaseScale > 0.0;
 #else
   return false;
@@ -1491,7 +1491,11 @@ bool BaseGameApp::SmoothSupported() {
 }
 
 bool BaseGameApp::Smooth() {
+#if defined(RECLAW_SDL_SMOOTH_DEFAULT_OFF)
+  return PortSettings::GetInt("smooth", 0) != 0;
+#else
   return PortSettings::GetInt("smooth", 1) != 0;
+#endif
 }
 
 void BaseGameApp::SetSmooth(bool on) {
@@ -1507,6 +1511,15 @@ void BaseGameApp::SetSmooth(bool on) {
   Image::SetSmooth(on);
   LOG_WARNING(std::string("Pictures ") + (on ? "smoothed" : "sharp"));
 #endif
+}
+
+bool BaseGameApp::FrontPlane() {
+  return PortSettings::GetInt("front_plane", 1) != 0;
+}
+
+void BaseGameApp::SetFrontPlane(bool on) {
+  PortSettings::SetInt("front_plane", on ? 1 : 0);
+  LOG_WARNING(std::string("Front plane ") + (on ? "on" : "off"));
 }
 
 bool BaseGameApp::AspectClassic() {
@@ -1890,7 +1903,7 @@ bool BaseGameApp::InitializeDisplay(GameOptions &gameOptions) {
     }
   }
 #endif
-#if defined(RECLAW_SDL_SMOOTH)
+#if defined(RECLAW_SDL_VIEW_ZOOM)
   // Switch, Vita: the game draws straight onto the screen at its scale;
   // Options > view zoom shows more of the level (a smaller scale).
   if (!m_pRenderTarget && gameOptions.scale > 0.0) {

@@ -3071,6 +3071,76 @@
             </GeneratedEvent>
         </MenuItem>
         <MenuItem>
+            <!-- ReClaw: the front plane drawn or not (CLAW.EXE "No front plane") -->
+            <Name>FRONT_ON_BUTTON</Name>
+            <GameFontText en="FRONT PLANE: ON">PIERWSZY PLAN: TAK</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FrontOn</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="371" align="center" />
+            <GeneratedEvent>
+                <Type>SetFrontPlane</Type>
+                <IsEnabled>false</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
+            <!-- ReClaw: the front plane drawn or not (CLAW.EXE "No front plane") -->
+            <Name>FRONT_OFF_BUTTON</Name>
+            <GameFontText en="FRONT PLANE: OFF">PIERWSZY PLAN: NIE</GameFontText>
+            <Type>Button</Type>
+            <State>Inactive</State>
+            <VisibilityCondition>
+                <ConditionType>FrontOff</ConditionType>
+            </VisibilityCondition>
+            <Position x="320" y="371" align="center" />
+            <GeneratedEvent>
+                <Type>SetFrontPlane</Type>
+                <IsEnabled>true</IsEnabled>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <IsVisible>false</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_OFF_BUTTON</MenuItemName>
+                <State>Inactive</State>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemVisibility</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <IsVisible>true</IsVisible>
+            </GeneratedEvent>
+            <GeneratedEvent>
+                <Type>ModifyMenuItemState</Type>
+                <MenuItemName>FRONT_ON_BUTTON</MenuItemName>
+                <State>Active</State>
+            </GeneratedEvent>
+        </MenuItem>
+        <MenuItem>
             <!-- ReClaw: menu texts in the game's pictures (classic) or in the ReClaw font -->
             <Name>FONT_RECLAW_BUTTON</Name>
             <GameFontText en="FONT: RECLAW">CZCIONKA: RECLAW</GameFontText>
