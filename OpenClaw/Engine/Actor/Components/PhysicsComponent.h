@@ -95,6 +95,7 @@ public:
 
     void SetExternalSourceSpeed(const Point& externalSpeed) { m_ExternalSourceSpeed = externalSpeed; }
     void SetMovingPlatformContact(b2Contact* pContact) { m_pMovingPlatformContact = pContact; }
+    bool IsOnMovingPlatform() const { return m_pMovingPlatformContact != NULL; }
 
     // Communication with IGamePhysics
     Point GetVelocity() { return m_pPhysics->VGetVelocity(m_pOwner->GetGUID()); }

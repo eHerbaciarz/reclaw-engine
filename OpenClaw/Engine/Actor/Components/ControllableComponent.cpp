@@ -858,7 +858,8 @@ void ClawControllableComponent::VOnStopMoving()
 bool ClawControllableComponent::ShouldTeeter(Direction& outGapDir)
 {
     IGamePhysics* pPhysics = g_pApp->GetGameLogic() ? g_pApp->GetGameLogic()->VGetGamePhysics().get() : nullptr;
-    if (!pPhysics || !m_pPhysicsComponent->IsOnGround()) return false;
+    // (design doc: "doesn't happen on pegs/elevators")
+    if (!pPhysics || !m_pPhysicsComponent->IsOnGround() || m_pPhysicsComponent->IsOnMovingPlatform()) return false;
 
     SDL_Rect aabb = pPhysics->VGetAABB(m_pOwner->GetGUID(), true);
     if (aabb.w <= 0 || aabb.h <= 0) return false;
