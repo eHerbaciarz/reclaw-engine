@@ -92,7 +92,7 @@ static bool Ps3CopyFile(const std::string& from, const std::string& to)
 
 #if !defined(_WIN32)
 #include <unistd.h>
-#if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__PS4__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
+#if !defined(__vita__) && !defined(__3DS__) && !defined(__WIIU__) && !defined(__SWITCH__) && !defined(__PSL1GHT__) && !defined(__PS4__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(RECLAW_PS2)
 #include <pwd.h>
 #endif
 #endif
@@ -291,6 +291,10 @@ namespace Platform
         return "web";
 #elif defined(_WIN32)
         return "windows";
+#elif defined(__APPLE__)
+        return "macos";
+#elif defined(RECLAW_PS2)
+        return "ps2";
 #else
         return "linux";
 #endif
@@ -298,7 +302,7 @@ namespace Platform
 
     bool IsConsole()
     {
-#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__)
+#if defined(__SWITCH__) || defined(__vita__) || defined(__3DS__) || defined(__WIIU__) || defined(__PSL1GHT__) || defined(__PS3__) || defined(__PS4__) || defined(RECLAW_PS2)
         return true;
 #elif defined(OPENCLAW_PORTMASTER) || defined(OPENCLAW_STEAMDECK)
         // Linux handhelds and the Steam Deck: full screen, a gamepad, no
@@ -422,9 +426,32 @@ namespace Platform
             MakeDirs(g_BundleDir);
             ExtractAndroidBundle(g_BundleDir);
         }
-#elif defined(_WIN32) || defined(__EMSCRIPTEN__)
+#elif defined(_WIN32) || defined(__EMSCRIPTEN__) || defined(RECLAW_PS2)
+        // (PS2: everything in the folder of reclaw.elf, e.g. mass:/reclaw/)
         g_RootDir = g_BinaryDir;
         g_BundleDir = g_BinaryDir;
+#elif defined(__APPLE__)
+        // macOS: the app's files are in ReClaw.app/Contents/Resources (SDL's
+        // base path); the player's folder is ~/Documents/ReClaw (easy to find
+        // in Finder for CLAW.REZ), or data/ next to a bare binary.
+        g_BundleDir = g_BinaryDir;
+        {
+            struct stat st;
+            if (stat((g_BinaryDir + "data").c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+            {
+                g_RootDir = g_BinaryDir;
+            }
+            else
+            {
+                const char* home = getenv("HOME");
+                if (!home)
+                {
+                    struct passwd* pw = getpwuid(getuid());
+                    home = pw ? pw->pw_dir : ".";
+                }
+                g_RootDir = std::string(home) + "/Documents/ReClaw/";
+            }
+        }
 #else
         // Linux: a portable folder (data/ or save/ next to the binary) or the
         // per-user folder.

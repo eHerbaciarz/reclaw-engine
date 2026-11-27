@@ -389,8 +389,8 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
 
   // Load custom assets
   ShowStartupProgress(m_pRenderer, 92);
-#if !defined(__3DS__) && !defined(__PSL1GHT__)
-  // (3DS, PS3: not all 12 MB of ASSETS.ZIP up front - too little memory)
+#if !defined(__3DS__) && !defined(__PSL1GHT__) && !defined(RECLAW_PS2)
+  // (3DS, PS3, PS2: not all 12 MB of ASSETS.ZIP up front - too little memory)
   STARTUP_TRACE("preload " "*");
   m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
 #endif
@@ -411,8 +411,8 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
     LOG_WARNING("Invalid gameLogicFps value, using default 60 FPS");
     m_fixedTimestep = 1.0 / 60.0;
   }
-#if defined(__3DS__) || defined(__PSL1GHT__)
-  // 3DS, PS3: the game logic (physics, actors) runs 30 times a second - half the
+#if defined(__3DS__) || defined(__PSL1GHT__) || defined(RECLAW_PS2)
+  // 3DS, PS3, PS2: the game logic (physics, actors) runs 30 times a second - half the
   // work for the same game speed; logic_hz=60 in port_settings.txt for 60.
   {
     // With the GPU drawing there is time for 60 (a step costs ~8 ms): at 30
@@ -1192,6 +1192,9 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
 #elif defined(__PSL1GHT__)
     // PS3: ~200 MB for everything (150 MB of cache left no room for the music)
     m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 40u);
+#elif defined(RECLAW_PS2)
+    // PS2: 32 MB of memory for everything
+    m_GameOptions.resourceCacheSize = std::min(m_GameOptions.resourceCacheSize, 4u);
 #endif
     ParseValueFromXmlElem(&m_GameOptions.tempDir,
                           assetsElem->FirstChildElement("TempDir"));
