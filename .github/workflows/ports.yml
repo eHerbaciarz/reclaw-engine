@@ -124,12 +124,14 @@ jobs:
           fi
           # Current KallistiOS (the image's is too old for SDL's PVR renderer):
           # the library is rebuilt from master with the image's compiler
-          ( cd "$KOS_BASE" && cp environ.sh /tmp/kos-environ.sh && \
-            if [ -d .git ]; then git fetch -q --depth 1 origin master && git reset -q --hard FETCH_HEAD; \
-            else rm -rf /tmp/kos-new && git clone -q --depth 1 https://github.com/KallistiOS/KallistiOS /tmp/kos-new && \
-                 cp -a /tmp/kos-new/. "$KOS_BASE"/; fi && \
-            cp /tmp/kos-environ.sh environ.sh && git log -1 --format="KallistiOS %h %ad" 2>/dev/null; \
-            make -s clean >/dev/null 2>&1; make -s -j"$(nproc)" ) 2>&1 | tail -20
+          cp "$KOS_BASE/environ.sh" /tmp/kos-environ.sh
+          rm -rf /tmp/kos-new && git clone -q --depth 1 https://github.com/KallistiOS/KallistiOS /tmp/kos-new
+          git -C /tmp/kos-new log -1 --format="KallistiOS %h %ad"
+          rm -rf "$KOS_BASE" && mv /tmp/kos-new "$KOS_BASE" && cp /tmp/kos-environ.sh "$KOS_BASE/environ.sh"
+          source "$ENV"
+          if ! make -C "$KOS_BASE" -j"$(nproc)" > /tmp/kos-build.log 2>&1; then
+            grep -nE "error|Error" /tmp/kos-build.log | head -40; tail -30 /tmp/kos-build.log; exit 1
+          fi
           source "$ENV"
           make -C "$KOS_PORTS/libGL" uninstall >/dev/null 2>&1 || true
           # GPF's SDL2 compiles its OpenGL glue (GLdc headers) even without OpenGL
