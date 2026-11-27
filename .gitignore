@@ -115,3 +115,4 @@ build-steamdeck/
 build-portmaster/
 build-windows/
 *.sdf
+scripts/test_switch.json

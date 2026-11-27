@@ -19,14 +19,20 @@ jobs:
     name: Nintendo Switch (.nro)
     runs-on: ubuntu-latest
     container: devkitpro/devkita64:latest
+    permissions:
+      contents: write   # the "test-switch" release (claw-experimental)
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Switch libraries
         run: |
-          dkp-pacman -Sy --noconfirm --needed \
-            switch-sdl2 switch-sdl2_mixer switch-sdl2_image \
-            switch-sdl2_ttf switch-sdl2_gfx switch-zlib
+          # (pkg.devkitpro.org sometimes answers 403: three tries)
+          for i in 1 2 3; do
+            dkp-pacman -Sy --noconfirm --needed \
+              switch-sdl2 switch-sdl2_mixer switch-sdl2_image \
+              switch-sdl2_ttf switch-sdl2_gfx switch-zlib && break
+            sleep 30
+          done
           (apt-get update && apt-get install -y --no-install-recommends zip) || true
 
       - name: Build
@@ -41,6 +47,30 @@ jobs:
         with:
           name: reclaw-switch
           path: dist/
+
+      # Test builds: every push to claw-experimental replaces the files of the
+      # "test-switch" pre-release (scripts/test_switch.ps1 downloads them)
+      - name: Test release files
+        if: github.ref == 'refs/heads/claw-experimental' && github.event_name == 'push'
+        run: |
+          cp platform/switch/reclaw.nro dist/reclaw.nro
+          (cd dist && zip -qr reclaw-switch.zip switch)
+          printf '%s\n' "${GITHUB_SHA}" > dist/commit.txt
+      - name: Test release
+        if: github.ref == 'refs/heads/claw-experimental' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-switch
+          name: "Test build (Switch) - claw-experimental"
+          prerelease: true
+          make_latest: false
+          body: |
+            Automatic test build of claw-experimental, commit ${{ github.sha }}.
+            Not a release: for testing only (scripts/test_switch.ps1).
+          files: |
+            dist/reclaw.nro
+            dist/reclaw-switch.zip
+            dist/commit.txt
 
   linux:
     name: Linux (native SDL2)
