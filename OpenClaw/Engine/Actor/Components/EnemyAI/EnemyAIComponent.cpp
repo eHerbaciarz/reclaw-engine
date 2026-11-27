@@ -1,4 +1,5 @@
 #include "EnemyAIComponent.h"
+#include "TigerGuardAIStateComponent.h"
 #include "EnemyAIStateComponent.h"
 #include "../RenderComponent.h"
 #include "../PositionComponent.h"
@@ -234,7 +235,8 @@ void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActor
 void EnemyAIComponent::VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId)
 {
     // If he died we do not care
-    if (newHealth >= 0)
+    auto pTiger = MakeStrongPtr(m_pOwner->GetComponent<TigerGuardAIStateComponent>(TigerGuardAIStateComponent::g_Name));
+    if (newHealth >= 0 && !(pTiger && pTiger->IsUnflinching()))
     {
         if (HasState("TakeDamageState"))
         {
@@ -267,6 +269,13 @@ bool EnemyAIComponent::VCanResistDamage(DamageType damageType, Point impactPoint
     if (m_bPhased)
     {
         return true;
+    }
+    if (auto pTiger = MakeStrongPtr(m_pOwner->GetComponent<TigerGuardAIStateComponent>(TigerGuardAIStateComponent::g_Name)))
+    {
+        if (pTiger->TryBlock(damageType))
+        {
+            return true;
+        }
     }
     if (HasState(EnemyAIState_Parry))
     {

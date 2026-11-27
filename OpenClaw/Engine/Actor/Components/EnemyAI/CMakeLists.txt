@@ -8,6 +8,8 @@ target_sources(openclaw
     ${CMAKE_CURRENT_SOURCE_DIR}/EnemyAIStateComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PunkRatAIStateComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PunkRatAIStateComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TigerGuardAIStateComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TigerGuardAIStateComponent.h
 )
 
 add_subdirectory(Gabriel)

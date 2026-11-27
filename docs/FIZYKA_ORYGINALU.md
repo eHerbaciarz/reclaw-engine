@@ -70,6 +70,18 @@ stopy są na ziemi.
   (0x44f650 → 0x441130), po wylądowaniu wraca do zwykłego zachowania
   (`LS_HOME`, 0x44f1e0). **W ReClaw jeszcze nie ma.**
 
+## Kameleony i tygrysy (wdrożone)
+
+- Kameleon (CChameleon, 0x422850–0x423220): przy wyborze ruchu 1/3 szansy na
+  zniknięcie (alfa −10 co 5 ms), 0–1,5 s niewidoczny, pojawia się w losowym
+  miejscu ścieżki (nie tam, gdzie kapitan), 1 s przerwy. Język: 10 obrażeń.
+- Tygrys (CTigerGuard, 0x497e30–0x499430): decyzja co 1,25–2 s: 40% skok-cios
+  (strike3: 0,5 s przysiad, 300 px/s, 20 obrażeń), 40% seria 2–4 cięć
+  (strike1, 15), 20% salto w przód (250 px/s, ok. 100 px) i cięcie; salto w tył
+  odsuwa. Blok (BLOCK, 0,25 s): 40% ciosów kapitana z przodu, nie częściej niż
+  co 0,5 s. Po trafieniu od razu kontra (50% cięcia, 50% skok). Zdrowie 15
+  (w ReClaw ×2 jak miecz: 30).
+
 ## Do zrobienia
 
 - **Bossowie, poziom 13–14 (tygrysy, kameleony)** – jeszcze nie analizowane.
