@@ -15,6 +15,7 @@
 //   cmd TEXT              console command (teleport X Y, catnip, ...)
 //   shot NAME             save the next frame as NAME.bmp
 //   custom FILE           start custom/FILE (.WWD)
+//   damage NAME N         damage the actor nearest to Claw whose name has NAME
 //   quit                  end the game
 //
 // Windows only: RECLAW_MIRROR_KEYS=1 - while the ReClaw window is NOT focused,
@@ -198,6 +199,24 @@ namespace
                 CommandHandler::HandleCommand(rest.c_str(), (void*)g_pApp->GetHumanView()->GetConsole().get());
         }
         else if (!strcmp(cmd, "shot")) s_Shot = rest;
+        else if (!strcmp(cmd, "damage"))
+        {
+            // damage NAME N: damage the nearest actor whose name has NAME (from Claw)
+            char name[128] = {0}; int n = 10;
+            sscanf(rest.c_str(), "%127s %d", name, &n);
+            StrongActorPtr c = g_pApp->GetGameLogic()->GetClawActor();
+            StrongActorPtr best; double bestD = 1e18;
+            for (const auto &kv : g_pApp->GetGameLogic()->GetActorMap())
+            {
+                const StrongActorPtr &a = kv.second;
+                if (!a || !c || a->GetName().find(name) == std::string::npos || !a->GetPositionComponent()) continue;
+                double d = (a->GetPositionComponent()->GetPosition() - c->GetPositionComponent()->GetPosition()).Length();
+                if (d < bestD) { bestD = d; best = a; }
+            }
+            if (best)
+                if (auto hc = MakeStrongPtr(best->GetComponent<HealthComponent>(HealthComponent::g_Name)))
+                    hc->AddHealth(-n, DamageType_MeleeAttack, best->GetPositionComponent()->GetPosition(), c ? c->GetGUID() : INVALID_ACTOR_ID);
+        }
         else if (!strcmp(cmd, "hurt"))
         {
             // hurt N [TYPE]: damage Claw by N (TYPE: DamageType number, default 0)

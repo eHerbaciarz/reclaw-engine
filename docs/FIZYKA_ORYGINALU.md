@@ -82,6 +82,14 @@ stopy są na ziemi.
   co 0,5 s. Po trafieniu od razu kontra (50% cięcia, 50% skok). Zdrowie 15
   (w ReClaw ×2 jak miecz: 30).
 
+## Klejnot bossa (wdrożone)
+
+Po śmierci bossa (0x40eac0) powstaje `EndLevelGem` w miejscu bossa i leci do
+punktu zapisanego w obiekcie bossa w pliku poziomu (pola SpeedX/SpeedY, np.
+Raux: 23935,3800). Grawitacja 100 px/s², prędkość startowa najmniejsza, jaka
+pozwala dolecieć (0x43e2e0). Po dotarciu zostaje w miejscu jako zwykły klejnot;
+w locie nie można go podnieść.
+
 ## Do zrobienia
 
 - **Bossowie, poziom 13–14 (tygrysy, kameleony)** – jeszcze nie analizowane.

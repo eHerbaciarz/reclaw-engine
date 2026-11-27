@@ -1,3 +1,5 @@
+#include "../Actor/Components/PickupComponents/PickupComponent.h"
+#include <cstring>
 #include "Converters.h"
 #include "../Events/Events.h"
 
@@ -193,6 +195,21 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
     imagesRootPath.insert(0, 1, '/');
 
     std::vector<std::string> notLoadedActorList;
+
+    // CLAW.EXE: a boss object's SpeedX/SpeedY is where its gem flies to.
+    EndLevelPickupComponent::SetBossGemTarget(Point(0, 0));
+    for (uint32 actorIdx = 0; actorIdx < actorsCount; actorIdx++)
+    {
+        const WwdObject& o = wwdActors[actorIdx];
+        static const char* kBosses[] = { "Raux", "Katherine", "Wolvington", "Gabriel", "Marrow", "Aquatis", "RedTail", "Omar" };
+        for (const char* boss : kBosses)
+        {
+            if (o.logic && strcmp(o.logic, boss) == 0 && (o.speedX != 0 || o.speedY != 0))
+            {
+                EndLevelPickupComponent::SetBossGemTarget(Point(o.speedX, o.speedY));
+            }
+        }
+    }
 
     for (uint32 actorIdx = 0; actorIdx < actorsCount; actorIdx++)
     {

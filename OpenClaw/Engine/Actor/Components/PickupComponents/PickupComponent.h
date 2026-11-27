@@ -195,10 +195,26 @@ public:
     virtual const char* VGetName() const { return g_Name; }
 
     virtual bool VOnApply(Actor* pActorWhoPickedThis);
+    virtual void VUpdate(uint32 msDiff) override;
+
+    // CLAW.EXE (EndLevelGem, 0x40eac0, 0x43dd60, 0x43e2e0): a boss's gem
+    // flies on a slow arc (gravity 100 px/s^2, the lowest launch speed)
+    // to a fixed spot given by the boss object in the level file (its
+    // SpeedX/SpeedY) and stays there; it cannot be picked up in flight.
+    // Set while the level loads; (0,0) = no boss on this level.
+    static void SetBossGemTarget(const Point& target) { s_BossGemTarget = target; }
 
 protected:
     virtual bool VDelegateInit(TiXmlElement* data);
     virtual void VCreateInheritedXmlElements(TiXmlElement* pBaseElement);
+
+private:
+    static Point s_BossGemTarget;
+    int m_FlightState = 0;      // 0 not started, 1 flying, 2 done / not a flight
+    double m_FlightTime = 0.0;
+    double m_FlightDuration = 0.0;
+    Point m_FlightStart;
+    Point m_FlightVelocity;     // px/s
 };
 
 #endif

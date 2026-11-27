@@ -283,9 +283,13 @@ bool EnemyAIComponent::VCanResistDamage(DamageType damageType, Point impactPoint
             MakeStrongPtr(m_pOwner->GetComponent<ParryEnemyAIStateComponent>());
         assert(pParryStateComponent);
 
-        assert(GetCurrentState() != NULL);
+        BaseEnemyAIStateComponent* pCurrent = GetCurrentState();
+        if (pCurrent == NULL)
+        {
+            return false;   // between states (e.g. a boss before its fight)
+        }
 
-        return pParryStateComponent->CanParry(damageType, GetCurrentState()->VGetStateType());
+        return pParryStateComponent->CanParry(damageType, pCurrent->VGetStateType());
     }
 
     return false;

@@ -11,6 +11,7 @@
 #include "../GlitterComponent.h"
 
 #include "../../../GameApp/BaseGameApp.h"
+#include "../../../GameApp/BaseGameLogic.h"
 #include "../../../UserInterface/HumanView.h"
 #include "../../../Scene/SceneNodes.h"
 
@@ -524,8 +525,74 @@ bool AmmoPickupComponent::VOnApply(Actor* pActorWhoPickedThis)
 //
 //=====================================================================================================================
 
+Point EndLevelPickupComponent::s_BossGemTarget(0, 0);
+
 EndLevelPickupComponent::EndLevelPickupComponent()
 { }
+
+void EndLevelPickupComponent::VUpdate(uint32 msDiff)
+{
+    if (m_FlightState == 2)
+    {
+        return;
+    }
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    if (m_FlightState == 0)
+    {
+        m_FlightState = 2;
+        // only gems that appear during play on a boss level (the boss's)
+        if (s_BossGemTarget.x == 0 && s_BossGemTarget.y == 0)
+        {
+            return;
+        }
+        m_FlightStart = m_pOwner->GetPositionComponent()->GetPosition();
+        const double g = 100.0;
+        const double dx = s_BossGemTarget.x - m_FlightStart.x;
+        const double dy = s_BossGemTarget.y - m_FlightStart.y;
+        const double dist = sqrt(dx * dx + dy * dy);
+        const double gd = g * dy;
+        const double v2 = std::max(0.0, g * dist - gd);    // lowest launch speed, squared
+        if (sqrt(v2) < 0.1 || dist < 1.0)
+        {
+            return;
+        }
+        const double t2 = 2.0 * (v2 + gd) / (g * g);
+        if (t2 <= 0.0)
+        {
+            return;
+        }
+        m_FlightDuration = sqrt(t2);
+        m_FlightVelocity = Point(dx / m_FlightDuration, (dy - 0.5 * g * t2) / m_FlightDuration);
+        m_FlightTime = 0.0;
+        m_FlightState = 1;
+        pPhysics->VSetGravityScale(m_pOwner->GetGUID(), 0.0f);
+        pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
+    }
+
+    // flying
+    m_FlightTime = std::min(m_FlightDuration, m_FlightTime + msDiff / 1000.0);
+    const double t = m_FlightTime;
+    Point pos(m_FlightStart.x + m_FlightVelocity.x * t,
+              m_FlightStart.y + m_FlightVelocity.y * t + 0.5 * 100.0 * t * t);
+    pPhysics->VSetPosition(m_pOwner->GetGUID(), pos);
+    pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
+    if (m_FlightTime >= m_FlightDuration)
+    {
+        // arrived: it hangs there; Claw may already be standing on the spot
+        m_FlightState = 2;
+        pPhysics->VSetPosition(m_pOwner->GetGUID(), s_BossGemTarget);
+        StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+        if (pClaw)
+        {
+            SDL_Rect gem = pPhysics->VGetAABB(m_pOwner->GetGUID(), false);
+            SDL_Rect claw = pPhysics->VGetAABB(pClaw->GetGUID(), true);
+            if (SDL_HasIntersection(&gem, &claw))
+            {
+                VOnActorEnteredTrigger(pClaw.get(), FixtureType_Trigger);
+            }
+        }
+    }
+}
 
 bool EndLevelPickupComponent::VDelegateInit(TiXmlElement* data)
 {
@@ -541,6 +608,10 @@ void EndLevelPickupComponent::VCreateInheritedXmlElements(TiXmlElement* pBaseEle
 
 bool EndLevelPickupComponent::VOnApply(Actor* pActorWhoPickedThis)
 {
+    if (m_FlightState == 1)
+    {
+        return false;   // still flying (CLAW.EXE: not a pickup yet)
+    }
     // Only Claw should be able to pick this
     shared_ptr<ClawControllableComponent> pClawComponent = MakeStrongPtr(pActorWhoPickedThis->GetComponent<ClawControllableComponent>());
     assert(pClawComponent != nullptr && "Only claw should be able to pick end level item !");
