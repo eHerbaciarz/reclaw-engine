@@ -18,6 +18,27 @@ namespace ClawLevelUtil
         auto findIt = pLevelMetadata->logicToActorPrototypeMap.find(logic);
         if (findIt == pLevelMetadata->logicToActorPrototypeMap.end())
         {
+            // A custom level may use objects the original level it borrows its
+            // graphics from never had (a path elevator in a level 1 map...):
+            // CLAW.EXE's object logics work in every level, so take the
+            // prototype another level defines for it (the object's own
+            // pictures come from the .WWD).
+            BaseGameLogic* pLogic = g_pApp->GetGameLogic();
+            if (pLogic && pLogic->GetCurrentLevelData() && pLogic->GetCurrentLevelData()->IsCustomLevel())
+            {
+                for (int other = 1; other <= 14; ++other)
+                {
+                    if (other == levelNumber) continue;
+                    shared_ptr<LevelMetadata> pOther = g_pApp->GetLevelMetadata(other);
+                    if (!pOther) continue;
+                    auto it = pOther->logicToActorPrototypeMap.find(logic);
+                    if (it != pOther->logicToActorPrototypeMap.end())
+                    {
+                        LOG_WARNING("Custom level: " + logic + " from level " + ToStr(other));
+                        return it->second;
+                    }
+                }
+            }
             return ActorPrototype_None;
         }
 

@@ -1746,6 +1746,11 @@ void BaseGameLogic::CreateSinglePhysicsTile(int x, int y, const TileCollisionPro
         Point position = Point(x + tileCollisionRect.collisionRect.x,
             y + tileCollisionRect.collisionRect.y);
         Point size = Point(tileCollisionRect.collisionRect.w, tileCollisionRect.collisionRect.h);
+#if !defined(__EMSCRIPTEN__)
+        static const bool s_dump = getenv("RECLAW_LADDERS") != NULL;
+        if (s_dump && tileCollisionRect.collisionType == CollisionType_Climb)
+            fprintf(stderr, "[ladder] %d %d %d %d\n", (int)position.x, (int)position.y, (int)size.x, (int)size.y);
+#endif
 
         m_pPhysics->VAddStaticGeometry(
             position, 

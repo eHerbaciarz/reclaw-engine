@@ -1,6 +1,7 @@
 #ifndef HUMANVIEW_H_
 #define HUMANVIEW_H_
 
+#include "CustomLevels.h"
 #include "CheatCode.h"
 #include <SDL2/SDL.h>
 #include "../SharedDefines.h"
@@ -108,6 +109,9 @@ protected:
     void StartNewGameDelegate(IEventDataPtr pEventData);
     void PlayMoviesDelegate(IEventDataPtr pEventData);
     void LoadCustomLevelDelegate(IEventDataPtr pEventData);
+public:
+    void StartCustomLevel(const CustomLevels::Entry& level);   // also Autoplay
+protected:
     void WorldFinishedLoadingDelegate(IEventDataPtr pEventData);
 
     // Level start: the view is revealed from left to right like in the

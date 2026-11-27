@@ -116,3 +116,4 @@ build-portmaster/
 build-windows/
 *.sdf
 scripts/test_switch.json
+build-linux/

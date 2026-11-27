@@ -26,6 +26,12 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 
 | Funkcja | Co sprawdzić | Stan |
 |---|---|---|
+| Ruch jak w oryginale (27.11, `docs/FIZYKA_ORYGINALU.md`) | chód wolniejszy (225 px/s), rozpęd po 1,5 s biegu (285), skok rośnie z trzymaniem (45–145 px, po rozpędzie 170), wolnieje ku górze, w powietrzu 225; czy wszystkie znane skoki na poziomach wychodzą | sprawdzone skryptem na PC, nie na konsoli |
+| Krawędzie (27.11) | po lądowaniu na brzegu kapitan nie zsuwa się; chodzenie po łączeniach kafelków bez zahaczania | sprawdzone skryptem (poziom 1) |
+| Drabina (27.11) | na szczycie staje, „w górę” nic nie robi, „w dół” schodzi; skok z drabiny | sprawdzone skryptem (poziom 1) |
+| Śmierć (27.11) | od wroga: animacja upadku, spada z miejsca przez podłogę; kolce/woda: jak dawniej; odrodzenie | sprawdzone skryptem (obrażenia z konsoli) |
+| Otwarcie poziomu (27.11) | wałek 100 px jedzie od lewej do prawej z zwiniętym obrazem poziomu, dźwięk flagi; płynność na 3DS/Vicie | sprawdzone zrzutami na PC |
+| Własne poziomy (27.11) | wszystkie 16 od MK się wczytują (wcześniej 6 nie startowało lub wysypywało grę); czy da się je przejść; windy w TRC3 stoją (brak ścieżki w pliku) | wczytanie sprawdzone skryptem |
 | Zapis stanu (ZL / ZR / trzymane R) | zapis, wczytanie, cofanie; znajdźki, skrzynie, wrogowie, winda, lina, śmierć, walka z bossem (Marrow), płynność cofania | nieprzetestowane |
 | Plansza Opcje → Sterowanie | czy się otwiera, czy grafika dobrze leży, powrót B | nieprzetestowane |
 | Ekran ładowania | polska plansza 4:3 z REZ na panoramicznym tle, przejście na brzegach | nieprzetestowane |

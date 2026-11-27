@@ -215,7 +215,8 @@ void AnimationComponent::VPostInit()
         _currentAnimation = _animationMap.begin()->second;
     }
 
-    if (m_PauseOnStart)
+    // (an object of a custom level can name animations its level lacks)
+    if (m_PauseOnStart && _currentAnimation)
     {
         _currentAnimation->Pause();
     }
@@ -240,7 +241,7 @@ void AnimationComponent::VUpdate(uint32 msDiff)
 
 bool AnimationComponent::SetAnimation(const std::string& animationName)
 {
-    if (animationName == _currentAnimation->GetName())
+    if (_currentAnimation && animationName == _currentAnimation->GetName())
     {
         //LOG("Trying to set the same animation: " + animationName);
         return true;
@@ -286,18 +287,21 @@ bool AnimationComponent::HasAnimation(std::string& animName)
 
 void AnimationComponent::PauseAnimation()
 {
+    if (!_currentAnimation) return;
     _currentAnimation->Pause();
     NotifyAnimationPaused(_currentAnimation.get());
 }
 
 void AnimationComponent::ResumeAnimation()
 {
+    if (!_currentAnimation) return;
     _currentAnimation->Resume();
     NotifyAnimationResumed(_currentAnimation.get());
 }
 
 void AnimationComponent::ResetAnimation()
 {
+    if (!_currentAnimation) return;
     _currentAnimation->Reset();
 }
 
@@ -359,11 +363,13 @@ void AnimationComponent::OnAnimationAtLastFrame()
 
 void AnimationComponent::SetDelay(uint32 msDelay)
 {
+    if (!_currentAnimation) return;
     _currentAnimation->SetDelay(msDelay);
 }
 
 void AnimationComponent::SetReverseAnimation(bool reverse)
 {
+    if (!_currentAnimation) return;
     _currentAnimation->SetReverseAnim(reverse);
 }
 

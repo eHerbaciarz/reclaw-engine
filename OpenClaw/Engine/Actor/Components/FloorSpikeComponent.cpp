@@ -43,6 +43,13 @@ void FloorSpikeComponent::VPostInit()
     assert(pAnimComponent != nullptr);
 
     pAnimComponent->AddObserver(this);
+    // A custom level can put spikes into a level whose pictures have none:
+    // no animation then, the spikes simply stay as they are.
+    if (!pAnimComponent->GetCurrentAnimation())
+    {
+        LOG_WARNING("Floor spike without an animation: " + m_pOwner->GetName());
+        return;
+    }
     pAnimComponent->GetCurrentAnimation()->SetDelay(m_StartDelay);
     pAnimComponent->GetCurrentAnimation()->SetReverseAnim(true);
 

@@ -736,10 +736,24 @@ void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
     fixtureDef.filter.categoryBits = CollisionFlag_Controller;
     pBody->CreateFixture(&fixtureDef);
 
-    bodyShape.m_p.Set(0, (b2BodySize.y / 2 - b2BodySize.x / 2) + PixelsToMeters(10));
-    fixtureDef.shape = &bodyShape;
-    //fixtureDef.friction = 100.0;
-    pBody->CreateFixture(&fixtureDef);
+    // Feet: a flat sole with small bevelled corners instead of a round one.
+    // On a circle Claw slid off every ledge as soon as his centre passed the
+    // edge; in the original he stands as long as his feet are on the ground.
+    // The bevels let him glide over the seams between tiles.
+    {
+        const float hw = b2BodySize.x / 2 - PixelsToMeters(2);
+        const float top = (b2BodySize.y / 2 - b2BodySize.x / 2) + PixelsToMeters(10);
+        const float bottom = top + b2BodySize.x / 2;
+        const float bev = PixelsToMeters(4);
+        b2Vec2 v[6] = {
+            b2Vec2(-hw, top), b2Vec2(hw, top),
+            b2Vec2(hw, bottom - bev), b2Vec2(hw - bev, bottom),
+            b2Vec2(-hw + bev, bottom), b2Vec2(-hw, bottom - bev) };
+        b2PolygonShape sole;
+        sole.Set(v, 6);
+        fixtureDef.shape = &sole;
+        pBody->CreateFixture(&fixtureDef);
+    }
 
     b2PolygonShape polygonShape;
     polygonShape.SetAsBox((b2BodySize.x / 2) - PixelsToMeters(2), (b2BodySize.y - b2BodySize.x) / 2);

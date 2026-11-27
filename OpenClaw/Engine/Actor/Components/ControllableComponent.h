@@ -119,6 +119,7 @@ class ClawControllableComponent :
     public HealthObserver
 {
 public:
+    int GetClawStateId() const { return (int)m_State; }   // Autoplay (desktop test runs)
     // Save states (SaveState/ComponentStates.cpp)
     virtual void VSerializeState(StateArchive& ar) override;
     bool IsInBossFight() const { return m_bIsInBossFight; }

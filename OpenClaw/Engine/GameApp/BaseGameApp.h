@@ -164,10 +164,15 @@ struct GlobalOptions {
     loadAllLevelSaves = false;
     showPosition = true;
     gameLogicFps = 60;  // Game logic update rate (independent of display FPS)
+    originalMovement = true;
   }
 
   double maxJumpSpeed;
   double maxFallSpeed;
+  // Claw moves like in CLAW.EXE: walk 225 px/s, 285 after 1.5 s of running,
+  // a jump that rises on a curve and grows while the button is held
+  // (PhysicsComponent). false = the old OpenClaw movement.
+  bool originalMovement;
   int idleSoundQuoteIntervalMs;
   double platformSpeedModifier;
   float runSpeed;

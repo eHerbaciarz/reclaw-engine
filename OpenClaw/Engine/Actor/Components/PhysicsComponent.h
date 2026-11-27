@@ -178,6 +178,21 @@ private:
     std::vector<const b2Body*> m_OverlappingKinematicBodiesList;
     std::vector<const b2Fixture*> m_OverlappingLaddersList;
     std::vector<const b2Fixture*> m_OverlappingGroundsList;
+
+    float LadderTopY();
+    float FootOffset();
+    bool LadderTopReached(float tolerance);
+
+    // Original (CLAW.EXE) movement, GlobalOptions::originalMovement:
+    // run build-up and the held jump (see VUpdate).
+    int m_RunMs = 0;               // running on the ground in one direction
+    int m_RunDir = 0;              // -1 / 1
+    bool m_OrigJump = false;       // rising part of a jump
+    int m_OrigJumpHoldMs = 0;      // how long the button was held (max 250)
+    float m_OrigJumpRate = 0.58f;  // px of height per ms held
+    float m_OrigJumpTarget = 0;    // height the jump will reach (px)
+    float m_OrigJumpLastHeight = 0;
+    int m_OrigJumpFrames = 0;
 };
 
 #endif

@@ -74,6 +74,15 @@ void PathElevatorComponent::VPostInit()
         }
     }
 
+    // (a custom level's elevator can come without a path: it stands still)
+    if (m_Properties.elevatorPath.empty())
+    {
+        LOG_WARNING("Path elevator without a path: " + m_pOwner->GetName());
+        ElevatorStepDef wait;
+        wait.isWaiting = true;
+        wait.waitMsTime = 1000000000;
+        m_Properties.elevatorPath.push_back(wait);
+    }
     m_CurrentStepDef = m_Properties.elevatorPath[m_CurrentStepDefIdx];
 
     // From px/s to m/s
@@ -139,6 +148,15 @@ void PathElevatorComponent::ChangeToNextStep()
         m_CurrentStepDefIdx++;
     }
 
+    // (a custom level's elevator can come without a path: it stands still)
+    if (m_Properties.elevatorPath.empty())
+    {
+        LOG_WARNING("Path elevator without a path: " + m_pOwner->GetName());
+        ElevatorStepDef wait;
+        wait.isWaiting = true;
+        wait.waitMsTime = 1000000000;
+        m_Properties.elevatorPath.push_back(wait);
+    }
     m_CurrentStepDef = m_Properties.elevatorPath[m_CurrentStepDefIdx];
 
     if (m_CurrentStepDef.direction == Direction_None)

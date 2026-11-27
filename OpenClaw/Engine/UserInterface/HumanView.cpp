@@ -1806,6 +1806,11 @@ void HumanView::LoadCustomLevelDelegate(IEventDataPtr pEventData)
               Lang::Tr("(brak ścieżek LEVELx w pliku .WWD).", "(no LEVELx paths in the .WWD file).") });
         return;
     }
+    StartCustomLevel(level);
+}
+
+void HumanView::StartCustomLevel(const CustomLevels::Entry& level)
+{
     LOG_WARNING("Loading custom level " + level.path + " (assets of level " + ToStr(level.baseLevel) +
                 ", start " + ToStr(level.startX) + "," + ToStr(level.startY) + ")");
 
@@ -2198,10 +2203,14 @@ void HumanView::WorldFinishedLoadingDelegate(IEventDataPtr pEventData)
     m_bLevelRevealPending = true;
 }
 
-// The original game opens every level by uncovering the view from the left
-// edge to the right (~1.5 s) while the game already runs.
+// The original game opens every level like a map being unrolled (CLAW.EXE,
+// CFaderMgr, effect 0, mode 1): a roll 100 px thick runs from the left edge to
+// the right in 1.5 s with the FLAGWAVE sound; left of it the level, under it
+// the level's own picture curled round the roll (darker towards its edges),
+// right of it black.
 void HumanView::RenderLevelReveal(SDL_Renderer* pRenderer)
 {
+    if (m_bCapturingEffectFrame) return;
     const uint32 kRevealMs = 1500;
     // The reveal advances by at most 33 ms per frame, so the slow first frames
     // of a level (pictures and sounds still loading) do not make it jump.
@@ -2213,6 +2222,10 @@ void HumanView::RenderLevelReveal(SDL_Renderer* pRenderer)
         m_LevelRevealStart = now ? now : 1;
         s_LastTick = now;
         s_Elapsed = 0;
+        // the level as it is now: what the roll carries
+        CaptureEffectFrame();
+        SoundInfo soundInfo(SOUND_GAME_FLAG_WAVE);
+        IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Request_Play_Sound(soundInfo)));
     }
     if (m_LevelRevealStart == 0)
     {
@@ -2224,6 +2237,7 @@ void HumanView::RenderLevelReveal(SDL_Renderer* pRenderer)
     if (elapsed >= kRevealMs)
     {
         m_LevelRevealStart = 0;
+        DropEffectFrame();
         return;
     }
 
@@ -2240,10 +2254,44 @@ void HumanView::RenderLevelReveal(SDL_Renderer* pRenderer)
     SDL_RenderGetScale(pRenderer, &scaleX, &scaleY);
     SDL_RenderSetScale(pRenderer, 1.0f, 1.0f);
 
-    int revealed = (int)((int64_t)w * elapsed / kRevealMs);
-    SDL_Rect cover = { revealed, 0, w - revealed, h };
+    const Point gameScale = g_pApp->GetScale();
+    const int rollD = std::max(8, (int)(100 * gameScale.x + 0.5));
+    // the roll's left edge goes from 0 to w - rollD
+    const int rollX = (int)((int64_t)(w - rollD) * elapsed / kRevealMs);
+    SDL_Rect cover = { rollX + rollD, 0, w - rollX - rollD, h };
     SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
-    SDL_RenderFillRect(pRenderer, &cover);
+    if (cover.w > 0) SDL_RenderFillRect(pRenderer, &cover);
+
+    if (m_pEffectFrame)
+    {
+        // The paper still on the roll: the strip of the level right after
+        // its edge, wrapped round a cylinder (each column of the roll shows
+        // the paper at the arc under it), shaded towards the rims.
+        const double radius = rollD / 2.0;
+        int fw = w, fh = h;
+        SDL_QueryTexture(m_pEffectFrame, NULL, NULL, &fw, &fh);
+        const double fx = fw / (double)w;
+        SDL_SetTextureBlendMode(m_pEffectFrame, SDL_BLENDMODE_NONE);
+        for (int x = 0; x < rollD; ++x)
+        {
+            const double u = ((x + 0.5) / rollD) * 2.0 - 1.0;
+            const double theta = std::asin(std::max(-1.0, std::min(1.0, u)));
+            int srcX = rollX + (int)(radius + theta * radius);
+            srcX = std::max(0, std::min(w - 1, srcX));
+            const double light = 0.22 + 0.78 * std::cos(theta) * (1.0 - 0.2 * std::max(0.0, u));
+            const Uint8 l = (Uint8)std::max(0.0, std::min(255.0, 255.0 * light));
+            SDL_SetTextureColorMod(m_pEffectFrame, l, l, l);
+            SDL_Rect src = { std::min(fw - 1, (int)(srcX * fx)), 0, std::max(1, (int)fx), fh };
+            SDL_Rect dst = { rollX + x, 0, 1, h };
+            SDL_RenderCopy(pRenderer, m_pEffectFrame, &src, &dst);
+        }
+        SDL_SetTextureColorMod(m_pEffectFrame, 255, 255, 255);
+    }
+    else
+    {
+        SDL_Rect roll = { rollX, 0, rollD, h };
+        SDL_RenderFillRect(pRenderer, &roll);
+    }
 
     SDL_RenderSetScale(pRenderer, scaleX, scaleY);
 }

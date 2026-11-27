@@ -1,3 +1,4 @@
+#include "../Util/Autoplay.h"
 #include "../Util/MemStats.h"
 #include "../PortFeatures.h"
 #include <map>
@@ -752,6 +753,7 @@ void BaseGameApp::StepLoop() {
         const Uint64 stepL0 = g_PerfLogicTicks[0], stepL1 = g_PerfLogicTicks[1], stepL2 = g_PerfLogicTicks[2], stepL3 = g_PerfLogicTicks[3];
         const int stepState = (int)m_pGame->GetGameState();
 #endif
+        Autoplay::Tick(fixedDeltaMs);     // scripted test runs (desktop, RECLAW_AUTOPLAY)
         m_pGame->VOnUpdate(fixedDeltaMs);
 #ifdef OPENCLAW_STARTUP_TRACE
         {
@@ -1298,6 +1300,9 @@ bool BaseGameApp::LoadGameOptions(const char *inConfigFile) {
         &m_GlobalOptions.maxFallSpeed,
         pGlobalOptionsRootElem->FirstChildElement("MaxFallSpeed"));
     ParseValueFromXmlElem(
+        &m_GlobalOptions.originalMovement,
+        pGlobalOptionsRootElem->FirstChildElement("OriginalMovement"));
+    ParseValueFromXmlElem(
         &m_GlobalOptions.idleSoundQuoteIntervalMs,
         pGlobalOptionsRootElem->FirstChildElement("IdleSoundQuoteInterval"));
     ParseValueFromXmlElem(
@@ -1554,6 +1559,7 @@ void BaseGameApp::PresentFrame(bool present) {
   }
 #endif
   if (!m_pRenderTarget) {
+    Autoplay::AfterRender(m_pRenderer);
     if (present) { CrtEffect::BeforePresent(m_pRenderer); SDL_RenderPresent(m_pRenderer); }
     return;
   }
@@ -1582,6 +1588,7 @@ void BaseGameApp::PresentFrame(bool present) {
     SDL_RenderClear(m_pRenderer);
   }
   SDL_RenderCopy(m_pRenderer, m_pRenderTarget, NULL, &dst);
+  Autoplay::AfterRender(m_pRenderer);
 #ifdef OPENCLAW_STARTUP_TRACE
   const Uint64 pf1 = SDL_GetPerformanceCounter();
   g_PerfRenderTicks[7] += pf1 - pf0;

@@ -1285,7 +1285,7 @@ void ClawControllableComponent::UpdateDeathFall(uint32 msDiff)
 
     m_DeathFallTime += msDiff;
     const double dt = msDiff / 1000.0;
-    m_DeathFallSpeed += 2200.0 * dt;
+    m_DeathFallSpeed += 2250.0 * dt;
     Point pos = m_pPositionComponent->GetPosition();
     pos.y += m_DeathFallSpeed * dt;
     m_pPositionComponent->SetPosition(pos);
@@ -1306,7 +1306,9 @@ void ClawControllableComponent::UpdateDeathFall(uint32 msDiff)
             offScreen = body.y > cam.y + cam.h;
         }
     }
-    if (offScreen || m_DeathFallTime > 2500)
+    // CLAW.EXE ends the falling death after 800 px
+    const bool fallenFar = pos.y - m_DeathPosition.y > 800.0;
+    if (offScreen || fallenFar || m_DeathFallTime > 2500)
     {
         Animation* pAnimation = m_pClawAnimationComponent->GetCurrentAnimation().get();
         if (pAnimation) FinishDeath(pAnimation);
@@ -1421,10 +1423,16 @@ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int so
 
     IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Claw_Health_Below_Zero(m_pOwner->GetGUID())));
 
-    // TODO: Track how exactly claw died
-    if (m_pClawAnimationComponent->GetCurrentAnimationName() != "spikedeath")
+    // CLAW.EXE: CLAW_SPIKEDEATH in a death tile (spikes, water, tar, lava),
+    // CLAW_FALLDEATH for every other death - Claw drops from where he stood,
+    // from rest, at 2250 px/s², and the life is lost after 800 px.
+    std::string fallDeathAnim = "falldeath";
+    const bool hasFallDeath = damageType != DamageType_DeathTile &&
+                              m_pClawAnimationComponent->HasAnimation(fallDeathAnim);
+    const std::string curAnim = m_pClawAnimationComponent->GetCurrentAnimationName();
+    if (curAnim != "spikedeath" && curAnim != "falldeath")
     {
-        SetClawAnimation("spikedeath");
+        SetClawAnimation(hasFallDeath ? "falldeath" : "spikedeath");
         m_pPhysicsComponent->SetGravityScale(0.0f);
         m_State = ClawState_Dying;
 
@@ -1432,7 +1440,7 @@ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int so
         if (damageType != DamageType_DeathTile)
         {
             m_bDeathFall = true;
-            m_DeathFallSpeed = -450.0;
+            m_DeathFallSpeed = hasFallDeath ? 0.0 : -450.0;
             m_DeathFallTime = 0;
             m_DeathPosition = m_pPositionComponent->GetPosition();
             if (g_pApp->GetGameLogic() && g_pApp->GetGameLogic()->VGetGamePhysics())
@@ -1443,8 +1451,9 @@ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int so
             {
                 if (shared_ptr<CameraNode> pCamera = pHumanView->GetCamera()) pCamera->SetHold(true);
             }
-            // the falling pose (frame 0 of the death animation) all the way down
-            if (Animation* pAnimation = m_pClawAnimationComponent->GetCurrentAnimation().get())
+            // (no falldeath animation: the falling pose, frame 0 of spikedeath)
+            Animation* pAnimation = hasFallDeath ? nullptr : m_pClawAnimationComponent->GetCurrentAnimation().get();
+            if (pAnimation)
             {
                 pAnimation->SetAnimationFrame(0);
                 pAnimation->Pause();

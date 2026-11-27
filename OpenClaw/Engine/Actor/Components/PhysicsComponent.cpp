@@ -344,7 +344,7 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
         }
     }
 
-    if (!m_IsJumping)
+    if (!m_IsJumping && !m_OrigJump)
     {
         m_MaxJumpHeight = m_pControllableComponent->GetMaxJumpHeight();
     }
@@ -503,8 +503,28 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
         if (m_OverlappingLaddersList.empty())
         {
             m_IsClimbing = false;
+            // Climbed off the top: step onto it instead of flying on upwards
+            // (that started a jump and the ladder loop).
+            if (GetVelocity().y < 0)
+            {
+                SetVelocity(Point(0, 0));
+                m_IgnoreJump = true;
+            }
             m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), m_GravityScale);
             if (m_pControllableComponent) m_pControllableComponent->VOnClimbFinished();
+        }
+        else if (m_ClimbingSpeed.y < -DBL_EPSILON && LadderTopReached(0.0f))
+        {
+            // Feet at the top of the ladder: Claw steps onto it and stands
+            // there (CLAW.EXE), Up held does nothing more.
+            SetVelocity(Point(0, 0));
+            m_IsClimbing = false;
+            m_IgnoreJump = true;
+            m_HeightInAir = 0;
+            m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), m_GravityScale);
+            if (m_pControllableComponent) m_pControllableComponent->VOnClimbFinished();
+            m_ClimbingSpeed = Point(0, 0);
+            return;
         }
         else
         {
@@ -629,11 +649,68 @@ set_velocity:
         Point velocity = GetVelocity();
 
         double ySpeed = m_CurrentSpeed.y;
-        if (m_pOwner->GetName() == "Claw")
+        const bool original = g_pApp->GetGlobalOptions()->originalMovement && m_pOwner->GetName() == "Claw";
+        bool hasCatnip = false;
+        if (auto pPowerupComp = MakeStrongPtr(m_pOwner->GetComponent<PowerupComponent>()))
         {
-            //LOG("CurrentSpeed.y: " + ToStr(m_CurrentSpeed.y));
+            hasCatnip = pPowerupComp->HasPowerup(PowerupType_Catnip);
         }
-        if (ySpeed < 0)
+
+        // Run build-up (CLAW.EXE): 1.5 s of running one way on the ground.
+        if (original)
+        {
+            const int dir = m_CurrentSpeed.x < -DBL_EPSILON ? -1 : (m_CurrentSpeed.x > DBL_EPSILON ? 1 : 0);
+            const bool grounded = IsOnGround() && !IsInAir();
+            if (dir != 0 && dir != m_RunDir) { m_RunMs = 0; m_RunDir = dir; }
+            else if (dir != 0 && grounded) m_RunMs += msDiff;
+            else if (dir == 0 && grounded) { m_RunMs = 0; m_RunDir = 0; }
+        }
+
+        if (original && !m_bIsForcedUp)
+        {
+            // The jump of CLAW.EXE: a 45 px hop that grows while the button is
+            // held, for up to 250 ms (0.58 px per ms, 0.68 after a run
+            // build-up or with catnip), rising on the curve of a 2250 px/s²
+            // fall (speed = sqrt(2 g * height left)), so it slows to the top.
+            if (ySpeed < 0 && !m_OrigJump && m_HeightInAir < 2)
+            {
+                m_OrigJump = true;
+                m_OrigJumpHoldMs = 0;
+                m_OrigJumpRate = (hasCatnip || m_RunMs >= 1500) ? 0.68f : 0.58f;
+                m_OrigJumpTarget = 45.0f;
+                m_OrigJumpLastHeight = m_HeightInAir;
+                m_OrigJumpFrames = 0;
+                m_MaxJumpHeight = (int)(250 * m_OrigJumpRate) + 4;
+            }
+            if (m_OrigJump)
+            {
+                if (ySpeed < 0 && m_OrigJumpHoldMs < 250)
+                {
+                    m_OrigJumpHoldMs = std::min(250, m_OrigJumpHoldMs + (int)msDiff);
+                    m_OrigJumpTarget = std::max(m_OrigJumpTarget, m_OrigJumpHoldMs * m_OrigJumpRate);
+                }
+                const float left = m_OrigJumpTarget - m_HeightInAir;
+                // a ceiling stops the rise: the height did not grow last step
+                const bool blocked = m_OrigJumpFrames > 2 && m_NumFootContacts == 0 &&
+                                     m_HeightInAir - m_OrigJumpLastHeight < 0.05f;
+                m_OrigJumpLastHeight = m_HeightInAir;
+                m_OrigJumpFrames++;
+                if (left <= 0.5f || blocked || m_IsFalling || m_IsClimbing ||
+                    m_pControllableComponent->VIsAttachedToRope())
+                {
+                    m_OrigJump = false;
+                    m_IgnoreJump = true;
+                    m_CurrentSpeed.y = 0;
+                    if (velocity.y < 0) SetVelocity(Point(velocity.x, 0));
+                }
+                else
+                {
+                    const double vPx = sqrt(2.0 * 2250.0 * left);
+                    SetVelocity(Point(velocity.x, -vPx / 75.0));
+                }
+            }
+        }
+        else if (ySpeed < 0)
         {
             SetVelocity(Point(velocity.x, -8.8));
 
@@ -647,12 +724,20 @@ set_velocity:
         if (fabs(m_CurrentSpeed.x) > DBL_EPSILON)
         {
             double runSpeed = g_pApp->GetGlobalOptions()->runSpeed;
-            if (auto pPowerupComp = MakeStrongPtr(m_pOwner->GetComponent<PowerupComponent>()))
+            if (original)
             {
-                if (pPowerupComp->HasPowerup(PowerupType_Catnip))
+                // CLAW.EXE: 225 px/s, 285 after the build-up, 300 with catnip;
+                // in the air always 225.
+                double px = 225.0;
+                if (IsOnGround() && !IsInAir())
                 {
-                    runSpeed = g_pApp->GetGlobalOptions()->powerupRunSpeed;
+                    px = hasCatnip ? 300.0 : (m_RunMs >= 1500 ? 285.0 : 225.0);
                 }
+                runSpeed = px / 75.0;
+            }
+            else if (hasCatnip)
+            {
+                runSpeed = g_pApp->GetGlobalOptions()->powerupRunSpeed;
             }
             SetVelocity(Point(m_CurrentSpeed.x < 0 ? -1.0 * runSpeed : runSpeed, velocity.y));
         }
@@ -719,6 +804,11 @@ set_velocity:
 
         double maxJumpSpeed = -1.0 * fabs(g_pApp->GetGlobalOptions()->maxJumpSpeed);
         double maxFallSpeed = fabs(g_pApp->GetGlobalOptions()->maxFallSpeed);
+        if (original)
+        {
+            maxJumpSpeed = -1.0e9;                         // the curve sets it
+            maxFallSpeed = 1000.0 / 75.0;                  // CLAW.EXE: 1000 px/s
+        }
 
         if (velocity.y < maxJumpSpeed)
         {
@@ -731,9 +821,15 @@ set_velocity:
             SetVelocity(Point(velocity.x, maxFallSpeed));
             applyForce = false;
         }
+        if (original && m_OrigJump)
+        {
+            applyForce = false;                            // speed comes from the curve
+        }
         if (applyForce)
         {
-            m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), m_GravityScale);
+            // CLAW.EXE falls at 2250 px/s² (Box2D: 9.8 m/s² x 75 px/m x scale)
+            const float scale = original ? (float)(2250.0 / (9.8 * 75.0)) : m_GravityScale;
+            m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), scale);
             //ApplyForce(m_pPhysics->GetGravity());
         }
         else
@@ -873,6 +969,8 @@ void PhysicsComponent::OnBeginFootContact()
     }
 
     m_NumFootContacts++; 
+    // touching the next tile while taking off is not a landing
+    if (GetVelocity().y > -0.1) m_OrigJump = false;
     //LOG(ToStr(m_HeightInAir));
     if (!m_bIsForcedUp)
     {
@@ -989,6 +1087,31 @@ void PhysicsComponent::SetJumping(bool jumping)
     }
 }
 
+// Top edge (px) of the ladder Claw overlaps, or a huge value if none.
+float PhysicsComponent::LadderTopY()
+{
+    float top = 1.0e9f;
+    for (const b2Fixture* pLadderFixture : m_OverlappingLaddersList)
+    {
+        b2AABB aabb = ReclawFixtureAABB(pLadderFixture);
+        top = std::min(top, (float)MetersToPixels(aabb.lowerBound).y);
+    }
+    return top;
+}
+
+// From Claw's position (centre) down to the soles of his feet.
+float PhysicsComponent::FootOffset()
+{
+    return (float)(m_BodySize.y / 2 + 10);
+}
+
+bool PhysicsComponent::LadderTopReached(float tolerance)
+{
+    if (m_OverlappingLaddersList.empty()) return false;
+    const float footY = (float)m_pOwner->GetPositionComponent()->GetPosition().y + FootOffset();
+    return footY - tolerance <= LadderTopY();
+}
+
 bool PhysicsComponent::AttachToLadder()
 {
     if (!m_CanClimb)
@@ -1009,6 +1132,13 @@ bool PhysicsComponent::AttachToLadder()
         {
             return false;
         }
+    }
+    // Standing on top of a ladder, Up does nothing (as in the original):
+    // re-attaching here sent Claw up past the top, into a jump, a fall back
+    // onto the ladder and round again for as long as Up was held.
+    if (m_ClimbingSpeed.y < -DBL_EPSILON && LadderTopReached(12.0f))
+    {
+        return false;
     }
 
     shared_ptr<PositionComponent> pPositionComponent = m_pOwner->GetPositionComponent();
