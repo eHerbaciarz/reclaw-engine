@@ -39,6 +39,13 @@ if (-not $BezPobierania) {
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
         throw "Brak GitHub CLI. Zainstaluj: winget install --id GitHub.cli, potem: gh auth login"
     }
+    # pierwsze uruchomienie: logowanie do GitHuba (otworzy przegladarke)
+    gh auth status *> $null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Nie jestes zalogowany w GitHub CLI - logowanie (jednorazowo)." -ForegroundColor Yellow
+        gh auth login --hostname github.com --git-protocol https --web
+        if ($LASTEXITCODE -ne 0) { throw "Logowanie do GitHuba nie powiodlo sie." }
+    }
     $json = gh api "repos/$Repo/actions/artifacts?name=reclaw-windows-x86_64&per_page=50"
     if ($LASTEXITCODE -ne 0) { throw "gh api nie zadzialalo - czy jestes zalogowany (gh auth login)?" }
     $art = ($json | ConvertFrom-Json).artifacts |
