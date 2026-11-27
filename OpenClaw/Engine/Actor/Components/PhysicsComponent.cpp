@@ -1,5 +1,6 @@
 #include "../../Physics/FixtureAABB.h"
 #include "PhysicsComponent.h"
+#include "AnimationComponent.h"
 #include "../../Physics/ClawPhysics.h"
 #include "../../GameApp/BaseGameLogic.h"
 #include "../../GameApp/BaseGameApp.h"
@@ -768,6 +769,11 @@ set_velocity:
                     m_RunMs = 0;
                 }
                 runSpeed = px / 75.0;
+                // ...and the legs move faster (frame times x0.9 / x0.8)
+                if (auto pAnim = MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>()))
+                {
+                    pAnim->SetFrameTimeScale(px == 300.0 ? 0.8f : (px == 285.0 ? 0.9f : 1.0f));
+                }
             }
             else if (hasCatnip)
             {
@@ -778,6 +784,13 @@ set_velocity:
         else
         {
             SetVelocity(Point(0, velocity.y));
+            if (original)
+            {
+                if (auto pAnim = MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>()))
+                {
+                    pAnim->SetFrameTimeScale(1.0f);
+                }
+            }
         }
 
         if (m_pMovingPlatformContact && fabs(m_CurrentSpeed.x) < DBL_EPSILON)

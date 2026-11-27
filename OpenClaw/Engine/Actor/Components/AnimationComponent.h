@@ -64,6 +64,13 @@ class AnimationComponent : public ActorComponent, public AnimationSubject
     friend class Animation;
 
 public:
+    // CLAW.EXE: frame times multiplied by this (Claw's walk: 0.9 after the
+    // run build-up, 0.8 with catnip - the legs move faster)
+    void SetFrameTimeScale(float scale) { m_FrameTimeScale = scale; }
+    float GetFrameTimeScale() const { return m_FrameTimeScale; }
+private:
+    float m_FrameTimeScale = 1.0f;
+public:
     // Save states (SaveState/ComponentStates.cpp)
     virtual void VSerializeState(StateArchive& ar) override;
 

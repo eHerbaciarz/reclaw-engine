@@ -10,6 +10,8 @@ piksele, milisekundy.
 |---|---|---|---|
 | Chód | 225 px/s | 337 px/s (4,5 m/s) | 0x417d.. (stan 0x18), `0xe1` |
 | Rozpęd | po 1,5 s biegu w jedną stronę po ziemi: 285 px/s (animacja ×0,9) | brak | licznik `[0x45] = 0x5dc` |
+| Czas gry | prędkości liczone w ms czasu rzeczywistego (timeGetTime), krok najwyżej 18 ms, ułamki pikseli przenoszone – 225 px/s to dokładnie 225 px/s | | 0x46cfe0, 0x403c30, 0x421f90 |
+| Szybkość nóg | czasy klatek animacji × współczynnik obiektu (+0x1d8 Pazura = animacja +0x38): chód 1,0, po rozpędzie 0,9, kocimiętka 0,8 | | 0x4c8550 |
 | Kocimiętka | 300 px/s (animacja ×0,8) | 5,5 m/s | `DAT_00532d34 == 0x26bc` |
 | W powietrzu | zawsze 225 px/s | jak na ziemi | 0x41cb8f |
 | Grawitacja | 2250 px/s² | 9,8 × 4 × 75 = 2940 px/s² | `0x40a19400` (double 2250) |

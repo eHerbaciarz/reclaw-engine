@@ -215,6 +215,10 @@ void Animation::Update(uint32 msDiff)
     _currentTime += msDiff;
 
     int32 currentFrameDuration = _currentAnimationFrame.duration;
+    if (m_pOwner && m_pOwner->GetFrameTimeScale() != 1.0f)
+    {
+        currentFrameDuration = (int32)(currentFrameDuration * m_pOwner->GetFrameTimeScale());
+    }
     if (_currentTime >= currentFrameDuration)
     {
         _currentTime = _currentTime - currentFrameDuration;

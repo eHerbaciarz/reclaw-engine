@@ -26,7 +26,7 @@ Skrypty w repozytorium (uruchamiam je ja, generują grafiki):
 
 | Funkcja | Co sprawdzić | Stan |
 |---|---|---|
-| Ruch jak w oryginale (27.11, `docs/FIZYKA_ORYGINALU.md`) | chód wolniejszy (225 px/s), rozpęd po 1,5 s biegu (285), skok rośnie z trzymaniem (45–145 px, po rozpędzie 170), wolnieje ku górze, w powietrzu 225; czy wszystkie znane skoki na poziomach wychodzą | sprawdzone skryptem na PC, nie na konsoli |
+| Ruch jak w oryginale (27.11, `docs/FIZYKA_ORYGINALU.md`) | chód wolniejszy (225 px/s), rozpęd po 1,5 s biegu (285, nogi szybciej: klatki ×0,9; z kocimiętką ×0,8), skok rośnie z trzymaniem (45–145 px, po rozpędzie 170), wolnieje ku górze, w powietrzu 225; czy wszystkie znane skoki na poziomach wychodzą | sprawdzone skryptem na PC, nie na konsoli |
 | Krawędzie (27.11) | po lądowaniu na brzegu kapitan nie zsuwa się; chodzenie po łączeniach kafelków bez zahaczania | sprawdzone skryptem (poziom 1) |
 | Drabina (27.11) | na szczycie staje, „w górę” nic nie robi, „w dół” schodzi; skok z drabiny | sprawdzone skryptem (poziom 1) |
 | Śmierć (27.11) | od wroga: animacja upadku, spada z miejsca przez podłogę; kolce/woda: jak dawniej; odrodzenie | sprawdzone skryptem (obrażenia z konsoli) |
