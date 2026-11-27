@@ -128,8 +128,12 @@ if ($settings.RunAsTrustLevel) {
     $lines = @('@echo off', 'chcp 65001 >nul', ('cd /d "' + $ryuDir + '"'), ('start "" "' + $ryuExe + '" "' + $nroPath + '"'))
     [IO.File]::WriteAllLines($launcher, $lines, (New-Object Text.UTF8Encoding($false)))  # UTF-8 (polskie litery w ścieżce)
     Say "Start: $ryuExe `"$nroPath`""
+    # Bez spacji w ścieżkach: dokładnie to, co działa ręcznie
+    # (runas ... "Ryujinx.exe gra.nro"); ze spacjami: przez plik .cmd
+    $target = if (($ryuExe + $nroPath) -notmatch ' ') { '"' + $ryuExe + ' ' + $nroPath + '"' } else { $launcher }
     Start-Process -FilePath 'runas.exe' -WindowStyle Hidden `
-        -ArgumentList @("/trustlevel:$($settings.RunAsTrustLevel)", '/machine:amd64', $launcher)
+        -ArgumentList @("/trustlevel:$($settings.RunAsTrustLevel)", '/machine:amd64', $target)
+    Say 'Jeśli pojawi się "Keys not found" - kliknij OK, gra wystartuje.' Yellow
 } else {
     Start-Process -FilePath $ryuExe -ArgumentList ('"' + $nroPath + '"') -WorkingDirectory $ryuDir | Out-Null
 }
