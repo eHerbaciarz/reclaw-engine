@@ -95,8 +95,10 @@ bool BaseRenderComponent::VInit(TiXmlElement* pXmlData)
             shared_ptr<Image> image = PidResourceLoader::LoadAndReturnImage(imagePath.c_str(), palette);
             if (!image)
             {
+                // One bad picture (e.g. a damaged file in an unpacked Assets
+                // folder) must not take the whole plane / actor with it.
                 LOG_WARNING("Failed to load image: " + imagePath);
-                return false;
+                continue;
             }
 
             std::string imageNameKey = StripPathAndExtension(imagePath);
@@ -639,6 +641,7 @@ bool TilePlaneRenderComponent::VDelegateInit(TiXmlElement* pXmlData)
         return false;
     }
     int32 tileIdx = 0;
+    LOG_WARNING("Plane " + m_PlaneProperties.name + ": " + ToStr((int)m_ImageMap.size()) + " tile pictures");
 
     TileList tileList;
     for (TiXmlElement* pTileNode = pTileElements->FirstChildElement(); 
@@ -702,8 +705,12 @@ bool TilePlaneRenderComponent::VDelegateInit(TiXmlElement* pXmlData)
         }
         else
         {
-            LOG_ERROR("Could not find plane tile: " + tileFileName + " on plane: " + m_PlaneProperties.name);
-            return false;
+            static std::set<std::string> s_ReportedOther;
+            if (s_ReportedOther.insert(m_PlaneProperties.name + "/" + tileFileName).second)
+            {
+                LOG_ERROR("Could not find plane tile: " + tileFileName + " on plane: " + m_PlaneProperties.name);
+            }
+            m_TileImageList.push_back(NULL);
         }
 
         tileIdx++;
@@ -722,13 +729,17 @@ bool TilePlaneRenderComponent::VDelegateInit(TiXmlElement* pXmlData)
 
     int planeWidth = m_PlaneProperties.planePixelWidth;
     int planeHeight = m_PlaneProperties.planePixelHeight * 2;
+    // Wrapped planes are endless. Not INT32_MAX: newer SDL2 (MSYS2 2.32 on
+    // Windows) treats x + w overflowing as "no intersection", so wrapped
+    // background / front planes were never drawn.
+    const int kEndless = 1 << 28;
     if (m_PlaneProperties.isWrappedX)
     {
-        planeWidth = INT32_MAX;
+        planeWidth = kEndless;
     }
     if (m_PlaneProperties.isWrappedY)
     {
-        planeHeight = INT32_MAX;
+        planeHeight = kEndless;
     }
     
     m_PositionRect = { 0, 0, planeWidth, planeHeight };

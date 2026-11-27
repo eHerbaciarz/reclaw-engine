@@ -383,6 +383,11 @@ void HumanView::VOnUpdate(uint32 msDiff)
 
 bool HumanView::VOnEvent(SDL_Event& evt)
 {
+    if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0 && evt.key.keysym.sym == SDLK_ESCAPE)
+    {
+        LOG_WARNING("Esc pressed, game state " + ToStr((int)(g_pApp->GetGameLogic() ? g_pApp->GetGameLogic()->GetGameState() : -1)));
+    }
+
     // Secret code (Konami) typed while playing: arrows, Space (jump), Alt
     // (fire). The keys still do their normal job.
     if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0 && !(m_pIngameMenu && m_pIngameMenu->VIsVisible()) &&
