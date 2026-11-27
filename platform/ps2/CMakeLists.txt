@@ -20,7 +20,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../cmake/BundledSDL.cmake")
 
 openclaw_add_game(openclaw)
 openclaw_bundled_sdl(openclaw)
-target_compile_definitions(openclaw PRIVATE RECLAW_PS2=1 OPENCLAW_STARTUP_TRACE=1)
+target_compile_definitions(openclaw PRIVATE RECLAW_PS2=1 OPENCLAW_STARTUP_TRACE=1 RECLAW_TEXTURE_16BIT=1)
 
 find_package(ZLIB QUIET)
 if (ZLIB_FOUND)

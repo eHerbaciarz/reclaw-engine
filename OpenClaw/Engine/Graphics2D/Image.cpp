@@ -51,14 +51,16 @@ void Image::SetSmooth(bool on)
 }
 
 // Memory report (Util/MemStats.h): the bytes of the pictures' textures
-// (width x height x 4, mirrored copies included).
+// (width x height x bytes per pixel, mirrored copies included).
 #include "../Util/MemStats.h"
 static void TrackTexture(SDL_Texture* t, int sign)
 {
     if (!t) return;
     int w = 0, h = 0;
-    SDL_QueryTexture(t, NULL, NULL, &w, &h);
-    MemStats::g_TextureBytes += sign * (int64_t)w * h * 4;
+    Uint32 format = 0;
+    SDL_QueryTexture(t, &format, NULL, &w, &h);
+    const int bpp = format ? std::max(1, (int)SDL_BYTESPERPIXEL(format)) : 4;
+    MemStats::g_TextureBytes += sign * (int64_t)w * h * bpp;
     MemStats::g_TextureCount += sign;
 }
 
@@ -281,6 +283,55 @@ SDL_Texture* Image::GetTextureFromPid(WapPid* pid, SDL_Renderer* renderer)
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     assert(texture != NULL);
     if (texture && opaque) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
+#elif defined(RECLAW_TEXTURE_16BIT)
+    // PS2, Dreamcast: 16-bit pictures (half the memory of 32-bit ones). The
+    // game's pictures are paletted with see-through or opaque pixels, so one
+    // bit of alpha loses nothing; the 5-bit colours are what the consoles show.
+    static Uint32 s_Format = 0;
+    if (!s_Format)
+    {
+        s_Format = SDL_PIXELFORMAT_ARGB1555;
+        SDL_RendererInfo info;
+        if (SDL_GetRendererInfo(renderer, &info) == 0)
+        {
+            const Uint32 wanted[] = { SDL_PIXELFORMAT_ARGB1555, SDL_PIXELFORMAT_ABGR1555, SDL_PIXELFORMAT_RGBA5551,
+                                      SDL_PIXELFORMAT_BGRA5551, SDL_PIXELFORMAT_ARGB4444, SDL_PIXELFORMAT_ABGR4444 };
+            bool found = false;
+            for (Uint32 f : wanted)
+            {
+                for (Uint32 i = 0; i < info.num_texture_formats && !found; ++i)
+                {
+                    if (info.texture_formats[i] == f) { s_Format = f; found = true; }
+                }
+                if (found) break;
+            }
+        }
+        LOG(std::string("16-bit pictures: ") + SDL_GetPixelFormatName(s_Format));
+    }
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 16, s_Format);
+    assert(surface != NULL);
+    bool opaque = true;
+    {
+        uint32_t colorsCount = std::min<uint32_t>(pid->colorsCount, width * height);
+        for (uint32_t i = 0; i < colorsCount; i++)
+        {
+            WAP_ColorRGBA c = pid->colors[i];
+            Uint8 a = c.a >= 128 ? 255 : 0;
+            if (!a) opaque = false;
+            Uint16* row = (Uint16*)((Uint8*)surface->pixels + (i / width) * surface->pitch);
+            row[i % width] = (Uint16)SDL_MapRGBA(surface->format, c.r, c.g, c.b, a);
+        }
+    }
+    SDL_Texture* texture = SDL_CreateTexture(renderer, s_Format, SDL_TEXTUREACCESS_STATIC, width, height);
+    if (texture)
+    {
+        SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
+        SDL_SetTextureBlendMode(texture, opaque ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND);
+    }
+    else
+    {
+        texture = SDL_CreateTextureFromSurface(renderer, surface);
+    }
 #else
     SDL_Surface* surface = Util::CreateRGBSurface(0, width, height, 32);
     assert(surface != NULL);

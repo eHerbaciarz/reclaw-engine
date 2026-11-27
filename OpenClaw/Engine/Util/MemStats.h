@@ -6,7 +6,7 @@
 
 namespace MemStats
 {
-    extern int64_t g_TextureBytes;   // pictures' textures, width x height x 4
+    extern int64_t g_TextureBytes;   // pictures' textures, width x height x bytes per pixel
     extern int64_t g_TextureCount;
     extern int64_t g_SoundBytes;     // decoded sounds (Mix_Chunk)
     extern int64_t g_SoundCount;
