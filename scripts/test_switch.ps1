@@ -125,8 +125,8 @@ if ($settings.RunAsTrustLevel) {
     # runas gubi argumenty w cudzysłowach, więc gra jest podawana przez mały
     # plik .cmd w folderze bez spacji (C:\Users\Public)
     $launcher = Join-Path $env:PUBLIC 'reclaw_start_ryujinx.cmd'
-    $lines = @('@echo off', ('cd /d "' + $ryuDir + '"'), ('start "" "' + $ryuExe + '" "' + $nroPath + '"'))
-    Set-Content -Path $launcher -Value $lines -Encoding Default
+    $lines = @('@echo off', 'chcp 65001 >nul', ('cd /d "' + $ryuDir + '"'), ('start "" "' + $ryuExe + '" "' + $nroPath + '"'))
+    [IO.File]::WriteAllLines($launcher, $lines, (New-Object Text.UTF8Encoding($false)))  # UTF-8 (polskie litery w ścieżce)
     Say "Start: $ryuExe `"$nroPath`""
     Start-Process -FilePath 'runas.exe' -WindowStyle Hidden `
         -ArgumentList @("/trustlevel:$($settings.RunAsTrustLevel)", '/machine:amd64', $launcher)
