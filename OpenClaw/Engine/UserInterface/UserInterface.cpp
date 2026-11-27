@@ -1,6 +1,7 @@
 #include "KeyScancode.h"
 #include "../GameApp/Difficulty.h"
 #include "../Util/StartupTrace.h"
+#include "../Util/MemStats.h"
 #include <set>
 #include "UserInterface.h"
 #include <algorithm>
@@ -966,7 +967,9 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
         shared_ptr<ScreenElementMenuPage> pPage(new ScreenElementMenuPage(m_pRenderer));
         STARTUP_TRACE("menu: page " + pageName);
         const Uint32 pageT0 = SDL_GetTicks();
-        if (!pPage->Initialize(pMenuPageElem))
+        const bool pageOk = pPage->Initialize(pMenuPageElem);
+        STARTUP_TRACE("menu: page " + pageName + (pageOk ? " ok" : " FAILED"));
+        if (!pageOk)
         {
             LOG_ERROR("Could not initialize menu page: " + pageName);
             return false;
@@ -1478,6 +1481,13 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
     {
         shared_ptr<ScreenElementMenuItem> pItem(new ScreenElementMenuItem(m_pRenderer));
         const Uint32 itemT0 = SDL_GetTicks();
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        {
+            std::string traceName;
+            ParseValueFromXmlElem(&traceName, pMenuItemElem->FirstChildElement("Name"));
+            STARTUP_TRACE("menu:   item " + traceName + ", " + MemStats::Report());
+        }
+#endif
         if (!pItem->Initialize(pMenuItemElem))
         {
             LOG_ERROR("Could not initialize menu item");
