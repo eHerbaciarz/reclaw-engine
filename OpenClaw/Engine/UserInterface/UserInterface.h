@@ -180,6 +180,13 @@ private:
     MenuPageMap m_MenuPageMap;
     shared_ptr<ScreenElementMenuPage> m_pActiveMenuPage;
 
+    // Small consoles (PS2, Dreamcast): only the first page is built with the
+    // menu; the others are built when entered and dropped when left (all of
+    // them did not fit in the PS2's memory). Their XML is kept here.
+    std::map<MenuPage, shared_ptr<TiXmlNode>> m_LazyPages;
+    std::vector<shared_ptr<ScreenElementMenuPage>> m_RetiredPages;   // (freed on the next update)
+    bool ActivatePage(MenuPage pageType);
+
     // Claw character animation (main menu only, persists across page switches)
     // Phases: walk in from left → idle → walk out to right after ~10s
     enum ClawPhase { ClawPhase_WalkIn, ClawPhase_Idle, ClawPhase_WalkOut, ClawPhase_Done };

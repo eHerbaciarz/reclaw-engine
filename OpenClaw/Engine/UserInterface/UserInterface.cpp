@@ -595,6 +595,8 @@ ScreenElementMenu::ScreenElementMenu(SDL_Renderer* pRenderer)
 ScreenElementMenu::~ScreenElementMenu()
 {
     m_MenuPageMap.clear();
+    m_LazyPages.clear();
+    m_RetiredPages.clear();
 
     IEventMgr::Get()->VRemoveListener(MakeDelegate(
         this, &ScreenElementMenu::SwitchPageDelegate), EventData_Menu_SwitchPage::sk_EventType);
@@ -624,6 +626,7 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
         }
     }
 
+    m_RetiredPages.clear();   // (pages left during the last event)
     assert(m_pActiveMenuPage);
     m_pActiveMenuPage->VOnUpdate(msDiff);
 
@@ -863,8 +866,7 @@ void ScreenElementMenu::VSetVisible(bool visible)
         }
 
         // Use SwitchPage event ?
-        m_pActiveMenuPage = m_MenuPageMap[m_DefaultMenuPage];
-        m_pActiveMenuPage->OnPageLoaded();
+        ActivatePage(m_DefaultMenuPage);
     }
     else
     {
@@ -973,6 +975,13 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
         if (pageName == "MenuPage_ReplayMovies") continue;
 #endif
 
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        if (pageType != m_DefaultMenuPage)
+        {
+            m_LazyPages[pageType] = shared_ptr<TiXmlNode>(pMenuPageElem->Clone());
+            continue;
+        }
+#endif
         shared_ptr<ScreenElementMenuPage> pPage(new ScreenElementMenuPage(m_pRenderer));
         STARTUP_TRACE("menu: page " + pageName);
         const Uint32 pageT0 = SDL_GetTicks();
@@ -1043,19 +1052,74 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
     return true;
 }
 
+bool ScreenElementMenu::ActivatePage(MenuPage pageType)
+{
+    // A page built on entry (small consoles) is dropped when it is left; an
+    // item of it may be handling this very event, so it is freed on the next
+    // update.
+    auto retirePrevious = [this, pageType]()
+    {
+        if (!m_pActiveMenuPage) return;
+        for (auto it = m_MenuPageMap.begin(); it != m_MenuPageMap.end(); ++it)
+        {
+            if (it->second == m_pActiveMenuPage && it->first != pageType && m_LazyPages.count(it->first))
+            {
+                m_RetiredPages.push_back(it->second);
+                m_MenuPageMap.erase(it);
+                return;
+            }
+        }
+    };
+
+    auto findIt = m_MenuPageMap.find(pageType);
+    if (findIt == m_MenuPageMap.end())
+    {
+        auto lazyIt = m_LazyPages.find(pageType);
+        if (lazyIt == m_LazyPages.end() || !lazyIt->second || !lazyIt->second->ToElement())
+        {
+            return false;
+        }
+        retirePrevious();   // (first: the memory is needed for the new page)
+        if (!m_RetiredPages.empty() && m_RetiredPages.back() == m_pActiveMenuPage) m_pActiveMenuPage.reset();
+        shared_ptr<ScreenElementMenuPage> pPage(new ScreenElementMenuPage(m_pRenderer));
+        STARTUP_TRACE("menu: building page " + ToStr((int)pageType) + ", " + MemStats::Report());
+        bool ok = false;
+        try
+        {
+            ok = pPage->Initialize(lazyIt->second->ToElement());
+        }
+        catch (const std::exception& e)
+        {
+            LOG_ERROR(std::string("Exception while building a menu page: ") + e.what());
+        }
+        if (!ok)
+        {
+            LOG_ERROR("Could not build menu page " + ToStr((int)pageType));
+            if (!m_pActiveMenuPage) m_pActiveMenuPage = m_MenuPageMap[m_DefaultMenuPage];
+            return false;
+        }
+        findIt = m_MenuPageMap.insert(std::make_pair(pageType, pPage)).first;
+    }
+    else if (findIt->second != m_pActiveMenuPage)
+    {
+        retirePrevious();
+    }
+    m_pActiveMenuPage = findIt->second;
+    m_pActiveMenuPage->OnPageLoaded();
+    if (m_LazyPages.count(pageType))
+    {
+        RefreshActivePageVisibility();
+    }
+    return true;
+}
+
 void ScreenElementMenu::SwitchPageDelegate(IEventDataPtr pEventData)
 {
     shared_ptr<EventData_Menu_SwitchPage> pCastEventData = 
         static_pointer_cast<EventData_Menu_SwitchPage>(pEventData);
 
     MenuPage pageType = StringToMenuPageEnum(pCastEventData->GetNewPageName());
-    auto findIt = m_MenuPageMap.find(pageType);
-    if (findIt != m_MenuPageMap.end())
-    {
-        m_pActiveMenuPage = findIt->second;
-        m_pActiveMenuPage->OnPageLoaded();
-    }
-    else
+    if (!ActivatePage(pageType))
     {
         LOG_ERROR("Could not switch to page: " + pCastEventData->GetNewPageName() + ", Probably not implemented yet");
     }
