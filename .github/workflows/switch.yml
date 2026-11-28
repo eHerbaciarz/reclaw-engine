@@ -54,13 +54,13 @@ jobs:
       # Test builds: every push to claw-switch replaces the files of the
       # "test-switch" pre-release (test_switch.ps1 downloads them)
       - name: Test release files
-        if: github.ref == 'refs/heads/claw-switch' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/claw-switch' && github.event_name != 'pull_request'
         run: |
           cp platform/switch/reclaw.nro dist/reclaw.nro
           (cd dist && zip -qr reclaw-switch.zip switch)
           printf '%s\n' "${GITHUB_SHA}" > dist/commit.txt
       - name: Test release
-        if: github.ref == 'refs/heads/claw-switch' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/claw-switch' && github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: test-switch
