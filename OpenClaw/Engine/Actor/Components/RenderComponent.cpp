@@ -727,8 +727,14 @@ bool TilePlaneRenderComponent::VDelegateInit(TiXmlElement* pXmlData)
         return false;
     }
 
-    int planeWidth = m_PlaneProperties.planePixelWidth;
-    int planeHeight = m_PlaneProperties.planePixelHeight * 2;
+    // The scene culls a plane by this rectangle in world (camera) space. A
+    // plane scrolling at N% of the camera covers 100/N times its own size
+    // there: level 13's background (30016 px at 50%) reaches x = 60032, so
+    // cutting it at 30016 left the Red Tail area (x ~ 37000) with no sky.
+    const int moveX = m_PlaneProperties.movementPercentX > 0 ? m_PlaneProperties.movementPercentX : 100;
+    const int moveY = m_PlaneProperties.movementPercentY > 0 ? m_PlaneProperties.movementPercentY : 100;
+    int planeWidth = (int)((int64_t)m_PlaneProperties.planePixelWidth * 100 / std::min(moveX, 100));
+    int planeHeight = (int)((int64_t)m_PlaneProperties.planePixelHeight * 100 / std::min(moveY, 100)) * 2;
     // Wrapped planes are endless. Not INT32_MAX: newer SDL2 (MSYS2 2.32 on
     // Windows) treats x + w overflowing as "no intersection", so wrapped
     // background / front planes were never drawn.

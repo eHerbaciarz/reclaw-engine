@@ -48,7 +48,7 @@ namespace
         { 10, "Marrow", true },
         { 12, "Aquatis", true },
         { 13, "Red Tail", true },
-        { 14, "Omar", false },
+        { 14, "Omar", true },
     };
 
     BossModes::Mode g_Mode = BossModes::Mode::None;
