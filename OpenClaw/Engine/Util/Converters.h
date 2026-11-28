@@ -1304,7 +1304,8 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
     // This silently handles them without logging an "Unknown logic" warning
     if (logic == "DoNothing" || logic == "DoNothingNormal" ||
         logic == "BehindAniCandy" || logic == "FrontCandy" ||
-        logic == "BehindCandy" || logic == "FrontAniCandy")
+        logic == "BehindCandy" || logic == "FrontAniCandy" ||
+        logic == "RedTailSpikes") // its damage is Red Tail's (RedTailEncounter.cpp)
     {
         return pActorElem;
     }

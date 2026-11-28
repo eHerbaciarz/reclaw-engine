@@ -548,6 +548,10 @@ enum ActorPrototype
     ActorPrototype_Level14_PathElevator,
     ActorPrototype_Level14_TogglePeg,
 
+    // Level 13 Red Tail's knives and flare-gun shots
+    ActorPrototype_Level13_RedTailKnife,
+    ActorPrototype_Level13_RedTailBullet,
+
     ActorPrototype_Max
 };
 
