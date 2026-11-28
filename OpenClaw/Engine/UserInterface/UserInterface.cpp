@@ -171,6 +171,9 @@ static shared_ptr<Image> LoadImageFromXmlElement(TiXmlElement* pElem)
     }
 
     std::string imagePath = pElem->GetText();
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    STARTUP_TRACE("menu:       picture " + imagePath);
+#endif
     // Length has to be atleast 5: A.BCD - one char for name, dot and 3 chars extension
     if (imagePath.length() <= 5)
     {
@@ -963,6 +966,10 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
         ParseValueFromXmlElem(&pageName, pMenuPageElem->FirstChildElement("PageName"));
         assert(!pageName.empty());
         MenuPage pageType = StringToMenuPageEnum(pageName);
+#if defined(RECLAW_PS2)
+        // PS2: no movies (for now), so no "replay movies" page
+        if (pageName == "MenuPage_ReplayMovies") continue;
+#endif
 
         shared_ptr<ScreenElementMenuPage> pPage(new ScreenElementMenuPage(m_pRenderer));
         STARTUP_TRACE("menu: page " + pageName);
@@ -2415,6 +2422,9 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
 
     ParseValueFromXmlElem(&m_bVisible, pElem->FirstChildElement("IsVisible"));
     if (pElem->FirstChildElement("NoAutoLayout")) m_bAutoLayout = false;
+#if defined(RECLAW_PS2)
+    if (m_Name == "REPLAY_MOVIES_BUTTON") m_bVisible = false;   // (no movies on the PS2 for now)
+#endif
 
     // (an item drawn in the game's letters below does not need its pictures)
     bool usesGameFont = false;
