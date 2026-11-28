@@ -344,7 +344,7 @@ void GabrielAIStateComponent::VUpdate(uint32 msDiff)
         {
             // 0x445f80: -20 (five hits), then he answers with bombs
             HealthComponent* pHealth = m_pOwner->GetRawComponent<HealthComponent>();
-            pHealth->SetCurrentHealth(std::max(0, pHealth->GetCurrentHealth() - 20));
+            pHealth->SetCurrentHealth(std::max<int>(0, (int)pHealth->GetCurrentHealth() - 20));
             if (pHealth->GetCurrentHealth() > 0 && m_IsActive)
             {
                 SetAct(Act_Bombs);
