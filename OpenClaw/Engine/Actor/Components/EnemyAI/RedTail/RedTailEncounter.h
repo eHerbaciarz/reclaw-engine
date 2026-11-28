@@ -69,6 +69,7 @@ private:
     void Wind(int depth);
     void ThrowKnives();
     void UpdateWindAndSpikes(uint32 msDiff);
+    void UpdateWindDebris(uint32 msDiff);
 
     // CLAW.EXE's arena (0x529854..0x529860): the beach below y 1920
     int m_LevelY = 1920;
@@ -99,5 +100,9 @@ private:
     int m_HitCount = 0;
     bool m_bEscape = false;
     int m_WindLeftMs = 0;
+    // WindDebris (CLAW.EXE 0x487930 / 0x4a3090): grass, leaves and sand blown past
+    struct WindDebris { StrongActorPtr pActor; Point pos; Point speed; int ageMs; };
+    std::vector<WindDebris> m_WindDebris;
+    int m_DebrisSpawnMs = 0;
     int m_SpikesCooldown = 0;
 };

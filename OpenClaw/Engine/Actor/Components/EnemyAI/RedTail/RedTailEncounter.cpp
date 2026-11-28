@@ -373,6 +373,7 @@ void RedTailAIStateComponent::UpdateWindAndSpikes(uint32 msDiff)
             }
         }
     }
+    UpdateWindDebris(msDiff);
     // RedTailSpikes (0x486ee0): 20 points
     if (m_SpikesCooldown > 0) m_SpikesCooldown -= msDiff;
     if (m_SpikesCooldown <= 0 &&
@@ -381,6 +382,71 @@ void RedTailAIStateComponent::UpdateWindAndSpikes(uint32 msDiff)
         m_SpikesCooldown = 250;
         ActorTemplates::CreateAreaDamage(m_SpikesCenter, m_SpikesSize, m_SpikesDamage, CollisionFlag_EnemyAIAttack,
             "Rectangle", DamageType_MeleeAttack, Direction_Right, m_pOwner->GetGUID());
+    }
+}
+
+void RedTailAIStateComponent::UpdateWindDebris(uint32 msDiff)
+{
+    // 0x487930: while the wind blows, every 100 ms one piece of grass, a leaf or sand
+    // (random) appears at x 37800-37900, y 1920-2100, z 0-10000, flying left at the
+    // wind's 300 px/s times 1.00-2.00 and up or down at 10-100 px/s, its frames cycling
+    // every 50 ms (0x4a3330); it vanishes left of x 36500 or after 10 s (0x4a33a0)
+    if (m_WindLeftMs > 0)
+    {
+        m_DebrisSpawnMs -= msDiff;
+        if (m_DebrisSpawnMs <= 0)
+        {
+            m_DebrisSpawnMs = 100;
+            static const char* kDebris[3] = { "WINDGRASS", "WINDLEAF", "WINDSAND" };
+            WindDebris d;
+            d.pos = Point(37800 + Util::GetRandomNumber(0, 100), 1920 + Util::GetRandomNumber(0, 180));
+            d.speed = Point(-m_WindPush * Util::GetRandomNumber(100, 200) / 100.0,
+                Util::GetRandomNumber(10, 100) * (Util::GetRandomNumber(0, 100) > 49 ? -1 : 1));
+            d.ageMs = 0;
+
+            TiXmlElement* pActorElem = new TiXmlElement("Actor");
+            pActorElem->SetAttribute("Type", "Level13_WindDebris");
+            TiXmlElement* pPosComp = new TiXmlElement("PositionComponent");
+            TiXmlElement* pPos = new TiXmlElement("Position");
+            pPos->SetDoubleAttribute("x", d.pos.x);
+            pPos->SetDoubleAttribute("y", d.pos.y);
+            pPosComp->LinkEndChild(pPos);
+            pActorElem->LinkEndChild(pPosComp);
+            TiXmlElement* pRender = new TiXmlElement("ActorRenderComponent");
+            XML_ADD_TEXT_ELEMENT("Visible", "true", pRender);
+            XML_ADD_TEXT_ELEMENT("Mirrored", "false", pRender);
+            XML_ADD_TEXT_ELEMENT("Inverted", "false", pRender);
+            XML_ADD_TEXT_ELEMENT("ZCoord", ToStr(Util::GetRandomNumber(0, 10000)).c_str(), pRender);
+            XML_ADD_TEXT_ELEMENT("ImagePath", (std::string("/LEVEL13/IMAGES/") + kDebris[Util::GetRandomNumber(0, 2)] + "/*").c_str(), pRender);
+            pActorElem->LinkEndChild(pRender);
+            TiXmlElement* pAnim = new TiXmlElement("AnimationComponent");
+            XML_ADD_1_PARAM_ELEMENT("Animation", "type", "cycle50", pAnim);
+            pActorElem->LinkEndChild(pAnim);
+
+            d.pActor = g_pApp->GetGameLogic()->VCreateActor(pActorElem, NULL);
+            SAFE_DELETE(pActorElem);
+            if (d.pActor)
+            {
+                IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_New_Actor(d.pActor->GetGUID())));
+                m_WindDebris.push_back(d);
+            }
+        }
+    }
+
+    for (auto it = m_WindDebris.begin(); it != m_WindDebris.end(); )
+    {
+        it->ageMs += msDiff;
+        it->pos.x += it->speed.x * msDiff / 1000.0;
+        it->pos.y += it->speed.y * msDiff / 1000.0;
+        if (it->pos.x < 36500 || it->ageMs >= 10000)
+        {
+            IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Destroy_Actor(it->pActor->GetGUID())));
+            it = m_WindDebris.erase(it);
+            continue;
+        }
+        it->pActor->GetPositionComponent()->SetPosition(it->pos);
+        IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Move_Actor(it->pActor->GetGUID(), it->pos)));
+        ++it;
     }
 }
 
@@ -594,6 +660,11 @@ void RedTailAIStateComponent::VOnBossFightStarted()
 
 void RedTailAIStateComponent::VOnBossFightEnded(bool isBossDead)
 {
+    for (WindDebris& d : m_WindDebris)
+    {
+        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Destroy_Actor(d.pActor->GetGUID())));
+    }
+    m_WindDebris.clear();
     m_WindLeftMs = 0;
     if (isBossDead)
     {
