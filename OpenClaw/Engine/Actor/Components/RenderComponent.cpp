@@ -644,11 +644,29 @@ bool TilePlaneRenderComponent::VDelegateInit(TiXmlElement* pXmlData)
     LOG_WARNING("Plane " + m_PlaneProperties.name + ": " + ToStr((int)m_ImageMap.size()) + " tile pictures");
 
     TileList tileList;
-    for (TiXmlElement* pTileNode = pTileElements->FirstChildElement(); 
-        pTileNode != NULL; 
-        pTileNode = pTileNode->NextSiblingElement())
+    // The tiles come one element each, or (small consoles: one element per
+    // tile took tens of MB) as one text of numbers: <Tiles compact="1">.
+    const char* pCompact = pTileElements->Attribute("compact") ? pTileElements->GetText() : nullptr;
+    if (pTileElements->Attribute("compact") && !pCompact) pCompact = "";
+    TiXmlElement* pTileNode = pCompact ? nullptr : pTileElements->FirstChildElement();
+    for (;;)
     {
-        std::string tileFileName(pTileNode->GetText());
+        std::string tileFileName;
+        if (pCompact)
+        {
+            while (*pCompact == ' ') ++pCompact;
+            if (!*pCompact) break;
+            const char* end = pCompact;
+            while (*end && *end != ' ') ++end;
+            tileFileName.assign(pCompact, end);
+            pCompact = end;
+        }
+        else
+        {
+            if (!pTileNode) break;
+            tileFileName = pTileNode->GetText() ? pTileNode->GetText() : "";
+            pTileNode = pTileNode->NextSiblingElement();
+        }
 
         // Temporarily keep track of the tiles stored
         int32 tileId = std::stoi(tileFileName);

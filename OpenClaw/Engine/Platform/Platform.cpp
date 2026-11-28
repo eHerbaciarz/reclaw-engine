@@ -364,8 +364,11 @@ namespace Platform
         // has not always reached a handler on the PS2)
         std::set_new_handler([]()
         {
-            SDL_Log("ERROR: out of memory (new failed)");
-            std::set_new_handler(nullptr);   // (then new throws std::bad_alloc)
+            // (written once; then the usual std::bad_alloc - returning from here
+            // made new try again forever, and the log grew to 30000 lines)
+            static int s_Count = 0;
+            if (s_Count++ < 3) SDL_Log("ERROR: out of memory (new failed)");
+            throw std::bad_alloc();
         });
 #endif
         std::set_terminate([]()

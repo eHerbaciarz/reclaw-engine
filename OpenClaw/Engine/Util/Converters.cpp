@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "../Actor/Components/PickupComponents/PickupComponent.h"
 #include <cstring>
+#include <cstdio>
 #include "Converters.h"
 #include "../Events/Events.h"
 
@@ -185,10 +186,27 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
 
         uint32 tilesCount = wwdPlane.tilesCount;
         int32* pTiles = wwdPlane.tiles;
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        // (small consoles: an element per tile took tens of MB - the PS2 ran
+        // out of memory here; one text of numbers instead)
+        {
+            std::string text;
+            text.reserve((size_t)tilesCount * 4);
+            char num[16];
+            for (uint32 tileIdx = 0; tileIdx < tilesCount; ++tileIdx)
+            {
+                snprintf(num, sizeof(num), tileIdx ? " %d" : "%d", (int)pTiles[tileIdx]);
+                text += num;
+            }
+            tiles->SetAttribute("compact", 1);
+            tiles->LinkEndChild(new TiXmlText(text.c_str()));
+        }
+#else
         for (uint32 tileIdx = 0; tileIdx < tilesCount; ++tileIdx)
         {
             XML_ADD_TEXT_ELEMENT("Tile", ToStr(pTiles[tileIdx]).c_str(), tiles);
         }
+#endif
 
         if (wwdPlane.properties.flags & WAP_PLANE_FLAG_MAIN_PLANE)
         {
