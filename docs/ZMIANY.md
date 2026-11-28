@@ -58,7 +58,7 @@ Status: `[ ]` do testu · `[x]` przetestowane, do claw-main-test · `[-]` odrzuc
 | [ ] | Spokojny komunikat o braku CLAW.REZ | 0fb977b |
 | [ ] | Klawisze czytane po scancode; log w save\reclaw.log | 9591c2f |
 | [ ] | Ostry obraz na ekranach ze skalowaniem (np. 150%) | 323d916 |
-| [ ] | libwap: IO.h → WapIO.h (kompilacja na Windows) | 2741c1b |
+| [ ] | libwap: IO.h → WapIO.h – **bez tego claw-main nie buduje się na Windows** (main.bat / main-test.bat nie mają paczki) | 2741c1b |
 
 ## PS2 i Dreamcast [PS2/DC]
 
@@ -88,4 +88,4 @@ więc warto je sprawdzić także na PC/Switchu.
 | [ ] | Test Switcha w Ryujinxie (pobranie, uruchomienie bez praw administratora, logi) | 1912a03, 4829e8b, 7f3c235, 6ad1194, c830da8 |
 | [ ] | Porównanie z oryginałem jednym kliknięciem | 40a1a3e, b8385d0, 2b2d66e, 71dea9f, 538658f |
 | [ ] | Gałąź claw-ps2 i test w PCSX2 | 70005d5, 61b1972, 9f445bf, 5515b9d |
-| [ ] | Nowy zestaw skryptów testowych (main / main-test / experimental, Switch / PS2 / Dreamcast) i gałęzie claw-main-test, claw-switch, claw-dreamcast | (ten commit) |
+| [ ] | Nowy zestaw skryptów testowych (main / main-test / experimental, Switch / PS2 / Dreamcast) i gałęzie claw-main-test, claw-switch, claw-dreamcast | 3f5ab16, 328a568 |
