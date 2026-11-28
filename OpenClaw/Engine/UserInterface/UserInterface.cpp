@@ -1488,9 +1488,27 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
             STARTUP_TRACE("menu:   item " + traceName + ", " + MemStats::Report());
         }
 #endif
-        if (!pItem->Initialize(pMenuItemElem))
+        bool itemOk = false;
+        try
         {
-            LOG_ERROR("Could not initialize menu item");
+            itemOk = pItem->Initialize(pMenuItemElem);
+        }
+        catch (const std::exception& e)
+        {
+            LOG_ERROR(std::string("Exception while building a menu item: ") + e.what());
+        }
+        catch (...)
+        {
+            LOG_ERROR("Unknown exception while building a menu item");
+        }
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        STARTUP_TRACE(std::string("menu:   item ") + (itemOk ? "ok" : "FAILED"));
+#endif
+        if (!itemOk)
+        {
+            std::string failedName;
+            ParseValueFromXmlElem(&failedName, pMenuItemElem->FirstChildElement("Name"));
+            LOG_ERROR("Could not initialize menu item " + failedName);
             return false;
         }
         const Uint32 itemMs = SDL_GetTicks() - itemT0;
