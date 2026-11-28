@@ -1,36 +1,32 @@
-<Actor Type="Level11_Laser" Parent="ActorPrototype_BaseEnemy" ActorPrototypeName="ActorPrototype_Level11_Laser">
+<Actor Type="Level11_Laser" ActorPrototypeName="ActorPrototype_Level11_Laser">
 	<PositionComponent>
-		<Position x="-1" y="-1" /> 
+		<Position x="-1" y="-1" />
 	</PositionComponent>
 	<ActorRenderComponent>
 		<Visible>true</Visible>
 		<Mirrored>false</Mirrored>
 		<Inverted>false</Inverted>
-		<ZCoord>0</ZCoord>
-		<ImagePath>OVERRIDEN_IN_CODE</ImagePath>
+		<ZCoord>1010</ZCoord>
+		<ImagePath>/LEVEL11/IMAGES/LASER/*.PID</ImagePath>
+		<Palette>/LEVEL11/PALETTES/MAIN.PAL</Palette>
 	</ActorRenderComponent>
-    <AnimationComponent>
-        <AnimationPath>/LEVEL11/ANIS/LASER/*.ANI</AnimationPath>
+	<AnimationComponent>
+		<SpecialAnimation>
+			<Type>cycle</Type>
+			<FrameDuration>50</FrameDuration>
+			<HasPositionDelay>false</HasPositionDelay>
+		</SpecialAnimation>
 	</AnimationComponent>
-    <PhysicsComponent>
-        <BodyType>Static</BodyType>
-        <HasFootSensor>false</HasFootSensor>
-        <HasCapsuleShape>false</HasCapsuleShape>
-        <HasBulletBehaviour>false</HasBulletBehaviour>
-        <HasSensorBehaviour>false</HasSensorBehaviour>
-        <FixtureType>Ground</FixtureType>
-        <PositionOffset x="0" y="0" />
-        <CollisionShape>Rectangle</CollisionShape>
-        <CollisionSize width="0" height="0" /> <!-- SET ACCORDING TO IMAGE IN PHYSICS COMPONENT -->
-        <GravityScale>0.000000</GravityScale>
-        <HasInitialSpeed>false</HasInitialSpeed>
-        <HasInitialImpulse>false</HasInitialImpulse>
-        <InitialSpeed x="0" y="0" />
-        <CollisionFlag>1</CollisionFlag>
-        <CollisionMask>4294967295</CollisionMask>
-        <Friction>0.000000</Friction>
-        <Density>0.000000</Density>
-        <Restitution>0.000000</Restitution>
-        <PrefabType></PrefabType>
-    </PhysicsComponent>
+	<!-- CLAW.EXE 0x456c70 "Laser": waits "counter" ms (1500) showing its first frame, then fires once
+	     (LASER.ANI, 25 x 50 ms) with its hurting box (-20,-100)..(20,100) on: 116x275 picture, inset 38/37 -->
+	<LavaHazardComponent>
+		<StartDelay>0</StartDelay>
+		<Pause>1500</Pause>
+		<ActiveFrameFrom>0</ActiveFrameFrom>
+		<ActiveFrameTo>24</ActiveFrameTo>
+		<HitboxInset x="38" y="37" />
+		<HideWhenIdle>false</HideWhenIdle>
+		<Damage>10</Damage>
+		<HitCooldown>1000</HitCooldown>
+	</LavaHazardComponent>
 </Actor>

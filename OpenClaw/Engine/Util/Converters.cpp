@@ -347,11 +347,6 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
                 position.x += 64;
             }
         }
-        else if (logic == "Laser")
-        {
-            // TODO: missing logic
-            continue;
-        }
         else if (levelNumber == 12 &&
             (logic == "AquatisCrack" || logic == "AquatisDynamite" ||
              logic == "Tentacle" || logic == "AquatisStalactite"))

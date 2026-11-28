@@ -839,10 +839,12 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
         SAFE_DELETE(pActorElem);
         return ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level8_GabrielCannon, actorPosition);
     }
-    else if (logic.find("Laser") != std::string::npos)
+    else if (logic == "Laser" && actorProto != ActorPrototype_None)
     {
+        // CLAW.EXE 0x456c70: "counter" ms off between shots
         SAFE_DELETE(pActorElem);
-        return NULL; // TODO
+        xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaHazardComponent.Pause", wwdObject->counter > 0 ? wwdObject->counter : 1500));
+        return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
     }
     else if (logic.find("Gabriel") != std::string::npos)
     {
