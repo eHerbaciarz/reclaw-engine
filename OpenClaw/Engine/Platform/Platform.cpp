@@ -359,7 +359,7 @@ namespace Platform
         // An uncaught exception (e.g. out of memory) ends the program without
         // a word, and on the 3DS the sound thread then crashes on the freed
         // memory. Write what happened to the log and stop the sound first.
-#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+#if defined(RECLAW_DREAMCAST)
         // Out of memory is written down at once (the exception that follows
         // has not always reached a handler on the PS2)
         std::set_new_handler([]()

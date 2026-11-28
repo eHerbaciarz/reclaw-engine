@@ -15,7 +15,12 @@
 //
 
 ActorPrototype ActorLogicToActorPrototype(const std::string& logic, int levelNumber);
-TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber);
+// includeObjects false (small consoles): the level's objects are left out
+// and made a few at a time with WwdObjectsToXml while the actors are created
+// (all of them as XML at once did not fit in the PS2's memory).
+TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber, bool includeObjects = true);
+uint32 WwdObjectCount(WapWwd* wapWwd);
+void WwdObjectsToXml(WapWwd* wapWwd, int levelNumber, TiXmlElement* root, uint32 begin, uint32 end);
 
 #define INSERT_POSITION_COMPONENT(x, y, rootElem) \
 { \

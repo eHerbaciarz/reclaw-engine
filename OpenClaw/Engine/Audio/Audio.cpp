@@ -267,6 +267,10 @@ void Audio::StopMusic()
     if (m_audioSystem) {
         m_audioSystem->StopMusic();
     }
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    // (the menu's music - 1.4 MB decoded - stayed in memory through the level)
+    m_pMusicChunk.reset();
+#endif
 
 #ifdef OPENCLAW_MIDI_RPC
     RpcTryExcept

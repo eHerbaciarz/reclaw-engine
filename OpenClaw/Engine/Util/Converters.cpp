@@ -7,7 +7,238 @@
 
 void FixupWwdObject(WwdObject* pObj, int levelNumber);
 
-TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
+// The level's objects [begin, end) as actor XML, appended to root.
+static void WwdObjectsToXmlRange(WapWwd* wapWwd, int levelNumber, TiXmlElement* root, uint32 begin, uint32 end,
+                                 std::string imagesRootPath, std::vector<std::string>& notLoadedActorList)
+{
+    int mainPlaneIdx = -1;
+    for (uint16 planeIdx = 0; planeIdx < wapWwd->properties.numPlanes; ++planeIdx)
+    {
+        if (wapWwd->planes[planeIdx].properties.flags & WAP_PLANE_FLAG_MAIN_PLANE) mainPlaneIdx = planeIdx;
+    }
+    if (mainPlaneIdx < 0) return;
+    WwdObject* wwdActors = wapWwd->planes[mainPlaneIdx].objects;
+    uint32 actorsCount = wapWwd->planes[mainPlaneIdx].objectsCount;
+
+    for (uint32 actorIdx = begin; actorIdx < end && actorIdx < actorsCount; actorIdx++)
+    {
+        WwdObject actorProperties = wwdActors[actorIdx];
+
+        WwdObject* wwdObject = &actorProperties;
+        FixupWwdObject(wwdObject, levelNumber);
+
+        std::string name = actorProperties.name;
+        std::string logic = actorProperties.logic;
+        std::string imageSet = actorProperties.imageSet;
+        std::string sound = actorProperties.sound;
+
+        // Get image set of actor, e.g. /LEVEL1/IMAGES/SOLDIER/*.PID
+        // TODO: This is code duplication. Fix it
+        std::string tmpImagesRootPath = imagesRootPath;
+        std::string tmpImageSet = wwdObject->imageSet;
+        bool imageSetValid = false;
+
+        if (tmpImageSet.find("LEVEL_") == 0)
+        {
+            // Remove "LEVEL_" from tmpImageSet, e.g. "LEVEL_SOLDIER" -> "SOLDIER"
+            tmpImageSet.erase(0, strlen("LEVEL_"));
+            tmpImagesRootPath = "/LEVEL" + ToStr(levelNumber) + "/IMAGES/";
+            imageSetValid = true;
+        }
+        else if (tmpImageSet.find("GAME_") == 0)
+        {
+            // Remove "GAME_" from tmpImageSet, e.g. "GAME_TREASURE_COINS" -> "TREASURE_COINS"
+            tmpImageSet.erase(0, strlen("GAME_"));
+            tmpImagesRootPath = std::string("/GAME/IMAGES/");
+            std::replace(tmpImageSet.begin(), tmpImageSet.end(), '_', '/');
+            imageSetValid = true;
+
+        }
+        else
+        {
+            LOG_WARNING("Unknown actor image path: " + std::string(wwdObject->imageSet));
+        }
+
+
+        if (imageSetValid)
+        {
+            //std::replace(tmpImageSet.begin(), tmpImageSet.end(), '_', '/');
+            tmpImageSet += "/*";
+            tmpImageSet = tmpImagesRootPath + tmpImageSet;
+        }
+
+        // CursePowerup: multiplayer-only, CLAW.EXE 0x472600 deletes it unless the game is
+        // a multiplayer one with curses on. JumpSwitch: CLAW.EXE 0x455440 gives it only
+        // the base no-op object methods (a 10x10 box nobody reacts to), so it does nothing.
+        // Sign (3 down arrows on level 12): no such logic is registered in CLAW.EXE, so the
+        // game never creates these editor marks.
+        if (logic == "CursePowerup" || logic == "JumpSwitch" || logic == "Sign")
+        {
+            continue;
+        }
+
+        // Here should be any objects that cant for some reason by created in that function
+        if (logic.find("StackedCrates") != std::string::npos)
+        {
+            if (wwdObject->height == 0)
+            {
+                wwdObject->height = 1;
+            }
+            assert(wwdObject->height > 0 && wwdObject->height <= 8 && "Invalid stacked crate height. Should be between 1 and 8");
+
+            for (int crateIdx = 0; crateIdx < wwdObject->height; crateIdx++)
+            {
+                std::vector<PickupType> loot;
+                // Is there a better way ?
+                if (crateIdx == 0) { loot.push_back(PickupType(wwdObject->userRect1.left)); }
+                else if (crateIdx == 1) { loot.push_back(PickupType(wwdObject->userRect1.top)); }
+                else if (crateIdx == 2) { loot.push_back(PickupType(wwdObject->userRect1.right)); }
+                else if (crateIdx == 3) { loot.push_back(PickupType(wwdObject->userRect1.bottom)); }
+                else if (crateIdx == 4) { loot.push_back(PickupType(wwdObject->userRect1.left)); }
+                else if (crateIdx == 5) { loot.push_back(PickupType(wwdObject->userRect1.top)); }
+                else if (crateIdx == 6) { loot.push_back(PickupType(wwdObject->userRect1.right)); }
+                else if (crateIdx == 7) { loot.push_back(PickupType(wwdObject->userRect1.bottom)); }
+
+                int positionOffset = -(crateIdx * 60);
+
+                std::string crateImageSet = "/LEVEL" + ToStr(levelNumber) + "/IMAGES/CRATES/*";
+                root->LinkEndChild(ActorTemplates::CreateXmlData_CrateActor(
+                    crateImageSet,
+                    Point(wwdObject->x, wwdObject->y + positionOffset),
+                    loot,
+                    5, wwdObject->z + crateIdx));
+            }
+        }
+        else if (levelNumber == 3 && sound == "LEVEL_AMBIENT_ANVIL")
+        {
+            continue;
+        }
+        else if (logic == "BreakPlank")
+        {
+            Point position = Point(wwdObject->x, wwdObject->y);
+            ActorPrototype proto = ActorPrototype_None;
+
+            switch (levelNumber)
+            {
+                case 5: proto = ActorPrototype_Level5_CrumblingPeg; break;
+                case 11: proto = ActorPrototype_Level11_BreakPlank; break;
+                case 12: proto = ActorPrototype_Level12_CrumblingPeg; break;
+                default: notLoadedActorList.push_back(actorProperties.logic); continue;
+            }
+
+            // Temporary hack
+            assert(
+                proto == ActorPrototype_Level5_CrumblingPeg 
+                || proto == ActorPrototype_Level11_BreakPlank
+                || proto == ActorPrototype_Level12_CrumblingPeg
+            );
+
+            int crumbleDelay = wwdObject->counter;
+            int width = wwdObject->width;
+
+            for (int pegIdx = 0; pegIdx < width; pegIdx++)
+            {
+                root->LinkEndChild(
+                    ActorTemplates::CreateXmlData_CrumblingPeg(proto, position, tmpImageSet, crumbleDelay));
+
+                position.x += 64;
+            }
+        }
+        else if (levelNumber == 12 &&
+            (logic == "AquatisCrack" || logic == "AquatisDynamite" ||
+             logic == "Tentacle" || logic == "AquatisStalactite"))
+        {
+            // Aquatis encounter (AquatisEncounter.cpp)
+            ActorPrototype aqProto = ActorPrototype_Level12_AquatisCrack;
+            if (logic == "AquatisDynamite") aqProto = ActorPrototype_Level12_AquatisDynamite;
+            else if (logic == "Tentacle") aqProto = ActorPrototype_Level12_AquatisTentacle;
+            else if (logic == "AquatisStalactite") aqProto = ActorPrototype_Level12_AquatisStalactite;
+
+            TiXmlElement* pAqElem = ActorTemplates::CreateXmlData_Actor(aqProto, Point(wwdObject->x, wwdObject->y));
+            if (pAqElem && aqProto == ActorPrototype_Level12_AquatisStalactite)
+            {
+                if (TiXmlElement* pComp = pAqElem->FirstChildElement("AquatisStalactiteComponent"))
+                {
+                    if (TiXmlElement* pOrder = pComp->FirstChildElement("Order"))
+                    {
+                        pComp->RemoveChild(pOrder);
+                    }
+                    TiXmlElement* pOrder = new TiXmlElement("Order");
+                    pOrder->LinkEndChild(new TiXmlText(ToStr(wwdObject->smarts).c_str()));
+                    pComp->LinkEndChild(pOrder);
+                }
+            }
+            if (pAqElem)
+            {
+                root->LinkEndChild(pAqElem);
+            }
+            continue;
+        }
+        else if (logic == "AquatisCrack")
+        {
+            continue;
+        }
+        else if (levelNumber == 12 && logic == "Shake")
+        {
+            // CLAW.EXE 0x48b970: shakes the view while Claw is in its attack rectangle
+            if (TiXmlElement* pElem = ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level12_ShakeArea, Point(wwdObject->x, wwdObject->y)))
+            {
+                TiXmlElement* pComp = pElem->FirstChildElement("ShakeAreaComponent");
+                if (TiXmlElement* pRect = pComp ? pComp->FirstChildElement("Area") : NULL)
+                {
+                    pRect->SetAttribute("left", wwdObject->attackRect.left);
+                    pRect->SetAttribute("top", wwdObject->attackRect.top);
+                    pRect->SetAttribute("right", wwdObject->attackRect.right);
+                    pRect->SetAttribute("bottom", wwdObject->attackRect.bottom);
+                }
+                root->LinkEndChild(pElem);
+            }
+            continue;
+        }
+        else
+        {
+            if (TiXmlElement* pActorElem = WwdObjectToXml(&actorProperties, imagesRootPath, levelNumber))
+            {
+                root->LinkEndChild(pActorElem);
+            }
+            else
+            {
+                notLoadedActorList.push_back(actorProperties.logic);
+            }
+        }
+    }
+
+}
+
+static std::string WwdImagesRootPath(WapWwd* wapWwd)
+{
+    std::string imagesRootPath = wapWwd->properties.imageSet1;
+    std::replace(imagesRootPath.begin(), imagesRootPath.end(), '\\', '/');
+    imagesRootPath += '/';
+    imagesRootPath.insert(0, 1, '/');
+    return imagesRootPath;
+}
+
+uint32 WwdObjectCount(WapWwd* wapWwd)
+{
+    for (uint16 planeIdx = 0; planeIdx < wapWwd->properties.numPlanes; ++planeIdx)
+    {
+        if (wapWwd->planes[planeIdx].properties.flags & WAP_PLANE_FLAG_MAIN_PLANE) return wapWwd->planes[planeIdx].objectsCount;
+    }
+    return 0;
+}
+
+void WwdObjectsToXml(WapWwd* wapWwd, int levelNumber, TiXmlElement* root, uint32 begin, uint32 end)
+{
+    std::vector<std::string> notLoaded;
+    WwdObjectsToXmlRange(wapWwd, levelNumber, root, begin, end, WwdImagesRootPath(wapWwd), notLoaded);
+    for (const std::string& logic : notLoaded)
+    {
+        LOG_ERROR("NOT LOADED: " + logic);
+    }
+}
+
+TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber, bool includeObjects)
 {
     TiXmlDocument xmlDoc;
 
@@ -246,192 +477,9 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
         }
     }
 
-    for (uint32 actorIdx = 0; actorIdx < actorsCount; actorIdx++)
+    if (includeObjects)
     {
-        WwdObject actorProperties = wwdActors[actorIdx];
-
-        WwdObject* wwdObject = &actorProperties;
-        FixupWwdObject(wwdObject, levelNumber);
-
-        std::string name = actorProperties.name;
-        std::string logic = actorProperties.logic;
-        std::string imageSet = actorProperties.imageSet;
-        std::string sound = actorProperties.sound;
-
-        // Get image set of actor, e.g. /LEVEL1/IMAGES/SOLDIER/*.PID
-        // TODO: This is code duplication. Fix it
-        std::string tmpImagesRootPath = imagesRootPath;
-        std::string tmpImageSet = wwdObject->imageSet;
-        bool imageSetValid = false;
-
-        if (tmpImageSet.find("LEVEL_") == 0)
-        {
-            // Remove "LEVEL_" from tmpImageSet, e.g. "LEVEL_SOLDIER" -> "SOLDIER"
-            tmpImageSet.erase(0, strlen("LEVEL_"));
-            tmpImagesRootPath = "/LEVEL" + ToStr(levelNumber) + "/IMAGES/";
-            imageSetValid = true;
-        }
-        else if (tmpImageSet.find("GAME_") == 0)
-        {
-            // Remove "GAME_" from tmpImageSet, e.g. "GAME_TREASURE_COINS" -> "TREASURE_COINS"
-            tmpImageSet.erase(0, strlen("GAME_"));
-            tmpImagesRootPath = std::string("/GAME/IMAGES/");
-            std::replace(tmpImageSet.begin(), tmpImageSet.end(), '_', '/');
-            imageSetValid = true;
-
-        }
-        else
-        {
-            LOG_WARNING("Unknown actor image path: " + std::string(wwdObject->imageSet));
-        }
-
-
-        if (imageSetValid)
-        {
-            //std::replace(tmpImageSet.begin(), tmpImageSet.end(), '_', '/');
-            tmpImageSet += "/*";
-            tmpImageSet = tmpImagesRootPath + tmpImageSet;
-        }
-
-        // CursePowerup: multiplayer-only, CLAW.EXE 0x472600 deletes it unless the game is
-        // a multiplayer one with curses on. JumpSwitch: CLAW.EXE 0x455440 gives it only
-        // the base no-op object methods (a 10x10 box nobody reacts to), so it does nothing.
-        // Sign (3 down arrows on level 12): no such logic is registered in CLAW.EXE, so the
-        // game never creates these editor marks.
-        if (logic == "CursePowerup" || logic == "JumpSwitch" || logic == "Sign")
-        {
-            continue;
-        }
-
-        // Here should be any objects that cant for some reason by created in that function
-        if (logic.find("StackedCrates") != std::string::npos)
-        {
-            if (wwdObject->height == 0)
-            {
-                wwdObject->height = 1;
-            }
-            assert(wwdObject->height > 0 && wwdObject->height <= 8 && "Invalid stacked crate height. Should be between 1 and 8");
-
-            for (int crateIdx = 0; crateIdx < wwdObject->height; crateIdx++)
-            {
-                std::vector<PickupType> loot;
-                // Is there a better way ?
-                if (crateIdx == 0) { loot.push_back(PickupType(wwdObject->userRect1.left)); }
-                else if (crateIdx == 1) { loot.push_back(PickupType(wwdObject->userRect1.top)); }
-                else if (crateIdx == 2) { loot.push_back(PickupType(wwdObject->userRect1.right)); }
-                else if (crateIdx == 3) { loot.push_back(PickupType(wwdObject->userRect1.bottom)); }
-                else if (crateIdx == 4) { loot.push_back(PickupType(wwdObject->userRect1.left)); }
-                else if (crateIdx == 5) { loot.push_back(PickupType(wwdObject->userRect1.top)); }
-                else if (crateIdx == 6) { loot.push_back(PickupType(wwdObject->userRect1.right)); }
-                else if (crateIdx == 7) { loot.push_back(PickupType(wwdObject->userRect1.bottom)); }
-
-                int positionOffset = -(crateIdx * 60);
-
-                std::string crateImageSet = "/LEVEL" + ToStr(levelNumber) + "/IMAGES/CRATES/*";
-                root->LinkEndChild(ActorTemplates::CreateXmlData_CrateActor(
-                    crateImageSet,
-                    Point(wwdObject->x, wwdObject->y + positionOffset),
-                    loot,
-                    5, wwdObject->z + crateIdx));
-            }
-        }
-        else if (levelNumber == 3 && sound == "LEVEL_AMBIENT_ANVIL")
-        {
-            continue;
-        }
-        else if (logic == "BreakPlank")
-        {
-            Point position = Point(wwdObject->x, wwdObject->y);
-            ActorPrototype proto = ActorPrototype_None;
-
-            switch (levelNumber)
-            {
-                case 5: proto = ActorPrototype_Level5_CrumblingPeg; break;
-                case 11: proto = ActorPrototype_Level11_BreakPlank; break;
-                case 12: proto = ActorPrototype_Level12_CrumblingPeg; break;
-                default: notLoadedActorList.push_back(actorProperties.logic); continue;
-            }
-
-            // Temporary hack
-            assert(
-                proto == ActorPrototype_Level5_CrumblingPeg 
-                || proto == ActorPrototype_Level11_BreakPlank
-                || proto == ActorPrototype_Level12_CrumblingPeg
-            );
-
-            int crumbleDelay = wwdObject->counter;
-            int width = wwdObject->width;
-
-            for (int pegIdx = 0; pegIdx < width; pegIdx++)
-            {
-                root->LinkEndChild(
-                    ActorTemplates::CreateXmlData_CrumblingPeg(proto, position, tmpImageSet, crumbleDelay));
-
-                position.x += 64;
-            }
-        }
-        else if (levelNumber == 12 &&
-            (logic == "AquatisCrack" || logic == "AquatisDynamite" ||
-             logic == "Tentacle" || logic == "AquatisStalactite"))
-        {
-            // Aquatis encounter (AquatisEncounter.cpp)
-            ActorPrototype aqProto = ActorPrototype_Level12_AquatisCrack;
-            if (logic == "AquatisDynamite") aqProto = ActorPrototype_Level12_AquatisDynamite;
-            else if (logic == "Tentacle") aqProto = ActorPrototype_Level12_AquatisTentacle;
-            else if (logic == "AquatisStalactite") aqProto = ActorPrototype_Level12_AquatisStalactite;
-
-            TiXmlElement* pAqElem = ActorTemplates::CreateXmlData_Actor(aqProto, Point(wwdObject->x, wwdObject->y));
-            if (pAqElem && aqProto == ActorPrototype_Level12_AquatisStalactite)
-            {
-                if (TiXmlElement* pComp = pAqElem->FirstChildElement("AquatisStalactiteComponent"))
-                {
-                    if (TiXmlElement* pOrder = pComp->FirstChildElement("Order"))
-                    {
-                        pComp->RemoveChild(pOrder);
-                    }
-                    TiXmlElement* pOrder = new TiXmlElement("Order");
-                    pOrder->LinkEndChild(new TiXmlText(ToStr(wwdObject->smarts).c_str()));
-                    pComp->LinkEndChild(pOrder);
-                }
-            }
-            if (pAqElem)
-            {
-                root->LinkEndChild(pAqElem);
-            }
-            continue;
-        }
-        else if (logic == "AquatisCrack")
-        {
-            continue;
-        }
-        else if (levelNumber == 12 && logic == "Shake")
-        {
-            // CLAW.EXE 0x48b970: shakes the view while Claw is in its attack rectangle
-            if (TiXmlElement* pElem = ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level12_ShakeArea, Point(wwdObject->x, wwdObject->y)))
-            {
-                TiXmlElement* pComp = pElem->FirstChildElement("ShakeAreaComponent");
-                if (TiXmlElement* pRect = pComp ? pComp->FirstChildElement("Area") : NULL)
-                {
-                    pRect->SetAttribute("left", wwdObject->attackRect.left);
-                    pRect->SetAttribute("top", wwdObject->attackRect.top);
-                    pRect->SetAttribute("right", wwdObject->attackRect.right);
-                    pRect->SetAttribute("bottom", wwdObject->attackRect.bottom);
-                }
-                root->LinkEndChild(pElem);
-            }
-            continue;
-        }
-        else
-        {
-            if (TiXmlElement* pActorElem = WwdObjectToXml(&actorProperties, imagesRootPath, levelNumber))
-            {
-                root->LinkEndChild(pActorElem);
-            }
-            else
-            {
-                notLoadedActorList.push_back(actorProperties.logic);
-            }
-        }
+        WwdObjectsToXmlRange(wapWwd, levelNumber, root, 0, actorsCount, imagesRootPath, notLoadedActorList);
     }
 
     if (notLoadedActorList.size() > 0)

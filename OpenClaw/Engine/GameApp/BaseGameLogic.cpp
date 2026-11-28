@@ -29,6 +29,7 @@
 #include "../Actor/Components/ControllableComponent.h"
 
 #include "../Util/Converters.h"
+#include <cstring>
 #include "../Util/ClawLevelUtil.h"
 
 #include "GameSaves.h"
@@ -655,7 +656,13 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     assert(pWwd != NULL);
     TraceLevel(pWwd ? "WWD loaded" : "WWD FAILED");
 
-    TiXmlElement* pXmlLevelRoot = WwdToXml(pWwd, m_pCurrentLevel->GetLevelNumber());
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    // (small consoles: the objects are made a few at a time below)
+    const bool streamObjects = true;
+#else
+    const bool streamObjects = false;
+#endif
+    TiXmlElement* pXmlLevelRoot = WwdToXml(pWwd, m_pCurrentLevel->GetLevelNumber(), !streamObjects);
     TraceLevel("WWD converted");
     if (pXmlLevelRoot == NULL)
     {
@@ -747,22 +754,22 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     for (TiXmlElement* pActorElem = pXmlLevelRoot->FirstChildElement("Actor");
         pActorElem != NULL;
         pActorElem = pActorElem->NextSiblingElement("Actor"), numActors++);
+    if (streamObjects)
+    {
+        numActors += (int)WwdObjectCount(pWwd);
+    }
 
     // Leave 90% for actor's processing
-    float actorToPercent = (100.0f - loadingProgress - 5.0f) / (float)numActors;
+    float actorToPercent = (100.0f - loadingProgress - 5.0f) / (float)std::max(1, numActors);
 
     std::string palettePath = pLevelProperties->FirstChildElement("Palette")->GetText();
     std::replace(palettePath.begin(), palettePath.end(), '\\', '/');
     g_pApp->SetCurrentPalette(PalResourceLoader::LoadAndReturnPal(palettePath.c_str()));
 
     uint32 clawId = -1;
-    for (TiXmlElement* pActorElem = pXmlLevelRoot->FirstChildElement("Actor"), *pNextActorElem = nullptr;
-        pActorElem != NULL;
-        pActorElem = pNextActorElem)
+    // Creates one actor from its XML; false: the level cannot be loaded
+    auto createActor = [&](TiXmlElement* pActorElem) -> bool
     {
-        pNextActorElem = pActorElem->NextSiblingElement("Actor");
-        //LOG("Creating actor: " + std::string(pActorElem->Attribute("Type")));
-        //if (std::string(pActorElem->Attribute("Type")) != "Plane") break;
         StrongActorPtr pActor;
         const char* pActorType = pActorElem->Attribute("Type");
         try
@@ -774,7 +781,7 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             // One broken actor must not end the game: say which and go on
             LOG_ERROR(std::string("Exception while creating actor ") + (pActorType ? pActorType : "?") + ": " + e.what());
             Platform::FlushLog();
-            continue;
+            return true;
         }
 #ifdef OPENCLAW_STARTUP_TRACE
         {
@@ -805,18 +812,50 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
             return false;
         }
 
-#if defined(__3DS__)
-        // 3DS memory: the actor's XML is not needed once it exists (the
-        // level's XML is ~20 MB, more than is left for the actors).
-        pXmlLevelRoot->RemoveChild(pActorElem);
-#endif
-
         loadingProgress += actorToPercent;
         if ((loadingProgress - lastProgress) > 1.0f)
         {
             RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
             lastProgress = loadingProgress;
         }
+        return true;
+    };
+
+    // In the level's order: planes, (the "Actors" mark: the objects), Claw, HUD
+    for (TiXmlElement* pElem = pXmlLevelRoot->FirstChildElement(), *pNextElem = nullptr;
+        pElem != NULL;
+        pElem = pNextElem)
+    {
+        pNextElem = pElem->NextSiblingElement();
+        if (streamObjects && strcmp(pElem->Value(), "Actors") == 0)
+        {
+            // The objects a few at a time: their XML made, the actors created,
+            // the XML freed
+            const uint32 count = WwdObjectCount(pWwd);
+            const uint32 kChunk = 16;
+            for (uint32 first = 0; first < count; first += kChunk)
+            {
+                TiXmlElement chunk("Chunk");
+                WwdObjectsToXml(pWwd, m_pCurrentLevel->GetLevelNumber(), &chunk, first, std::min(count, first + kChunk));
+                for (TiXmlElement* pObj = chunk.FirstChildElement("Actor"); pObj; pObj = pObj->NextSiblingElement("Actor"))
+                {
+                    if (!createActor(pObj)) return false;
+                }
+            }
+            TraceLevel("objects created");
+            continue;
+        }
+        if (strcmp(pElem->Value(), "Actor") != 0)
+        {
+            continue;
+        }
+        if (!createActor(pElem)) return false;
+
+#if defined(__3DS__) || defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        // 3DS (PS2, Dreamcast) memory: the actor's XML is not needed once it exists (the
+        // level's XML is ~20 MB, more than is left for the actors).
+        pXmlLevelRoot->RemoveChild(pElem);
+#endif
     }
 
     // Load game save data

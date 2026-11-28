@@ -33,7 +33,7 @@ target_link_libraries(openclaw PRIVATE m)
 # std::shared_ptr without a kernel semaphore per object (ps2_atomic.c): the
 # kernel has only a few hundred and the game ran out of them in the menu
 target_compile_options(openclaw PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-D_GLIBCXX_HAVE_ATOMIC_LOCK_POLICY>)
-target_sources(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/ps2_atomic.c" "${CMAKE_CURRENT_LIST_DIR}/ps2_lock_policy_check.cpp")
+target_sources(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/ps2_atomic.c" "${CMAKE_CURRENT_LIST_DIR}/ps2_lock_policy_check.cpp" "${CMAKE_CURRENT_LIST_DIR}/ps2_new.cpp")
 set_target_properties(openclaw PROPERTIES OUTPUT_NAME "reclaw" SUFFIX ".elf")
 # ps2sdk's default main stack is 128 KB (linkfile: PROVIDE(_stack_size)); the
 # engine needs more - building the menu overran it and the game quit without

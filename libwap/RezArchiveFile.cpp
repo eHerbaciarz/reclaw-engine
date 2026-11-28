@@ -87,7 +87,11 @@ private:
     // The REZ directory jumps between its folders, so several blocks are kept
     // (least recently used one is replaced).
     static const size_t kBlock = 32 * 1024;
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    static const size_t kBlocks = 8;    // (2 MB of 32 was too much on the PS2)
+#else
     static const size_t kBlocks = 64;
+#endif
     struct Block { long long index = -1; size_t len = 0; unsigned long long used = 0; std::vector<char> data; };
 
     const Block* Get(long long index)
