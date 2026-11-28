@@ -1,0 +1,16 @@
+<Actor Type="Level10_MarrowBullet" Parent="ActorPrototype_BaseProjectile" ActorPrototypeName="ActorPrototype_Level10_MarrowBullet">
+	<ActorRenderComponent>
+		<ImagePath>/GAME/IMAGES/BULLETS/*.PID</ImagePath>
+		<Palette>/LEVEL10/PALETTES/MAIN.PAL</Palette>
+	</ActorRenderComponent>
+	<ProjectileAIComponent>
+		<!-- CLAW.EXE 0x45c130: Marrow's pistol, 20 points at 600 px/s -->
+		<Damage>20</Damage>
+		<ProjectileType>DamageType_Bullet</ProjectileType>
+		<ProjectileSpeed x="8.00000" y="0.000000" />
+	</ProjectileAIComponent>
+	<PhysicsComponent>
+        <CollisionFlag>262144</CollisionFlag>
+        <CollisionMask>1048834</CollisionMask>
+    </PhysicsComponent>
+</Actor>

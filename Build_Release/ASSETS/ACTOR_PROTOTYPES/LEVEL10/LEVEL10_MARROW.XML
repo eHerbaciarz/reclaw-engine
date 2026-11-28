@@ -60,9 +60,10 @@
                 <AttackAnimFrameIdx>3</AttackAnimFrameIdx>
                 <AttackType>0</AttackType>
                 <AttackFxImageSet>NONE</AttackFxImageSet>
-                <AttackSpawnPositionOffset x="-100" y="0" />
-                <AttackAreaSize width="100" height="50" />
-                <Damage>35</Damage>
+                <!-- CLAW.EXE 0x45ad80: his knife hits (-117,-4)..(-30,21) for 10 -->
+                <AttackSpawnPositionOffset x="-73" y="8" />
+                <AttackAreaSize width="87" height="25" />
+                <Damage>10</Damage>
                 <AgroSensorFixture>
                     <FixtureType>EnemyAIMeleeSensor</FixtureType>
                     <CollisionShape>Rectangle</CollisionShape>
@@ -80,15 +81,17 @@
     </MeleeAttackAIStateComponent>
     <RangedAttackAIStateComponent>
         <StatePriority>10</StatePriority>
-        <AttackDelay>100</AttackDelay>
+        <!-- CLAW.EXE 0x45baf0: a second of idling between his moves -->
+        <AttackDelay>1000</AttackDelay>
         <Attacks>
             <AttackAction>
                 <Animation>strike1</Animation>
                 <AttackAnimFrameIdx>4</AttackAnimFrameIdx>
-                <ProjectilePrototype>ActorPrototype_Level9_BulletProjectile</ProjectilePrototype>
-                <AttackSpawnPositionOffset x="-62" y="-20" />
+                <!-- CLAW.EXE 0x45c010: the pistol shot leaves from (-65,-24) -->
+                <ProjectilePrototype>ActorPrototype_Level10_MarrowBullet</ProjectilePrototype>
+                <AttackSpawnPositionOffset x="-65" y="-24" />
                 <AttackAreaSize width="0" height="0" />
-                <Damage>10</Damage>
+                <Damage>20</Damage>
                 <AgroSensorFixture>
                     <FixtureType>EnemyAIRangedSensor</FixtureType>
                     <CollisionShape>Rectangle</CollisionShape>

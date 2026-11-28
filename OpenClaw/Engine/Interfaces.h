@@ -554,6 +554,8 @@ enum ActorPrototype
     ActorPrototype_Level12_ShakeArea,
     // Level 12 falling stalactites
     ActorPrototype_Level12_Stalactite,
+    // Level 10 Marrow's pistol shot
+    ActorPrototype_Level10_MarrowBullet,
 
     ActorPrototype_Max
 };
