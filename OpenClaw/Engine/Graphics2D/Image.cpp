@@ -572,6 +572,7 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
     }
     pImage->m_Width = fullW;    // (drawn at the full size)
     pImage->m_Height = fullH;
+    LOWMEM_TRACE("pcx: image initialized");
 
     return pImage;
 }

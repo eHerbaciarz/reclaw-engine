@@ -16,7 +16,10 @@ void PcxResourceExtraData::LoadImage(char* rawBuffer, uint32 size, bool useColor
 {
     if (m_pImage == nullptr)
     {
-        m_pImage.reset(Image::CreatePcxImage(rawBuffer, size, g_pApp->GetRenderer(), useColorKey, colorKey));
+        Image* pImage = Image::CreatePcxImage(rawBuffer, size, g_pApp->GetRenderer(), useColorKey, colorKey);
+        LOWMEM_TRACE(pImage ? "pcx: back from CreatePcxImage" : "pcx: CreatePcxImage FAILED");
+        m_pImage.reset(pImage);
+        LOWMEM_TRACE("pcx: kept");
     }
 }
 
