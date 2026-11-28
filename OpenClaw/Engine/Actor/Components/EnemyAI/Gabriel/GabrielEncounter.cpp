@@ -599,6 +599,21 @@ void GabrielCannonComponent::VOnAnimationAtLastFrame(Animation* pAnimation)
 void GabrielCannonComponent::Fire()
 {
     std::string currAnimName = m_pAnimationComponent->GetCurrentAnimationName();
+
+    // CLAW.EXE 0x416ad0: the lever beside the cannon flips (LS_SWITCH) and clicks
+    // on Gabriel's order to fire
+    if (currAnimName == m_IdleAnim || currAnimName == m_ToVerticalAnim)
+    {
+        if (StrongActorPtr pSwitch = g_pApp->GetGameLogic()->FindActorByName("Level8_CannonSwitch", false))
+        {
+            if (AnimationComponent* pSwitchAnim = pSwitch->GetRawComponent<AnimationComponent>(true))
+            {
+                pSwitchAnim->ResetAnimation();
+                pSwitchAnim->ResumeAnimation();
+            }
+        }
+        Util::PlaySimpleSound("/LEVEL8/SOUNDS/GABRIELCANNON/SWITCH1.WAV");
+    }
     /*if (currAnimName != m_IdleAnim)
     {
         return;

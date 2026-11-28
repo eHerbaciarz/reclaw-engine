@@ -174,6 +174,16 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
     std::string logic = wwdObject->logic;
     std::string imageSet = wwdObject->imageSet;
 
+    // Decoration logics give an object with Z = 0 their own default Z
+    // (CLAW.EXE 0x463710 BehindCandy, 0x4636b0 FrontCandy, 0x4638b0 BehindAniCandy,
+    // 0x463820 FrontAniCandy, 0x463770 GooCoverup)
+    if (wwdObject->z == 0)
+    {
+        if (logic == "BehindCandy" || logic == "BehindAniCandy") { wwdObject->z = 990; }
+        else if (logic == "FrontCandy" || logic == "FrontAniCandy") { wwdObject->z = 5100; }
+        else if (logic == "GooCoverup") { wwdObject->z = 8010; }
+    }
+
     bool bIsMirrored = wwdObject->drawFlags & WAP_OBJECT_DRAW_FLAG_MIRROR;
     bool bIsInverted = wwdObject->drawFlags & WAP_OBJECT_DRAW_FLAG_INVERT;
     bool bIsVisible = !(wwdObject->drawFlags & WAP_OBJECT_DRAW_FLAG_NO_DRAW);
@@ -809,6 +819,18 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
 
         return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
     }
+    else if (logic == "CannonSwitch")
+    {
+        // CLAW.EXE 0x4168c0: the lever beside Gabriel's cannon, idle until he orders a
+        // shot, then plays LEVEL_CANNONSWITCH_SWITCH once (GabrielCannonComponent::Fire)
+        pActorElem->SetAttribute("Type", "Level8_CannonSwitch");
+        TiXmlElement* pAnimElem = new TiXmlElement("AnimationComponent");
+        XML_ADD_TEXT_ELEMENT("AnimationPath", "/LEVEL8/ANIS/CANNONSWITCH/*.ANI", pAnimElem);
+        XML_ADD_TEXT_ELEMENT("PauseOnStart", "true", pAnimElem);
+        XML_ADD_TEXT_ELEMENT("PauseOnEnd", "true", pAnimElem);
+        pActorElem->LinkEndChild(pAnimElem);
+        return pActorElem;
+    }
     else if (logic.find("CannonButton") != std::string::npos)
     {
         SAFE_DELETE(pActorElem);
@@ -1327,6 +1349,8 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
     if (logic == "DoNothing" || logic == "DoNothingNormal" ||
         logic == "BehindAniCandy" || logic == "FrontCandy" ||
         logic == "BehindCandy" || logic == "FrontAniCandy" ||
+        logic == "AniCycle" || logic == "AniCycleNormal" ||
+        logic == "GooCoverup" || // goo edge drawn over Claw (L2), CLAW.EXE 0x463770
         logic == "RedTailSpikes") // its damage is Red Tail's (RedTailEncounter.cpp)
     {
         return pActorElem;

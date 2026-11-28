@@ -275,6 +275,9 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
             tmpImageSet = tmpImagesRootPath + tmpImageSet;
         }
 
+        // CursePowerup: multiplayer-only, CLAW.EXE 0x472600 deletes it unless the game is
+        // a multiplayer one with curses on. JumpSwitch: CLAW.EXE 0x455440 gives it only
+        // the base no-op object methods (a 10x10 box nobody reacts to), so it does nothing.
         if (logic == "CursePowerup" || logic == "JumpSwitch")
         {
             continue;
