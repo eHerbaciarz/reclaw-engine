@@ -1,0 +1,54 @@
+diff --git a/src/render/ps2/SDL_render_ps2.c b/src/render/ps2/SDL_render_ps2.c
+index e8ef2e9..48dc0a7 100644
+--- a/src/render/ps2/SDL_render_ps2.c
++++ b/src/render/ps2/SDL_render_ps2.c
+@@ -88,6 +88,13 @@ static void gsKit_flip(GSGLOBAL *gsGlobal)
+     gsKit_setactive(gsGlobal);
+ }
+ 
++/* ReClaw: on the GS 0x80 is 1.0 for alpha and for the colour a texture is
++   multiplied by (0xFF draws twice as bright and blends past opaque). */
++static inline Uint8 PS2_Half(Uint8 c)
++{
++    return (Uint8)((c + 1) >> 1);
++}
++
+ static int PixelFormatToPS2PSM(Uint32 format)
+ {
+     switch (format) {
+@@ -226,7 +233,7 @@ static int PS2_QueueDrawPoints(SDL_Renderer *renderer, SDL_RenderCommand *cmd, c
+     colorG = cmd->data.draw.g;
+     colorB = cmd->data.draw.b;
+     colorA = cmd->data.draw.a;
+-    rgbaq = color_to_RGBAQ(colorR, colorG, colorB, colorA, 0.0f);
++    rgbaq = color_to_RGBAQ(colorR, colorG, colorB, PS2_Half(colorA), 0.0f);
+ 
+     for (i = 0; i < count; i++, vertices++, points++) {
+         vertices->xyz2 = vertex_to_XYZ2(data->gsGlobal, points->x, points->y, 0);
+@@ -275,7 +282,7 @@ static int PS2_QueueGeometry(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL
+             uv_ = (float *)((char *)uv + j * uv_stride);
+ 
+             vertices->xyz2 = vertex_to_XYZ2(data->gsGlobal, xy_[0] * scale_x, xy_[1] * scale_y, 0);
+-            vertices->rgbaq = color_to_RGBAQ(col_.r, col_.g, col_.b, col_.a, 0);
++            vertices->rgbaq = color_to_RGBAQ(PS2_Half(col_.r), PS2_Half(col_.g), PS2_Half(col_.b), PS2_Half(col_.a), 0);
+             vertices->uv = vertex_to_UV(ps2_tex, uv_[0] * ps2_tex->Width, uv_[1] * ps2_tex->Height);
+ 
+             vertices++;
+@@ -306,7 +313,7 @@ static int PS2_QueueGeometry(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL
+             col_ = *(SDL_Color *)((char *)color + j * color_stride);
+ 
+             vertices->xyz2 = vertex_to_XYZ2(data->gsGlobal, xy_[0] * scale_x, xy_[1] * scale_y, 0);
+-            vertices->rgbaq = color_to_RGBAQ(col_.r, col_.g, col_.b, col_.a, 0.0f);
++            vertices->rgbaq = color_to_RGBAQ(col_.r, col_.g, col_.b, PS2_Half(col_.a), 0.0f);
+ 
+             vertices++;
+         }
+@@ -349,7 +356,7 @@ static int PS2_RenderSetDrawColor(SDL_Renderer *renderer, SDL_RenderCommand *cmd
+     colorG = (cmd->data.color.g);
+     colorB = (cmd->data.color.b);
+     colorA = (cmd->data.color.a);
+-    data->drawColor = GS_SETREG_RGBAQ(colorR, colorG, colorB, colorA, 0x00);
++    data->drawColor = GS_SETREG_RGBAQ(colorR, colorG, colorB, PS2_Half(colorA), 0x00);
+     return 0;
+ }
+ 

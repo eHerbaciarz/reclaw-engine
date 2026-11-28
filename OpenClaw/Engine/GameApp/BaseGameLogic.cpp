@@ -568,8 +568,8 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
         s_LoadedFilter = Image::Filter();
     }
 
-#if defined(__3DS__) || defined(__PSL1GHT__)
-    // 3DS, PS3 memory: the menu's images and files (and the decoded pictures they
+#if defined(__3DS__) || defined(__PSL1GHT__) || defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    // 3DS, PS3, PS2, Dreamcast memory: the menu's images and files (and the decoded pictures they
     // keep) leave the resource caches before the level is built.
     PidResourceLoader::ClearKept();
     WavResourceLoader::ClearKept();   // (all sounds were stopped above)
@@ -604,9 +604,10 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     // up (it used to happen before it: the menu froze for seconds on the
     // handhelds), with the bar moving.
     STARTUP_TRACE("level: preload");
-#if !defined(__3DS__) && !defined(__PSL1GHT__)
+#if !defined(__3DS__) && !defined(__PSL1GHT__) && !defined(RECLAW_PS2) && !defined(RECLAW_DREAMCAST)
     // (3DS: the level does not fit the small cache anyway - no preload;
-    // PS3: all of the level's pictures took 73 MB - the game ran out of memory)
+    // PS3: all of the level's pictures took 73 MB - the game ran out of memory;
+    // PS2 / Dreamcast: the level's sounds alone ran the memory out)
     {
         std::vector<std::string> files = g_pApp->GetResourceCache()->Match(levelPath);
         for (size_t i = 0; i < files.size(); ++i)
@@ -1593,8 +1594,8 @@ void BaseGameLogic::VChangeState(GameState newState)
     {
         // Unload level if applicable
         UnloadLevel();
-#if defined(__3DS__)
-        // 3DS: the level's pictures (textures in the GPU's memory) and files
+#if defined(__3DS__) || defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        // 3DS (PS2, Dreamcast: memory): the level's pictures (textures in the GPU's memory) and files
         // leave the caches before the menu's are made (going back to the menu
         // ran out of GPU memory: the game quit)
         g_pApp->GetResourceCache()->ClearKeptFiles();
@@ -1627,7 +1628,13 @@ void BaseGameLogic::VChangeState(GameState newState)
         // Lazy loading: Preload level-specific assets on-demand
         LOG("Loading assets for " + levelName + "...");
         std::string levelAssetPath = "/" + levelName + "/*";
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+        // (PS2, Dreamcast: the whole level does not fit in memory - it ran out
+        // in the level's sounds; files are read when used)
+        (void)levelAssetPath;
+#else
         g_pApp->GetResourceCache()->Preload(levelAssetPath, NULL);
+#endif
         LOG("Level assets loaded for " + levelName);
 
         // Load saved level file, e.g. LEVEL1.xml
