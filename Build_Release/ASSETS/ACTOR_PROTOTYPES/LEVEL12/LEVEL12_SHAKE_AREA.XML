@@ -1,0 +1,11 @@
+<Actor Type="Level12_ShakeArea" ActorPrototypeName="ActorPrototype_Level12_ShakeArea">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <!-- CLAW.EXE 0x48b970 "Shake": the WWD attack rectangle; 5 s of shaking, then 7 s rest -->
+    <ShakeAreaComponent>
+        <Area left="0" top="0" right="0" bottom="0" />
+        <Duration>5000</Duration>
+        <Rest>7000</Rest>
+    </ShakeAreaComponent>
+</Actor>

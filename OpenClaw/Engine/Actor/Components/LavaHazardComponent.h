@@ -65,4 +65,25 @@ private:
     bool m_bPlaying;
 };
 
+
+//=====================================================================================================================
+// CLAW.EXE 0x48b970 "Shake" (level 12): Claw stepping into its rectangle (the WWD attack
+// rectangle) shakes the view for 5 s with an earthquake sound; then it rests 7 s
+//=====================================================================================================================
+class ShakeAreaComponent : public ActorComponent
+{
+public:
+    static const char* g_Name;
+    virtual const char* VGetName() const override { return g_Name; }
+
+    virtual bool VInit(TiXmlElement* pData) override;
+    virtual void VUpdate(uint32 msDiff) override;
+
+private:
+    int m_Left = 0, m_Top = 0, m_Right = 0, m_Bottom = 0;
+    int m_Duration = 5000;
+    int m_Rest = 7000;
+    int m_RestLeft = 0;
+};
+
 #endif

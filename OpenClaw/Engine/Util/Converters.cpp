@@ -381,6 +381,23 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
         {
             continue;
         }
+        else if (levelNumber == 12 && logic == "Shake")
+        {
+            // CLAW.EXE 0x48b970: shakes the view while Claw is in its attack rectangle
+            if (TiXmlElement* pElem = ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level12_ShakeArea, Point(wwdObject->x, wwdObject->y)))
+            {
+                TiXmlElement* pComp = pElem->FirstChildElement("ShakeAreaComponent");
+                if (TiXmlElement* pRect = pComp ? pComp->FirstChildElement("Area") : NULL)
+                {
+                    pRect->SetAttribute("left", wwdObject->attackRect.left);
+                    pRect->SetAttribute("top", wwdObject->attackRect.top);
+                    pRect->SetAttribute("right", wwdObject->attackRect.right);
+                    pRect->SetAttribute("bottom", wwdObject->attackRect.bottom);
+                }
+                root->LinkEndChild(pElem);
+            }
+            continue;
+        }
         else
         {
             if (TiXmlElement* pActorElem = WwdObjectToXml(&actorProperties, imagesRootPath, levelNumber))

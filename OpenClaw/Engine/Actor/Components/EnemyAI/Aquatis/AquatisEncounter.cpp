@@ -14,6 +14,7 @@
 #include "../../../../Events/EventMgr.h"
 #include "../../../../Events/Events.h"
 #include "AquatisEncounter.h"
+#include "../../../../Scene/SceneNodes.h"
 
 #include "../../../ActorTemplates.h"
 #include "../../../../Util/Util.h"
@@ -138,6 +139,7 @@ bool AquatisAIStateComponent::OnQuake()
     }
     // 4 s of earthquake with him cowering, then the next icicle drops (0x407060)
     m_QuakeLeft = 4000;
+    CameraNode::Shake(4000);
     if (m_Act == Act_Idle || m_Act == Act_HighPunch || m_Act == Act_LowPunch || m_Act == Act_Hit)
     {
         SetAct(Act_Scared);

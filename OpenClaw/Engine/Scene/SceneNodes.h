@@ -192,6 +192,9 @@ public:
     Point GetPosition() { return m_Properties.GetPosition() + m_CameraOffset; }
 
     void SetViewPosition(Scene* pScene);
+    // CLAW.EXE 0x48a000 / 0x489bd0: for this long the view jitters up to 6 px
+    // each way, a new offset every 0-35 ms (earthquakes)
+    static void Shake(int durationMs);
     void SetTarget(shared_ptr<SceneNode> pTarget) { m_pTarget = pTarget; }
     shared_ptr<SceneNode> GetTarget() { return m_pTarget; }
     void ClearTarget() { m_pTarget = shared_ptr<SceneNode>(); }
@@ -232,6 +235,9 @@ public:
     }
 
 protected:
+    Point m_ShakeOffset;
+    uint32 m_NextShakeTick = 0;
+
     void CalcCameraRect() {
         m_CachedCameraRect = {(int) (m_Properties.GetPosition().x + m_CameraOffset.x),
                               (int) (m_Properties.GetPosition().y + m_CameraOffset.y),

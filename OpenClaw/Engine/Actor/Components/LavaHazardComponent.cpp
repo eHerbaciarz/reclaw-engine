@@ -1,4 +1,5 @@
 #include "LavaHazardComponent.h"
+#include "../../Scene/SceneNodes.h"
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 #include "ControllerComponents/HealthComponent.h"
@@ -302,5 +303,53 @@ void LavaHazardComponent::VOnAnimationLooped(Animation* pAnimation)
     if (m_bHideWhenIdle)
     {
         m_pARC->SetVisible(false);
+    }
+}
+
+//=====================================================================================================================
+// ShakeAreaComponent
+//=====================================================================================================================
+
+const char* ShakeAreaComponent::g_Name = "ShakeAreaComponent";
+
+bool ShakeAreaComponent::VInit(TiXmlElement* pData)
+{
+    if (TiXmlElement* pRect = pData->FirstChildElement("Area"))
+    {
+        pRect->Attribute("left", &m_Left);
+        pRect->Attribute("top", &m_Top);
+        pRect->Attribute("right", &m_Right);
+        pRect->Attribute("bottom", &m_Bottom);
+    }
+    ParseValueFromXmlElem(&m_Duration, pData->FirstChildElement("Duration"));
+    ParseValueFromXmlElem(&m_Rest, pData->FirstChildElement("Rest"));
+    return true;
+}
+
+void ShakeAreaComponent::VUpdate(uint32 msDiff)
+{
+    if (m_RestLeft > 0)
+    {
+        m_RestLeft -= (int)msDiff;
+        return;
+    }
+    StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+    if (!pClaw || m_Right <= m_Left)
+    {
+        return;
+    }
+    const Point claw = pClaw->GetPositionComponent()->GetPosition();
+    if (claw.x < m_Left || claw.x > m_Right || claw.y < m_Top || claw.y > m_Bottom)
+    {
+        return;
+    }
+    // 0x48be30: shake 5 s, one of the five earthquakes (or none, 1 in 6), wait 7 s
+    CameraNode::Shake(m_Duration);
+    m_RestLeft = m_Rest;
+    const int sound = rand() % 6;
+    if (sound < 5)
+    {
+        SoundInfo info("/LEVEL12/SOUNDS/EARTHQUAKE" + ToStr(sound + 1) + ".WAV");
+        IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Request_Play_Sound(info)));
     }
 }

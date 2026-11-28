@@ -464,6 +464,17 @@ void CameraNode::VRender(Scene* pScene)
     }
 }
 
+static uint32 s_CameraShakeUntil = 0;
+
+void CameraNode::Shake(int durationMs)
+{
+    const uint32 until = SDL_GetTicks() + (uint32)std::max(0, durationMs);
+    if (until > s_CameraShakeUntil)
+    {
+        s_CameraShakeUntil = until;
+    }
+}
+
 void CameraNode::SetViewPosition(Scene* pScene)
 {
     // If there is a target, make sure target is in the center of the camera
@@ -475,6 +486,16 @@ void CameraNode::SetViewPosition(Scene* pScene)
         // Center camera
         Point scale = g_pApp->GetScale();
         Point cameraPos = targetPos - Point((m_Width / 2) / scale.x, (m_Height / 2) / scale.y);
+        const uint32 now = SDL_GetTicks();
+        if (now < s_CameraShakeUntil)
+        {
+            if (now >= m_NextShakeTick)
+            {
+                m_ShakeOffset.Set(rand() % 13 - 6, rand() % 13 - 6);
+                m_NextShakeTick = now + rand() % 36;
+            }
+            cameraPos = cameraPos + m_ShakeOffset;
+        }
         VSetPosition(cameraPos);
     }
 }
