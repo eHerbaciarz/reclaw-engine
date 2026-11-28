@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include "../Util/StartupTrace.h"
 
 #include <libwap.h>
 
@@ -403,6 +404,7 @@ std::shared_ptr<ResourceHandle> ResourceCache::Load(Resource* r)
         return nullptr;
     }
     memset(rawBuffer, 0, allocSize);
+    LOWMEM_TRACE("load: read " + r->GetName() + " (" + std::to_string(rawSize) + " bytes)");
 
     if (kept != s_KeptFiles.end())
     {
@@ -457,6 +459,7 @@ std::shared_ptr<ResourceHandle> ResourceCache::Load(Resource* r)
         return nullptr;
     }
 
+    LOWMEM_TRACE("load: done");
     _lruList.push_front(handle);
     _resourceMap[r->GetName()] = handle;
 

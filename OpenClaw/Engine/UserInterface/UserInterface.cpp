@@ -1,6 +1,7 @@
 #include "KeyScancode.h"
 #include "../GameApp/Difficulty.h"
 #include "../Util/StartupTrace.h"
+#include <cstdio>
 #include "../Util/MemStats.h"
 #include <set>
 #include "UserInterface.h"
@@ -239,6 +240,7 @@ static shared_ptr<Image> LoadImageFromXmlElement(TiXmlElement* pElem)
     {
         assert(false && "Unsupported");
     }
+    LOWMEM_TRACE(pImage ? "menu:       picture ok" : "menu:       picture MISSING");
 
     return pImage;
 }
@@ -1492,7 +1494,9 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
         {
             std::string traceName;
             ParseValueFromXmlElem(&traceName, pMenuItemElem->FirstChildElement("Name"));
-            STARTUP_TRACE("menu:   item " + traceName + ", " + MemStats::Report());
+            char sp[32];
+            snprintf(sp, sizeof(sp), ", sp %p", __builtin_frame_address(0));
+            STARTUP_TRACE("menu:   item " + traceName + ", " + MemStats::Report() + sp);
         }
 #endif
         bool itemOk = false;

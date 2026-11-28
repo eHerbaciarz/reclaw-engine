@@ -53,6 +53,7 @@ void Image::SetSmooth(bool on)
 // Memory report (Util/MemStats.h): the bytes of the pictures' textures
 // (width x height x bytes per pixel, mirrored copies included).
 #include "../Util/MemStats.h"
+#include "../Util/StartupTrace.h"
 static void TrackTexture(SDL_Texture* t, int sign)
 {
     if (!t) return;
@@ -476,6 +477,7 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
 {
     Image* pImage = new Image();
     SDL_RWops* pRWops = SDL_RWFromMem((void*)rawBuffer, size);
+    LOWMEM_TRACE("pcx: decode");
     SDL_Surface* pSurface = IMG_LoadPCX_RW(pRWops);
     if (pSurface == NULL)
     {
@@ -483,6 +485,13 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
         delete pImage;
         return NULL;
     }
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    {
+        char t[96];
+        snprintf(t, sizeof(t), "pcx: %dx%d, %d bit", pSurface->w, pSurface->h, pSurface->format ? pSurface->format->BitsPerPixel : 0);
+        LOWMEM_TRACE(t);
+    }
+#endif
 
     if (useColorKey && colorKey.a == 1 && colorKey.r == 0 && colorKey.g == 0 && colorKey.b == 0
         && pSurface->w > 0 && pSurface->h > 0)
@@ -542,8 +551,10 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
         }
     }
 
+    LOWMEM_TRACE("pcx: texture");
     SDL_Texture* pTexture = SDL_CreateTextureFromSurface(renderer, pSurface);
     SDL_FreeSurface(pSurface);
+    LOWMEM_TRACE(pTexture ? "pcx: texture ok" : "pcx: texture FAILED");
 
     if (pTexture == NULL)
     {

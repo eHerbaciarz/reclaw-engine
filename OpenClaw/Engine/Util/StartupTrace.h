@@ -39,3 +39,11 @@ inline unsigned StartupTraceFreeKB()
 #else
 #define STARTUP_TRACE(msg) do {} while (0)
 #endif
+
+// Finer steps traced only on the small consoles (PS2, Dreamcast), where the
+// game can stop without an error while loading pictures.
+#if defined(OPENCLAW_STARTUP_TRACE) && (defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST))
+#define LOWMEM_TRACE(msg) STARTUP_TRACE(msg)
+#else
+#define LOWMEM_TRACE(msg) do {} while (0)
+#endif

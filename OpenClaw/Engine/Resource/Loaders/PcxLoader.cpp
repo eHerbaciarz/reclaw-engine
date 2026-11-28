@@ -3,6 +3,8 @@
 #include "../../Graphics2D/Image.h"
 #include "../../GameApp/BaseGameApp.h"
 #include "../ResourceMgr.h"
+#include "../../Util/StartupTrace.h"
+#include <cstdio>
 
 //=================================================================================================
 // class PcxResourceExtraData
@@ -29,14 +31,28 @@ shared_ptr<Image> PcxResourceLoader::LoadAndReturnImage(const char* resourceStri
     Resource resource(resourceString);
 
     // Use ResourceMgr to allow ASSETS.ZIP to override CLAW.REZ assets
+    LOWMEM_TRACE("pcx: handle");
     shared_ptr<ResourceHandle> handle = g_pApp->GetResourceMgr()->VGetHandle(&resource);
     assert(handle != nullptr);
+    if (!handle)
+    {
+        LOG_ERROR(std::string("Picture not found: ") + resourceString);
+        return nullptr;
+    }
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    {
+        char t[96];
+        snprintf(t, sizeof(t), "pcx: %u bytes, sp %p", (unsigned)handle->GetSize(), __builtin_frame_address(0));
+        LOWMEM_TRACE(t);
+    }
+#endif
 
     shared_ptr<PcxResourceExtraData> extraData = std::static_pointer_cast<PcxResourceExtraData>(handle->GetExtraData());
     if (!extraData)
     {
         extraData = shared_ptr<PcxResourceExtraData>(new PcxResourceExtraData());
         extraData->LoadImage(handle->GetDataBuffer(), handle->GetSize(), useColorKey, colorKey);
+        LOWMEM_TRACE("pcx: image made");
 
         if (!extraData->GetImage())
         {
