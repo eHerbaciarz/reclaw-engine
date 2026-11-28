@@ -57,10 +57,7 @@ function Find-Pcsx2 {
 if ($Setup -or -not $settings.Pcsx2Exe -or -not (Test-Path $settings.Pcsx2Exe)) {
     Say 'Szukam PCSX2...'
     $found = Find-Pcsx2
-    if ($found) {
-        Say "Znaleziony: $found"
-        if ((Read-Host 'Użyć go? [T/n]') -match '^[nN]') { $found = '' }
-    }
+    if ($found) { Say "PCSX2: $found (inny: -Setup)" }
     if (-not $found) {
         Add-Type -AssemblyName System.Windows.Forms
         $dlg = New-Object System.Windows.Forms.OpenFileDialog
@@ -72,7 +69,13 @@ if ($Setup -or -not $settings.Pcsx2Exe -or -not (Test-Path $settings.Pcsx2Exe)) 
     $settings.Pcsx2Exe = $found
     Save-Settings
 }
-if ($Setup -or -not (Test-Path $settings.RezDir)) {
+# Pytanie o folder z CLAW.REZ tylko gdy gra go jeszcze nie ma i nie da się go
+# znaleźć (albo z -Setup); odpowiedź jest zapamiętana w test_ps2.json
+function Has-Rez($dir) {
+    return (Test-Path (Join-Path $dir 'pl\CLAW.REZ')) -or (Test-Path (Join-Path $dir 'en\CLAW.REZ'))
+}
+$gameHasRez = Has-Rez (Join-Path $settings.GameDir 'data')
+if ($Setup -or (-not $gameHasRez -and -not (Has-Rez $settings.RezDir))) {
     $answer = Read-Host "Folder z CLAW.REZ (z podfolderami pl\ i en\) [$($settings.RezDir)]"
     if ($answer) { $settings.RezDir = $answer.Trim('"') }
     Save-Settings
