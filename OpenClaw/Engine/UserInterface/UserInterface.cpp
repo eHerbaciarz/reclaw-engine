@@ -2176,6 +2176,13 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
     return false;
 }
 
+
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+// (PS2: building one menu item ends the menu without an error - where)
+#define ITEM_STEP(what) STARTUP_TRACE(std::string("menu:     ") + (what))
+#else
+#define ITEM_STEP(what) do { } while (0)
+#endif
 bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
 {
     SetPointIfDefined(&m_Position, pElem->FirstChildElement("Position"), "x", "y");
@@ -2401,6 +2408,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
             ReEvaluateVisibilityCondition();
         }
     }
+    ITEM_STEP("types");
     std::string menuItemTypeStr;
     ParseValueFromXmlElem(&menuItemTypeStr, pElem->FirstChildElement("Type"));
     m_Type = StringToMenuItemType(menuItemTypeStr);
@@ -2431,6 +2439,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         }
     }
 
+    ITEM_STEP("images");
     // <GameFontText>SKRZYŻUJ SZPADY PONOWNIE</GameFontText> (Polish): with the
     // Polish release the item is drawn in the game's own menu letters instead
     // of the pictures above. <GameFontUnderline>: letter to underline (default
@@ -2496,6 +2505,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         }
     }
 
+    ITEM_STEP("gamefont text");
     // <GameFontCredits />: the credits screen in the game's menu letters.
     if (pElem->FirstChildElement("GameFontCredits"))
     {
@@ -2518,6 +2528,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         }
     }
 
+    ITEM_STEP("credits/controls");
     // Options > Graphics > Font: ReClaw - the text this item shows
     if ((m_Type == MenuItemType_Button || m_Type == MenuItemType_Text) &&
         !pElem->FirstChildElement("GameFontCredits") && !pElem->FirstChildElement("GameFontControls") &&
@@ -2549,6 +2560,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         if (scale != 100) m_ReclawSize = m_ReclawSize * scale / 100;
     }
 
+    ITEM_STEP("reclaw text");
     // <Position x="320" y="100" align="center" />: x is the item's centre, so
     // texts of any length (e.g. translated releases) stay centred.
     if (TiXmlElement* pPosElem = pElem->FirstChildElement("Position"))
@@ -2585,6 +2597,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         m_MenuItemImageList.push_back(pMenuItemImage);
     }*/
 
+    ITEM_STEP("position");
     std::string hotkeyStr;
     if (ParseValueFromXmlElem(&hotkeyStr, pElem->FirstChildElement("Hotkey")))
     {
@@ -2604,6 +2617,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         m_GeneratedEventList.push_back(pEvent);
     }
 
+    ITEM_STEP("events");
     if (TiXmlElement* pStateEnterEventsElem = pElem->FirstChildElement("StateEnterEvents"))
     {
         for (TiXmlElement* pEventElem = pStateEnterEventsElem->FirstChildElement("Event");
@@ -2684,6 +2698,7 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
         }
     }
 
+    ITEM_STEP("key events");
     if (m_Images.empty())
     {
         LOG_ERROR("No images for menu item: " + m_Name);
