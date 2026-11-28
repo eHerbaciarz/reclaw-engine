@@ -814,6 +814,26 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
         SAFE_DELETE(pActorElem);
         return ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level8_GabrielButton, actorPosition);
     }
+    else if (logic == "Stalactite" && levelNumber == 12)
+    {
+        // CLAW.EXE 0x491990: falls when Claw is inside its UserRect1
+        SAFE_DELETE(pActorElem);
+        TiXmlElement* pElem = ActorTemplates::CreateXmlData_Actor(ActorPrototype_Level12_Stalactite, actorPosition);
+        if (pElem)
+        {
+            if (TiXmlElement* pComp = pElem->FirstChildElement("FallingStalactiteComponent"))
+            {
+                if (TiXmlElement* pArea = pComp->FirstChildElement("TriggerArea"))
+                {
+                    pArea->SetAttribute("left", wwdObject->userRect1.left);
+                    pArea->SetAttribute("top", wwdObject->userRect1.top);
+                    pArea->SetAttribute("right", wwdObject->userRect1.right);
+                    pArea->SetAttribute("bottom", wwdObject->userRect1.bottom);
+                }
+            }
+        }
+        return pElem;
+    }
     else if (logic.find("GabrielCannon") != std::string::npos)
     {
         SAFE_DELETE(pActorElem);

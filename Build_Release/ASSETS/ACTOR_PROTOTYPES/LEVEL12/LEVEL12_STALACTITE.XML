@@ -1,0 +1,21 @@
+<Actor Type="Level12_Stalactite" ActorPrototypeName="ActorPrototype_Level12_Stalactite">
+    <PositionComponent>
+        <Position x="-1" y="-1" /> <!-- DEFINED IN CODE -->
+    </PositionComponent>
+    <ActorRenderComponent>
+        <Visible>true</Visible>
+        <Mirrored>false</Mirrored>
+        <Inverted>false</Inverted>
+        <ZCoord>1010</ZCoord>
+        <ImagePath>/LEVEL12/IMAGES/PROJECTILES/STALACTITE/*.PID</ImagePath>
+        <Palette>/LEVEL12/PALETTES/MAIN.PAL</Palette>
+    </ActorRenderComponent>
+    <AnimationComponent>
+        <AnimationPath>/LEVEL12/ANIS/STALACTITE/*.ANI</AnimationPath>
+    </AnimationComponent>
+    <!-- CLAW.EXE 0x491990 "Stalactite": falls when Claw walks under it -->
+    <FallingStalactiteComponent>
+        <TriggerArea left="0" top="0" right="0" bottom="0" /> <!-- the object's UserRect1, set by the converter -->
+        <Damage>5</Damage>
+    </FallingStalactiteComponent>
+</Actor>

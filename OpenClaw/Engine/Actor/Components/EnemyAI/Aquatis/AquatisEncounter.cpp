@@ -891,3 +891,127 @@ void AquatisDynamiteComponent::VUpdate(uint32 msDiff)
         true);
     m_pPickup = pPickup;
 }
+
+//=====================================================================================================================
+// FallingStalactiteComponent (CLAW.EXE 0x491990 "Stalactite")
+//=====================================================================================================================
+
+const char* FallingStalactiteComponent::g_Name = "FallingStalactiteComponent";
+
+FallingStalactiteComponent::FallingStalactiteComponent()
+{
+    IEventMgr::Get()->VAddListener(MakeDelegate(this, &FallingStalactiteComponent::ClawRespawnedDelegate), EventData_Claw_Respawned::sk_EventType);
+}
+
+FallingStalactiteComponent::~FallingStalactiteComponent()
+{
+    IEventMgr::Get()->VRemoveListener(MakeDelegate(this, &FallingStalactiteComponent::ClawRespawnedDelegate), EventData_Claw_Respawned::sk_EventType);
+}
+
+bool FallingStalactiteComponent::VInit(TiXmlElement* pData)
+{
+    if (TiXmlElement* pArea = pData->FirstChildElement("TriggerArea"))
+    {
+        pArea->Attribute("left", &m_Left);
+        pArea->Attribute("top", &m_Top);
+        pArea->Attribute("right", &m_Right);
+        pArea->Attribute("bottom", &m_Bottom);
+    }
+    ParseValueFromXmlElem(&m_Damage, pData->FirstChildElement("Damage"));
+    return true;
+}
+
+void FallingStalactiteComponent::VPostInit()
+{
+    m_pAnimationComponent = m_pOwner->GetRawComponent<AnimationComponent>(true);
+    m_pRenderComponent = m_pOwner->GetRawComponent<ActorRenderComponent>(true);
+    m_pAnimationComponent->AddObserver(this);
+    m_pAnimationComponent->SetAnimation("home");
+    m_Home = m_pOwner->GetPositionComponent()->GetPosition();
+}
+
+void FallingStalactiteComponent::Crumble()
+{
+    // ES_DEAD: crumble with STALACTITEHIT2
+    m_State = State_Crumbling;
+    m_pAnimationComponent->SetAnimation("crumble");
+    Util::PlaySimpleSound(AQ_SOUND_ICICLE_HIT);
+}
+
+void FallingStalactiteComponent::VUpdate(uint32 msDiff)
+{
+    Actor* pClaw = AqClaw();
+    if (!pClaw)
+    {
+        return;
+    }
+    const Point claw = pClaw->GetPositionComponent()->GetPosition();
+    if (m_State == State_Hanging)
+    {
+        // ES_IDLE (0x4922b0): Claw's position inside UserRect1
+        if (m_Right > m_Left && claw.x >= m_Left && claw.x < m_Right && claw.y >= m_Top && claw.y < m_Bottom)
+        {
+            m_State = State_Falling;
+            m_Speed = 0;
+            Util::PlaySimpleSound(AQ_SOUND_ICICLE_SNAP);
+        }
+        return;
+    }
+    if (m_State != State_Falling)
+    {
+        return;
+    }
+
+    // ES_FALLING (0x492370): 2000 px/s2 until it stands on something
+    const double dt = msDiff / 1000.0;
+    const Point pos = m_pOwner->GetPositionComponent()->GetPosition();
+    m_Speed = std::min(m_Speed + 2000.0 * dt, 1500.0);
+    const double step = m_Speed * dt;
+    const double tipY = pos.y + 44;    // 48x124 image, offset -18
+    RaycastResult ground = g_pApp->GetGameLogic()->VGetGamePhysics()->VRayCast(Point(pos.x, tipY - 2),
+        Point(pos.x, tipY + step + 1), CollisionFlag_Solid | CollisionFlag_Ground);
+    if (ground.foundIntersection)
+    {
+        AqMoveActor(m_pOwner.get(), Point(pos.x, pos.y + std::max(0.0, (double)ground.closestPixelDistance - 2.0)));
+        Crumble();
+        return;
+    }
+    const Point next(pos.x, pos.y + step);
+    AqMoveActor(m_pOwner.get(), next);
+
+    // its point on Claw: 5 points (0x120 of the projectile)
+    if (fabs(claw.x - next.x) < 30 && claw.y - 50 < next.y + 44 && claw.y + 50 > next.y - 20)
+    {
+        ActorTemplates::CreateAreaDamage(Point(next.x, next.y + 30), Point(30, 40), m_Damage,
+            CollisionFlag_EnemyAIAttack, "Rectangle", DamageType_MeleeAttack, Direction_Left, m_pOwner->GetGUID());
+        Crumble();
+    }
+    if (next.y > m_Home.y + 3000)
+    {
+        m_State = State_Gone;
+        m_pRenderComponent->SetVisible(false);
+    }
+}
+
+void FallingStalactiteComponent::VOnAnimationLooped(Animation* pAnimation)
+{
+    if (m_State == State_Crumbling)
+    {
+        // ES_RESTART: hidden until Claw comes back from a death
+        m_State = State_Gone;
+        m_pRenderComponent->SetVisible(false);
+    }
+}
+
+void FallingStalactiteComponent::ClawRespawnedDelegate(IEventDataPtr pEvent)
+{
+    if (m_State == State_Hanging)
+    {
+        return;
+    }
+    m_State = State_Hanging;
+    m_Speed = 0;
+    m_pRenderComponent->SetVisible(true);
+    m_pAnimationComponent->SetAnimation("home");
+    AqMoveActor(m_pOwner.get(), m_Home);
+}

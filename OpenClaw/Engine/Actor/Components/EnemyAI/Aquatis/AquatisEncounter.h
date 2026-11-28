@@ -213,3 +213,36 @@ private:
     int m_TimeLeft;
     std::weak_ptr<Actor> m_pPickup;
 };
+
+//=====================================================================================================================
+// Level 12's falling stalactites (CLAW.EXE 0x491990 "Stalactite"): ES_IDLE until Claw is inside the object's
+// UserRect1, ES_FALLING under 2000 px/s2, ES_DEAD (crumble) on the ground or on Claw, back home after Claw dies.
+//=====================================================================================================================
+class FallingStalactiteComponent : public ActorComponent, public AnimationObserver
+{
+public:
+    FallingStalactiteComponent();
+    virtual ~FallingStalactiteComponent();
+
+    static const char* g_Name;
+    virtual const char* VGetName() const override { return g_Name; }
+
+    virtual bool VInit(TiXmlElement* pData) override;
+    virtual void VPostInit() override;
+    virtual void VUpdate(uint32 msDiff) override;
+    virtual void VOnAnimationLooped(Animation* pAnimation) override;
+
+private:
+    enum State { State_Hanging, State_Falling, State_Crumbling, State_Gone };
+    void ClawRespawnedDelegate(IEventDataPtr pEvent);
+    void Crumble();
+
+    int m_Left = 0, m_Top = 0, m_Right = 0, m_Bottom = 0;
+    int m_Damage = 5;
+    State m_State = State_Hanging;
+    double m_Speed = 0;
+    Point m_Home;
+    AnimationComponent* m_pAnimationComponent = nullptr;
+    ActorRenderComponent* m_pRenderComponent = nullptr;
+};
+

@@ -150,6 +150,7 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<AquatisTentacleComponent>();
     _componentFactory.Register<AquatisCrackComponent>();
     _componentFactory.Register<AquatisStalactiteComponent>();
+    _componentFactory.Register<FallingStalactiteComponent>();
     _componentFactory.Register<AquatisDynamiteComponent>();
     _componentFactory.Register<OmarAIStateComponent>();
     _componentFactory.Register<OmarSwordSpawnerComponent>();

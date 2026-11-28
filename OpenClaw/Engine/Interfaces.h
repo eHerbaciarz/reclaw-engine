@@ -551,6 +551,8 @@ enum ActorPrototype
     // Level 13 Red Tail's knives and flare-gun shots
     ActorPrototype_Level13_RedTailKnife,
     ActorPrototype_Level13_RedTailBullet,
+    // Level 12 falling stalactites
+    ActorPrototype_Level12_Stalactite,
 
     ActorPrototype_Max
 };
