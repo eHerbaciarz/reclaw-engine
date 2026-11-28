@@ -1,0 +1,26 @@
+ReClaw - skrypty testowe (folder "0 - Testing")
+================================================
+
+Gałęzie
+  claw-experimental  wszystkie nowe zmiany (lista: docs/ZMIANY.md na GitHubie)
+  claw-main-test     zmiany wybrane przez MK z experimental - sprawdzenie, czy nic się nie psuje
+  claw-main          wersja główna (po sprawdzeniu main-test)
+  claw-switch, claw-ps2, claw-dreamcast   szybkie testy jednej platformy
+
+Windows (paczka z GitHub Actions; raz: winget install --id GitHub.cli i gh auth login)
+  main.bat / main-test.bat / main-experimental.bat
+      najnowszy ReClaw z claw-main / claw-main-test / claw-experimental, samo okno
+  Comparision-main.bat / Comparision-main-test.bat / Comparision-main-experimental.bat
+      to samo, ale obok oryginału (orginal\CLAW.EXE), ReClaw powtarza klawisze
+  Buildy: builds\reclaw-windows\main, \main-test, \experimental
+  Zapis: zawartość builds\save jest kopiowana raz do save\ każdego buildu
+         (ponownie: usuń save\.zapis-skopiowany w danym buildzie)
+  Dane gry: z orginal\ (CLAW.REZ albo folder Assets)
+
+Konsole (build testowy z release na GitHubie)
+  switch-test.bat     claw-switch    -> Ryujinx,  logi: logs\claw-switch\
+  ps-test.bat         claw-ps2       -> PCSX2,    logi: logs\claw-ps2\
+  dreamcast-test.bat  claw-dreamcast -> Flycast,  logi: logs\claw-dreamcast\
+                      (obraz płyty robi reclaw_disc.py - potrzebny Python 3)
+  Ustawienia (ścieżki emulatorów) zapisują się w test_*.json obok skryptów;
+  ponowny wybór: dopisz -Setup (np. ps-test.bat -Setup).

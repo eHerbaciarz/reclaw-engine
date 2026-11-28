@@ -4,6 +4,14 @@ Guidance for Claude Code when working in this repository.
 
 > **Repository:** this is **ReClaw** (repository `reclaw-engine`), MK's fork of `arthurboss/claw-web` (native and console ports). Push only to `reclaw-engine`, never to `arthurboss/claw-web`; contributions upstream go as pull requests that MK opens. The web (WASM) notes below come from claw-web.
 
+## Branches and testing (MK's workflow)
+
+- **`claw-experimental`**: all new work. Every change is also listed in `docs/ZMIANY.md` (Polish, with commit hashes and a [wspólne]/[PC]/[PS2/DC]/[skrypty] tag) so MK can pick what to test.
+- **`claw-main-test`**: only the changes MK picked from experimental (cherry-picked by hash), to check for regressions.
+- **`claw-main`**: default branch; gets `claw-main-test` once MK approves it. Never push to claw-main-test / claw-main without MK naming what goes there.
+- **`claw-switch`, `claw-ps2`, `claw-dreamcast`**: quick platform tests. Push the experimental commit there; CI builds only that platform and publishes the `test-switch` / `test-ps2` / `test-dreamcast` pre-release.
+- MK's test scripts live in `scripts/windows/testing/` (copied to his `Desktop\Claw\0 - Testing`): `main*.bat`, `Comparision-*.bat` (Windows builds from GitHub Actions into `builds\reclaw-windows\<name>`), `switch-test.bat`, `ps-test.bat`, `dreamcast-test.bat` (logs in `logs\<branch>`).
+
 ## Overview
 
 Captain Claw WASM is a browser-based fork of Captain Claw (1997), focused on optimizing the WebAssembly build. The original archive (`CLAW.REZ`, ~113MB) is **not** bundled: the user uploads it once and it's stored in IndexedDB. Startup is fast (~48MB download, 2-3s) because level assets lazy-load on demand.
