@@ -34,10 +34,6 @@
     	<StatePriority>100</StatePriority>
     	<BossDialogAnimation>home</BossDialogAnimation>
     </AquatisAIStateComponent>
-    <TakeDamageAIStateComponent>
-        <StatePriority>0</StatePriority>
-        <TakeDamageAnimation>hitlow</TakeDamageAnimation>
-    </TakeDamageAIStateComponent>
     <PatrolEnemyAIStateComponent>
         <IsAlwaysIdle>true</IsAlwaysIdle>
         <StatePriority>0</StatePriority>
@@ -53,33 +49,7 @@
             <Animation>home</Animation>
         </WalkAction>
     </PatrolEnemyAIStateComponent>
-    <MeleeAttackAIStateComponent>
-        <StatePriority>20</StatePriority>
-        <AttackDelay>200</AttackDelay>
-        <Attacks>
-            <AttackAction>
-                <Animation>strike1</Animation>
-                <AttackAnimFrameIdx>3</AttackAnimFrameIdx>
-                <AttackType>0</AttackType>
-                <AttackFxImageSet>NONE</AttackFxImageSet>
-                <AttackSpawnPositionOffset x="-100" y="0" />
-                <AttackAreaSize width="150" height="50" />
-                <Damage>10</Damage>
-                <AgroSensorFixture>
-                    <FixtureType>EnemyAIMeleeSensor</FixtureType>
-                    <CollisionShape>Rectangle</CollisionShape>
-                    <IsSensor>true</IsSensor>
-                    <Size width="300" height="50" />
-                    <Offset x="0" y="0" />
-                    <CollisionFlag>4</CollisionFlag>
-                    <CollisionMask>2</CollisionMask>
-                    <Friction>0.000000</Friction>
-                    <Density>0.000000</Density>
-                    <Restitution>0</Restitution>
-                </AgroSensorFixture>
-            </AttackAction>
-        </Attacks>
-    </MeleeAttackAIStateComponent>
+    <!-- his punches, flinches, cowering and frenzy: AquatisAIStateComponent (CLAW.EXE) -->
     <FollowableComponent>
         <Offset x="-5" y="-92" />
         <ImageSet>/GAME/IMAGES/EXCLAMATION/*</ImageSet>

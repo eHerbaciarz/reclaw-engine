@@ -27,8 +27,8 @@ public:
 
     virtual void VUpdate(uint32 msDiff) override;
 
-    // Can enemy enter this state ?
-    virtual bool VCanEnter() override { return m_bBossFightStarted == false; }
+    // His whole fight is this state (CLAW.EXE 0x404510 and its LS_* states)
+    virtual bool VCanEnter() override { return true; }
 
     //virtual int VGetPriority() override;
 
@@ -38,14 +38,17 @@ public:
 
     // HealthObserver API
     virtual void VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId) override;
-    // Only a falling icicle hurts Aquatis - every other kind of damage is resisted
-    virtual bool VCanResistDamage(DamageType damageType, Point impactPoint) override { return !m_bAllowDamage; }
+    // Only a falling icicle hurts Aquatis - other blows only make him flinch
+    virtual bool VCanResistDamage(DamageType damageType, Point impactPoint) override;
 
     static AquatisAIStateComponent* Get() { return s_pInstance; }
     static bool IsDefeated() { return s_bDefeated; }
     bool IsFightActive() const { return m_bBossFightStarted; }
     Point GetPosition() const;
     void HitByStalactite(int damage);
+    // Dynamite at the crack: the cave shakes and he cowers; true if it counts
+    bool OnQuake();
+    bool CanQuake() const;
 
 protected:
     virtual void VOnBossFightStarted() override;
@@ -55,8 +58,26 @@ private:
     static AquatisAIStateComponent* s_pInstance;
     static bool s_bDefeated;
 
+    enum Act { Act_Idle, Act_HighPunch, Act_LowPunch, Act_Hit, Act_Scared, Act_StalactiteHit, Act_Frenzy, Act_Dead };
+    void SetAct(Act act);
+    void FaceClaw();
+    void Punch(bool high);
+    void ActEnded();
+
     bool m_bAllowDamage;
     int m_IdleTime;
+    Act m_Act;
+    int m_ActTime;
+    bool m_bFrenzy;
+    int m_FrenzyLeft;
+    bool m_bNextHigh;
+    bool m_bStruck;
+    int m_LastFrame;
+    int m_HitCount;
+    int m_HitCooldown;
+    int m_QuakeLeft;     // the quake before the next icicle comes down
+    bool m_bIcicleFalling;
+    int m_StalactiteHitCooldown;
 };
 
 //=====================================================================================================================
