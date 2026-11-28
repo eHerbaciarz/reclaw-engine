@@ -53,6 +53,19 @@ public:
 
     // Marrow will be the bossfight director
     void OnCanActivateFloor();
+    // He resists all while waiting for or carried by his parrot
+    virtual bool VCanResistDamage(DamageType damageType, Point impactPoint) override;
+
+    // CLAW.EXE 0x45b850 LS_WAITFORPARROT and the parrot's LS_CARRYMARROW
+    bool IsCallingParrot() const { return m_Phase == Phase_Calling; }
+    bool AreFloorsOpen() const { return m_bFloorsOpen; }
+    Point GetPickupPoint() const;
+    double GetParrotSide() const { return m_ParrotSide; }
+    double GetCarryTargetX() const;
+    void OnPickedUp();
+    void OnCarried(const Point& parrotPos);
+    void OnDropped();
+    void SetFloorsOpen(bool open) { m_bFloorsOpen = open; }
 
 protected:
     virtual void VOnBossFightStarted() override;
@@ -61,6 +74,16 @@ protected:
 private:
 
     int m_ReqDamageToTransition;
+
+    enum Phase { Phase_None, Phase_Whistling, Phase_Calling, Phase_Carried };
+    void StartWaiting();
+    void EndWaiting();
+    Phase m_Phase = Phase_None;
+    int m_PhaseTime = 0;
+    int m_Threshold = 0;     // 0x4e8: his health when the last quarter began
+    double m_ParrotSide = 58; // 0x4f8: the parrot takes him from this side
+    Point m_CarryOffset;
+    bool m_bFloorsOpen = false;
 
     
 
@@ -78,17 +101,6 @@ private:
 class MarrowFloorComponent;
 class MarrowParrotAIStateComponent : public BaseEnemyAIStateComponent, public AnimationObserver, public HealthObserver
 {
-    enum MarrowParrotState
-    {
-        MarrowParrotState_None,
-        MarrowParrotState_Charging,
-        MarrowParrotState_SittingOnShoulder,
-        MarrowParrotState_SittingOnPerch,
-        MarrowParrotState_FlyingUp,
-        MarrowParrotState_FlyingDown,
-        MarrowParrotState_FlyingBack,
-    };
-
 public:
     MarrowParrotAIStateComponent();
     virtual ~MarrowParrotAIStateComponent();
@@ -109,32 +121,37 @@ public:
     virtual bool VCanEnter() override;
 
     // AnimationObserver API
-    virtual void VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame) override;
     virtual void VOnAnimationLooped(Animation* pAnimation) override;
-    virtual void VOnAnimationAtLastFrame(Animation* pAnimation) override;
-    virtual void VOnAnimationChanged(Animation* pOldAnimation, Animation* pNewAnimation) override;
 
-    void SitOnPerch();
-    void SitOnShoulder(const Point& shoulderLocation);
-    void DoAttack();
+    // HealthObserver API: a blow sends him back to his perch
+    virtual void VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId) override;
+
+    void StartFight();
+    void Reset();
 
 private:
-    // XML Data
-    std::string m_ChargeAnim;
+    // CLAW.EXE 0x467ae0 "Parrot": LS_IDLE, LS_FLYABOUT, LS_STRIKESETUP, LS_STRIKE,
+    // LS_GENERICHIT, LS_FLYTOIDLE, LS_FLYTOMARROW, LS_CARRYMARROW
+    enum Mode { Mode_Perched, Mode_FlyAbout, Mode_StrikeSetup, Mode_Strike, Mode_Hit, Mode_FlyToPerch, Mode_FlyToMarrow, Mode_Carry };
+    void SetMode(Mode mode);
+    bool MoveTo(const Point& target, double speed, uint32 msDiff);
+    void Face(double dx);
+
     std::string m_IdleAnim;
-    std::string m_FlyAnim;
+    Mode m_Mode = Mode_Perched;
+    Point m_Perch;
+    double m_MinX = 40488, m_MaxX = 41128, m_MinY = 7029;
+    double m_MidX = 40808;
+    double m_Dir = 1.0;
+    Point m_Target;
+    Point m_Velocity;
+    int m_SquawkCooldown = 0;
+    int m_StrikeTick = 0;
+    int m_ModeTime = 0;
 
-    double m_ChargeSpeed;
-    double m_FlyUpDownSpeed;
-    double m_FlyBackSpeed;
-    Point m_PerchLocation;
-
-    // Internal
-    void ActivateMarrowFloors();
-    void OnGotHit(DamageType damageType);
-
-    MarrowAIStateComponent* m_pMarrow;
-    AnimationComponent* m_pAnimationComponent;
+    MarrowAIStateComponent* m_pMarrow = nullptr;
+    AnimationComponent* m_pAnimationComponent = nullptr;
+    HealthComponent* m_pHealth = nullptr;
 };
 
 class MarrowFloorComponent : public ActorComponent
@@ -167,6 +184,9 @@ private:
 
     // Internal
     bool m_bActive;
+    bool m_bOpen = false;
+    double m_HomeX = 0, m_OpenX = 0, m_Y = 0;
+    class MarrowAIStateComponent* m_pMarrow = nullptr;
 };
 
 #endif

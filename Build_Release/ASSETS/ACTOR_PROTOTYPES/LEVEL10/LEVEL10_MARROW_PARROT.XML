@@ -29,9 +29,5 @@
         <GravityScale>0.000000</GravityScale>
         <ClampToGround>false</ClampToGround>
     </PhysicsComponent>
-    <DamageAuraComponent>
-        <ActorFixture>
-            <Size width="40" height="40" />
-        </ActorFixture>
-    </DamageAuraComponent>
+    <!-- he hurts only when he swoops (MarrowParrotAIStateComponent, CLAW.EXE LS_STRIKE) -->
 </Actor>
