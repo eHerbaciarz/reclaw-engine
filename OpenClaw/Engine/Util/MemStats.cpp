@@ -39,18 +39,10 @@ namespace MemStats
         if (heapKb >= 0) snprintf(heap, sizeof(heap), "heap %lld KB, ", heapKb);
 #if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
         {
-            // (the small consoles: how much the heap has taken from the system,
-            // and the largest block that can still be had)
+            // (the small consoles: how much the heap has taken from the system;
+            // ps2sdk's sbrk does not stop at the stack, so no probing here)
             const struct mallinfo mi = mallinfo();
-            size_t lo = 0, hi = 32u << 20;
-            while (hi - lo > (64u << 10))
-            {
-                const size_t mid = lo + (hi - lo) / 2;
-                void* p = malloc(mid);
-                if (p) { free(p); lo = mid; } else hi = mid;
-            }
-            snprintf(heap, sizeof(heap), "heap %lld KB (arena %lld KB, free in it %lld KB, largest block %lld KB), ",
-                     heapKb, (long long)(mi.arena / 1024), (long long)(mi.fordblks / 1024), (long long)(lo / 1024));
+            snprintf(heap, sizeof(heap), "heap %lld KB (arena %lld KB), ", heapKb, (long long)(mi.arena / 1024));
         }
 #endif
         snprintf(line, sizeof(line), "%stextures %lld (%lld KB), sounds %lld (%lld KB), resource cache %lld KB, actors %lld",
