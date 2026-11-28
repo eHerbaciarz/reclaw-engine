@@ -74,6 +74,11 @@ public:
 
     // HealthObserver API
     virtual void VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId) override;
+    // Only his own cannon hurts him; other blows he blocks (CLAW.EXE LS_BLOCKED)
+    virtual bool VCanResistDamage(DamageType damageType, Point impactPoint) override;
+
+    // The cannon, turned up by Claw, shot him (CLAW.EXE 0x445ea0)
+    void OnCannonHit();
 
 protected:
     virtual void VOnBossFightStarted() override;
@@ -110,6 +115,18 @@ private:
     int m_CurrActionDelay;
 
     bool m_bShouldThrowBombs;
+
+    // CLAW.EXE 0x4456d0..: what he is doing
+    enum Act { Act_Idle, Act_Bombs, Act_Thug, Act_Cannon, Act_Blocked, Act_CannonHit };
+    void SetAct(Act act);
+    void Decide();
+    void ThrowBombs();
+    Act m_Act = Act_Idle;
+    bool m_bStruck = false;
+    bool m_bAllowDamage = false;
+    int m_CannonHitDelay = 0;
+    int m_BlockCooldown = 0;
+    std::vector<std::weak_ptr<Actor>> m_Pirates;
 };
 
 class GabrielCannonButtonComponent : public ActorComponent, public TriggerObserver
@@ -190,6 +207,7 @@ private:
     //-----------
     GabrielCannonButtonComponent* m_pCannonButton;
     HealthComponent* m_pGabrielHealthComponent;
+    GabrielAIStateComponent* m_pGabrielAI = nullptr;
     AnimationComponent* m_pAnimationComponent;
     bool m_bQueuedRise;
     bool m_bActive;

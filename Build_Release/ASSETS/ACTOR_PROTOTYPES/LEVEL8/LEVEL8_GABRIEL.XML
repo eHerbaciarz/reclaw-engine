@@ -52,25 +52,7 @@
         <FireCannonSound>/LEVEL8/SOUNDS/GABRIEL/00400014.WAV</FireCannonSound>
         <FireCannonSound>/LEVEL8/SOUNDS/GABRIEL/00400015.WAV</FireCannonSound>
     </GabrielAIStateComponent>
-    <TakeDamageAIStateComponent>
-        <StatePriority>0</StatePriority>
-        <TakeDamageAnimation>hitlow</TakeDamageAnimation>
-        <InvulnerabilityTime>0</InvulnerabilityTime>
-    </TakeDamageAIStateComponent>
-    <ParryEnemyAIStateComponent>
-        <StatePriority>0</StatePriority>
-        <ParryChances>
-            <ParryChance DamageType="DamageType_Bullet" Chance="100" />
-            <ParryChance DamageType="DamageType_Magic" Chance="100" />
-            <ParryChance DamageType="DamageType_Explosion" Chance="100" />
-            <ParryChance DamageType="DamageType_MeleeAttack" Chance="100" />
-        </ParryChances>
-        <ParrySounds>
-            <ParrySound>/LEVEL8/SOUNDS/GABRIEL/00400030.WAV</ParrySound>
-        </ParrySounds>
-        <ParryAnimFrameIdx>0</ParryAnimFrameIdx>
-        <ParryAnimation>blocked</ParryAnimation>
-    </ParryEnemyAIStateComponent>
+    <!-- blocking and the cannon hits: GabrielAIStateComponent (CLAW.EXE LS_BLOCKED, LS_CANNONHIT) -->
     <FollowableComponent>
         <Offset x="-5" y="-92" />
         <ImageSet>/GAME/IMAGES/EXCLAMATION/*</ImageSet>

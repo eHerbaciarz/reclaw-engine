@@ -130,11 +130,24 @@ void GabrielAIStateComponent::VOnWorldFinishedLoading()
     m_pGabrielCannonComponent = pGabrielCannonActor->GetRawComponent<GabrielCannonComponent>(true);
 }
 
+static const char* GB_SOUNDS = "/LEVEL8/SOUNDS/GABRIEL/";
+
+static void GbSound(const char* const* names, int count)
+{
+    Util::PlaySimpleSound(std::string(GB_SOUNDS) + names[Util::GetRandomNumber(0, count - 1)]);
+}
+
 void GabrielAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState)
 {
-    m_pAnimationComponent->SetAnimation(m_IdleAnim);
-
     m_IsActive = true;
+    if (m_bBossFightStarted)
+    {
+        SetAct(Act_Idle);
+    }
+    else
+    {
+        m_pAnimationComponent->SetAnimation(m_IdleAnim);
+    }
 }
 
 void GabrielAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
@@ -142,40 +155,149 @@ void GabrielAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextStat
     m_IsActive = false;
 }
 
-void GabrielAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame)
+void GabrielAIStateComponent::SetAct(Act act)
 {
-    if (!m_IsActive || !m_bBossFightStarted)
+    m_Act = act;
+    m_bStruck = false;
+    switch (act)
+    {
+        case Act_Idle:
+            // idle1 or idle2; when it ends he picks his next move
+            m_pAnimationComponent->SetAnimation(Util::GetRandomNumber(0, 1) == 0 ? "idle1" : "idle2");
+            break;
+        case Act_Bombs:
+        {
+            // 0x4458e0: LS_MULTIBOMBATTACK (strike7)
+            static const char* kSounds[3] = { "00400002.WAV", "00400028.WAV", "00400029.WAV" };
+            GbSound(kSounds, 3);
+            m_pAnimationComponent->SetAnimation(m_ThrowBombAnim);
+            break;
+        }
+        case Act_Thug:
+        {
+            // 0x445af0: LS_THUGATTACK1 (strike1), a pirate when it ends
+            static const char* kSounds[4] = { "00400011.WAV", "00400012.WAV", "00400022.WAV", "00400022.WAV" };
+            GbSound(kSounds, 4);
+            m_pAnimationComponent->SetAnimation(m_SpawnPirateAnim);
+            break;
+        }
+        case Act_Cannon:
+        {
+            // 0x445c50: LS_CANNONATTACK (strike7): his order to the cannon
+            static const char* kSounds[2] = { "00400014.WAV", "00400015.WAV" };
+            GbSound(kSounds, 2);
+            m_pAnimationComponent->SetAnimation(m_FireCannonAnim);
+            break;
+        }
+        case Act_Blocked:
+        {
+            static const char* kSounds[3] = { "00400016.WAV", "00400017.WAV", "00400030.WAV" };
+            GbSound(kSounds, 3);
+            m_pAnimationComponent->SetAnimation("blocked");
+            break;
+        }
+        case Act_CannonHit:
+            Util::PlaySimpleSound(std::string(GB_SOUNDS) + "00400023.WAV");
+            m_pAnimationComponent->SetAnimation("hithigh");
+            m_CannonHitDelay = 500;
+            break;
+    }
+    m_pAnimationComponent->ResetAnimation();
+}
+
+void GabrielAIStateComponent::Decide()
+{
+    // 0x445740: one of three, alike
+    switch (Util::GetRandomNumber(0, 2))
+    {
+        case 0:
+            SetAct(Act_Bombs);
+            return;
+        case 1:
+        {
+            // no more than two of his pirates at once
+            int alive = 0;
+            for (auto& w : m_Pirates) if (!w.expired()) alive++;
+            if (alive < 2) { SetAct(Act_Thug); return; }
+            break;
+        }
+        default:
+            if (m_pGabrielCannonComponent && m_pGabrielCannonComponent->IsReadyToFire()) { SetAct(Act_Cannon); return; }
+            break;
+    }
+    SetAct(Act_Idle);
+}
+
+void GabrielAIStateComponent::ThrowBombs()
+{
+    // 0x4459e0: three of four bombs from (-75,-75), each landing 475, 350, 225 or
+    // 100 px ahead at his height, thrown at 45 degrees under 2000 px/s2
+    static const SoundList s_BombFallSoundList =
+    {
+        "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE1.WAV",
+        "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE2.WAV",
+        "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE3.WAV"
+    };
+    Util::PlayRandomSoundFromList(s_BombFallSoundList);
+
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    const int skip = Util::GetRandomNumber(0, 3);
+    const double kGravity = 2000.0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (i == skip) continue;
+        const double dist = 475.0 - 125.0 * i;
+        StrongActorPtr pBomb = ActorTemplates::CreateActor_Projectile(ActorPrototype_Level8_GabrielBomb,
+            m_pPositionComponent->GetPosition() + Point(-75, -75), Direction_Left, m_pOwner->GetGUID());
+        if (!pBomb) continue;
+        const double v = sqrt(kGravity * dist / 2.0);
+        pPhysics->VSetGravityScale(pBomb->GetGUID(), (float)(kGravity / (9.8 * 75.0)));
+        pPhysics->VSetLinearSpeed(pBomb->GetGUID(), Point(-v / 75.0, -v / 75.0));
+    }
+}
+
+bool GabrielAIStateComponent::VCanResistDamage(DamageType damageType, Point impactPoint)
+{
+    if (m_bAllowDamage)
+    {
+        return false;
+    }
+    if (m_bBossFightStarted && m_IsActive && m_BlockCooldown <= 0 && m_Act == Act_Idle)
+    {
+        m_BlockCooldown = 500;
+        SetAct(Act_Blocked);
+    }
+    return true;
+}
+
+void GabrielAIStateComponent::OnCannonHit()
+{
+    if (!m_bBossFightStarted)
     {
         return;
     }
+    SetAct(Act_CannonHit);
+}
 
-    if (pAnimation->GetName() == m_ThrowBombAnim && pNewFrame->idx == m_ThrowBombAnimFrameIdx)
+void GabrielAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame)
+{
+    if (!m_IsActive || !m_bBossFightStarted || m_bStruck)
     {
-        static const SoundList s_BombFallSoundList =
-        {
-            "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE1.WAV",
-            "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE2.WAV",
-            "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE3.WAV"
-        };
-
-        Util::PlayRandomSoundFromList(s_BombFallSoundList);
-
-        for (int i = 0; i < m_NumThrownBombs; i++)
-        {
-            StrongActorPtr pBomb = ActorTemplates::CreateActor_Projectile(
-            ActorPrototype_Level8_GabrielBomb,
-            m_pPositionComponent->GetPosition() + Point(-40, -40),
-            Direction_Left,
-            m_pOwner->GetGUID());
-
-            Point bombVelocity(-3 - (double)i*2, -7);
-            Point zeroSpeed(0, 0);
-            g_pApp->GetGameLogic()->VGetGamePhysics()->VSetLinearSpeed(pBomb->GetGUID(), zeroSpeed);
-            g_pApp->GetGameLogic()->VGetGamePhysics()->VApplyLinearImpulse(pBomb->GetGUID(), bombVelocity);
-        }
+        return;
     }
-    else if (pAnimation->GetName() == m_FireCannonAnim && pNewFrame->idx == m_FireCannonAnimFrameIdx)
+    // frame 401 of strike7
+    if (pNewFrame->idx != 1)
     {
+        return;
+    }
+    if (m_Act == Act_Bombs)
+    {
+        m_bStruck = true;
+        ThrowBombs();
+    }
+    else if (m_Act == Act_Cannon)
+    {
+        m_bStruck = true;
         m_pGabrielCannonComponent->Fire();
     }
 }
@@ -186,64 +308,48 @@ void GabrielAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
     {
         return;
     }
-
-    m_pAnimationComponent->SetAnimation(m_IdleAnim);
+    switch (m_Act)
+    {
+        case Act_Idle:
+            Decide();
+            break;
+        case Act_Thug:
+        {
+            // 0x445b60: the pirate leaps down to the deck
+            static const Point pirateSpawnPos(42666, 5150);
+            StrongActorPtr pPirate = ActorTemplates::CreateActor(ActorPrototype_Level8_GabrielPirate, pirateSpawnPos);
+            if (pPirate) m_Pirates.push_back(pPirate);
+            SetAct(Act_Idle);
+            break;
+        }
+        case Act_CannonHit:
+            break; // timed in VUpdate
+        default:
+            SetAct(Act_Idle);
+            break;
+    }
 }
 
 void GabrielAIStateComponent::VUpdate(uint32 msDiff)
 {
-    static const Point pirateSpawnPos(42666, 5150);
-
+    if (m_BlockCooldown > 0) m_BlockCooldown -= msDiff;
     if (!m_IsActive || !m_bBossFightStarted)
     {
         return;
     }
-
-    m_TimeSinceLastAction += msDiff;
-    if (m_TimeSinceLastAction > m_CurrActionDelay)
+    if (m_Act == Act_CannonHit && m_CannonHitDelay > 0)
     {
-        GabrielAction action = Util::GetRandomValueFromVector(m_GabrielActionList);
-        std::string playedSound;
-        switch (action.actionType)
+        m_CannonHitDelay -= msDiff;
+        if (m_CannonHitDelay <= 0)
         {
-            case GabrielActionType_ThrowBombs:
+            // 0x445f80: -20 (five hits), then he answers with bombs
+            HealthComponent* pHealth = m_pOwner->GetRawComponent<HealthComponent>();
+            pHealth->SetCurrentHealth(std::max(0, pHealth->GetCurrentHealth() - 20));
+            if (pHealth->GetCurrentHealth() > 0 && m_IsActive)
             {
-                m_pAnimationComponent->SetAnimation(m_ThrowBombAnim);
-                playedSound = Util::PlayRandomSoundFromList(m_ThrowBombSoundList);
-                break;
+                SetAct(Act_Bombs);
             }
-
-            case GabrielActionType_SummonPirate:
-                m_pAnimationComponent->SetAnimation(m_SpawnPirateAnim);
-                playedSound = Util::PlayRandomSoundFromList(m_SpawnPirateSoundList);
-                
-                ActorTemplates::CreateActor(ActorPrototype_Level8_GabrielPirate, pirateSpawnPos);
-
-                break;
-
-            case GabrielActionType_FireCannon:
-                if (!m_pGabrielCannonComponent->IsReadyToFire())
-                {
-                    return;
-                };
-
-                m_pAnimationComponent->SetAnimation(m_FireCannonAnim);
-                playedSound = Util::PlayRandomSoundFromList(m_FireCannonSoundList);
-                break;
-
-            default:
-                LOG_ASSERT("Unknown Gabriel Action");
-                break;
         }
-
-        if (!playedSound.empty())
-        {
-            m_pQuestionMark->Activate(Util::GetSoundDurationMs(playedSound));
-        }
-
-        // Reset the timer
-        m_CurrActionDelay = Util::GetRandomNumber(m_ActionMinInterval, m_ActionMaxInterval);
-        m_TimeSinceLastAction = 0;
     }
 }
 
@@ -436,6 +542,7 @@ void GabrielCannonComponent::VOnWorldFinishedLoading()
     assert(pGabrielCannonButtonActor != nullptr);
 
     m_pGabrielHealthComponent = pGabrielActor->GetRawComponent<HealthComponent>(true);
+    m_pGabrielAI = pGabrielActor->GetRawComponent<GabrielAIStateComponent>();
 }
 
 void GabrielCannonComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame)
@@ -517,8 +624,11 @@ void GabrielCannonComponent::Fire()
         m_pAnimationComponent->SetAnimation(m_VerticalFireAnim);
         m_pCannonButton->Reset();
 
-        int currHealth = m_pGabrielHealthComponent->GetCurrentHealth();
-        m_pGabrielHealthComponent->SetCurrentHealth(currHealth - 25);
+        // the ball goes up into Gabriel (CLAW.EXE: LS_CANNONHIT, -20)
+        if (GabrielAIStateComponent* pGabriel = m_pGabrielAI)
+        {
+            pGabriel->OnCannonHit();
+        }
 
         Util::PlaySimpleSound("/LEVEL8/SOUNDS/GABRIELCANNON/CANNON.WAV");
     }
