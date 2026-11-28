@@ -1275,6 +1275,18 @@ void PhysicsComponent::AddOverlappingGround(const b2Fixture* pGround)
     }
 }
 
+bool PhysicsComponent::IsStandingOnActor() const
+{
+    for (const b2Fixture* pGround : m_OverlappingGroundsList)
+    {
+        if (pGround && pGround->GetBody() && pGround->GetBody()->GetUserData() != nullptr)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void PhysicsComponent::RemoveOverlappingGround(const b2Fixture* pGround)
 {
     for (auto iter = m_OverlappingGroundsList.begin(); iter != m_OverlappingGroundsList.end(); ++iter)

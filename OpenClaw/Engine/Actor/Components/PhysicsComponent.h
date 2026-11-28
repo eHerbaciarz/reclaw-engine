@@ -114,6 +114,8 @@ public:
 
     void AddOverlappingGround(const b2Fixture* pGround);
     void RemoveOverlappingGround(const b2Fixture* pGround);
+    // Standing on an actor's platform (a peg, an elevator...) rather than on tiles
+    bool IsStandingOnActor() const;
 
     void AddOverlappingKinematicBody(const b2Body* pBody);
     void RemoveOverlappingKinematicBody(const b2Body* pBody);

@@ -11,7 +11,7 @@ CLAW.EXE się różnią, ReClaw idzie za kodem; dokument rozstrzyga tylko tam, g
 | Podnoszenie / rzut | Ctrl + strzałka w górę albo Z (pad: osobny przycisk „Throw”) | atak + góra, Z, pad X + góra / Y |
 | Rzucony przeciwnik | krab pustelnik ginie m.in. „gdy zostanie podniesiony i rzucony” | rzucony przeciwnik ginie po uderzeniu |
 | Bossowie nie do podniesienia | – (Le Rauxe ma w projekcie animację „podniesiony”, ale CLAW.EXE kasuje mu tę flagę) | bossów nie da się podnieść |
-| Balansowanie na krawędzi | „Pre-fall/teeter forward … nie dzieje się na kołkach/windach” | jest; na windach wyłączone (27.11), na kołkach jeszcze nie |
+| Balansowanie na krawędzi | „Pre-fall/teeter forward … nie dzieje się na kołkach/windach” | jest; na windach, kołkach i innych obiektach wyłączone (jak w CLAW.EXE: tylko na kafelkach) |
 | Przełącznik pierwszego planu | opcja „front layer on/off” | Opcje → Grafika → Pierwszy plan |
 | Obszar gry +/− | klawisze + i −, opcja w menu | tylko Switch / Vita („Widok”) |
 | Kocimiętka | biegnie szybciej, skacze wyżej, bije mocniej | tak (300 px/s, skok 195, obrażenia ×2) |
