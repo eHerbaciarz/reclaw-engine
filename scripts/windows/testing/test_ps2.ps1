@@ -9,7 +9,7 @@
 # 5. Po zamknięciu PCSX2 kopiuje logi (reclaw.log, emulog PCSX2) do
 #    logs\claw-ps2\<data_godzina>_<commit>\ (obok tego skryptu) i otwiera ten folder
 #
-# Uruchomienie: dwuklik na ps-test.bat
+# Uruchomienie: dwuklik na ps2-test.bat
 # Opcje:  -Force    pobierz nawet gdy ten build już jest rozpakowany
 #         -NoLogs   nie czekaj na zamknięcie PCSX2, nie zbieraj logów
 #         -Setup    wybierz ponownie PCSX2 i folder z CLAW.REZ (test_ps2.json)

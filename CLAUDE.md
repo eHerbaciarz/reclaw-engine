@@ -10,7 +10,7 @@ Guidance for Claude Code when working in this repository.
 - **`claw-main-test`**: only the changes MK picked from experimental (cherry-picked by hash), to check for regressions.
 - **`claw-main`**: default branch; gets `claw-main-test` once MK approves it. Never push to claw-main-test / claw-main without MK naming what goes there.
 - **`claw-switch`, `claw-ps2`, `claw-dreamcast`**: quick platform tests. Push the experimental commit there; CI builds only that platform and publishes the `test-switch` / `test-ps2` / `test-dreamcast` pre-release.
-- MK's test scripts live in `scripts/windows/testing/` (copied to his `Desktop\Claw\0 - Testing`): `main*.bat`, `Comparision-*.bat` (Windows builds from GitHub Actions into `builds\reclaw-windows\<name>`), `switch-test.bat`, `ps-test.bat`, `dreamcast-test.bat` (logs in `logs\<branch>`).
+- MK's test scripts live in `scripts/windows/testing/` (copied to his `Desktop\Claw\0 - Testing`): `main*.bat`, `Comparision-*.bat` (Windows builds from GitHub Actions into `builds\reclaw-windows\<name>`), `switch-test.bat`, `ps2-test.bat`, `dreamcast-test.bat` (logs in `logs\<branch>`).
 
 ## Overview
 

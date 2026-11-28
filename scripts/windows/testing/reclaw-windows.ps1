@@ -5,8 +5,8 @@
 #     (tylko gdy jest nowsza niż ta, którą już masz) do
 #     builds\reclaw-windows\<Nazwa> (zapisy i ustawienia w save\ zostają).
 #  2. Raz kopiuje do niej zapis z builds\save (wszystko odblokowane).
-#  3. Podpina dane gry z oryginału (orginal\CLAW.REZ albo orginal\Assets).
-#  4. -Porownanie: uruchamia oryginał (orginal\CLAW.EXE) i ReClaw w trybie
+#  3. Podpina dane gry z oryginału (builds\crazyhook-windows: CLAW.REZ albo Assets).
+#  4. -Porownanie: uruchamia oryginał (plik .exe w builds\crazyhook-windows) i ReClaw w trybie
 #     lustra (okno 4:3, powtarza klawisze z okna oryginału), obok siebie.
 #     Bez -Porownanie: uruchamia tylko ReClaw.
 #
@@ -26,15 +26,25 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Oryginal = Join-Path $Folder "orginal"
+# Oryginal: builds\crazyhook-windows (dawniej: orginal\)
+$Oryginal = Join-Path $Folder "builds\crazyhook-windows"
+if (-not (Test-Path $Oryginal) -and (Test-Path (Join-Path $Folder "orginal"))) { $Oryginal = Join-Path $Folder "orginal" }
+# Program oryginalu: CLAW.EXE / Claw.exe, albo inny .exe z "claw" lub "crazy" w nazwie
+$OryginalExe = $null
+if (Test-Path $Oryginal) {
+    $exes = Get-ChildItem $Oryginal -Filter *.exe -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch 'unins|setup|config' }
+    $OryginalExe = ($exes | Where-Object { $_.Name -ieq 'CLAW.EXE' } | Select-Object -First 1)
+    if (-not $OryginalExe) { $OryginalExe = $exes | Where-Object { $_.Name -match '(?i)claw|crazy' } | Select-Object -First 1 }
+    if (-not $OryginalExe -and @($exes).Count -eq 1) { $OryginalExe = $exes | Select-Object -First 1 }
+}
 $ReClawDir = Join-Path $Folder "builds\reclaw-windows\$Nazwa"
 $SaveSrc = Join-Path $Folder "builds\save"
 $Tmp = Join-Path $env:TEMP "reclaw-pobieranie-$Nazwa"
 
 function Krok($tekst) { Write-Host ""; Write-Host "== $tekst" -ForegroundColor Cyan }
 
-if ($Porownanie -and -not (Test-Path (Join-Path $Oryginal "CLAW.EXE"))) {
-    throw "Nie ma $Oryginal\CLAW.EXE - sprawdz parametr -Folder."
+if ($Porownanie -and -not $OryginalExe) {
+    throw "Nie znalazlem programu oryginalu (.exe) w $Oryginal."
 }
 # ReClaw z tego folderu (inne buildy moga dzialac dalej)
 function Zamknij-TenReClaw {
@@ -153,11 +163,12 @@ if (-not $Porownanie) {
 }
 
 Krok "Uruchamiam oryginal i ReClaw ($Galaz)"
-Get-Process CLAW -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process -Name $OryginalExe.BaseName -ErrorAction SilentlyContinue | Stop-Process -Force
 Get-Process ReClaw -ErrorAction SilentlyContinue | Stop-Process -Force   # (lustro: tylko jedno okno ReClaw)
 Start-Sleep -Milliseconds 500
 
-$claw = Start-Process (Join-Path $Oryginal "CLAW.EXE") -WorkingDirectory $Oryginal -PassThru
+Write-Host "Oryginal: $($OryginalExe.FullName)"
+$claw = Start-Process $OryginalExe.FullName -WorkingDirectory $Oryginal -PassThru
 Start-Sleep -Seconds 2
 $env:RECLAW_MIRROR_KEYS = "1"
 # rozmiar jak okno oryginalu (cnc-ddraw: 1148x861) przy skalowaniu Windows 150%:
@@ -188,7 +199,7 @@ function Czekaj-NaOkno($proc, $nazwa) {
     throw "Nie doczekalem sie okna: $nazwa"
 }
 
-$hClaw = Czekaj-NaOkno $claw "CLAW.EXE"
+$hClaw = Czekaj-NaOkno $claw $OryginalExe.Name
 $hRe = Czekaj-NaOkno $reclaw "ReClaw"
 Start-Sleep -Seconds 1
 

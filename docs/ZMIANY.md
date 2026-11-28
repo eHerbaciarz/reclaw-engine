@@ -79,6 +79,7 @@ więc warto je sprawdzić także na PC/Switchu.
 | [ ] | Kolory jak w grze (łatka SDL dla PS2); pliki poziomu czytane przy użyciu | b9e0e84 |
 | [ ] | Kafelki poziomu jako jeden tekst w XML | 31b5d5b |
 | [ ] | Obiekty poziomu tworzone po 16; muzyka menu zwalniana; mniejszy bufor CLAW.REZ **(wspólny kod ładowania poziomu)** | 63131f6 |
+| [ ] | Więcej pamięci na poziom: program kompilowany na rozmiar (-Os, bez nieużywanego kodu), stos 256 KB, bez drugiego obrazu ekranu ładowania | (ten commit) |
 | [ ] | Ślady w logu do diagnozy (menu, obrazki, pamięć) | 5e8d100, 160b617, 8013935, 62c08f7 |
 
 ## Skrypty testowe [skrypty]
@@ -88,4 +89,5 @@ więc warto je sprawdzić także na PC/Switchu.
 | [ ] | Test Switcha w Ryujinxie (pobranie, uruchomienie bez praw administratora, logi) | 1912a03, 4829e8b, 7f3c235, 6ad1194, c830da8 |
 | [ ] | Porównanie z oryginałem jednym kliknięciem | 40a1a3e, b8385d0, 2b2d66e, 71dea9f, 538658f |
 | [ ] | Gałąź claw-ps2 i test w PCSX2 | 70005d5, 61b1972, 9f445bf, 5515b9d |
+| [ ] | Skrypty: oryginał z builds\crazyhook-windows, ps-test → ps2-test | (ten commit) |
 | [ ] | Nowy zestaw skryptów testowych (main / main-test / experimental, Switch / PS2 / Dreamcast) i gałęzie claw-main-test, claw-switch, claw-dreamcast | 3f5ab16, 328a568 |

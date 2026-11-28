@@ -597,7 +597,11 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
     shared_ptr<Image> pBackgroundImage = PcxResourceLoader::LoadAndReturnImage(backgroundPath.c_str());
     assert(pBackgroundImage != nullptr);
     assert(pBackgroundImage->GetTexture() != NULL);
+#if defined(RECLAW_PS2) || defined(RECLAW_DREAMCAST)
+    s_pLoadingScreenOverlay.reset();   // (memory: the widened background is enough)
+#else
     s_pLoadingScreenOverlay = LoadOriginalLoadingScreen(backgroundPath);
+#endif
 
     RenderLoadingScreen(pBackgroundImage, backgroundRect, scale, loadingProgress);
 

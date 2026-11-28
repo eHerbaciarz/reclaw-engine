@@ -35,9 +35,12 @@ target_link_libraries(openclaw PRIVATE m)
 target_compile_options(openclaw PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-D_GLIBCXX_HAVE_ATOMIC_LOCK_POLICY>)
 target_sources(openclaw PRIVATE "${CMAKE_CURRENT_LIST_DIR}/ps2_atomic.c" "${CMAKE_CURRENT_LIST_DIR}/ps2_lock_policy_check.cpp" "${CMAKE_CURRENT_LIST_DIR}/ps2_new.cpp")
 set_target_properties(openclaw PROPERTIES OUTPUT_NAME "reclaw" SUFFIX ".elf")
-# ps2sdk's default main stack is 128 KB (linkfile: PROVIDE(_stack_size)); the
-# engine needs more - building the menu overran it and the game quit without
-# an error. 1 MB.
-target_link_options(openclaw PRIVATE "-Wl,--defsym,_stack_size=0x100000")
+# Main stack: 256 KB (ps2sdk's default is 128 KB; the deepest step seen, the
+# menu, used a few KB). Every KB here is taken from the heap.
+target_link_options(openclaw PRIVATE "-Wl,--defsym,_stack_size=0x40000")
+# Smaller program = more heap (32 MB in all): optimised for size, unused code
+# and data left out by the linker
+target_compile_options(openclaw PRIVATE -Os -ffunction-sections -fdata-sections)
+target_link_options(openclaw PRIVATE "-Wl,--gc-sections")
 
 openclaw_stage_bundle(openclaw_bundle "${CMAKE_BINARY_DIR}/reclaw" "${CMAKE_CURRENT_LIST_DIR}/config.xml")

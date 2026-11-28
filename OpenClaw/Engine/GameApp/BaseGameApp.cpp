@@ -321,14 +321,14 @@ bool BaseGameApp::Initialize(int argc, char **argv) {
   }
 
   ShowStartupProgress(m_pRenderer, 10);
-  STARTUP_TRACE("begin InitializeResources");
+  STARTUP_TRACE(std::string("begin InitializeResources, ") + MemStats::Report());
   if (!InitializeResources(m_GameOptions)) {
     STARTUP_TRACE("FAILED InitializeResources");
     return false;
   }
 
   ShowStartupProgress(m_pRenderer, 25);
-  STARTUP_TRACE("begin InitializeLocalization");
+  STARTUP_TRACE(std::string("begin InitializeLocalization, ") + MemStats::Report());
   if (!InitializeLocalization(m_GameOptions)) {
     STARTUP_TRACE("FAILED InitializeLocalization");
     return false;
