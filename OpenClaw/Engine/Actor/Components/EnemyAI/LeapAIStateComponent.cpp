@@ -6,6 +6,9 @@
 #include "../PositionComponent.h"
 #include "../RenderComponent.h"
 #include "../ControllableComponent.h"
+#include "../ControllerComponents/HealthComponent.h"
+#include "../../ActorTemplates.h"
+#include "../../../Util/Util.h"
 
 #include "../../../GameApp/BaseGameLogic.h"
 #include "../../../GameApp/BaseGameApp.h"
@@ -355,4 +358,325 @@ void StepAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
         g_pApp->GetGameLogic()->VGetGamePhysics()->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
     }
     m_IsActive = false;
+}
+
+//=====================================================================================================================
+// WolvingtonMovesAIStateComponent
+//=====================================================================================================================
+
+const char* WolvingtonMovesAIStateComponent::g_Name = "WolvingtonMovesAIStateComponent";
+
+WolvingtonMovesAIStateComponent::WolvingtonMovesAIStateComponent()
+    : BaseEnemyAIStateComponent("WolvingtonMovesState")
+{
+}
+
+bool WolvingtonMovesAIStateComponent::VDelegateInit(TiXmlElement* pData)
+{
+    ParseValueFromXmlElem(&m_NearRange, pData->FirstChildElement("NearRange"));
+    ParseValueFromXmlElem(&m_CloseRange, pData->FirstChildElement("CloseRange"));
+    ParseValueFromXmlElem(&m_FarRange, pData->FirstChildElement("FarRange"));
+    ParseValueFromXmlElem(&m_LevelRange, pData->FirstChildElement("LevelRange"));
+    ParseValueFromXmlElem(&m_BlowChance, pData->FirstChildElement("BlowChance"));
+    ParseValueFromXmlElem(&m_MagicChance, pData->FirstChildElement("MagicChance"));
+    ParseValueFromXmlElem(&m_RunChance, pData->FirstChildElement("RunChance"));
+    ParseValueFromXmlElem(&m_RunSpeed, pData->FirstChildElement("RunSpeed"));
+    ParseValueFromXmlElem(&m_BackSpeed, pData->FirstChildElement("BackSpeed"));
+    ParseValueFromXmlElem(&m_UppercutDamage, pData->FirstChildElement("UppercutDamage"));
+    ParseValueFromXmlElem(&m_SwordDamage, pData->FirstChildElement("SwordDamage"));
+    ParseValueFromXmlElem(&m_CheckEveryMs, pData->FirstChildElement("CheckEveryMs"));
+    ParseValueFromXmlElem(&m_CounterDelayMs, pData->FirstChildElement("CounterDelayMs"));
+    std::string proto;
+    if (ParseValueFromXmlElem(&proto, pData->FirstChildElement("MagicPrototype")))
+    {
+        m_MagicProto = StringToEnum_ActorPrototype(proto);
+    }
+    return true;
+}
+
+void WolvingtonMovesAIStateComponent::VPostInit()
+{
+    BaseEnemyAIStateComponent::VPostInit();
+}
+
+bool WolvingtonMovesAIStateComponent::ClawLevel(double& dx, double& absDx, bool& ducking)
+{
+    StrongActorPtr pClaw = g_pApp->GetGameLogic()->GetClawActor();
+    if (!pClaw)
+    {
+        return false;
+    }
+    const Point me = m_pPositionComponent->GetPosition();
+    const Point claw = pClaw->GetPositionComponent()->GetPosition();
+    dx = claw.x - me.x;
+    absDx = fabs(dx);
+    ducking = false;
+    if (auto pCtrl = MakeStrongPtr(pClaw->GetComponent<ClawControllableComponent>(ClawControllableComponent::g_Name)))
+    {
+        if (pCtrl->IsDying())
+        {
+            return false;
+        }
+        ducking = pCtrl->IsDucking();
+    }
+    return fabs(claw.y - me.y) <= m_LevelRange;
+}
+
+WolvingtonMovesAIStateComponent::Move WolvingtonMovesAIStateComponent::Decide()
+{
+    double dx, absDx;
+    bool ducking;
+    if (!ClawLevel(dx, absDx, ducking) || absDx >= m_FarRange || absDx < m_CloseRange)
+    {
+        return Move_None;
+    }
+    const int roll = rand() % 1000;
+    if (absDx < m_NearRange)
+    {
+        if (roll < m_BlowChance)
+        {
+            return ducking ? Move_Sword : Move_Uppercut;
+        }
+        return Move_Back;
+    }
+    if (roll < m_MagicChance) return Move_Magic;
+    if (roll < m_MagicChance + m_RunChance) return Move_Run;
+    return Move_None; // advance: his patrol walks on
+}
+
+void WolvingtonMovesAIStateComponent::Face(double dx)
+{
+    m_pRenderComponent->SetMirrored(dx > 0);
+}
+
+void WolvingtonMovesAIStateComponent::VUpdate(uint32 msDiff)
+{
+    if (!m_IsActive)
+    {
+        // a hit: 500 ms after it the run and uppercut (0x4a4380)
+        if (auto pHealth = MakeStrongPtr(m_pOwner->GetComponent<HealthComponent>(HealthComponent::g_Name)))
+        {
+            const int hp = pHealth->GetCurrentHealth();
+            if (m_LastHealth >= 0 && hp < m_LastHealth && hp > 0)
+            {
+                m_CounterMs = m_CounterDelayMs;
+            }
+            m_LastHealth = hp;
+        }
+        BaseEnemyAIStateComponent* pCurrent = m_pEnemyAIComponent->GetCurrentState();
+        if (!pCurrent || m_pEnemyAIComponent->IsDead())
+        {
+            m_CheckMs = 0;
+            return;
+        }
+        const EnemyAIState type = pCurrent->VGetStateType();
+        if (type == EnemyAIState_TakingDamage || type == EnemyAIState_Parry)
+        {
+            return;
+        }
+        if (m_CounterMs >= 0)
+        {
+            m_CounterMs -= (int)msDiff;
+            if (m_CounterMs >= 0) return;
+            m_CounterMs = -1;
+            double dx, absDx;
+            bool ducking;
+            if (type == EnemyAIState_Patrolling && ClawLevel(dx, absDx, ducking) && absDx < m_FarRange)
+            {
+                m_Planned = Move_Run;
+                m_pEnemyAIComponent->EnterBestState(true);
+                m_Planned = Move_None;
+            }
+            return;
+        }
+        if (type != EnemyAIState_Patrolling)
+        {
+            m_CheckMs = 0;
+            return;
+        }
+        if ((m_CheckMs += msDiff) < m_CheckEveryMs)
+        {
+            return;
+        }
+        m_CheckMs = 0;
+        m_Planned = Decide();
+        if (m_Planned != Move_None)
+        {
+            m_pEnemyAIComponent->EnterBestState(true);
+        }
+        m_Planned = Move_None;
+        return;
+    }
+
+    shared_ptr<IGamePhysics> pPhysics = g_pApp->GetGameLogic()->VGetGamePhysics();
+    const uint32 guid = m_pOwner->GetGUID();
+    const Point vel = pPhysics->VGetVelocity(guid);
+    m_TimeLeft -= (int)msDiff;
+
+    if (m_Move == Move_Back || m_Move == Move_Run)
+    {
+        const double x = m_pPositionComponent->GetX();
+        double dx, absDx;
+        bool ducking;
+        const bool level = ClawLevel(dx, absDx, ducking);
+        bool stop = m_TimeLeft <= 0;
+        if (m_Move == Move_Back)
+        {
+            stop = stop || (m_Dir > 0 && x >= m_TargetX) || (m_Dir < 0 && x <= m_TargetX);
+        }
+        else if (level && absDx < m_NearRange)
+        {
+            // close enough: the uppercut on the spot (0x4a4cc0 -> 0x4a4a70)
+            pPhysics->VSetLinearSpeed(guid, Point(0, vel.y));
+            m_pAnimationComponent->SetFrameTimeScale(1.0f);
+            Face(dx);
+            m_Move = Move_Uppercut;
+            StartBlow("strike2");
+            return;
+        }
+        // no floor ahead or a wall: stop there
+        const double ahead = x + m_Dir * 40.0;
+        const Point me = m_pPositionComponent->GetPosition();
+        if (pPhysics->VRayCast(Point(me.x, me.y - 20), Point(ahead, me.y - 20), CollisionFlag_Solid).foundIntersection ||
+            !pPhysics->VRayCast(Point(ahead, me.y), Point(ahead, me.y + 120), CollisionFlag_Solid | CollisionFlag_Ground).foundIntersection)
+        {
+            stop = true;
+        }
+        if (stop)
+        {
+            pPhysics->VSetLinearSpeed(guid, Point(0, vel.y));
+            Finish();
+            return;
+        }
+        const double speed = m_Move == Move_Run ? m_RunSpeed : m_BackSpeed;
+        pPhysics->VSetLinearSpeed(guid, Point(m_Dir * speed / 75.0, vel.y));
+        return;
+    }
+
+    // a blow or a shot: its frame, then the end of the animation
+    pPhysics->VSetLinearSpeed(guid, Point(0, vel.y));
+    std::shared_ptr<Animation> pAnim = m_pAnimationComponent->GetCurrentAnimation();
+    if (!pAnim || pAnim->GetName() != m_Anim)
+    {
+        Finish();
+        return;
+    }
+    const int frame = (int)pAnim->GetCurrentAnimationFrame()->idx;
+    const bool facingRight = m_pRenderComponent->IsMirrored();
+    const double side = facingRight ? 1.0 : -1.0;
+    const Direction dir = facingRight ? Direction_Right : Direction_Left;
+    const int hitFrame = m_Move == Move_Uppercut ? 5 : m_Move == Move_Sword ? 3 : 4;
+    if (!m_HitDone && frame >= hitFrame)
+    {
+        m_HitDone = true;
+        const Point me = m_pPositionComponent->GetPosition();
+        if (m_Move == Move_Uppercut)
+        {
+            // CLAW.EXE's box for it: (-59,-63)..(-36,-8) in front of him
+            ActorTemplates::CreateAreaDamage(Point(me.x + side * 48, me.y - 36), Point(40, 56),
+                m_UppercutDamage, CollisionFlag_EnemyAIAttack, "Rectangle", DamageType_MeleeAttack, dir, m_pOwner->GetGUID());
+            Util::PlayRandomSoundFromList(m_pEnemyAIComponent->GetMeleeAttackSounds());
+        }
+        else if (m_Move == Move_Sword)
+        {
+            // (-95,1)..(-24,42): low, at Claw's feet
+            ActorTemplates::CreateAreaDamage(Point(me.x + side * 60, me.y + 21), Point(71, 41),
+                m_SwordDamage, CollisionFlag_EnemyAIAttack, "Rectangle", DamageType_MeleeAttack, dir, m_pOwner->GetGUID());
+            Util::PlayRandomSoundFromList(m_pEnemyAIComponent->GetMeleeAttackSounds());
+        }
+        else if (m_Move == Move_Magic && m_MagicProto != ActorPrototype_None)
+        {
+            const bool low = (m_ShotIdx & 1) != 0;
+            ActorTemplates::CreateActor_Projectile(m_MagicProto, Point(me.x + side * 65, me.y + (low ? 10 : -20)), dir, m_pOwner->GetGUID());
+            Util::PlayRandomSoundFromList(m_pEnemyAIComponent->GetRangedAttackSounds());
+        }
+    }
+    const bool ended = (m_HitDone && frame < m_LastFrame) || m_TimeLeft <= 0 ||
+        (pAnim->IsAtLastAnimFrame() && m_HitDone && frame > hitFrame && pAnim->GetCurrentAnimationFrame()->duration == 0);
+    m_LastFrame = frame;
+    if (!ended)
+    {
+        return;
+    }
+    if (m_Move == Move_Magic && --m_ShotsLeft > 0)
+    {
+        ++m_ShotIdx;
+        double dx, absDx;
+        bool ducking;
+        if (ClawLevel(dx, absDx, ducking)) Face(dx);
+        StartBlow((m_ShotIdx & 1) ? "strike4" : "strike3");
+        return;
+    }
+    Finish();
+}
+
+void WolvingtonMovesAIStateComponent::StartBlow(const std::string& anim)
+{
+    m_Anim = anim;
+    m_HitDone = false;
+    m_LastFrame = 0;
+    m_TimeLeft = 1500;
+    m_pAnimationComponent->SetAnimation(anim);
+    m_pAnimationComponent->ResetAnimation();
+}
+
+void WolvingtonMovesAIStateComponent::Start(Move move)
+{
+    m_Move = move;
+    double dx = 0, absDx = 0;
+    bool ducking;
+    ClawLevel(dx, absDx, ducking);
+    Face(dx);
+    const double toward = dx < 0 ? -1.0 : 1.0;
+    switch (move)
+    {
+        case Move_Uppercut: StartBlow("strike2"); break;
+        case Move_Sword: StartBlow("strike1"); break;
+        case Move_Magic:
+            // 0x4a4600: counter = rand & 3, a shot per step until it reaches 3
+            m_ShotIdx = rand() % 4;
+            m_ShotsLeft = 4 - m_ShotIdx;
+            StartBlow((m_ShotIdx & 1) ? "strike4" : "strike3");
+            break;
+        case Move_Back:
+        {
+            m_Dir = -toward;
+            m_TargetX = m_pPositionComponent->GetX() + m_Dir * (75 + rand() % 51);
+            m_TimeLeft = (int)(fabs(m_TargetX - m_pPositionComponent->GetX()) / m_BackSpeed * 1000.0) + 300;
+            m_pAnimationComponent->SetAnimation("advance");
+            break;
+        }
+        case Move_Run:
+            m_Dir = toward;
+            m_TimeLeft = (int)((double)m_FarRange / m_RunSpeed * 1000.0) + 500;
+            m_pAnimationComponent->SetAnimation("fastadvance");
+            m_pAnimationComponent->SetFrameTimeScale(0.25f);
+            break;
+        default: break;
+    }
+}
+
+void WolvingtonMovesAIStateComponent::Finish()
+{
+    m_pAnimationComponent->SetFrameTimeScale(1.0f);
+    m_IsActive = false;
+    m_Move = Move_None;
+    m_pEnemyAIComponent->EnterBestState(true);
+}
+
+void WolvingtonMovesAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState)
+{
+    m_IsActive = true;
+    Start(m_Planned);
+}
+
+void WolvingtonMovesAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
+{
+    if (m_IsActive)
+    {
+        g_pApp->GetGameLogic()->VGetGamePhysics()->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
+        m_pAnimationComponent->SetFrameTimeScale(1.0f);
+    }
+    m_IsActive = false;
+    m_Move = Move_None;
 }

@@ -30,12 +30,12 @@
     <PatrolEnemyAIStateComponent>
         <IsAlwaysIdle>false</IsAlwaysIdle>
         <StatePriority>0</StatePriority>
-        <PatrolSpeed>1.700000</PatrolSpeed>
+        <PatrolSpeed>0.800000</PatrolSpeed>
         <LeftPatrolBorder>0</LeftPatrolBorder> <!-- DEFINED IN CODE -->
         <RightPatrolBorder>0</RightPatrolBorder> <!-- DEFINED IN CODE -->
         <RetainDirection>false</RetainDirection>
         <WalkAction>
-            <Animation>fastadvance</Animation>
+            <Animation>advance</Animation>
         </WalkAction>
     </PatrolEnemyAIStateComponent>
     <ParryEnemyAIStateComponent>
@@ -53,58 +53,23 @@
         <ParryAnimFrameIdx>0</ParryAnimFrameIdx>
         <ParryAnimation>block</ParryAnimation>
     </ParryEnemyAIStateComponent>
-    <MeleeAttackAIStateComponent>
-        <StatePriority>20</StatePriority>
-        <Attacks>
-            <AttackAction>
-                <Animation>strike2</Animation>
-                <AttackAnimFrameIdx>5</AttackAnimFrameIdx>
-                <AttackType>0</AttackType>
-                <AttackFxImageSet>NONE</AttackFxImageSet>
-                <AttackSpawnPositionOffset x="-100" y="0" />
-                <AttackAreaSize width="100" height="50" />
-                <Damage>35</Damage>
-                <AgroSensorFixture>
-                    <FixtureType>EnemyAIMeleeSensor</FixtureType>
-                    <CollisionShape>Rectangle</CollisionShape>
-                    <IsSensor>true</IsSensor>
-                    <Size width="200" height="50" />
-                    <Offset x="0" y="0" />
-                    <CollisionFlag>4</CollisionFlag>
-                    <CollisionMask>2</CollisionMask>
-                    <Friction>0.000000</Friction>
-                    <Density>0.000000</Density>
-                    <Restitution>0</Restitution>
-                </AgroSensorFixture>
-            </AttackAction>
-        </Attacks>
-    </MeleeAttackAIStateComponent>
-    <RangedAttackAIStateComponent>
-        <StatePriority>10</StatePriority>
-        <AttackDelay>100</AttackDelay>
-        <Attacks>
-            <AttackAction>
-                <Animation>strike3</Animation>
-                <AttackAnimFrameIdx>4</AttackAnimFrameIdx>
-                <ProjectilePrototype>ActorPrototype_Level6_WolvingtonMagic</ProjectilePrototype>
-                <AttackSpawnPositionOffset x="-42" y="2" />
-                <AttackAreaSize width="0" height="0" />
-                <Damage>10</Damage>
-                <AgroSensorFixture>
-                    <FixtureType>EnemyAIRangedSensor</FixtureType>
-                    <CollisionShape>Rectangle</CollisionShape>
-                    <IsSensor>true</IsSensor>
-                    <Size width="800" height="30" />
-                    <Offset x="0" y="-20" />
-                    <CollisionFlag>4</CollisionFlag>
-                    <CollisionMask>2</CollisionMask>
-                    <Friction>0.000000</Friction>
-                    <Density>0.000000</Density>
-                    <Restitution>0.000000</Restitution>
-                </AgroSensorFixture>
-            </AttackAction>
-        </Attacks>
-    </RangedAttackAIStateComponent>
+    <!-- CLAW.EXE 0x4a44d0: his own choices (blows, magic series, run and
+         uppercut, step back); the advance is his patrol at 60 px/s -->
+    <WolvingtonMovesAIStateComponent>
+        <StatePriority>30</StatePriority>
+        <NearRange>200</NearRange>
+        <CloseRange>56</CloseRange>
+        <FarRange>500</FarRange>
+        <BlowChance>500</BlowChance>
+        <MagicChance>100</MagicChance>
+        <RunChance>200</RunChance>
+        <RunSpeed>480</RunSpeed>
+        <BackSpeed>150</BackSpeed>
+        <UppercutDamage>5</UppercutDamage>
+        <SwordDamage>5</SwordDamage>
+        <CounterDelayMs>500</CounterDelayMs>
+        <MagicPrototype>ActorPrototype_Level6_WolvingtonMagic</MagicPrototype>
+    </WolvingtonMovesAIStateComponent>
     <WolvingtonBossAIStateComponent>
         <StatePriority>100</StatePriority>
         <BossDialogAnimation>idle</BossDialogAnimation>

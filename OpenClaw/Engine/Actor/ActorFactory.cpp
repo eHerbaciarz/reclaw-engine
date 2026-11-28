@@ -136,6 +136,7 @@ ActorFactory::ActorFactory()
     _componentFactory.Register<TigerGuardAIStateComponent>(TigerGuardAIStateComponent::GetIdFromName(TigerGuardAIStateComponent::g_Name));
     _componentFactory.Register<LeapAIStateComponent>(LeapAIStateComponent::GetIdFromName(LeapAIStateComponent::g_Name));
     _componentFactory.Register<StepAIStateComponent>(StepAIStateComponent::GetIdFromName(StepAIStateComponent::g_Name));
+    _componentFactory.Register<WolvingtonMovesAIStateComponent>(WolvingtonMovesAIStateComponent::GetIdFromName(WolvingtonMovesAIStateComponent::g_Name));
     _componentFactory.Register<GabrielAIStateComponent>(GabrielAIStateComponent::GetIdFromName(GabrielAIStateComponent::g_Name));
     _componentFactory.Register<GabrielCannonButtonComponent>(GabrielCannonButtonComponent::GetIdFromName(GabrielCannonButtonComponent::g_Name));
     _componentFactory.Register<GabrielCannonComponent>(GabrielCannonComponent::GetIdFromName(GabrielCannonComponent::g_Name));

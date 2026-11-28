@@ -92,4 +92,62 @@ private:
     int m_TimeLeft = 0;
 };
 
+// Wolvington's own fight, as CLAW.EXE decides it (0x4a44d0, "LS_HOME"),
+// rolled each time he is free (patrolling) and Claw is level with him:
+//   Claw 56-200 px away: half the time a blow - standing uppercut (STRIKE2,
+//     0x4a4a70) or, when Claw ducks, the low sword (STRIKE1, 0x4a4ba0);
+//     otherwise MOVEBACK (0x4407a0) 75-125 px at 150 px/s;
+//   Claw 200-500 px away: 10% a magic series (0x4a4600): 1-4 shots
+//     (rand 0..3 up to 3) alternating low (STRIKE4, +10 px) and high
+//     (STRIKE3, -20 px) from 65 px in front, 300 px/s; 20% run and
+//     uppercut (0x4a4c80: FASTADVANCE at 4x his 120 px/s, animation 4x as
+//     fast, uppercut once Claw is within 200); the rest he advances
+//     (his patrol);
+//   500 ms after a hit he answers with the run and uppercut (0x4a4380).
+class WolvingtonMovesAIStateComponent : public BaseEnemyAIStateComponent
+{
+public:
+    WolvingtonMovesAIStateComponent();
+    virtual ~WolvingtonMovesAIStateComponent() { }
+
+    static const char* g_Name;
+    virtual const char* VGetName() const override { return g_Name; }
+
+    virtual bool VDelegateInit(TiXmlElement* pData) override;
+    virtual void VPostInit() override;
+    virtual void VUpdate(uint32 msDiff) override;
+    virtual void VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState) override;
+    virtual void VOnStateLeave(BaseEnemyAIStateComponent* pNextState) override;
+    virtual EnemyAIState VGetStateType() const override { return EnemyAIState_WolvingtonMoves; }
+    virtual bool VCanEnter() override { return m_IsActive || m_Planned != Move_None; }
+
+private:
+    enum Move { Move_None, Move_Uppercut, Move_Sword, Move_Back, Move_Magic, Move_Run };
+
+    bool ClawLevel(double& dx, double& absDx, bool& ducking);
+    Move Decide();
+    void Start(Move move);
+    void StartBlow(const std::string& anim);
+    void Finish();
+    void Face(double dx);
+
+    int m_NearRange = 200, m_CloseRange = 56, m_FarRange = 500, m_LevelRange = 60;
+    int m_BlowChance = 500, m_MagicChance = 100, m_RunChance = 200; // of 1000
+    double m_RunSpeed = 480.0, m_BackSpeed = 150.0;
+    int m_UppercutDamage = 5, m_SwordDamage = 5;
+    int m_CheckEveryMs = 400, m_CounterDelayMs = 500;
+    ActorPrototype m_MagicProto = ActorPrototype_None;
+
+    Move m_Planned = Move_None, m_Move = Move_None;
+    int m_CheckMs = 0;
+    int m_LastHealth = -1;
+    int m_CounterMs = -1;
+    int m_ShotsLeft = 0, m_ShotIdx = 0;
+    std::string m_Anim;
+    int m_LastFrame = 0;
+    bool m_HitDone = false;
+    int m_TimeLeft = 0;
+    double m_Dir = 0.0, m_TargetX = 0.0;
+};
+
 #endif

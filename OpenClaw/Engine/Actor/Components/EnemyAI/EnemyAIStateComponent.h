@@ -35,6 +35,7 @@ enum EnemyAIState
     EnemyAIState_TigerGuard,
     EnemyAIState_Leap,
     EnemyAIState_Step,
+    EnemyAIState_WolvingtonMoves,
 };
 
 struct EnemyAIAction
